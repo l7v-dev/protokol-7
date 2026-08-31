@@ -1,0 +1,70 @@
+import { evaluateProviderConformance, type ProviderConformanceCheckId, type ProviderConformanceReport } from './provider-conformance.js';
+
+export const ZYTE_REFERENCE_CERTIFICATION_CONTRACT_VERSION = 'zyte-reference-certification/v1' as const;
+export type ZyteReferenceCertification = {
+  contractVersion: typeof ZYTE_REFERENCE_CERTIFICATION_CONTRACT_VERSION;
+  certificationId: string;
+  adapterId: string;
+  providerReference: 'ZYTE_REFERENCE';
+  providerVersion: string;
+  reviewedAt: string;
+  status: 'LOCAL_REFERENCE_CERTIFIED' | 'LOCAL_REFERENCE_REJECTED';
+  conformance: Pick<ProviderConformanceReport, 'status' | 'passedCheckIds' | 'failedCheckIds'>;
+  requiresRealProviderCertification: true;
+  allowsProviderActivation: false;
+  allowsExternalProviderCall: false;
+};
+
+export class ZyteReferenceCertificationError extends Error {
+  public constructor(public readonly code: 'ZYTE_REFERENCE_CERTIFICATION_INVALID' | 'ZYTE_REFERENCE_CERTIFICATION_CONFLICT', message: string) {
+    super(message);
+    this.name = 'ZyteReferenceCertificationError';
+  }
+}
+
+const SAFE_ID = /^[A-Za-z0-9._:-]{1,128}$/;
+
+/**
+ * Immutable local-reference certification registry. `ZYTE_REFERENCE` is a
+ * classification label only: this contract never contacts Zyte or another
+ * provider, uses an account, resolves credentials, acquires a proxy or
+ * certifies a production adapter.
+ */
+export class ZyteReferenceCertificationRegistry {
+  private readonly certifications = new Map<string, ZyteReferenceCertification>();
+
+  public certify(input: { certificationId: string; adapterId: string; providerReference: 'ZYTE_REFERENCE'; providerVersion: string; reviewedAt: string; checks: ReadonlyArray<{ checkId: ProviderConformanceCheckId; status: 'PASS' | 'FAIL' }> }): ZyteReferenceCertification {
+    validate(input);
+    const conformance = evaluateProviderConformance({ adapterId: input.adapterId, providerId: 'ZYTE_REFERENCE', providerVersion: input.providerVersion, executionMode: 'LOCAL_TEST_DOUBLE', checks: input.checks });
+    const certification: ZyteReferenceCertification = {
+      contractVersion: ZYTE_REFERENCE_CERTIFICATION_CONTRACT_VERSION, certificationId: input.certificationId, adapterId: input.adapterId,
+      providerReference: 'ZYTE_REFERENCE', providerVersion: input.providerVersion, reviewedAt: input.reviewedAt,
+      status: conformance.status === 'CONFORMANT_REFERENCE' ? 'LOCAL_REFERENCE_CERTIFIED' : 'LOCAL_REFERENCE_REJECTED',
+      conformance: { status: conformance.status, passedCheckIds: [...conformance.passedCheckIds], failedCheckIds: [...conformance.failedCheckIds] },
+      requiresRealProviderCertification: true, allowsProviderActivation: false, allowsExternalProviderCall: false
+    };
+    const existing = this.certifications.get(input.certificationId);
+    if (existing !== undefined) {
+      if (same(existing, certification)) return clone(existing);
+      throw new ZyteReferenceCertificationError('ZYTE_REFERENCE_CERTIFICATION_CONFLICT', 'Certification ID farklı içerikle tekrar kullanılamaz.');
+    }
+    this.certifications.set(input.certificationId, certification);
+    return clone(certification);
+  }
+}
+
+function validate(input: { certificationId: string; adapterId: string; providerReference: string; providerVersion: string; reviewedAt: string; checks: ReadonlyArray<{ checkId: string; status: string }> }): void {
+  if (![input.certificationId, input.adapterId, input.providerVersion].every((value) => SAFE_ID.test(value)) || input.providerReference !== 'ZYTE_REFERENCE' || !Number.isFinite(Date.parse(input.reviewedAt))) throw invalid();
+}
+
+function same(left: ZyteReferenceCertification, right: ZyteReferenceCertification): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function clone(value: ZyteReferenceCertification): ZyteReferenceCertification {
+  return { ...value, conformance: { ...value.conformance, passedCheckIds: [...value.conformance.passedCheckIds], failedCheckIds: [...value.conformance.failedCheckIds] } };
+}
+
+function invalid(): ZyteReferenceCertificationError {
+  return new ZyteReferenceCertificationError('ZYTE_REFERENCE_CERTIFICATION_INVALID', 'Provider reference certification input geçerli değil.');
+}
