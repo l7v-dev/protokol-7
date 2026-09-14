@@ -70,10 +70,7 @@ export class ApiExtractorActor implements IActor<ApiExtractorResult> {
     return data;
   }
 
-  async run(
-    task: ActorTask,
-    context: ActorRunContext
-  ): Promise<ActorResult<ApiExtractorResult>> {
+  async run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ApiExtractorResult>> {
     const startTime = Date.now();
     const timeout = task.options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     const apiOptions: ApiExtractorTaskOptions = task.options?.apiOptions ?? {};
@@ -123,7 +120,7 @@ export class ApiExtractorActor implements IActor<ApiExtractorResult> {
       let currentPage = 1;
       let currentOffset = 0;
       let totalPagesFetched = 0;
-      let nextCursor: string | undefined = undefined;
+      let nextCursor: string | undefined;
       const maxPages = pagination.maxPages ?? 5;
       const pageSize = pagination.pageSize ?? 20;
       let lastStatusCode = 200;
@@ -217,8 +214,7 @@ export class ApiExtractorActor implements IActor<ApiExtractorResult> {
       };
     } catch (error) {
       const isTimeout =
-        error instanceof Error &&
-        (error.name === "TimeoutError" || error.name === "AbortError");
+        error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
 
       return {
         taskId: task.taskId,
@@ -256,7 +252,7 @@ export class ApiExtractorActor implements IActor<ApiExtractorResult> {
 
     // Inject Bearer Token
     if (options.bearerToken) {
-      headers["Authorization"] = `Bearer ${options.bearerToken}`;
+      headers.Authorization = `Bearer ${options.bearerToken}`;
     }
 
     // Inject API Key
@@ -269,10 +265,9 @@ export class ApiExtractorActor implements IActor<ApiExtractorResult> {
     }
 
     // Body handling
-    let bodyPayload: string | undefined = undefined;
+    let bodyPayload: string | undefined;
     if (method !== "GET" && method !== "HEAD" && options.body !== undefined) {
-      bodyPayload =
-        typeof options.body === "string" ? options.body : JSON.stringify(options.body);
+      bodyPayload = typeof options.body === "string" ? options.body : JSON.stringify(options.body);
       if (!headers["Content-Type"]) {
         headers["Content-Type"] = "application/json";
       }

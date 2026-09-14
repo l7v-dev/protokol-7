@@ -1,7 +1,6 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import * as http from "http";
-import { BrowserSessionManager } from "@/browser-session-manager";
+import * as http from "node:http";
+import test from "node:test";
 import { BrowserPool } from "@/browser-pool";
 import { InteractiveBrowserController } from "@/interactive-browser-controller";
 
@@ -9,7 +8,7 @@ import { InteractiveBrowserController } from "@/interactive-browser-controller";
 
 test("InteractiveBrowserController executes actions against live server", async () => {
   // 1. Create mock HTTP server
-  const server = http.createServer((req, res) => {
+  const server = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(`
       <!DOCTYPE html>
@@ -34,7 +33,7 @@ test("InteractiveBrowserController executes actions against live server", async 
   const address = server.address() as { port: number };
   const testUrl = `http://127.0.0.1:${address.port}`;
 
-  const sessionId = "controller-test-" + Date.now();
+  const sessionId = `controller-test-${Date.now()}`;
 
   try {
     // 2. Navigate
@@ -107,7 +106,10 @@ test("InteractiveBrowserController executes actions against live server", async 
     assert.equal(tabResult.success, true);
     assert.equal(tabResult.tabs.length, 2);
 
-    const switchResult = await InteractiveBrowserController.switchTab(sessionId, tabResult.tabs[0].id);
+    const switchResult = await InteractiveBrowserController.switchTab(
+      sessionId,
+      tabResult.tabs[0].id
+    );
     assert.equal(switchResult.success, true);
     assert.equal(switchResult.activeTabId, tabResult.tabs[0].id);
   } finally {

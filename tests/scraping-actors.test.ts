@@ -1,10 +1,10 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import * as http from "http";
+import * as http from "node:http";
+import test from "node:test";
+import { CheerioScraperActor } from "@/cheerio-scraper-actor";
+import { CrawlUrlAccumulator } from "@/crawl-url-accumulator";
 import { normalizeUrl } from "@/url-normalizer";
 import { matchUrlPattern } from "@/url-pattern-matcher";
-import { CrawlUrlAccumulator } from "@/crawl-url-accumulator";
-import { CheerioScraperActor } from "@/cheerio-scraper-actor";
 
 test("normalizeUrl validates and standardizes URLs", () => {
   const withProtocol = normalizeUrl("https://example.com/docs/");
@@ -22,6 +22,16 @@ test("normalizeUrl validates and standardizes URLs", () => {
   const invalidTld = normalizeUrl("https://invalid-host-without-tld");
   assert.equal(invalidTld.valid, false);
   assert.ok(invalidTld.errorMessage?.includes("Invalid hostname"));
+
+  // Query parameter deterministic sorting
+  const unsortedQuery = normalizeUrl("https://example.com/search?z=9&a=1&m=5");
+  assert.equal(unsortedQuery.valid, true);
+  assert.equal(unsortedQuery.url, "https://example.com/search?a=1&m=5&z=9");
+
+  // Valid public IPv6 URL
+  const publicIpv6 = normalizeUrl("http://[2607:f8b0:4005:805::200e]/index");
+  assert.equal(publicIpv6.valid, true);
+  assert.equal(publicIpv6.url, "http://[2607:f8b0:4005:805::200e]/index");
 });
 
 test("matchUrlPattern evaluates wildcard patterns correctly", () => {
@@ -69,7 +79,7 @@ test("CrawlUrlAccumulator enforces deduplication, depth, and patterns", () => {
 
 test("CheerioScraperActor extracts metadata, selectors, and sanitized content", async () => {
   // Spawn local test HTTP server
-  const server = http.createServer((req, res) => {
+  const server = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(`
       <!DOCTYPE html>
@@ -125,4 +135,3 @@ test("CheerioScraperActor extracts metadata, selectors, and sanitized content", 
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });
-

@@ -11,6 +11,7 @@ export interface PolitenessLimiterOptions {
 }
 
 interface DomainRateState {
+  nextAllowedTime: number;
   lastRequestTime: number;
   consecutiveRateLimits: number;
   currentBackoffMs: number;
@@ -52,12 +53,14 @@ export class PolitenessLimiter {
 
   /**
    * Blocks until the politeness interval for the target hostname has elapsed.
+   * Atomically books the next execution slot to eliminate concurrent request collisions.
    * Returns the number of milliseconds waited.
    */
   async waitForSlot(url: string): Promise<number> {
     const hostname = this.extractHostname(url);
     const now = Date.now();
     const state = this.domainStates.get(hostname) ?? {
+      nextAllowedTime: 0,
       lastRequestTime: 0,
       consecutiveRateLimits: 0,
       currentBackoffMs: 0,
@@ -70,26 +73,28 @@ export class PolitenessLimiter {
     const jitter = this.computeJitter(targetInterval);
     const requiredDelay = targetInterval + jitter;
 
-    const timeSinceLast = now - state.lastRequestTime;
-    const waitTime = Math.max(0, requiredDelay - timeSinceLast);
+    // Atomically schedule next slot BEFORE any async wait
+    const scheduledTime = Math.max(now, state.nextAllowedTime);
+    state.nextAllowedTime = scheduledTime + requiredDelay;
+    state.lastRequestTime = scheduledTime;
+    this.domainStates.set(hostname, state);
 
+    const waitTime = scheduledTime - now;
     if (waitTime > 0) {
       await new Promise<void>((resolve) => setTimeout(resolve, waitTime));
     }
-
-    state.lastRequestTime = Date.now();
-    this.domainStates.set(hostname, state);
 
     return waitTime;
   }
 
   /**
    * Signals that a request to the target domain returned HTTP 429 Too Many Requests or 503.
-   * Multiplies the domain backoff exponentially.
+   * Multiplies the domain backoff exponentially and advances the next allowed schedule.
    */
   recordRateLimit(url: string, retryAfterSeconds?: number): void {
     const hostname = this.extractHostname(url);
     const state = this.domainStates.get(hostname) ?? {
+      nextAllowedTime: Date.now(),
       lastRequestTime: Date.now(),
       consecutiveRateLimits: 0,
       currentBackoffMs: 0,
@@ -100,11 +105,12 @@ export class PolitenessLimiter {
     if (typeof retryAfterSeconds === "number" && retryAfterSeconds > 0) {
       state.currentBackoffMs = Math.min(retryAfterSeconds * 1000, this.maxIntervalMs);
     } else {
-      const multiplier = Math.pow(2, state.consecutiveRateLimits - 1);
+      const multiplier = 2 ** (state.consecutiveRateLimits - 1);
       const computedBackoff = this.minIntervalMs * multiplier;
       state.currentBackoffMs = Math.min(computedBackoff, this.maxIntervalMs);
     }
 
+    state.nextAllowedTime = Math.max(Date.now(), state.nextAllowedTime) + state.currentBackoffMs;
     this.domainStates.set(hostname, state);
   }
 

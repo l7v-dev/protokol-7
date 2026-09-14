@@ -1,6 +1,6 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import * as http from "http";
+import * as http from "node:http";
+import test from "node:test";
 import { CrawlerActor } from "@/crawler-actor";
 
 test("CrawlerActor crawls connected pages respecting maxPages and robots.txt", async () => {

@@ -1,11 +1,11 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import { BrowserSessionManager } from "@/browser-session-manager";
+import test from "node:test";
 import { BrowserPool } from "@/browser-pool";
+import { BrowserSessionManager } from "@/browser-session-manager";
 import { DOMIndexer } from "@/dom-indexer";
 
 test("DOMIndexer indexes interactable elements and generates semantic manifest", async () => {
-  const sessionId = "dom-indexer-test-" + Date.now();
+  const sessionId = `dom-indexer-test-${Date.now()}`;
 
   try {
     const page = await BrowserSessionManager.getActivePage(sessionId);

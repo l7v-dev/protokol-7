@@ -1,5 +1,5 @@
-import test from "node:test";
 import assert from "node:assert/strict";
+import test from "node:test";
 import { PolitenessLimiter } from "@/politeness-limiter";
 
 test("PolitenessLimiter delays subsequent requests to the same origin", async () => {
@@ -62,4 +62,27 @@ test("PolitenessLimiter respects explicit Retry-After seconds", () => {
   limiter.recordRateLimit(url, 3); // 3 seconds
 
   assert.equal(limiter.getBackoffMs(url), 3000);
+});
+
+test("PolitenessLimiter staggers concurrent requests to the same origin", async () => {
+  const limiter = new PolitenessLimiter({
+    minIntervalMs: 40,
+    jitterRatio: 0,
+  });
+
+  const url = "https://concurrency.test.com/items";
+
+  // Trigger 3 concurrent waitForSlot calls simultaneously
+  const results = await Promise.all([
+    limiter.waitForSlot(url),
+    limiter.waitForSlot(url),
+    limiter.waitForSlot(url),
+  ]);
+
+  // First request should execute immediately (0ms wait)
+  assert.equal(results[0], 0);
+  // Second request should wait ~40ms
+  assert.ok(results[1] >= 30, `Expected results[1] >= 30, got ${results[1]}`);
+  // Third request should wait ~80ms
+  assert.ok(results[2] >= 70, `Expected results[2] >= 70, got ${results[2]}`);
 });

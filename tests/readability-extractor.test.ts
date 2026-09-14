@@ -1,7 +1,7 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import { ReadabilityExtractor } from "@/readability-extractor";
+import test from "node:test";
 import { CheerioScraperActor } from "@/cheerio-scraper-actor";
+import { ReadabilityExtractor } from "@/readability-extractor";
 
 test("ReadabilityExtractor returns empty result for empty HTML or non-string input", () => {
   const empty = ReadabilityExtractor.extract("", "https://example.com");
@@ -107,7 +107,9 @@ test("ReadabilityExtractor preserves heading hierarchy (#, ##, ###) and list str
   `;
 
   const result = ReadabilityExtractor.extract(html, "https://example.com/hierarchy");
-  assert.ok(result.markdown.includes("# Top Level Title") || result.markdown.includes("Top Level Title"));
+  assert.ok(
+    result.markdown.includes("# Top Level Title") || result.markdown.includes("Top Level Title")
+  );
   assert.ok(result.markdown.includes("## Sub-system Architecture"));
   assert.ok(result.markdown.includes("### Implementation Guidelines"));
   assert.ok(result.markdown.includes("Process sandbox isolation"));
@@ -136,7 +138,7 @@ test("ReadabilityExtractor preserves code blocks with language annotations", () 
   const result = ReadabilityExtractor.extract(html, "https://example.com/code");
   assert.ok(result.markdown.includes("```typescript") || result.markdown.includes("```"));
   assert.ok(result.markdown.includes("export interface IAgentMiddleware"));
-  assert.ok(result.markdown.includes("position: \"security\""));
+  assert.ok(result.markdown.includes('position: "security"'));
 });
 
 test("ReadabilityExtractor converts HTML tables to GitHub Flavored Markdown tables", () => {

@@ -5,17 +5,11 @@
  */
 
 import { BrowserPool, PooledBrowserSession } from "./browser-pool";
-import { normalizeUrl } from "./url-normalizer";
-import { StructuredExtractor } from "./structured-extractor";
-import { StealthManager } from "./stealth-manager";
 import { ReadabilityExtractor } from "./readability-extractor";
-import {
-  ActorResult,
-  ActorRunContext,
-  ActorTask,
-  IActor,
-  ScrapedPageResult,
-} from "./types";
+import { StealthManager } from "./stealth-manager";
+import { StructuredExtractor } from "./structured-extractor";
+import { ActorResult, ActorRunContext, ActorTask, IActor, ScrapedPageResult } from "./types";
+import { normalizeUrl } from "./url-normalizer";
 
 const DEFAULT_TIMEOUT_MS = 30000;
 
@@ -24,10 +18,7 @@ export class PlaywrightBrowserActor implements IActor<ScrapedPageResult> {
   readonly description =
     "Headless Chromium browser actor for dynamic single-page apps, JS rendering, and screenshots.";
 
-  async run(
-    task: ActorTask,
-    context: ActorRunContext
-  ): Promise<ActorResult<ScrapedPageResult>> {
+  async run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ScrapedPageResult>> {
     const startTime = Date.now();
     const timeout = task.options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
@@ -74,7 +65,9 @@ export class PlaywrightBrowserActor implements IActor<ScrapedPageResult> {
       const rawHtml = await page.content();
 
       const description = await page
-        .$eval('meta[name="description"], meta[property="og:description"]', (el) => el.getAttribute("content"))
+        .$eval('meta[name="description"], meta[property="og:description"]', (el) =>
+          el.getAttribute("content")
+        )
         .catch(() => undefined);
 
       let favicon = await page
@@ -89,11 +82,15 @@ export class PlaywrightBrowserActor implements IActor<ScrapedPageResult> {
         }
       }
 
-      // Collect links
+      // Collect links and resolve to absolute HTTP/HTTPS URLs
       const links = await page.$$eval("a[href]", (elements) =>
         elements
-          .map((el) => el.getAttribute("href"))
-          .filter((href): href is string => !!href)
+          .map((el) => (el as HTMLAnchorElement).href)
+          .filter(
+            (href): href is string =>
+              typeof href === "string" &&
+              (href.startsWith("http://") || href.startsWith("https://"))
+          )
       );
 
       // Extract selectors if requested

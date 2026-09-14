@@ -1,10 +1,10 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import { BrowserSessionManager } from "@/browser-session-manager";
+import test from "node:test";
 import { BrowserPool } from "@/browser-pool";
+import { BrowserSessionManager } from "@/browser-session-manager";
 
 test("BrowserSessionManager creates and manages browser sessions and tabs", async () => {
-  const sessionId = "test-session-" + Date.now();
+  const sessionId = `test-session-${Date.now()}`;
 
   try {
     // 1. Create or get session
@@ -44,6 +44,14 @@ test("BrowserSessionManager creates and manages browser sessions and tabs", asyn
     const activePage = await BrowserSessionManager.getActivePage(sessionId);
     assert.ok(activePage);
     assert.equal(activePage.isClosed(), false);
+
+    // 7. Verify SSRF protection on createTab
+    await assert.rejects(
+      async () => {
+        await BrowserSessionManager.createTab(sessionId, "http://169.254.169.254/latest/meta-data");
+      },
+      (err: Error) => err.message.includes("SSRF blocked")
+    );
   } finally {
     // 7. Close session
     await BrowserSessionManager.closeSession(sessionId);

@@ -12,6 +12,7 @@ export interface CrawlAccumulatorConfig {
   maxDepth?: number;
   includePatterns?: string[];
   excludePatterns?: string[];
+  sameDomainOnly?: boolean;
 }
 
 export interface CrawlItem {
@@ -28,12 +29,23 @@ export class CrawlUrlAccumulator {
   readonly maxDepth: number;
   readonly includePatterns: string[];
   readonly excludePatterns: string[];
+  readonly sameDomainOnly: boolean;
+  readonly startHostname: string;
 
   constructor(config: CrawlAccumulatorConfig) {
     this.maxPages = config.maxPages ?? 10;
     this.maxDepth = config.maxDepth ?? 2;
     this.includePatterns = config.includePatterns ?? [];
     this.excludePatterns = config.excludePatterns ?? [];
+    this.sameDomainOnly = config.sameDomainOnly !== false;
+
+    let startHost = "";
+    try {
+      startHost = new URL(config.startUrl).hostname.toLowerCase();
+    } catch {
+      // Ignore
+    }
+    this.startHostname = startHost;
 
     this.addUrls([config.startUrl], 0);
   }
@@ -57,6 +69,18 @@ export class CrawlUrlAccumulator {
         continue;
       }
 
+      // Domain confinement: if sameDomainOnly is enabled, reject external hostnames
+      if (this.sameDomainOnly && this.startHostname) {
+        try {
+          const parsed = new URL(url);
+          if (parsed.hostname.toLowerCase() !== this.startHostname) {
+            continue;
+          }
+        } catch {
+          continue;
+        }
+      }
+
       // Include patterns: if specified, at least one must match
       if (
         this.includePatterns.length > 0 &&
@@ -66,9 +90,7 @@ export class CrawlUrlAccumulator {
       }
 
       // Exclude patterns: if any matches, skip
-      if (
-        this.excludePatterns.some((pattern) => matchUrlPattern(url, pattern))
-      ) {
+      if (this.excludePatterns.some((pattern) => matchUrlPattern(url, pattern))) {
         continue;
       }
 

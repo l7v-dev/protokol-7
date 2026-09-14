@@ -4,12 +4,11 @@
  * robots.txt policy compliance, and Cheerio/Playwright rendering.
  */
 
-import { normalizeUrl } from "./url-normalizer";
+import { CheerioScraperActor } from "./cheerio-scraper-actor";
 import { CrawlUrlAccumulator } from "./crawl-url-accumulator";
+import { PlaywrightBrowserActor } from "./playwright-browser-actor";
 import { PolitenessLimiter } from "./politeness-limiter";
 import { RobotsParser } from "./robots-parser";
-import { CheerioScraperActor } from "./cheerio-scraper-actor";
-import { PlaywrightBrowserActor } from "./playwright-browser-actor";
 import {
   ActorResult,
   ActorRunContext,
@@ -19,6 +18,7 @@ import {
   IActor,
   ScrapedPageResult,
 } from "./types";
+import { normalizeUrl } from "./url-normalizer";
 
 const DEFAULT_MAX_PAGES = 10;
 const DEFAULT_MAX_DEPTH = 2;
@@ -29,10 +29,7 @@ export class CrawlerActor implements IActor<CrawlerResult> {
   readonly description =
     "Breadth-first multi-page crawler with robots.txt compliance, politeness delays, and deduplication.";
 
-  async run(
-    task: ActorTask,
-    context: ActorRunContext
-  ): Promise<ActorResult<CrawlerResult>> {
+  async run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<CrawlerResult>> {
     const startTime = Date.now();
     const normalized = normalizeUrl(task.targetUrl);
 
@@ -65,6 +62,7 @@ export class CrawlerActor implements IActor<CrawlerResult> {
       maxDepth,
       includePatterns: crawlerOptions?.includePatterns,
       excludePatterns: crawlerOptions?.excludePatterns,
+      sameDomainOnly: crawlerOptions?.sameDomainOnly !== false,
     });
 
     const politenessLimiter = new PolitenessLimiter();

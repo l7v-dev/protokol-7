@@ -1,11 +1,11 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import * as http from "node:http";
+import { describe, it } from "node:test";
 import { ApiExtractorActor } from "@/api-extractor-actor";
 
 describe("ApiExtractorActor - REST API Extraction Engine", () => {
   it("executes basic GET request and parses JSON data", async () => {
-    const server = http.createServer((req, res) => {
+    const server = http.createServer((_req, res) => {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ status: "ok", version: "1.0.0" }));
     });
@@ -41,7 +41,7 @@ describe("ApiExtractorActor - REST API Extraction Engine", () => {
     let receivedQueryParam: string | null = null;
 
     const server = http.createServer((req, res) => {
-      receivedAuth = req.headers["authorization"];
+      receivedAuth = req.headers.authorization;
       const url = new URL(req.url!, "http://localhost");
       receivedQueryParam = url.searchParams.get("filter");
 
@@ -145,7 +145,7 @@ describe("ApiExtractorActor - REST API Extraction Engine", () => {
   });
 
   it("applies projection keys to filter object properties", async () => {
-    const server = http.createServer((req, res) => {
+    const server = http.createServer((_req, res) => {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify([

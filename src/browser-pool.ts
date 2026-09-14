@@ -4,8 +4,8 @@
  * enforces route-level SSRF defenses, and masks bot signatures.
  */
 
-import * as fs from "fs";
-import { chromium, Browser, BrowserContext, Page } from "playwright";
+import * as fs from "node:fs";
+import { Browser, BrowserContext, chromium, Page } from "playwright";
 import { SSRFGuard } from "./ssrf-guard";
 import { StealthManager } from "./stealth-manager";
 
@@ -30,17 +30,15 @@ export interface PooledBrowserSession {
 
 export class BrowserPool {
   private static browserInstance: Browser | null = null;
+  private static browserLaunchPromise: Promise<Browser> | null = null;
   private static activeContexts = 0;
   private static idleTimer: NodeJS.Timeout | null = null;
   private static readonly IDLE_TIMEOUT_MS = 60000;
 
-  private static readonly BLOCKED_RESOURCE_TYPES = new Set([
-    "image",
-    "media",
-    "font",
-  ]);
+  private static readonly BLOCKED_RESOURCE_TYPES = new Set(["image", "media", "font"]);
 
-  private static readonly BLOCKED_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|ico|mp4|webm|ogg|mp3|wav|woff2?|ttf|eot)(\?.*)?$/i;
+  private static readonly BLOCKED_EXTENSIONS =
+    /\.(png|jpe?g|gif|webp|svg|ico|mp4|webm|ogg|mp3|wav|woff2?|ttf|eot)(\?.*)?$/i;
 
   private static readonly BLOCKED_TRACKER_HOSTS = [
     "google-analytics.com",
@@ -71,6 +69,7 @@ export class BrowserPool {
 
   /**
    * Acquires or reuses a shared Chromium instance.
+   * Utilizes launch promise caching to eliminate concurrent startup race conditions.
    */
   private static async getBrowser(): Promise<Browser> {
     if (this.idleTimer) {
@@ -78,21 +77,33 @@ export class BrowserPool {
       this.idleTimer = null;
     }
 
-    if (!this.browserInstance || !this.browserInstance.isConnected()) {
-      const executablePath = this.resolveExecutablePath();
-      this.browserInstance = await chromium.launch({
-        headless: true,
-        executablePath,
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--disable-accelerated-2d-canvas",
-          "--no-first-run",
-          "--no-zygote",
-          "--disable-gpu",
-        ],
-      });
+    if (this.browserLaunchPromise) {
+      return this.browserLaunchPromise;
+    }
+
+    if (!this.browserInstance?.isConnected()) {
+      this.browserLaunchPromise = (async () => {
+        try {
+          const executablePath = this.resolveExecutablePath();
+          this.browserInstance = await chromium.launch({
+            headless: true,
+            executablePath,
+            args: [
+              "--no-sandbox",
+              "--disable-setuid-sandbox",
+              "--disable-dev-shm-usage",
+              "--disable-accelerated-2d-canvas",
+              "--no-first-run",
+              "--no-zygote",
+              "--disable-gpu",
+            ],
+          });
+          return this.browserInstance;
+        } finally {
+          this.browserLaunchPromise = null;
+        }
+      })();
+      return this.browserLaunchPromise;
     }
 
     return this.browserInstance;
@@ -130,7 +141,7 @@ export class BrowserPool {
     const userAgent = options?.userAgent || stealthProfile.userAgent;
     const viewport = options?.viewport || stealthProfile.viewport;
     const blockAssets = options?.blockAssets !== false; // Default true
-    const allowLocalNetwork = options?.allowLocalNetwork ?? (process.env.NODE_ENV === "test");
+    const allowLocalNetwork = options?.allowLocalNetwork ?? process.env.NODE_ENV === "test";
 
     const context = await browser.newContext({
       userAgent,
@@ -146,13 +157,8 @@ export class BrowserPool {
     // Polyfill bundler helpers (e.g. esbuild/tsx __name) in browser execution context
     await context.addInitScript("window.__name = (fn) => fn;");
 
-    const page = await context.newPage();
-    if (options?.timeoutMs) {
-      page.setDefaultTimeout(options.timeoutMs);
-    }
-
-    // Intercept all outgoing network requests for SSRF protection and asset blocking
-    await page.route("**/*", async (route) => {
+    // Intercept all outgoing network requests for SSRF protection and asset blocking across ALL pages/tabs
+    await context.route("**/*", async (route) => {
       const request = route.request();
       const url = request.url();
       const resourceType = request.resourceType();
@@ -177,6 +183,11 @@ export class BrowserPool {
 
       return route.continue();
     });
+
+    const page = await context.newPage();
+    if (options?.timeoutMs) {
+      page.setDefaultTimeout(options.timeoutMs);
+    }
 
     let released = false;
     const release = async () => {
@@ -209,6 +220,14 @@ export class BrowserPool {
     if (this.idleTimer) {
       clearTimeout(this.idleTimer);
       this.idleTimer = null;
+    }
+    if (this.browserLaunchPromise) {
+      try {
+        await this.browserLaunchPromise;
+      } catch {
+        // Ignored
+      }
+      this.browserLaunchPromise = null;
     }
     if (this.browserInstance) {
       try {

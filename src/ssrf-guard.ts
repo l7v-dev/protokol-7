@@ -31,7 +31,7 @@ export class SSRFGuard {
    */
   static isPrivateIPv4(ip: string): boolean {
     const parts = ip.split(".").map((segment) => parseInt(segment, 10));
-    if (parts.length !== 4 || parts.some((p) => isNaN(p) || p < 0 || p > 255)) {
+    if (parts.length !== 4 || parts.some((p) => Number.isNaN(p) || p < 0 || p > 255)) {
       return true; // Malformed is treated as dangerous
     }
 
@@ -83,41 +83,143 @@ export class SSRFGuard {
   }
 
   /**
-   * Determines whether an IPv6 address belongs to a loopback, unique local, or link-local subnet.
+   * Expands an IPv6 address string into 8 16-bit numeric values.
    */
-  static isPrivateIPv6(ip: string): boolean {
-    const normalized = ip.toLowerCase().trim();
-
-    // Loopback
-    if (normalized === "::1" || normalized === "0:0:0:0:0:0:0:1") return true;
-
-    // Unspecified
-    if (normalized === "::" || normalized === "0:0:0:0:0:0:0:0") return true;
-
-    // IPv4-mapped IPv6 (::ffff:x.x.x.x)
-    if (normalized.startsWith("::ffff:")) {
-      const v4Part = normalized.slice(7);
-      if (net.isIPv4(v4Part)) {
-        return this.isPrivateIPv4(v4Part);
-      }
-      return true;
+  private static parseIPv6Segments(ip: string): number[] | null {
+    let clean = ip.toLowerCase().trim();
+    if (clean.startsWith("[") && clean.endsWith("]")) {
+      clean = clean.slice(1, -1);
     }
 
-    // Unique Local Addresses (fc00::/7 -> fc00 to fdff)
-    if (normalized.startsWith("fc") || normalized.startsWith("fd")) return true;
+    // Handle embedded dotted IPv4 at the end (e.g. ::ffff:192.168.1.1)
+    const lastColon = clean.lastIndexOf(":");
+    if (lastColon !== -1) {
+      const potentialV4 = clean.slice(lastColon + 1);
+      if (net.isIPv4(potentialV4)) {
+        const parts = potentialV4.split(".").map(Number);
+        const hexHigh = ((parts[0] << 8) | parts[1]).toString(16);
+        const hexLow = ((parts[2] << 8) | parts[3]).toString(16);
+        clean = `${clean.slice(0, lastColon)}:${hexHigh}:${hexLow}`;
+      }
+    }
 
-    // Link-Local Unicast (fe80::/10 -> fe80 to febf)
+    const doubleColonCount = (clean.match(/::/g) || []).length;
+    if (doubleColonCount > 1) return null;
+
+    let parts: string[];
+    if (doubleColonCount === 1) {
+      const [left, right] = clean.split("::");
+      const leftParts = left ? left.split(":") : [];
+      const rightParts = right ? right.split(":") : [];
+      const missingCount = 8 - (leftParts.length + rightParts.length);
+      if (missingCount < 1) return null;
+      parts = [...leftParts, ...Array(missingCount).fill("0"), ...rightParts];
+    } else {
+      parts = clean.split(":");
+    }
+
+    if (parts.length !== 8) return null;
+
+    const segments = parts.map((p) => parseInt(p, 16));
+    if (segments.some((n) => Number.isNaN(n) || n < 0 || n > 0xffff)) return null;
+
+    return segments;
+  }
+
+  /**
+   * Determines whether an IPv6 address belongs to a loopback, unique local, link-local,
+   * multicast, or encapsulated private IPv4 subnet (RFC 4291 IPv4-compatible, 6to4, NAT64).
+   */
+  static isPrivateIPv6(ip: string): boolean {
+    const segments = this.parseIPv6Segments(ip);
+    if (!segments) {
+      return true; // Malformed IPv6 is treated as dangerous
+    }
+
+    // Loopback (::1)
     if (
-      normalized.startsWith("fe8") ||
-      normalized.startsWith("fe9") ||
-      normalized.startsWith("fea") ||
-      normalized.startsWith("feb")
+      segments[0] === 0 &&
+      segments[1] === 0 &&
+      segments[2] === 0 &&
+      segments[3] === 0 &&
+      segments[4] === 0 &&
+      segments[5] === 0 &&
+      segments[6] === 0 &&
+      segments[7] === 1
     ) {
       return true;
     }
 
+    // Unspecified (::)
+    if (segments.every((s) => s === 0)) {
+      return true;
+    }
+
+    // Unique Local Addresses (fc00::/7 -> fc00 to fdff)
+    if ((segments[0] & 0xfe00) === 0xfc00) {
+      return true;
+    }
+
+    // Link-Local Unicast (fe80::/10 -> fe80 to febf)
+    if ((segments[0] & 0xffc0) === 0xfe80) {
+      return true;
+    }
+
     // Multicast (ff00::/8)
-    if (normalized.startsWith("ff")) return true;
+    if ((segments[0] & 0xff00) === 0xff00) {
+      return true;
+    }
+
+    // Documentation prefix (2001:db8::/32)
+    if (segments[0] === 0x2001 && segments[1] === 0x0db8) {
+      return true;
+    }
+
+    // Discard prefix (100::/64)
+    if (segments[0] === 0x0100 && segments[1] === 0 && segments[2] === 0 && segments[3] === 0) {
+      return true;
+    }
+
+    // IPv4-mapped IPv6 (::ffff:0:0/96) and IPv4-compatible IPv6 (::/96)
+    const isMapped =
+      segments[0] === 0 &&
+      segments[1] === 0 &&
+      segments[2] === 0 &&
+      segments[3] === 0 &&
+      segments[4] === 0 &&
+      segments[5] === 0xffff;
+
+    const isCompatible =
+      segments[0] === 0 &&
+      segments[1] === 0 &&
+      segments[2] === 0 &&
+      segments[3] === 0 &&
+      segments[4] === 0 &&
+      segments[5] === 0;
+
+    if (isMapped || isCompatible) {
+      const ipv4 = `${(segments[6] >> 8) & 0xff}.${segments[6] & 0xff}.${(segments[7] >> 8) & 0xff}.${segments[7] & 0xff}`;
+      return this.isPrivateIPv4(ipv4);
+    }
+
+    // 6to4 prefix (2002::/16) encapsulating IPv4 in bits 16..47
+    if (segments[0] === 0x2002) {
+      const ipv4 = `${(segments[1] >> 8) & 0xff}.${segments[1] & 0xff}.${(segments[2] >> 8) & 0xff}.${segments[2] & 0xff}`;
+      return this.isPrivateIPv4(ipv4);
+    }
+
+    // NAT64 well-known prefix (64:ff9b::/96)
+    if (
+      segments[0] === 0x0064 &&
+      segments[1] === 0xff9b &&
+      segments[2] === 0 &&
+      segments[3] === 0 &&
+      segments[4] === 0 &&
+      segments[5] === 0
+    ) {
+      const ipv4 = `${(segments[6] >> 8) & 0xff}.${segments[6] & 0xff}.${(segments[7] >> 8) & 0xff}.${segments[7] & 0xff}`;
+      return this.isPrivateIPv4(ipv4);
+    }
 
     return false;
   }
@@ -163,9 +265,8 @@ export class SSRFGuard {
     const hostname = parsed.hostname.toLowerCase().trim();
 
     // Strip enclosing brackets from IPv6 hostnames
-    const cleanHost = hostname.startsWith("[") && hostname.endsWith("]")
-      ? hostname.slice(1, -1)
-      : hostname;
+    const cleanHost =
+      hostname.startsWith("[") && hostname.endsWith("]") ? hostname.slice(1, -1) : hostname;
 
     // Cloud metadata hostnames
     if (this.CLOUD_METADATA_HOSTNAMES.has(cleanHost)) {

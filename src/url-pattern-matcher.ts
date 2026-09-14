@@ -43,9 +43,7 @@ export function matchUrlPattern(url: string, pattern: string): boolean {
 
   // Fallback regex conversion for multi-wildcard
   try {
-    const escaped = normalizedPattern
-      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-      .replaceAll("*", ".*");
+    const escaped = normalizedPattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replaceAll("*", ".*");
     const regex = new RegExp(`^${escaped}$`, "i");
     return regex.test(normalizedUrl);
   } catch {

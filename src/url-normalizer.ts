@@ -3,6 +3,7 @@
  * Integrates SSRFGuard for defense against private and metadata networks.
  */
 
+import * as net from "node:net";
 import { SSRFGuard, SSRFGuardOptions } from "./ssrf-guard";
 
 export interface UrlNormalizationResult {
@@ -11,10 +12,7 @@ export interface UrlNormalizationResult {
   errorMessage?: string;
 }
 
-export function normalizeUrl(
-  rawUrl: string,
-  options?: SSRFGuardOptions
-): UrlNormalizationResult {
+export function normalizeUrl(rawUrl: string, options?: SSRFGuardOptions): UrlNormalizationResult {
   if (!rawUrl || typeof rawUrl !== "string") {
     return { valid: false, errorMessage: "URL cannot be empty." };
   }
@@ -51,12 +49,18 @@ export function normalizeUrl(
     }
 
     const IPV4_REGEX = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
-    const TLD_REGEX = /\.[a-zA-Z]{2,}$/;
-    const isLocalhost = parsed.hostname === "localhost";
+    const TLD_REGEX = /\.[a-zA-Z0-9-]{2,}$/;
+    const cleanHost =
+      parsed.hostname.startsWith("[") && parsed.hostname.endsWith("]")
+        ? parsed.hostname.slice(1, -1)
+        : parsed.hostname;
+
+    const isLocalhost = parsed.hostname === "localhost" || parsed.hostname.endsWith(".localhost");
     const isIpv4 = IPV4_REGEX.test(parsed.hostname);
+    const isIpv6 = net.isIP(cleanHost) === 6;
     const hasValidTld = TLD_REGEX.test(parsed.hostname);
 
-    if (!isLocalhost && !isIpv4 && !hasValidTld) {
+    if (!isLocalhost && !isIpv4 && !isIpv6 && !hasValidTld) {
       return {
         valid: false,
         errorMessage: `Invalid hostname or top-level domain in '${parsed.hostname}'.`,
@@ -71,7 +75,12 @@ export function normalizeUrl(
       pathname = "";
     }
 
-    const normalized = `${parsed.origin}${pathname}${parsed.search}`;
+    // Deterministically sort query parameters
+    parsed.searchParams.sort();
+    const search = parsed.searchParams.toString();
+    const searchStr = search ? `?${search}` : "";
+
+    const normalized = `${parsed.origin}${pathname}${searchStr}`;
     return { valid: true, url: normalized };
   } catch (error) {
     return {

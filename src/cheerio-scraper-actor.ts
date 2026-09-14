@@ -4,31 +4,21 @@
  */
 
 import * as cheerio from "cheerio";
-import { normalizeUrl } from "./url-normalizer";
+import { ReadabilityExtractor } from "./readability-extractor";
 import { SSRFGuard } from "./ssrf-guard";
 import { StructuredExtractor } from "./structured-extractor";
-import { ReadabilityExtractor } from "./readability-extractor";
-import {
-  ActorResult,
-  ActorRunContext,
-  ActorTask,
-  IActor,
-  ScrapedPageResult,
-} from "./types";
+import { ActorResult, ActorRunContext, ActorTask, IActor, ScrapedPageResult } from "./types";
+import { normalizeUrl } from "./url-normalizer";
 
 const DEFAULT_TIMEOUT_MS = 20000;
-const USER_AGENT =
-  "Mozilla/5.0 (compatible; AgentSmithScraper/1.0; +https://agent-smith.local)";
+const USER_AGENT = "Mozilla/5.0 (compatible; AgentSmithScraper/1.0; +https://agent-smith.local)";
 
 export class CheerioScraperActor implements IActor<ScrapedPageResult> {
   readonly actorType = "cheerio-scraper" as const;
   readonly description =
     "Fast static HTML scraper for extracting readable text, metadata, and structured CSS selectors.";
 
-  async run(
-    task: ActorTask,
-    context: ActorRunContext
-  ): Promise<ActorResult<ScrapedPageResult>> {
+  async run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ScrapedPageResult>> {
     const startTime = Date.now();
     const timeout = task.options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
@@ -62,8 +52,7 @@ export class CheerioScraperActor implements IActor<ScrapedPageResult> {
       const response = await fetch(targetUrl, {
         headers: {
           "User-Agent": USER_AGENT,
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
           ...task.options?.headers,
         },
         redirect: "error",
@@ -190,8 +179,7 @@ export class CheerioScraperActor implements IActor<ScrapedPageResult> {
       };
     } catch (error) {
       const isTimeout =
-        error instanceof Error &&
-        (error.name === "TimeoutError" || error.name === "AbortError");
+        error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
 
       return {
         taskId: task.taskId,

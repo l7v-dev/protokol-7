@@ -1,6 +1,6 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import * as http from "http";
+import * as http from "node:http";
+import test from "node:test";
 import { BrowserPool } from "@/browser-pool";
 import { PlaywrightBrowserActor } from "@/playwright-browser-actor";
 
@@ -52,7 +52,7 @@ test("BrowserPool manages browser context lifecycle and resource blocking", asyn
 });
 
 test("PlaywrightBrowserActor scrapes dynamic HTML via BrowserPool", async () => {
-  const server = http.createServer((req, res) => {
+  const server = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(`
       <!DOCTYPE html>

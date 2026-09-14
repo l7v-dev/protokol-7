@@ -1,5 +1,5 @@
-import test from "node:test";
 import assert from "node:assert/strict";
+import test from "node:test";
 import { StealthManager } from "@/stealth-manager";
 
 test("StealthManager provides randomized desktop profiles", () => {
@@ -24,10 +24,10 @@ test("StealthManager.getInitScript masks bot properties", () => {
 test("StealthManager.simulateHumanInteraction executes without throwing", async () => {
   let scrolled = false;
   const mockPage = {
-    evaluate: async (fn: () => void) => {
+    evaluate: async (_fn: () => void) => {
       scrolled = true;
     },
-    waitForTimeout: async (ms: number) => {},
+    waitForTimeout: async (_ms: number) => {},
   };
 
   await StealthManager.simulateHumanInteraction(mockPage);

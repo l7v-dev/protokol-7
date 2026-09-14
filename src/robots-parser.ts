@@ -81,7 +81,7 @@ export class RobotsParser {
         }
       } else if (field === "crawl-delay") {
         const parsedDelay = parseFloat(value);
-        if (!isNaN(parsedDelay) && parsedDelay >= 0) {
+        if (!Number.isNaN(parsedDelay) && parsedDelay >= 0) {
           currentCrawlDelay = parsedDelay;
         }
       }
@@ -122,9 +122,7 @@ export class RobotsParser {
     const cleanPattern = hasEndAnchor ? pattern.slice(0, -1) : pattern;
 
     // Escape regex special characters except '*'
-    const escaped = cleanPattern
-      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-      .replace(/\*/g, ".*");
+    const escaped = cleanPattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
 
     const regex = new RegExp(`^${escaped}${hasEndAnchor ? "$" : ""}`);
     return regex.test(pathname);
@@ -136,7 +134,9 @@ export class RobotsParser {
   isAllowed(urlOrPath: string, userAgent = "AgentSmithBot"): boolean {
     let targetPath = urlOrPath;
     try {
-      const parsed = new URL(urlOrPath.startsWith("http") ? urlOrPath : `https://example.com${urlOrPath}`);
+      const parsed = new URL(
+        urlOrPath.startsWith("http") ? urlOrPath : `https://example.com${urlOrPath}`
+      );
       targetPath = `${parsed.pathname || "/"}${parsed.search || ""}`;
     } catch {
       // Keep as-is if parsing fails
@@ -200,7 +200,7 @@ export class RobotsParser {
 
     // Validate SSRF before making request
     const ssrfCheck = SSRFGuard.validateUrl(robotsUrl, {
-      allowLocalNetwork: options?.allowLocalNetwork ?? (process.env.NODE_ENV === "test"),
+      allowLocalNetwork: options?.allowLocalNetwork ?? process.env.NODE_ENV === "test",
     });
 
     if (!ssrfCheck.valid) {

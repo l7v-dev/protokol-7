@@ -5,9 +5,9 @@
  */
 
 import { Readability } from "@mozilla/readability";
+import * as cheerio from "cheerio";
 import { JSDOM } from "jsdom";
 import TurndownService from "turndown";
-import * as cheerio from "cheerio";
 import { StructuredExtractor } from "./structured-extractor";
 
 export interface ReadabilityExtractOptions {
@@ -48,7 +48,7 @@ function createTurndownService(options?: ReadabilityExtractOptions): TurndownSer
       const html = (node as HTMLElement).outerHTML || "";
       const tables = StructuredExtractor.extractTables(html);
       if (tables.length > 0 && tables[0].markdown) {
-        return "\n\n" + tables[0].markdown + "\n\n";
+        return `\n\n${tables[0].markdown}\n\n`;
       }
       return "";
     },
@@ -58,9 +58,7 @@ function createTurndownService(options?: ReadabilityExtractOptions): TurndownSer
   service.addRule("fencedCodeBlock", {
     filter: (node) => {
       return (
-        node.nodeName === "PRE" &&
-        node.firstChild !== null &&
-        node.firstChild.nodeName === "CODE"
+        node.nodeName === "PRE" && node.firstChild !== null && node.firstChild.nodeName === "CODE"
       );
     },
     replacement: (_content, node) => {
@@ -123,11 +121,7 @@ export class ReadabilityExtractor {
       const article = reader.parse();
       const textContent = article?.textContent?.trim() || "";
 
-      if (
-        article &&
-        article.content &&
-        textContent.length >= (options.charThreshold ?? 100)
-      ) {
+      if (article?.content && textContent.length >= (options.charThreshold ?? 100)) {
         const markdown = turndown.turndown(article.content).trim();
         return {
           title: article.title || "",
@@ -164,12 +158,12 @@ export class ReadabilityExtractor {
       $('meta[property="og:description"]').attr("content")?.trim() ||
       undefined;
 
-    const siteName =
-      $('meta[property="og:site_name"]').attr("content")?.trim() ||
-      undefined;
+    const siteName = $('meta[property="og:site_name"]').attr("content")?.trim() || undefined;
 
     // Remove clutter elements
-    $("script, style, noscript, svg, iframe, nav, footer, header, aside, .ad, .ads, [aria-hidden='true']").remove();
+    $(
+      "script, style, noscript, svg, iframe, nav, footer, header, aside, .ad, .ads, [aria-hidden='true']"
+    ).remove();
 
     const $target = $("main, article, [role='main']").first();
     const contentHtml = $target.length > 0 ? $target.html() || "" : $("body").html() || "";

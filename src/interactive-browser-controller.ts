@@ -37,8 +37,32 @@ export interface TypeActionOptions {
   humanJitter?: boolean;
 }
 
+export interface BrowserActionParams {
+  url?: string;
+  elementIndex?: number;
+  selector?: string;
+  x?: number;
+  y?: number;
+  text?: string;
+  clear?: boolean;
+  pressEnter?: boolean;
+  humanJitter?: boolean;
+  key?: string;
+  direction?: "up" | "down" | "top" | "bottom";
+  amount?: number;
+  value?: string;
+  withBadges?: boolean;
+  format?: "text" | "markdown" | "html";
+  script?: string;
+  tabId?: string;
+  captureScreenshot?: boolean;
+  timeoutMs?: number;
+  [key: string]: unknown;
+}
+
 export class InteractiveBrowserController {
   private static consoleErrorMap = new Map<string, string[]>();
+  private static attachedPages = new WeakSet<Page>();
 
   /**
    * Attaches error listeners to the active page if not already attached.
@@ -47,6 +71,11 @@ export class InteractiveBrowserController {
     if (!this.consoleErrorMap.has(sessionId)) {
       this.consoleErrorMap.set(sessionId, []);
     }
+
+    if (this.attachedPages.has(page)) {
+      return;
+    }
+    this.attachedPages.add(page);
 
     // Keep max 15 recent console errors per session
     page.on("pageerror", (err) => {
@@ -107,11 +136,16 @@ export class InteractiveBrowserController {
       const indexResult = await DOMIndexer.indexPage(page);
       const matched = indexResult.elements.find((el) => el.index === target.elementIndex);
       if (!matched) {
-        throw new Error(`Element index [${target.elementIndex}] not found on page. Available indices: 1-${indexResult.totalCount}.`);
+        throw new Error(
+          `Element index [${target.elementIndex}] not found on page. Available indices: 1-${indexResult.totalCount}.`
+        );
       }
 
       // Humanized jitter and click
-      await page.mouse.move(matched.rect.x + matched.rect.width / 2, matched.rect.y + matched.rect.height / 2);
+      await page.mouse.move(
+        matched.rect.x + matched.rect.width / 2,
+        matched.rect.y + matched.rect.height / 2
+      );
       await page.waitForTimeout(60 + Math.random() * 50);
       await page.mouse.down();
       await page.waitForTimeout(40 + Math.random() * 30);
@@ -150,7 +184,9 @@ export class InteractiveBrowserController {
       const indexResult = await DOMIndexer.indexPage(page);
       const matched = indexResult.elements.find((el) => el.index === target.elementIndex);
       if (!matched) {
-        throw new Error(`Element index [${target.elementIndex}] not found on page. Available indices: 1-${indexResult.totalCount}.`);
+        throw new Error(
+          `Element index [${target.elementIndex}] not found on page. Available indices: 1-${indexResult.totalCount}.`
+        );
       }
       selector = matched.selector;
     }
@@ -192,7 +228,12 @@ export class InteractiveBrowserController {
     await page.keyboard.press(key);
     await page.waitForTimeout(300);
 
-    return this.buildActionResult(sessionId, page, `press_key(${key})`, options?.captureScreenshot ?? true);
+    return this.buildActionResult(
+      sessionId,
+      page,
+      `press_key(${key})`,
+      options?.captureScreenshot ?? true
+    );
   }
 
   /**
@@ -210,7 +251,9 @@ export class InteractiveBrowserController {
     if (direction === "top") {
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
     } else if (direction === "bottom") {
-      await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }));
+      await page.evaluate(() =>
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })
+      );
     } else if (direction === "down") {
       await page.evaluate((amt) => window.scrollBy({ top: amt, behavior: "smooth" }), amount);
     } else if (direction === "up") {
@@ -218,7 +261,12 @@ export class InteractiveBrowserController {
     }
 
     await page.waitForTimeout(300);
-    return this.buildActionResult(sessionId, page, `scroll(${direction})`, options?.captureScreenshot ?? true);
+    return this.buildActionResult(
+      sessionId,
+      page,
+      `scroll(${direction})`,
+      options?.captureScreenshot ?? true
+    );
   }
 
   /**
@@ -245,7 +293,12 @@ export class InteractiveBrowserController {
     await page.locator(selector).first().selectOption(value);
     await page.waitForTimeout(300);
 
-    return this.buildActionResult(sessionId, page, `select_option(${value})`, options?.captureScreenshot ?? true);
+    return this.buildActionResult(
+      sessionId,
+      page,
+      `select_option(${value})`,
+      options?.captureScreenshot ?? true
+    );
   }
 
   /**
@@ -263,7 +316,10 @@ export class InteractiveBrowserController {
       const indexResult = await DOMIndexer.indexPage(page);
       const matched = indexResult.elements.find((el) => el.index === target.elementIndex);
       if (!matched) throw new Error(`Element index [${target.elementIndex}] not found.`);
-      await page.mouse.move(matched.rect.x + matched.rect.width / 2, matched.rect.y + matched.rect.height / 2);
+      await page.mouse.move(
+        matched.rect.x + matched.rect.width / 2,
+        matched.rect.y + matched.rect.height / 2
+      );
     } else if (target.selector) {
       await page.locator(target.selector).first().hover();
     } else if (target.x !== undefined && target.y !== undefined) {
@@ -288,11 +344,19 @@ export class InteractiveBrowserController {
     let content = "";
     if (format === "html") {
       content = selector
-        ? await page.locator(selector).first().innerHTML().catch(() => "")
+        ? await page
+            .locator(selector)
+            .first()
+            .innerHTML()
+            .catch(() => "")
         : await page.content();
     } else {
       content = selector
-        ? await page.locator(selector).first().innerText().catch(() => "")
+        ? await page
+            .locator(selector)
+            .first()
+            .innerText()
+            .catch(() => "")
         : await page.innerText("body").catch(() => "");
     }
 
@@ -337,7 +401,8 @@ export class InteractiveBrowserController {
 
     const evalResult = await page.evaluate(script);
     const result = await this.buildActionResult(sessionId, page, "evaluate", false);
-    result.extractedContent = typeof evalResult === "object" ? JSON.stringify(evalResult, null, 2) : String(evalResult);
+    result.extractedContent =
+      typeof evalResult === "object" ? JSON.stringify(evalResult, null, 2) : String(evalResult);
     return result;
   }
 
@@ -366,7 +431,7 @@ export class InteractiveBrowserController {
   /**
    * Captures full action result including screenshot and element manifest.
    */
-  static async screenshot(sessionId: string, withBadges = true): Promise<BrowserActionResult> {
+  static async screenshot(sessionId: string, _withBadges = true): Promise<BrowserActionResult> {
     const page = await BrowserSessionManager.getActivePage(sessionId);
     this.attachListeners(sessionId, page);
     return this.buildActionResult(sessionId, page, "screenshot", true);
@@ -378,7 +443,7 @@ export class InteractiveBrowserController {
   static async executeAction(
     sessionId: string,
     action: string,
-    params: Record<string, any> = {}
+    params: BrowserActionParams = {}
   ): Promise<BrowserActionResult> {
     const captureScreenshot = params.captureScreenshot !== false;
     switch (action) {
@@ -386,7 +451,10 @@ export class InteractiveBrowserController {
         if (!params.url) {
           throw new Error("Action 'navigate' requires a destination 'url'.");
         }
-        return this.navigate(sessionId, params.url, { captureScreenshot, timeoutMs: params.timeoutMs });
+        return this.navigate(sessionId, params.url, {
+          captureScreenshot,
+          timeoutMs: params.timeoutMs,
+        });
       }
       case "click": {
         return this.click(
@@ -426,7 +494,9 @@ export class InteractiveBrowserController {
         return this.pressKey(sessionId, params.key, { captureScreenshot });
       }
       case "scroll": {
-        return this.scroll(sessionId, params.direction || "down", params.amount, { captureScreenshot });
+        return this.scroll(sessionId, params.direction || "down", params.amount, {
+          captureScreenshot,
+        });
       }
       case "select_option": {
         if (!params.value) {

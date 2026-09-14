@@ -1,5 +1,5 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import { SSRFGuard } from "@/ssrf-guard";
 
 describe("SSRFGuard - Network Perimeter & Private Subnet Protection", () => {
@@ -39,7 +39,9 @@ describe("SSRFGuard - Network Perimeter & Private Subnet Protection", () => {
     assert.equal(awsMetadata.valid, false);
     assert.ok(awsMetadata.reason?.includes("metadata"));
 
-    const gcpMetadata = SSRFGuard.validateUrl("http://metadata.google.internal/computeMetadata/v1/");
+    const gcpMetadata = SSRFGuard.validateUrl(
+      "http://metadata.google.internal/computeMetadata/v1/"
+    );
     assert.equal(gcpMetadata.valid, false);
     assert.ok(gcpMetadata.reason?.includes("metadata"));
   });
@@ -53,6 +55,21 @@ describe("SSRFGuard - Network Perimeter & Private Subnet Protection", () => {
 
     const linkLocalV6 = SSRFGuard.validateUrl("http://[fe80::1ff:fe00:1]");
     assert.equal(linkLocalV6.valid, false);
+
+    // IPv4-compatible IPv6 addresses (RFC 4291 ::/96)
+    const compatLoopback = SSRFGuard.validateUrl("http://[::127.0.0.1]/");
+    assert.equal(compatLoopback.valid, false);
+
+    const compatPrivateA = SSRFGuard.validateUrl("http://[::10.0.0.1]/");
+    assert.equal(compatPrivateA.valid, false);
+
+    // 6to4 private address encapsulation (2002::/16)
+    const sixToFourLoopback = SSRFGuard.validateUrl("http://[2002:7f00:1::]/");
+    assert.equal(sixToFourLoopback.valid, false);
+
+    // NAT64 private address encapsulation (64:ff9b::/96)
+    const nat64Private = SSRFGuard.validateUrl("http://[64:ff9b::192.168.1.1]/");
+    assert.equal(nat64Private.valid, false);
   });
 
   it("rejects non-HTTP protocols", () => {

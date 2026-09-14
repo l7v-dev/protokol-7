@@ -41,69 +41,8 @@ export class DOMIndexer {
    */
   static async indexPage(page: Page): Promise<DOMIndexResult> {
     await page.evaluate("window.__name = (fn) => fn;").catch(() => {});
-    const rawElements = await page.evaluate((): Array<{
-      index: number;
-      tag: string;
-      type?: string;
-      name?: string;
-      id?: string;
-      placeholder?: string;
-      ariaLabel?: string;
-      text?: string;
-      value?: string;
-      href?: string;
-      role?: string;
-      selector: string;
-      rect: { x: number; y: number; width: number; height: number };
-    }> => {
-      // Provide fallback for bundlers (such as esbuild/tsx) that inject __name helpers
-      const __name = (target: unknown) => target;
-
-      const candidates = Array.from(
-        document.querySelectorAll(
-          "button, a, input, select, textarea, [role='button'], [role='link'], [role='checkbox'], [role='menuitem'], [role='tab'], [contenteditable='true'], [tabindex]:not([tabindex='-1'])"
-        )
-      );
-
-      function isVisible(el: Element): boolean {
-        const style = window.getComputedStyle(el);
-        if (
-          style.display === "none" ||
-          style.visibility === "hidden" ||
-          style.opacity === "0"
-        ) {
-          return false;
-        }
-        const rect = el.getBoundingClientRect();
-        return rect.width > 2 && rect.height > 2;
-      }
-
-      function generateSelector(el: Element): string {
-        if (el.id) return `#${el.id}`;
-        const testId = el.getAttribute("data-testid");
-        if (testId) return `[data-testid="${testId}"]`;
-        const name = el.getAttribute("name");
-        if (name) return `${el.tagName.toLowerCase()}[name="${name}"]`;
-
-        // Generate hierarchical path
-        const path: string[] = [];
-        let curr: Element | null = el;
-        while (curr && curr !== document.body && path.length < 4) {
-          let segment = curr.tagName.toLowerCase();
-          if (curr.className && typeof curr.className === "string") {
-            const firstClass = curr.className.trim().split(/\s+/)[0];
-            if (firstClass && !firstClass.includes(":") && !firstClass.includes("/")) {
-              segment += `.${firstClass}`;
-            }
-          }
-          path.unshift(segment);
-          curr = curr.parentElement;
-        }
-        return path.join(" > ");
-      }
-
-      const visibleCandidates = candidates.filter(isVisible);
-      const results: Array<{
+    const rawElements = await page.evaluate(
+      (): Array<{
         index: number;
         tag: string;
         type?: string;
@@ -117,50 +56,111 @@ export class DOMIndexer {
         role?: string;
         selector: string;
         rect: { x: number; y: number; width: number; height: number };
-      }> = [];
+      }> => {
+        // Provide fallback for bundlers (such as esbuild/tsx) that inject __name helpers
+        const __name = (target: unknown) => target;
 
-      visibleCandidates.forEach((el, idx) => {
-        const rect = el.getBoundingClientRect();
-        const tag = el.tagName.toLowerCase();
-        const type = el.getAttribute("type") || undefined;
-        const name = el.getAttribute("name") || undefined;
-        const id = el.id || undefined;
-        const placeholder = el.getAttribute("placeholder") || undefined;
-        const ariaLabel = el.getAttribute("aria-label") || undefined;
-        const role = el.getAttribute("role") || undefined;
-        const href = el.getAttribute("href") || undefined;
-        const value = (el as HTMLInputElement).value || undefined;
+        const candidates = Array.from(
+          document.querySelectorAll(
+            "button, a, input, select, textarea, [role='button'], [role='link'], [role='checkbox'], [role='menuitem'], [role='tab'], [contenteditable='true'], [tabindex]:not([tabindex='-1'])"
+          )
+        );
 
-        let rawText = el.textContent || "";
-        if (tag === "input" && (type === "submit" || type === "button")) {
-          rawText = value || "";
+        function isVisible(el: Element): boolean {
+          const style = window.getComputedStyle(el);
+          if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0") {
+            return false;
+          }
+          const rect = el.getBoundingClientRect();
+          return rect.width > 2 && rect.height > 2;
         }
-        const text = rawText.trim().replace(/\s+/g, " ").slice(0, 80) || undefined;
 
-        results.push({
-          index: idx + 1,
-          tag,
-          type,
-          name,
-          id,
-          placeholder,
-          ariaLabel,
-          text,
-          value,
-          href,
-          role,
-          selector: generateSelector(el),
-          rect: {
-            x: Math.round(rect.left + window.scrollX),
-            y: Math.round(rect.top + window.scrollY),
-            width: Math.round(rect.width),
-            height: Math.round(rect.height),
-          },
+        function generateSelector(el: Element): string {
+          if (el.id) return `#${el.id}`;
+          const testId = el.getAttribute("data-testid");
+          if (testId) return `[data-testid="${testId}"]`;
+          const name = el.getAttribute("name");
+          if (name) return `${el.tagName.toLowerCase()}[name="${name}"]`;
+
+          // Generate hierarchical path
+          const path: string[] = [];
+          let curr: Element | null = el;
+          while (curr && curr !== document.body && path.length < 4) {
+            let segment = curr.tagName.toLowerCase();
+            if (curr.className && typeof curr.className === "string") {
+              const firstClass = curr.className.trim().split(/\s+/)[0];
+              if (firstClass && typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+                segment += `.${CSS.escape(firstClass)}`;
+              } else if (firstClass && !firstClass.includes(":") && !firstClass.includes("/")) {
+                segment += `.${firstClass}`;
+              }
+            }
+            path.unshift(segment);
+            curr = curr.parentElement;
+          }
+          return path.join(" > ");
+        }
+
+        const visibleCandidates = candidates.filter(isVisible);
+        const results: Array<{
+          index: number;
+          tag: string;
+          type?: string;
+          name?: string;
+          id?: string;
+          placeholder?: string;
+          ariaLabel?: string;
+          text?: string;
+          value?: string;
+          href?: string;
+          role?: string;
+          selector: string;
+          rect: { x: number; y: number; width: number; height: number };
+        }> = [];
+
+        visibleCandidates.forEach((el, idx) => {
+          const rect = el.getBoundingClientRect();
+          const tag = el.tagName.toLowerCase();
+          const type = el.getAttribute("type") || undefined;
+          const name = el.getAttribute("name") || undefined;
+          const id = el.id || undefined;
+          const placeholder = el.getAttribute("placeholder") || undefined;
+          const ariaLabel = el.getAttribute("aria-label") || undefined;
+          const role = el.getAttribute("role") || undefined;
+          const href = el.getAttribute("href") || undefined;
+          const value = (el as HTMLInputElement).value || undefined;
+
+          let rawText = el.textContent || "";
+          if (tag === "input" && (type === "submit" || type === "button")) {
+            rawText = value || "";
+          }
+          const text = rawText.trim().replace(/\s+/g, " ").slice(0, 80) || undefined;
+
+          results.push({
+            index: idx + 1,
+            tag,
+            type,
+            name,
+            id,
+            placeholder,
+            ariaLabel,
+            text,
+            value,
+            href,
+            role,
+            selector: generateSelector(el),
+            rect: {
+              x: Math.round(rect.left + window.scrollX),
+              y: Math.round(rect.top + window.scrollY),
+              width: Math.round(rect.width),
+              height: Math.round(rect.height),
+            },
+          });
         });
-      });
 
-      return results;
-    });
+        return results;
+      }
+    );
 
     // Build concise, token-efficient semantic manifest
     const manifestLines: string[] = [];
@@ -176,7 +176,7 @@ export class DOMIndexer {
       if (item.ariaLabel) attrs.push(`aria-label="${item.ariaLabel}"`);
       if (item.href) attrs.push(`href="${item.href}"`);
 
-      const attrStr = attrs.length > 0 ? " " + attrs.join(" ") : "";
+      const attrStr = attrs.length > 0 ? ` ${attrs.join(" ")}` : "";
       const textStr = item.text ? ` ${item.text}` : "";
       manifestLines.push(`[${item.index}] <${item.tag}${attrStr}>${textStr}`);
     }

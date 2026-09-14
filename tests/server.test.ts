@@ -1,6 +1,6 @@
-import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
+import test from "node:test";
 import { createServer } from "@/server";
 
 test("GET /health returns healthy status and metadata", async () => {
@@ -80,7 +80,9 @@ test("POST /api/v1/scrape executes cheerio scrape on HTML content", async () => 
   // Spawn mock web page
   const targetServer = http.createServer((_, res) => {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    res.end("<html><head><title>Scrape Test</title></head><body><p>Clean extracted text</p></body></html>");
+    res.end(
+      "<html><head><title>Scrape Test</title></head><body><p>Clean extracted text</p></body></html>"
+    );
   });
   await new Promise<void>((resolve) => targetServer.listen(0, "127.0.0.1", resolve));
   const targetPort = (targetServer.address() as { port: number }).port;
@@ -102,12 +104,33 @@ test("POST /api/v1/scrape executes cheerio scrape on HTML content", async () => 
     });
 
     assert.equal(res.status, 200);
-    const json = (await res.json()) as { success: boolean; data: { title: string; content: string } };
+    const json = (await res.json()) as {
+      success: boolean;
+      data: { title: string; content: string };
+    };
     assert.equal(json.success, true);
     assert.equal(json.data.title, "Scrape Test");
     assert.ok(json.data.content.includes("Clean extracted text"));
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await new Promise<void>((resolve) => targetServer.close(() => resolve()));
+  }
+});
+
+test("DELETE /browser/session/:id closes session using root alias", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/browser/session/test-sess-123`, {
+      method: "DELETE",
+    });
+    assert.equal(res.status, 200);
+    const data = (await res.json()) as { success: boolean; closedSessionId: string };
+    assert.equal(data.success, true);
+    assert.equal(data.closedSessionId, "test-sess-123");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });

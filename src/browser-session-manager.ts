@@ -5,7 +5,8 @@
  */
 
 import { BrowserContext, Page } from "playwright";
-import { BrowserPool, AcquireContextOptions, PooledBrowserSession } from "./browser-pool";
+import { AcquireContextOptions, BrowserPool, PooledBrowserSession } from "./browser-pool";
+import { SSRFGuard } from "./ssrf-guard";
 
 export interface BrowserTabInfo {
   id: string;
@@ -133,15 +134,19 @@ export class BrowserSessionManager {
   /**
    * Opens a new tab within the session.
    */
-  static async createTab(
-    sessionId: string,
-    url?: string
-  ): Promise<{ tabId: string; page: Page }> {
+  static async createTab(sessionId: string, url?: string): Promise<{ tabId: string; page: Page }> {
     const session = await this.getOrCreateSession(sessionId);
     const page = await session.context.newPage();
     const tabId = session.activeTabId;
 
-    if (url) {
+    if (url && url !== "about:blank") {
+      const allowLocalNetwork = process.env.NODE_ENV === "test";
+      const ssrfCheck = SSRFGuard.validateUrl(url, { allowLocalNetwork });
+      if (!ssrfCheck.valid) {
+        throw new Error(`SSRF blocked: ${ssrfCheck.reason || "Destination URL not permitted."}`);
+      }
+      await page.goto(url, { waitUntil: "domcontentloaded" });
+    } else if (url === "about:blank") {
       await page.goto(url, { waitUntil: "domcontentloaded" });
     }
 

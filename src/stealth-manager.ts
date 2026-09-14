@@ -41,13 +41,11 @@ export class StealthManager {
    * realistic viewport dimensions, and standard browser HTTP headers.
    */
   static getRandomProfile(): StealthProfile {
-    const userAgent =
-      this.USER_AGENTS[Math.floor(Math.random() * this.USER_AGENTS.length)];
-    const viewport =
-      this.VIEWPORTS[Math.floor(Math.random() * this.VIEWPORTS.length)];
+    const userAgent = this.USER_AGENTS[Math.floor(Math.random() * this.USER_AGENTS.length)];
+    const viewport = this.VIEWPORTS[Math.floor(Math.random() * this.VIEWPORTS.length)];
 
     const headers: Record<string, string> = {
-      "Accept":
+      Accept:
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
       "Accept-Language": "en-US,en;q=0.9,tr;q=0.8",
       "Sec-Ch-Ua": '"Chromium";v="131", "Not_A Brand";v="24"',
