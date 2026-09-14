@@ -1,5 +1,5 @@
-import test from "node:test";
 import assert from "node:assert/strict";
+import test from "node:test";
 import { StructuredExtractor } from "@/structured-extractor";
 
 test("StructuredExtractor.extractTables parses HTML tables into records and markdown", () => {

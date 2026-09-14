@@ -5,8 +5,8 @@
 
 import http from "node:http";
 import { createDefaultActorRegistry } from "./actor-registry";
-import { InteractiveBrowserController } from "./interactive-browser-controller";
 import { BrowserPool } from "./browser-pool";
+import { InteractiveBrowserController } from "./interactive-browser-controller";
 import { ActorTask, ActorType } from "./types";
 
 const registry = createDefaultActorRegistry();
@@ -23,16 +23,22 @@ function sendJson(res: http.ServerResponse, statusCode: number, data: unknown): 
   res.end(JSON.stringify(data));
 }
 
+const MAX_BODY_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
+
 async function parseBody<T>(req: http.IncomingMessage): Promise<T> {
   return new Promise((resolve, reject) => {
     let raw = "";
     req.on("data", (chunk) => {
       raw += chunk;
+      if (raw.length > MAX_BODY_SIZE_BYTES) {
+        req.destroy();
+        reject(new Error("Payload too large. Maximum allowed body size is 10MB."));
+      }
     });
     req.on("end", () => {
       try {
         resolve(raw ? JSON.parse(raw) : ({} as T));
-      } catch (err) {
+      } catch (_err) {
         reject(new Error("Invalid JSON body"));
       }
     });
@@ -182,8 +188,77 @@ export function createServer(): http.Server {
         return;
       }
 
+      // Sitemap XML crawler (/sitemap or /api/v1/sitemap)
+      if (method === "POST" && (pathname === "/api/v1/sitemap" || pathname === "/sitemap")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        if (!body.targetUrl) {
+          sendJson(res, 400, { error: "Missing required 'targetUrl' parameter." });
+          return;
+        }
+
+        const sitemapActor = registry.get("sitemap-xml");
+        if (!sitemapActor) {
+          sendJson(res, 500, { error: "Sitemap actor is not available." });
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `sitemap-${Date.now()}`,
+          actorType: "sitemap-xml",
+          targetUrl: body.targetUrl,
+          options: body.options,
+        };
+
+        const result = await sitemapActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // LLM Markdown Reader (/reader or /api/v1/reader)
+      if (method === "POST" && (pathname === "/api/v1/reader" || pathname === "/reader")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        if (!body.targetUrl) {
+          sendJson(res, 400, { error: "Missing required 'targetUrl' parameter." });
+          return;
+        }
+
+        const readerActor = registry.get("markdown-reader");
+        if (!readerActor) {
+          sendJson(res, 500, { error: "Markdown reader actor is not available." });
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `reader-${Date.now()}`,
+          actorType: "markdown-reader",
+          targetUrl: body.targetUrl,
+          options: body.options,
+        };
+
+        const result = await readerActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
-      if (method === "POST" && (pathname === "/api/v1/browser/action" || pathname === "/browser/action")) {
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/browser/action" || pathname === "/browser/action")
+      ) {
         const body = await parseBody<{
           sessionId?: string;
           action?: string;
@@ -204,9 +279,17 @@ export function createServer(): http.Server {
         return;
       }
 
-      // 6. Close browser session (/browser/session/:id)
-      if (method === "DELETE" && pathname.startsWith("/api/v1/browser/session/")) {
-        const sessionId = pathname.slice("/api/v1/browser/session/".length);
+      // 6. Close browser session (/browser/session/:id or /api/v1/browser/session/:id)
+      const isDeleteSession =
+        method === "DELETE" &&
+        (pathname.startsWith("/api/v1/browser/session/") ||
+          pathname.startsWith("/browser/session/"));
+
+      if (isDeleteSession) {
+        const prefix = pathname.startsWith("/api/v1/browser/session/")
+          ? "/api/v1/browser/session/"
+          : "/browser/session/";
+        const sessionId = pathname.slice(prefix.length);
         if (sessionId) {
           await InteractiveBrowserController.closeSession(sessionId);
         }
@@ -222,7 +305,11 @@ export function createServer(): http.Server {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      sendJson(res, 500, { error: "Internal server error", details: message });
+      const isPayloadTooLarge = message.includes("Payload too large");
+      sendJson(res, isPayloadTooLarge ? 413 : 500, {
+        error: isPayloadTooLarge ? "Payload too large" : "Internal server error",
+        details: message,
+      });
     }
   });
 }
@@ -230,6 +317,8 @@ export function createServer(): http.Server {
 if (process.env.NODE_ENV !== "test") {
   const server = createServer();
   server.listen(PORT, HOST, () => {
-    console.log(`[protokol-7] Web Scraping & Browser Automation Service listening on http://${HOST}:${PORT}`);
+    console.log(
+      `[protokol-7] Web Scraping & Browser Automation Service listening on http://${HOST}:${PORT}`
+    );
   });
 }

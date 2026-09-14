@@ -28,6 +28,8 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/dom-indexer.ts` | `DomIndexer` | Indexes DOM elements for interactive selector targeting. |
 | `src/url-normalizer.ts` | `UrlNormalizer` | Canonical URL formatting, query parameter sorting, fragment stripping. |
 | `src/url-pattern-matcher.ts` | `UrlPatternMatcher` | Glob and regex pattern matching for include/exclude crawl filters. |
+| `src/sitemap-xml-actor.ts` | `SitemapXmlActor` | XML sitemap, sitemap index traversal, and RSS/Atom feed URL extractor with gzip support. |
+| `src/markdown-reader-actor.ts` | `MarkdownReaderActor` | LLM-ready document distiller with YAML frontmatter, heading hierarchy, and token estimation. |
 | `src/index.ts` | Barrel Export | Exports actors, utilities, types, and server launcher. |
 
 ---
@@ -50,6 +52,8 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/dom-indexer.test.ts` | `DomIndexer` | DOM element labeling and interactive coordinate resolution. |
 | `tests/browser-session-manager.test.ts` | `BrowserSessionManager` | Session map tracking, touch renewal, expiration sweep. |
 | `tests/api-extractor.test.ts` | `ApiExtractorActor` | REST endpoint pagination, token authorization, field projection. |
+| `tests/sitemap-xml-actor.test.ts` | `SitemapXmlActor` | Sitemap index, urlset metadata, gzip decompression, RSS/Atom feeds, SSRF protection. |
+| `tests/markdown-reader-actor.test.ts` | `MarkdownReaderActor` | Article distillation, YAML frontmatter, table of contents, GFM tables, SSRF protection. |
 
 ---
 
@@ -64,4 +68,6 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `.agents/skills/` | Skill Library | 38 technical skill definitions (naming discipline, code review, tdd, etc.). |
 | `docs/git-commit-convention.md` | Engineering Standard | Git Commit Convention v1.0 specification and agent attribution rules. |
 | `docs/developer-onboarding.md` | Documentation | Getting started guide, environment variables, command references. |
-| `docs/adr/` | Architectural Records | Architecture Decision Records (ADR 0001 - 0003). |
+| `biome.json` | Linter / Formatter Config | Biome static analysis and formatting rules for src, tests, and scripts. |
+| `context/connectome.md` | System Map | Deterministically generated routing and actor dependency map. |
+| `docs/adr/` | Architectural Records | Architecture Decision Records (ADR 0001 - 0004). |

@@ -40,16 +40,19 @@ export class StructuredExtractor {
       });
 
       // 2. Identify data rows
-      const $dataRows = $thead.length > 0
-        ? $table.find("tbody tr, tr").filter((_, el) => !$(el).parent().is("thead"))
-        : $table.find("tr").slice(1);
+      const $dataRows =
+        $thead.length > 0
+          ? $table.find("tbody tr, tr").filter((_, el) => !$(el).parent().is("thead"))
+          : $table.find("tr").slice(1);
 
       $dataRows.each((_, rowEl) => {
         const rowCells: string[] = [];
-        $(rowEl).find("td, th").each((_, cell) => {
-          const text = $(cell).text().trim().replace(/\s+/g, " ");
-          rowCells.push(text);
-        });
+        $(rowEl)
+          .find("td, th")
+          .each((_, cell) => {
+            const text = $(cell).text().trim().replace(/\s+/g, " ");
+            rowCells.push(text);
+          });
 
         // Only add non-empty rows
         if (rowCells.length > 0 && rowCells.some((c) => c.length > 0)) {
@@ -146,7 +149,7 @@ export class StructuredExtractor {
     const $ = cheerio.load(html);
     const meta: Record<string, string> = {};
 
-    $('meta[property^="og:"], meta[name^="twitter:"]').each((_, el) => {
+    $("meta[property], meta[name]").each((_, el) => {
       const key = $(el).attr("property") || $(el).attr("name");
       const value = $(el).attr("content");
       if (key && value) {

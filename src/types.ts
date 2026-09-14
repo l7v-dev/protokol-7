@@ -8,7 +8,9 @@ export type ActorType =
   | "cheerio-scraper"
   | "playwright-browser"
   | "crawler"
-  | "api-extractor";
+  | "api-extractor"
+  | "sitemap-xml"
+  | "markdown-reader";
 
 export interface ExtractedTable {
   id: string;
@@ -91,6 +93,7 @@ export interface CrawlerTaskOptions {
   excludePatterns?: string[];
   renderJavaScript?: boolean;
   respectRobotsTxt?: boolean;
+  sameDomainOnly?: boolean;
   extractTables?: boolean;
   extractJsonLd?: boolean;
   timeoutMs?: number;
@@ -101,6 +104,61 @@ export interface CrawlerResult {
   totalCrawled: number;
   pages: CrawledPageData[];
   failedUrls: string[];
+}
+
+export interface SitemapUrlEntry {
+  loc: string;
+  lastmod?: string;
+  changefreq?: string;
+  priority?: number;
+}
+
+export interface SitemapTaskOptions {
+  maxUrls?: number;
+  maxDepth?: number;
+  timeoutMs?: number;
+  filterPatterns?: string[];
+  respectRobotsTxt?: boolean;
+}
+
+export interface SitemapResult {
+  sitemapUrl: string;
+  isIndex: boolean;
+  totalUrls: number;
+  subSitemaps?: string[];
+  urls: SitemapUrlEntry[];
+}
+
+export interface MarkdownHeadingItem {
+  level: number;
+  text: string;
+  slug: string;
+}
+
+export interface MarkdownReaderTaskOptions {
+  includeFrontmatter?: boolean;
+  includeTableOfContents?: boolean;
+  charThreshold?: number;
+  maxContentLength?: number;
+  preserveImages?: boolean;
+  timeoutMs?: number;
+}
+
+export interface MarkdownReaderResult {
+  url: string;
+  title: string;
+  byline?: string;
+  excerpt?: string;
+  siteName?: string;
+  publishedTime?: string;
+  frontmatterYaml?: string;
+  contentMarkdown: string;
+  fullDocumentMarkdown: string;
+  estimatedTokenCount: number;
+  characterCount: number;
+  wordCount: number;
+  tableOfContents: MarkdownHeadingItem[];
+  tables?: ExtractedTable[];
 }
 
 export interface ActorTask {
@@ -119,6 +177,8 @@ export interface ActorTask {
     extractJsonLd?: boolean;
     blockAssets?: boolean;
     crawlerOptions?: CrawlerTaskOptions;
+    sitemapOptions?: SitemapTaskOptions;
+    markdownOptions?: MarkdownReaderTaskOptions;
     contentType?: "markdown" | "text" | "html";
   };
 }

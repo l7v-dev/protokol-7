@@ -2,11 +2,13 @@
  * Registry for scraping actors.
  */
 
-import { IActor, ActorType } from "./types";
-import { CheerioScraperActor } from "./cheerio-scraper-actor";
-import { PlaywrightBrowserActor } from "./playwright-browser-actor";
 import { ApiExtractorActor } from "./api-extractor-actor";
+import { CheerioScraperActor } from "./cheerio-scraper-actor";
 import { CrawlerActor } from "./crawler-actor";
+import { MarkdownReaderActor } from "./markdown-reader-actor";
+import { PlaywrightBrowserActor } from "./playwright-browser-actor";
+import { SitemapXmlActor } from "./sitemap-xml-actor";
+import { ActorType, IActor } from "./types";
 
 export class ActorRegistry {
   private readonly actors = new Map<ActorType, IActor<unknown>>();
@@ -34,5 +36,7 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new PlaywrightBrowserActor());
   registry.register(new ApiExtractorActor());
   registry.register(new CrawlerActor());
+  registry.register(new SitemapXmlActor());
+  registry.register(new MarkdownReaderActor());
   return registry;
 }
