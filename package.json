@@ -1,0 +1,29 @@
+{
+  "name": "protokol-7",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Headless Web Scraping, Deep Crawling & Anti-Detection Browser Automation Microservice",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "tsc",
+    "test": "NODE_ENV=test tsx --test 'tests/**/*.test.ts'",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "cheerio": "^1.2.0",
+    "jsdom": "^30.0.1",
+    "playwright": "^1.62.1",
+    "turndown": "^7.2.4",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^20",
+    "@types/turndown": "^5.0.6",
+    "tsx": "^4.23.13",
+    "typescript": "^5"
+  }
+}
