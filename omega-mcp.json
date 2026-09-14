@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "protokol-7-omega": {
+      "command": "node",
+      "args": [
+        "scripts/omega-mcp-server.mjs"
+      ],
+      "cwd": "/home/l7v/l7v-dev/protokol-7"
+    }
+  }
+}

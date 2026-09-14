@@ -9,8 +9,16 @@
     "start": "tsx src/server.ts",
     "build": "tsc",
     "test": "NODE_ENV=test tsx --test 'tests/**/*.test.ts'",
-    "lint": "tsc --noEmit",
-    "lint:naming": "./.agents/skills/naming-discipline/scripts/check-naming.sh"
+    "lint": "biome check",
+    "lint:naming": "./.agents/skills/naming-discipline/scripts/check-naming.sh",
+    "typecheck": "tsc --noEmit",
+    "verify": "node scripts/verify-pipeline.mjs",
+    "format": "biome format --write",
+    "connectome": "node scripts/generate-connectome.mjs > context/connectome.md",
+    "consolidate": "node scripts/consolidate-memory.mjs",
+    "memory": "node scripts/omega-memory.mjs",
+    "sca": "node scripts/sca-check.mjs",
+    "mcp": "node scripts/omega-mcp-server.mjs"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
@@ -25,6 +33,7 @@
     "@types/node": "^20",
     "@types/turndown": "^5.0.6",
     "tsx": "^4.23.13",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@biomejs/biome": "^2.5.13"
   }
 }
