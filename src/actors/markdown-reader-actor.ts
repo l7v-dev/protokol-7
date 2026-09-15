@@ -1,6 +1,3 @@
-import { ReadabilityExtractor } from "./readability-extractor";
-import { SSRFGuard } from "./ssrf-guard";
-import { StructuredExtractor } from "./structured-extractor";
 import type {
   ActorResult,
   ActorRunContext,
@@ -10,7 +7,10 @@ import type {
   MarkdownHeadingItem,
   MarkdownReaderResult,
   MarkdownReaderTaskOptions,
-} from "./types";
+} from "../core/types";
+import { ReadabilityExtractor } from "../extractors/readability-extractor";
+import { StructuredExtractor } from "../extractors/structured-extractor";
+import { SSRFGuard } from "../network/ssrf-guard";
 
 const DEFAULT_TIMEOUT_MS = 30000;
 

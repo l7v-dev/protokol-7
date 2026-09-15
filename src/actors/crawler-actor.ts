@@ -4,12 +4,7 @@
  * robots.txt policy compliance, and Cheerio/Playwright rendering.
  */
 
-import { CheerioScraperActor } from "./cheerio-scraper-actor";
-import { CrawlUrlAccumulator } from "./crawl-url-accumulator";
-import { PlaywrightBrowserActor } from "./playwright-browser-actor";
-import { PolitenessLimiter } from "./politeness-limiter";
-import { RobotsParser } from "./robots-parser";
-import {
+import type {
   ActorResult,
   ActorRunContext,
   ActorTask,
@@ -17,8 +12,13 @@ import {
   CrawlerResult,
   IActor,
   ScrapedPageResult,
-} from "./types";
-import { normalizeUrl } from "./url-normalizer";
+} from "../core/types";
+import { RobotsParser } from "../extractors/robots-parser";
+import { CrawlUrlAccumulator } from "../network/crawl-url-accumulator";
+import { PolitenessLimiter } from "../network/politeness-limiter";
+import { normalizeUrl } from "../network/url-normalizer";
+import { CheerioScraperActor } from "./cheerio-scraper-actor";
+import { PlaywrightBrowserActor } from "./playwright-browser-actor";
 
 const DEFAULT_MAX_PAGES = 10;
 const DEFAULT_MAX_DEPTH = 2;

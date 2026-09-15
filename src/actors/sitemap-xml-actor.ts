@@ -1,6 +1,5 @@
 import { gunzipSync } from "node:zlib";
 import * as cheerio from "cheerio";
-import { SSRFGuard } from "./ssrf-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -8,8 +7,9 @@ import type {
   IActor,
   SitemapResult,
   SitemapUrlEntry,
-} from "./types";
-import { matchUrlPattern } from "./url-pattern-matcher";
+} from "../core/types";
+import { SSRFGuard } from "../network/ssrf-guard";
+import { matchUrlPattern } from "../network/url-pattern-matcher";
 
 const DEFAULT_TIMEOUT_MS = 30000;
 const DEFAULT_MAX_URLS = 5000;

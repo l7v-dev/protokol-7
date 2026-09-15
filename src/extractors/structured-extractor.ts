@@ -4,7 +4,7 @@
  */
 
 import * as cheerio from "cheerio";
-import { ExtractedTable } from "./types";
+import type { ExtractedTable } from "../core/types";
 
 export class StructuredExtractor {
   /**

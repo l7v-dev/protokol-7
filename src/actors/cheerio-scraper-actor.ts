@@ -4,11 +4,17 @@
  */
 
 import * as cheerio from "cheerio";
-import { ReadabilityExtractor } from "./readability-extractor";
-import { SSRFGuard } from "./ssrf-guard";
-import { StructuredExtractor } from "./structured-extractor";
-import { ActorResult, ActorRunContext, ActorTask, IActor, ScrapedPageResult } from "./types";
-import { normalizeUrl } from "./url-normalizer";
+import type {
+  ActorResult,
+  ActorRunContext,
+  ActorTask,
+  IActor,
+  ScrapedPageResult,
+} from "../core/types";
+import { ReadabilityExtractor } from "../extractors/readability-extractor";
+import { StructuredExtractor } from "../extractors/structured-extractor";
+import { SSRFGuard } from "../network/ssrf-guard";
+import { normalizeUrl } from "../network/url-normalizer";
 
 const DEFAULT_TIMEOUT_MS = 20000;
 const USER_AGENT = "Mozilla/5.0 (compatible; AgentSmithScraper/1.0; +https://agent-smith.local)";

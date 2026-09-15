@@ -4,7 +4,7 @@
  * with origin-level in-memory caching and SSRF validation.
  */
 
-import { SSRFGuard } from "./ssrf-guard";
+import { SSRFGuard } from "../network/ssrf-guard";
 
 export interface RobotsRule {
   type: "allow" | "disallow";

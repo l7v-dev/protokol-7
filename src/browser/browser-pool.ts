@@ -6,7 +6,7 @@
 
 import * as fs from "node:fs";
 import { Browser, BrowserContext, chromium, Page } from "playwright";
-import { SSRFGuard } from "./ssrf-guard";
+import { SSRFGuard } from "../network/ssrf-guard";
 import { StealthManager } from "./stealth-manager";
 
 export interface BrowserPoolOptions {
@@ -57,11 +57,6 @@ export class BrowserPool {
       return process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
     }
 
-    // In NixOS / devshell environments, PLAYWRIGHT_BROWSERS_PATH provides pre-patched binaries
-    if (process.env.PLAYWRIGHT_BROWSERS_PATH) {
-      return undefined;
-    }
-
     const candidates = [
       "/etc/profiles/per-user/l7v/bin/google-chrome",
       "/run/current-system/sw/bin/google-chrome",
@@ -76,6 +71,7 @@ export class BrowserPool {
         return candidate;
       }
     }
+
     return undefined;
   }
 

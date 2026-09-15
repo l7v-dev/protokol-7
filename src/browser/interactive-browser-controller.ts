@@ -5,9 +5,9 @@
  */
 
 import { Page } from "playwright";
-import { BrowserSessionManager, BrowserTabInfo } from "./browser-session-manager";
-import { DOMIndexer, IndexedElement } from "./dom-indexer";
-import { SSRFGuard } from "./ssrf-guard";
+import { SSRFGuard } from "../network/ssrf-guard";
+import { BrowserSessionManager, type BrowserTabInfo } from "./browser-session-manager";
+import { DOMIndexer, type IndexedElement } from "./dom-indexer";
 
 export interface BrowserActionTarget {
   elementIndex?: number;
@@ -255,9 +255,15 @@ export class InteractiveBrowserController {
         window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })
       );
     } else if (direction === "down") {
-      await page.evaluate((amt) => window.scrollBy({ top: amt, behavior: "smooth" }), amount);
+      await page.evaluate(
+        (amt: number) => window.scrollBy({ top: amt, behavior: "smooth" }),
+        amount
+      );
     } else if (direction === "up") {
-      await page.evaluate((amt) => window.scrollBy({ top: -amt, behavior: "smooth" }), amount);
+      await page.evaluate(
+        (amt: number) => window.scrollBy({ top: -amt, behavior: "smooth" }),
+        amount
+      );
     }
 
     await page.waitForTimeout(300);

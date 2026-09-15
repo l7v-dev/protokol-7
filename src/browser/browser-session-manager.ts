@@ -4,9 +4,9 @@
  * handles popup / target="_blank" tabs automatically, and evicts idle sessions after 5 minutes.
  */
 
-import { BrowserContext, Page } from "playwright";
-import { AcquireContextOptions, BrowserPool, PooledBrowserSession } from "./browser-pool";
-import { SSRFGuard } from "./ssrf-guard";
+import type { BrowserContext, Page } from "playwright";
+import { SSRFGuard } from "../network/ssrf-guard";
+import { type AcquireContextOptions, BrowserPool, type PooledBrowserSession } from "./browser-pool";
 
 export interface BrowserTabInfo {
   id: string;

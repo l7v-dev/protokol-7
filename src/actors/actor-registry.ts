@@ -2,6 +2,7 @@
  * Registry for scraping actors.
  */
 
+import type { ActorType, IActor } from "../core/types";
 import { ApiExtractorActor } from "./api-extractor-actor";
 import { CheerioScraperActor } from "./cheerio-scraper-actor";
 import { CrawlerActor } from "./crawler-actor";
@@ -10,7 +11,6 @@ import { NetworkInterceptorActor } from "./network-interceptor-actor";
 import { PlaywrightBrowserActor } from "./playwright-browser-actor";
 import { SerpSearchActor } from "./serp-search-actor";
 import { SitemapXmlActor } from "./sitemap-xml-actor";
-import { ActorType, IActor } from "./types";
 
 export class ActorRegistry {
   private readonly actors = new Map<ActorType, IActor<unknown>>();

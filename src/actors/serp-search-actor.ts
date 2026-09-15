@@ -1,5 +1,4 @@
 import * as cheerio from "cheerio";
-import { SSRFGuard } from "./ssrf-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -8,7 +7,8 @@ import type {
   SerpResultItem,
   SerpSearchResult,
   SerpSearchTaskOptions,
-} from "./types";
+} from "../core/types";
+import { SSRFGuard } from "../network/ssrf-guard";
 
 const DEFAULT_TIMEOUT_MS = 20000;
 const DEFAULT_MAX_RESULTS = 10;

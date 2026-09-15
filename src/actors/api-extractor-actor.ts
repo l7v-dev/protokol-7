@@ -4,15 +4,15 @@
  * JSON schema projection, and SSRF security validation.
  */
 
-import { SSRFGuard } from "./ssrf-guard";
-import {
+import type {
   ActorResult,
   ActorRunContext,
   ActorTask,
   ApiExtractorResult,
   ApiExtractorTaskOptions,
   IActor,
-} from "./types";
+} from "../core/types";
+import { SSRFGuard } from "../network/ssrf-guard";
 
 const DEFAULT_TIMEOUT_MS = 25000;
 const USER_AGENT = "AgentSmithApiExtractor/1.0 (+https://agent-smith.local)";

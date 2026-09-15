@@ -11,7 +11,14 @@
     "declaration": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*",
+        "./src/core/*",
+        "./src/actors/*",
+        "./src/browser/*",
+        "./src/extractors/*",
+        "./src/network/*"
+      ]
     }
   },
   "include": ["src/**/*", "tests/**/*"],

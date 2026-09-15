@@ -4,12 +4,18 @@
  * and structured data extraction with pool reuse and asset blocking.
  */
 
-import { BrowserPool, PooledBrowserSession } from "./browser-pool";
-import { ReadabilityExtractor } from "./readability-extractor";
-import { StealthManager } from "./stealth-manager";
-import { StructuredExtractor } from "./structured-extractor";
-import { ActorResult, ActorRunContext, ActorTask, IActor, ScrapedPageResult } from "./types";
-import { normalizeUrl } from "./url-normalizer";
+import { BrowserPool, type PooledBrowserSession } from "../browser/browser-pool";
+import { StealthManager } from "../browser/stealth-manager";
+import type {
+  ActorResult,
+  ActorRunContext,
+  ActorTask,
+  IActor,
+  ScrapedPageResult,
+} from "../core/types";
+import { ReadabilityExtractor } from "../extractors/readability-extractor";
+import { StructuredExtractor } from "../extractors/structured-extractor";
+import { normalizeUrl } from "../network/url-normalizer";
 
 const DEFAULT_TIMEOUT_MS = 30000;
 

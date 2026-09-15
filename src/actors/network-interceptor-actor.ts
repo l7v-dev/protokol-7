@@ -1,5 +1,4 @@
-import { BrowserPool, type PooledBrowserSession } from "./browser-pool";
-import { SSRFGuard } from "./ssrf-guard";
+import { BrowserPool, type PooledBrowserSession } from "../browser/browser-pool";
 import type {
   ActorResult,
   ActorRunContext,
@@ -8,8 +7,9 @@ import type {
   InterceptedApiResponse,
   NetworkInterceptorResult,
   NetworkInterceptorTaskOptions,
-} from "./types";
-import { matchUrlPattern } from "./url-pattern-matcher";
+} from "../core/types";
+import { SSRFGuard } from "../network/ssrf-guard";
+import { matchUrlPattern } from "../network/url-pattern-matcher";
 
 const DEFAULT_TIMEOUT_MS = 30000;
 const DEFAULT_MAX_CAPTURED = 50;

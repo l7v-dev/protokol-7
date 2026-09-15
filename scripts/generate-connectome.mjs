@@ -12,8 +12,12 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const targetDir = process.argv[2] || ".";
-const SERVER_PATH = join(targetDir, "src/server.ts");
-const REGISTRY_PATH = join(targetDir, "src/actor-registry.ts");
+const SERVER_PATH = existsSync(join(targetDir, "src/core/server.ts"))
+  ? join(targetDir, "src/core/server.ts")
+  : join(targetDir, "src/server.ts");
+const REGISTRY_PATH = existsSync(join(targetDir, "src/actors/actor-registry.ts"))
+  ? join(targetDir, "src/actors/actor-registry.ts")
+  : join(targetDir, "src/actor-registry.ts");
 
 function extractRoutes(source) {
   const routes = [];
