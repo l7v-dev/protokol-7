@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import test from "node:test";
+
+(process.env as Record<string, string | undefined>).NODE_ENV = "test";
+
 import { createServer } from "@/server";
 
 test("GET /health returns healthy status and metadata", async () => {
@@ -130,6 +133,44 @@ test("DELETE /browser/session/:id closes session using root alias", async () => 
     const data = (await res.json()) as { success: boolean; closedSessionId: string };
     assert.equal(data.success, true);
     assert.equal(data.closedSessionId, "test-sess-123");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/network/intercept validates targetUrl", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/network/intercept`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    assert.equal(res.status, 400);
+    const json = (await res.json()) as { error: string };
+    assert.ok(json.error.includes("targetUrl"));
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/search validates query and targetUrl", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    assert.equal(res.status, 400);
+    const json = (await res.json()) as { error: string };
+    assert.ok(json.error.includes("query") || json.error.includes("targetUrl"));
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }

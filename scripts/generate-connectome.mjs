@@ -35,6 +35,8 @@ function extractRoutes(source) {
       else if (p.includes("/crawl")) handler = "CrawlerActor";
       else if (p.includes("/sitemap")) handler = "SitemapXmlActor";
       else if (p.includes("/reader")) handler = "MarkdownReaderActor";
+      else if (p.includes("/network/intercept")) handler = "NetworkInterceptorActor";
+      else if (p.includes("/search")) handler = "SerpSearchActor";
       else if (p.includes("/browser/action"))
         handler = "InteractiveBrowserController.executeAction";
       else if (p.includes("/browser/session"))

@@ -10,7 +10,9 @@ export type ActorType =
   | "crawler"
   | "api-extractor"
   | "sitemap-xml"
-  | "markdown-reader";
+  | "markdown-reader"
+  | "network-interceptor"
+  | "serp-search";
 
 export interface ExtractedTable {
   id: string;
@@ -161,6 +163,50 @@ export interface MarkdownReaderResult {
   tables?: ExtractedTable[];
 }
 
+export interface InterceptedApiResponse {
+  url: string;
+  method: string;
+  statusCode: number;
+  headers: Record<string, string>;
+  requestPayload?: unknown;
+  responseJson: unknown;
+  timestamp: number;
+}
+
+export interface NetworkInterceptorTaskOptions {
+  urlPatterns?: string[];
+  captureHeaders?: boolean;
+  waitForNetworkIdleMs?: number;
+  maxCapturedRequests?: number;
+  timeoutMs?: number;
+}
+
+export interface NetworkInterceptorResult {
+  pageUrl: string;
+  totalCaptured: number;
+  responses: InterceptedApiResponse[];
+}
+
+export interface SerpResultItem {
+  rank: number;
+  title: string;
+  url: string;
+  domain: string;
+  snippet: string;
+}
+
+export interface SerpSearchTaskOptions {
+  maxResults?: number;
+  timeoutMs?: number;
+  region?: string;
+}
+
+export interface SerpSearchResult {
+  query: string;
+  totalResults: number;
+  items: SerpResultItem[];
+}
+
 export interface ActorTask {
   taskId: EntityId;
   actorType: ActorType;
@@ -179,6 +225,8 @@ export interface ActorTask {
     crawlerOptions?: CrawlerTaskOptions;
     sitemapOptions?: SitemapTaskOptions;
     markdownOptions?: MarkdownReaderTaskOptions;
+    networkInterceptorOptions?: NetworkInterceptorTaskOptions;
+    serpOptions?: SerpSearchTaskOptions;
     contentType?: "markdown" | "text" | "html";
   };
 }

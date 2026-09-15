@@ -4,6 +4,7 @@
  */
 
 import http from "node:http";
+import { fileURLToPath } from "node:url";
 import { createDefaultActorRegistry } from "./actor-registry";
 import { BrowserPool } from "./browser-pool";
 import { InteractiveBrowserController } from "./interactive-browser-controller";
@@ -254,6 +255,77 @@ export function createServer(): http.Server {
         return;
       }
 
+      // Network Interceptor (/network/intercept or /api/v1/network/intercept)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/network/intercept" || pathname === "/network/intercept")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        if (!body.targetUrl) {
+          sendJson(res, 400, { error: "Missing required 'targetUrl' parameter." });
+          return;
+        }
+
+        const interceptor = registry.get("network-interceptor");
+        if (!interceptor) {
+          sendJson(res, 500, { error: "Network interceptor actor is not available." });
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `intercept-${Date.now()}`,
+          actorType: "network-interceptor",
+          targetUrl: body.targetUrl,
+          options: body.options,
+        };
+
+        const result = await interceptor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // SERP Search (/search or /api/v1/search)
+      if (method === "POST" && (pathname === "/api/v1/search" || pathname === "/search")) {
+        const body = await parseBody<{
+          query?: string;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const target = body.targetUrl || body.query;
+        if (!target) {
+          sendJson(res, 400, { error: "Missing required 'query' or 'targetUrl' parameter." });
+          return;
+        }
+
+        const serpActor = registry.get("serp-search");
+        if (!serpActor) {
+          sendJson(res, 500, { error: "SERP search actor is not available." });
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `serp-${Date.now()}`,
+          actorType: "serp-search",
+          targetUrl: target,
+          options: body.options,
+        };
+
+        const result = await serpActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&
@@ -314,7 +386,13 @@ export function createServer(): http.Server {
   });
 }
 
-if (process.env.NODE_ENV !== "test") {
+const isMainModule =
+  Boolean(process.argv[1]) &&
+  (process.argv[1] === fileURLToPath(import.meta.url) ||
+    process.argv[1].endsWith("/server.ts") ||
+    process.argv[1].endsWith("/server.js"));
+
+if (isMainModule && process.env.NODE_ENV !== "test") {
   const server = createServer();
   server.listen(PORT, HOST, () => {
     console.log(

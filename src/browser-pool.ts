@@ -50,10 +50,22 @@ export class BrowserPool {
   ];
 
   private static resolveExecutablePath(): string | undefined {
+    if (
+      process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH &&
+      fs.existsSync(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH)
+    ) {
+      return process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+    }
+
+    // In NixOS / devshell environments, PLAYWRIGHT_BROWSERS_PATH provides pre-patched binaries
+    if (process.env.PLAYWRIGHT_BROWSERS_PATH) {
+      return undefined;
+    }
+
     const candidates = [
-      process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
       "/etc/profiles/per-user/l7v/bin/google-chrome",
       "/run/current-system/sw/bin/google-chrome",
+      "/run/current-system/sw/bin/chromium",
       "/usr/bin/google-chrome",
       "/usr/bin/chromium",
       "/usr/bin/chromium-browser",
@@ -152,10 +164,10 @@ export class BrowserPool {
     });
     this.activeContexts += 1;
 
+    // Polyfill bundler helpers (e.g. esbuild/tsx __name) in browser execution context
+    await context.addInitScript("window.__name = (fn) => fn; var __name = (fn) => fn;");
     // Anti-detection stealth script: hide navigator.webdriver, mock languages, patch chrome
     await context.addInitScript(StealthManager.getInitScript());
-    // Polyfill bundler helpers (e.g. esbuild/tsx __name) in browser execution context
-    await context.addInitScript("window.__name = (fn) => fn;");
 
     // Intercept all outgoing network requests for SSRF protection and asset blocking across ALL pages/tabs
     await context.route("**/*", async (route) => {

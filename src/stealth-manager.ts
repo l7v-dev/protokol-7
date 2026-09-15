@@ -51,10 +51,6 @@ export class StealthManager {
       "Sec-Ch-Ua": '"Chromium";v="131", "Not_A Brand";v="24"',
       "Sec-Ch-Ua-Mobile": "?0",
       "Sec-Ch-Ua-Platform": '"Linux"',
-      "Sec-Fetch-Dest": "document",
-      "Sec-Fetch-Mode": "navigate",
-      "Sec-Fetch-Site": "none",
-      "Sec-Fetch-User": "?1",
       "Upgrade-Insecure-Requests": "1",
     };
 

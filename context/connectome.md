@@ -1,6 +1,6 @@
 # Connectome — Otomatik Üretilen Sistem Haritası
 
-> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-14). Elle düzenlenmez.
+> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-15). Elle düzenlenmez.
 
 ## Kayıtlı API Rotaları
 
@@ -19,6 +19,10 @@
 | `/sitemap` | POST | SitemapXmlActor |
 | `/api/v1/reader` | POST | MarkdownReaderActor |
 | `/reader` | POST | MarkdownReaderActor |
+| `/api/v1/network/intercept` | POST | NetworkInterceptorActor |
+| `/network/intercept` | POST | NetworkInterceptorActor |
+| `/api/v1/search` | POST | SerpSearchActor |
+| `/search` | POST | SerpSearchActor |
 | `/api/v1/browser/action` | POST | InteractiveBrowserController.executeAction |
 | `/browser/action` | POST | InteractiveBrowserController.executeAction |
 | `/api/v1/browser/session/:id` | DELETE | InteractiveBrowserController.closeSession |
@@ -34,6 +38,8 @@
 | `crawler` | `CrawlerActor` |
 | `sitemap-xml` | `SitemapXmlActor` |
 | `markdown-reader` | `MarkdownReaderActor` |
+| `network-interceptor` | `NetworkInterceptorActor` |
+| `serp-search` | `SerpSearchActor` |
 
 ## Modül ve Dosya Envanteri
 
@@ -56,10 +62,12 @@
 | `src/index.ts` |
 | `src/interactive-browser-controller.ts` |
 | `src/markdown-reader-actor.ts` |
+| `src/network-interceptor-actor.ts` |
 | `src/playwright-browser-actor.ts` |
 | `src/politeness-limiter.ts` |
 | `src/readability-extractor.ts` |
 | `src/robots-parser.ts` |
+| `src/serp-search-actor.ts` |
 | `src/server.ts` |
 | `src/sitemap-xml-actor.ts` |
 | `src/ssrf-guard.ts` |
