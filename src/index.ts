@@ -9,6 +9,7 @@ export * from "./actors/cheerio-scraper-actor";
 export * from "./actors/crawler-actor";
 export * from "./actors/markdown-reader-actor";
 export * from "./actors/network-interceptor-actor";
+export * from "./actors/pdf-document-actor";
 export * from "./actors/playwright-browser-actor";
 export * from "./actors/serp-search-actor";
 export * from "./actors/sitemap-xml-actor";

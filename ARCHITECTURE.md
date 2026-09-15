@@ -62,6 +62,7 @@ graph TD
         Registry --> ReaderActor["MarkdownReaderActor"]
         Registry --> InterceptorActor["NetworkInterceptorActor"]
         Registry --> SerpActor["SerpSearchActor"]
+        Registry --> PdfActor["PdfDocumentActor"]
     end
 
     subgraph "Browser Engine (src/browser/)"
@@ -94,7 +95,7 @@ graph TD
 
 ### 2.1 Core Runtime (`src/core/`)
 - **`types.ts`**: TypeScript interfaces defining `ActorTask`, `ActorResult`, `ScrapedPageResult`, `CrawlerResult`, `BrowserActionResult`.
-- **`server.ts`**: Native Node.js HTTP router handling REST endpoints (`/health`, `/api/v1/actors`, `/api/v1/scrape`, `/api/v1/crawl`, `/api/v1/sitemap`, `/api/v1/reader`, `/api/v1/network/intercept`, `/api/v1/search`, `/api/v1/browser/action`, `/api/v1/browser/session/:id`).
+- **`server.ts`**: Native Node.js HTTP router handling REST endpoints (`/health`, `/api/v1/actors`, `/api/v1/scrape`, `/api/v1/crawl`, `/api/v1/sitemap`, `/api/v1/reader`, `/api/v1/network/intercept`, `/api/v1/search`, `/api/v1/pdf`, `/api/v1/browser/action`, `/api/v1/browser/session/:id`).
 - **`index.ts`**: Central domain barrel export aggregating actors, browser, extractors, and network modules.
 
 ### 2.2 Actors Layer (`src/actors/`)
@@ -107,6 +108,7 @@ graph TD
 - **`markdown-reader-actor.ts`**: LLM document distillation actor with YAML frontmatter and table of contents.
 - **`network-interceptor-actor.ts`**: Headless browser actor intercepting background XHR/Fetch JSON API responses.
 - **`serp-search-actor.ts`**: DuckDuckGo organic search parser resolving redirects and rankings.
+- **`pdf-document-actor.ts`**: Binary PDF document extractor extracting page text, metrics, and metadata.
 
 ### 2.3 Browser Engine (`src/browser/`)
 - **`browser-pool.ts`**: Singleton Chromium lifecycle manager with idle timeout (60s), route-level SSRF interceptor, and asset blocking.

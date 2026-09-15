@@ -12,7 +12,8 @@ export type ActorType =
   | "sitemap-xml"
   | "markdown-reader"
   | "network-interceptor"
-  | "serp-search";
+  | "serp-search"
+  | "pdf-document";
 
 export interface ExtractedTable {
   id: string;
@@ -207,6 +208,39 @@ export interface SerpSearchResult {
   items: SerpResultItem[];
 }
 
+export interface PdfDocumentMetadata {
+  title?: string;
+  author?: string;
+  creator?: string;
+  producer?: string;
+  creationDate?: string;
+  modificationDate?: string;
+}
+
+export interface PdfPageEntry {
+  pageNumber: number;
+  text: string;
+  characterCount: number;
+  wordCount: number;
+}
+
+export interface PdfDocumentTaskOptions {
+  maxPages?: number;
+  pdfBase64?: string;
+  timeoutMs?: number;
+}
+
+export interface PdfDocumentResult {
+  url?: string;
+  totalPages: number;
+  extractedPages: number;
+  metadata?: PdfDocumentMetadata;
+  pages: PdfPageEntry[];
+  fullText: string;
+  totalCharacters: number;
+  totalWords: number;
+}
+
 export interface ActorTask {
   taskId: EntityId;
   actorType: ActorType;
@@ -227,6 +261,7 @@ export interface ActorTask {
     markdownOptions?: MarkdownReaderTaskOptions;
     networkInterceptorOptions?: NetworkInterceptorTaskOptions;
     serpOptions?: SerpSearchTaskOptions;
+    pdfOptions?: PdfDocumentTaskOptions;
     contentType?: "markdown" | "text" | "html";
   };
 }

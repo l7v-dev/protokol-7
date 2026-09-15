@@ -175,3 +175,72 @@ test("POST /api/v1/search validates query and targetUrl", async () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });
+
+test("POST /api/v1/pdf validates targetUrl and pdfBase64", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/pdf`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    assert.equal(res.status, 400);
+    const json = (await res.json()) as { error: string };
+    assert.ok(json.error.includes("targetUrl") || json.error.includes("pdfBase64"));
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/pdf extracts text from valid base64 payload", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  const minimalPdf = `%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj
+3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj
+4 0 obj<</Length 41>>stream
+BT
+/F1 12 Tf
+72 712 Td
+(API Test PDF) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000052 00000 n 
+0000000101 00000 n 
+0000000195 00000 n 
+trailer<</Size 5/Root 1 0 R>>
+startxref
+286
+%%EOF`;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/pdf`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        pdfBase64: Buffer.from(minimalPdf).toString("base64"),
+      }),
+    });
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data: { fullText: string; totalPages: number };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data.totalPages, 1);
+    assert.ok(json.data.fullText.includes("API Test PDF"));
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});

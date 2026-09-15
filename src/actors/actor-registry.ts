@@ -8,6 +8,7 @@ import { CheerioScraperActor } from "./cheerio-scraper-actor";
 import { CrawlerActor } from "./crawler-actor";
 import { MarkdownReaderActor } from "./markdown-reader-actor";
 import { NetworkInterceptorActor } from "./network-interceptor-actor";
+import { PdfDocumentActor } from "./pdf-document-actor";
 import { PlaywrightBrowserActor } from "./playwright-browser-actor";
 import { SerpSearchActor } from "./serp-search-actor";
 import { SitemapXmlActor } from "./sitemap-xml-actor";
@@ -42,5 +43,6 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new MarkdownReaderActor());
   registry.register(new NetworkInterceptorActor());
   registry.register(new SerpSearchActor());
+  registry.register(new PdfDocumentActor());
   return registry;
 }

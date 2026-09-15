@@ -29,6 +29,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/actors/markdown-reader-actor.ts` | `MarkdownReaderActor` | LLM-ready document distiller with YAML frontmatter, heading hierarchy, and token estimation. |
 | `src/actors/network-interceptor-actor.ts` | `NetworkInterceptorActor` | Headless browser actor intercepting and extracting background XHR/Fetch JSON API responses. |
 | `src/actors/serp-search-actor.ts` | `SerpSearchActor` | Organic search engine result page parser extracting rankings, URLs, snippets, and domains. |
+| `src/actors/pdf-document-actor.ts` | `PdfDocumentActor` | Extracts text streams, page boundaries, metrics, and document metadata from PDF files via unpdf. |
 
 ### 1.3 Browser Engine (`src/browser/`)
 
@@ -82,6 +83,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/markdown-reader-actor.test.ts` | `MarkdownReaderActor` | Article distillation, YAML frontmatter, table of contents, GFM tables, SSRF protection. |
 | `tests/network-interceptor-actor.test.ts` | `NetworkInterceptorActor` | Background XHR/Fetch JSON interception, URL pattern matching, and SSRF guard. |
 | `tests/serp-search-actor.test.ts` | `SerpSearchActor` | SERP HTML parsing, redirect decoding, ranking, snippet extraction, and SSRF guard. |
+| `tests/pdf-document-actor.test.ts` | `PdfDocumentActor` | Binary PDF text extraction, metadata parsing, base64 payload, maxPages limit, and SSRF guard. |
 
 ---
 

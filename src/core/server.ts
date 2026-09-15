@@ -325,6 +325,46 @@ export function createServer(): http.Server {
         return;
       }
 
+      // PDF Document Extractor (/pdf or /api/v1/pdf)
+      if (method === "POST" && (pathname === "/api/v1/pdf" || pathname === "/pdf")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          pdfBase64?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        if (!body.targetUrl && !body.pdfBase64 && !body.options?.pdfOptions?.pdfBase64) {
+          sendJson(res, 400, { error: "Missing required 'targetUrl' or 'pdfBase64' parameter." });
+          return;
+        }
+
+        const pdfActor = registry.get("pdf-document");
+        if (!pdfActor) {
+          sendJson(res, 500, { error: "PDF document actor is not available." });
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `pdf-${Date.now()}`,
+          actorType: "pdf-document",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            pdfOptions: {
+              pdfBase64: body.pdfBase64 || body.options?.pdfOptions?.pdfBase64,
+              ...body.options?.pdfOptions,
+            },
+          },
+        };
+
+        const result = await pdfActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

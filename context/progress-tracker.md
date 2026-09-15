@@ -2,44 +2,72 @@
 
 ## Project
 
-protokol-7 — Headless Web Scraping, Deep Crawling & Anti-Detection Browser Automation Microservice (Node.js 20+, TypeScript, Playwright Chromium, Cheerio, Mozilla Readability, GFM Structured Extraction, Politeness Limiter, and HTTP REST API).
+protokol-7 — Headless Web Scraping, Deep Crawling & Anti-Detection Browser Automation Microservice (Node.js 22, TypeScript, Playwright Chromium, Cheerio, Mozilla Readability, GFM Structured Extraction, Politeness Limiter, and HTTP REST API).
 
 ---
 
 ## Current Phase
 
-**Faz 2: Beceri Kütüphanesi, Bağlam Dokümanları ve Kurumsal Standartlar Altyapısı (Skills, Context, Docs & Standards Architecture) tamamlandı. `.agents/skills/` (38 teknik beceri), `context/` (6 bağlam dokümanı), `docs/` (Git commit standardı, geliştirici rehberi ve ADR 0001-0003), `AGENTS.md` ve `GEMINI.md` kuruldu. 51/51 test %100 yeşil, TypeScript derlemesi ve isimlendirme denetimi sıfır hata.**
+**Faz 5: İkili Belge Aktörleri (`pdf-document-actor`) tamamlandı.** `src/actors/pdf-document-actor.ts` entegre edildi. `unpdf` motoru ile sayfa metinleri ve üstveri çıkarma, `%PDF-` magic-byte doğrulaması, SSRF koruması, 30MB boyut sınırı ve `POST /api/v1/pdf` rotası uygulandı. **76/76 test %100 yeşil, 5 adımlı deterministik doğrulama hattı (`npm run verify`) hatasız geçmektedir.**
 
 ---
 
-## Completed (Faz 2: Skills, Context & Documentation Infrastructure)
+## Completed (Faz 5: İkili Belge Aktörleri - `pdf-document-actor`)
 
-- [x] **Beceri Kütüphanesi (`.agents/skills/`):** 38 teknik beceri (naming discipline, neuro-ergonomic communication, code review, codebase design, diagnosing bugs, tdd, wizard, vb.) `protokol-7` deposuna entegre edildi.
-- [x] **Otomatik İsimlendirme Denetimi (`lint:naming`):** `check-naming.sh` çalıştırılabilir kılındı, `package.json` içine `npm run lint:naming` eklendi ve 0 pazarlama jargonu ihlali ile doğrulandı.
-- [x] **Ajan Kuralları (`AGENTS.md` & `GEMINI.md`):** Protokol-7 mimarisine özel platform kimliği, bağlam okuma sırası, sıfır mükerrerlik, teknik isimlendirme ve nöro-ergonomik iletişim kuralları tanımlandı.
-- [x] **Bağlam Dokümantasyonu (`context/`):** 
-  - `project-overview.md`: Ürün tanımı, temel aktörler ve HTTP API yetenekleri.
-  - `architecture-context.md`: 3 katmanlı mikroservis yapısı, BrowserPool yaşam döngüsü ve 5 değişmez (Invariants).
-  - `architecture-schema.md`: 21 kaynak dosya, 14 test dosyası ve konfigürasyon envanteri.
-  - `code-standards.md`: Kod standartları, teknik isimlendirme, hata yönetimi ve TypeScript kuralları.
-  - `ai-workflow-rules.md`: Şartname güdümlü geliştirme, kapsam kuralları ve git iş akışı.
-  - `progress-tracker.md`: İlerleme takipçisi ve test skorları.
-- [x] **Mühendislik Standartları ve ADR'ler (`docs/`):**
-  - `git-commit-convention.md`: Git Commit Convention v1.0 standardı ve ajan kimlik atfı kuralları.
-  - `developer-onboarding.md`: Kurulum, ortam değişkenleri, çalıştırma ve REST API referansı.
-  - `adr/0001-standalone-scraping-service-architecture.md`: Mikroservis mimarisine geçiş kararı.
-  - `adr/0002-browser-pool-and-resource-lifecycle.md`: Playwright Chromium havuzu ve kaynak yönetimi.
-  - `adr/0003-multi-actor-pipeline-and-readability-extraction.md`: 3 aşamalı HTML'den Markdown'a dönüşüm boru hattı.
+- [x] **`PdfDocumentActor` (`src/actors/pdf-document-actor.ts`):** Mozilla PDF.js tabanlı `unpdf` kütüphanesiyle sayfa bazlı metin akışı, kelime/karakter sayıları ve üstveri (başlık, yazar, oluşturma tarihi) çıkarma motoru geliştirildi.
+- [x] **Güvenlik ve Çeper Doğrulaması:** `SSRFGuard.validateUrl()` denetimi, `%PDF-` (`0x25, 0x50, 0x44, 0x46, 0x2d`) magic-byte doğrulaması ve 30MB azami boyut koruması uygulandı.
+- [x] **HTTP API Uç Noktası:** `POST /api/v1/pdf` ve `POST /pdf` rotaları eklendi; `targetUrl` ve `pdfBase64` girişleri desteklendi.
+- [x] **Birim Testleri:** `tests/pdf-document-actor.test.ts` (6 test) ve `tests/server.test.ts` (2 test) eklenerek test sayısı 68'den 76'ya çıkarıldı.
 
 ---
 
-## Completed (Faz 1: Standalone Microservice Extraction & Testing)
+## Completed (Kök Dizin Mimari Şeması ve Modüler Etki Alanı)
 
-- [x] **Bağımsız Git Deposu Kurulumu:** `/home/l7v/l7v-dev/protokol-7` deposu sıfırdan başlatıldı.
-- [x] **Aktör ve Yardımcı Dosyaların Taşınması:** 20 aktör ve yardımcı modül `src/` altına taşındı, `Agent-Smith` bağımlılıkları tamamen koparıldı (`EntityId = string`).
-- [x] **HTTP REST Sunucusu (`src/server.ts`):** `GET /health`, `GET/POST /api/v1/actors`, `POST /api/v1/scrape`, `POST /api/v1/crawl`, `POST /api/v1/browser/action`, `DELETE /api/v1/browser/session/:id` uç noktaları uygulandı.
-- [x] **Test Paketi Doğrulaması:** 14 test dosyası `tests/` altına alındı; `npm test` ile 51/51 test %100 başarılı oldu.
-- [x] **Derleme ve Yayın:** `npm run build` (`tsc`) ile `dist/` çıktısı hatasız üretildi; ilk sürüm commit'i yapıldı.
+- [x] **Kök Mimari Dokümantasyonu (`ARCHITECTURE.md`):** Kökten yaprağa dizin hiyerarşisi, domain sınırları ve mimari invaryantlar tek kaynakta toplandı.
+- [x] **Modüler Etki Alanı Paketleri (`src/`):** 24 düz dosya 5 alana ayrıştırıldı:
+  - `src/core/`: Sunucu (`server.ts`), tipler (`types.ts`), barrel dışa aktarımı (`index.ts`).
+  - `src/actors/`: 8 kazıma/tarama aktörü ve aktör kayıt kütüğü (`actor-registry.ts`).
+  - `src/browser/`: Tarayıcı havuzu, oturum yöneticisi, gizlilik ve DOM indeksleme.
+  - `src/extractors/`: Readability, GFM tabloları, robots.txt ayrıştırıcıları.
+  - `src/network/`: SSRF koruması, nezaket sınırlandırıcısı, URL normalizasyonu ve kuyruk yönetimi.
+- [x] **Geriye Dönük Uyumluluk (Trampolines):** `src/index.ts` ve `src/server.ts` kök dışa aktarımları ile `tsconfig.json` çoklu path mapping eşleşmeleri sağlandı.
+- [x] **Bağlam ve Sistem Haritası Senkronizasyonu:** `context/architecture-schema.md` ve `context/connectome.md` güncellendi.
+
+---
+
+## Completed (Faz 4: Tarayıcı ve Ağ Aktörleri & NixOS Entegrasyonu)
+
+- [x] **`NetworkInterceptorActor` (`src/actors/network-interceptor-actor.ts`):** Chromium arka plan ağ trafiğini (`page.on('response')`) dinleyerek JSON API yanıtlarını yakalayan, URL deseni ve durum kodu filtreleyen aktör uygulandı.
+- [x] **`SerpSearchActor` (`src/actors/serp-search-actor.ts`):** DuckDuckGo HTML arama motoru sonuçlarını ayrıştıran, takip yönlendirmelerini çözen ve organik sıralamaları çıkaran aktör uygulandı.
+- [x] **HTTP API Uç Noktaları:** `POST /api/v1/network/intercept` ve `POST /api/v1/search` uç noktaları eklendi.
+- [x] **NixOS Deklaratif Geliştirme Ortamı:** `flake.nix`, `devenv.nix` ve `.envrc` yapılandırılarak `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` Nix sistem Chromium'una bağlandı.
+
+---
+
+## Completed (Faz 3: Çekirdek Aktörlerin Entegrasyonu)
+
+- [x] **`SitemapXmlActor` (`src/actors/sitemap-xml-actor.ts`):** XML sitemap, `sitemapindex` özyinelemeli çözümleme, gzip dekompresyonu (`zlib`) ve RSS/Atom akış link ayrıştırması uygulandı.
+- [x] **`MarkdownReaderActor` (`src/actors/markdown-reader-actor.ts`):** Mozilla Readability ve Cheerio temizliği ile LLM odaklı GFM markdown, YAML frontmatter ve token tahmini üretimi sağlandı.
+- [x] **HTTP API Uç Noktaları:** `POST /api/v1/sitemap` ve `POST /api/v1/reader` uç noktaları eklendi.
+
+---
+
+## Completed (Faz 2: Doğrulama ve Bilişsel Altyapı)
+
+- [x] **Biome Entegrasyonu (`biome.json`):** Kod stili, formatlama ve statik analiz tüm projeye entegre edildi.
+- [x] **Canlı SCA Paket Denetimi (`scripts/sca-check.mjs`):** NPM resmi kayıt defterinden bağımlılık doğrulama otomasyonu kuruldu.
+- [x] **Deterministik Doğrulama Hattı (`scripts/verify-pipeline.mjs`):** 5 aşamalı mimari, isimlendirme, loglama, güvenlik ve linter kapısı oluşturuldu.
+- [x] **Sistem Haritası Otomasyonu (`scripts/generate-connectome.mjs`):** Mimari bağlantıların otomatik üretimi sağlandı.
+
+---
+
+## Completed (Faz 1: Güvenlik ve Çekirdek Düzeltmeler)
+
+- [x] **SSRFGuard IPv6 Çeper Koruması:** RFC 4291 IPv4-compatible IPv6 (`::/96`), NAT64 ve 6to4 gömülü yerel adres bypass açıkları kapatıldı.
+- [x] **BrowserPool İzolasyonu & Tekil Başlatma Kilidi:** Rota filtreleme `context.route` seviyesine çıkarıldı, cold-start eşzamanlı process sızıntısı giderildi.
+- [x] **PolitenessLimiter Eşzamanlılık Kilidi:** Atomik zaman yuvası rezervasyonu ile eşzamanlı istek yarış durumları önlendi.
+- [x] **Bağıntılı Link Takibi ve Sınır Koruması:** `PlaywrightBrowserActor` mutlak link (`el.href`) toplamaya geçirildi, `CrawlUrlAccumulator` için `sameDomainOnly` koruması eklendi.
+- [x] **HTTP Sunucu Koruma Sınırı:** `MAX_BODY_SIZE_BYTES` ile 10MB payload limiti getirildi.
 
 ---
 
@@ -48,22 +76,26 @@ protokol-7 — Headless Web Scraping, Deep Crawling & Anti-Detection Browser Aut
 ```bash
 # Test Suite
 $ npm test
-ℹ tests 51
-ℹ suites 2
-ℹ pass 51
+ℹ tests 76
+ℹ suites 3
+ℹ pass 76
 ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6895
+
+# Verification Pipeline
+$ npm run verify
+=== OMEGA-3 DETERMINISTIK DOGRULAMA HATTI BASLATILIYOR ===
+[1/5] Mimari Dosya Butunlugu Denetleniyor... [OK]
+[2/5] Isimlendirme Disiplini (Naming Discipline) Taranıyor... [OK]
+[3/5] Loglama Disiplini (Sıfır Emoji) Taranıyor... [OK]
+[4/5] Bagimlilik ve Paket Halusinasyonu (SCA) Denetleniyor... [PASS]
+[5/5] Kod Stili ve Statik Analiz (Biome Lint) Denetleniyor... [OK]
+[PASS] DOGRULAMA BASARILI: Kod tabani tum dogrulama katmanlarindan gecti.
 
 # TypeScript Type Check
-$ npm run lint
+$ npm run typecheck
 Exit Code: 0 (0 errors)
-
-# Naming Discipline
-$ npm run lint:naming
-No banned words found in filenames.
-No banned words found in code contents.
-Exit Code: 0
-
-# Build
-$ npm run build
-Exit Code: 0
 ```

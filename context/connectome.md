@@ -23,6 +23,8 @@
 | `/network/intercept` | POST | NetworkInterceptorActor |
 | `/api/v1/search` | POST | SerpSearchActor |
 | `/search` | POST | SerpSearchActor |
+| `/api/v1/pdf` | POST | PdfDocumentActor |
+| `/pdf` | POST | PdfDocumentActor |
 | `/api/v1/browser/action` | POST | InteractiveBrowserController.executeAction |
 | `/browser/action` | POST | InteractiveBrowserController.executeAction |
 | `/api/v1/browser/session/:id` | DELETE | InteractiveBrowserController.closeSession |
@@ -40,6 +42,7 @@
 | `markdown-reader` | `MarkdownReaderActor` |
 | `network-interceptor` | `NetworkInterceptorActor` |
 | `serp-search` | `SerpSearchActor` |
+| `pdf-document` | `PdfDocumentActor` |
 
 ## Modül ve Dosya Envanteri
 
@@ -57,6 +60,7 @@
 | `src/actors/crawler-actor.ts` |
 | `src/actors/markdown-reader-actor.ts` |
 | `src/actors/network-interceptor-actor.ts` |
+| `src/actors/pdf-document-actor.ts` |
 | `src/actors/playwright-browser-actor.ts` |
 | `src/actors/serp-search-actor.ts` |
 | `src/actors/sitemap-xml-actor.ts` |
@@ -86,6 +90,7 @@
 | `tests/interactive-browser-controller.test.ts` |
 | `tests/markdown-reader-actor.test.ts` |
 | `tests/network-interceptor-actor.test.ts` |
+| `tests/pdf-document-actor.test.ts` |
 | `tests/politeness-limiter.test.ts` |
 | `tests/readability-extractor.test.ts` |
 | `tests/robots-parser.test.ts` |
@@ -93,7 +98,5 @@
 | `tests/serp-search-actor.test.ts` |
 | `tests/server.test.ts` |
 | `tests/sitemap-xml-actor.test.ts` |
-| `tests/ssrf-guard.test.ts` |
-| `tests/stealth-manager.test.ts` |
-| *... ve 1 dosya daha* |
+| *... ve 3 dosya daha* |
 
