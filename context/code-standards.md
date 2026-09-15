@@ -57,3 +57,13 @@ All commits must adhere strictly to Git Commit Convention v1.0 (`docs/git-commit
   Agent-Role: <role>
   ```
 - **Branch Discipline**: Never commit directly to `main`. Use designated branches (`feature/<scope>-<name>`, `fix/<scope>-<name>`, `develop`). If the target branch does not exist, create it prior to committing.
+
+---
+
+## 7. Documentation & Comment Discipline (Mandatory)
+
+- Ref: `rules/documentation-discipline.md`.
+- **Zero Conversational Filler**: No chatting in code comments ("now we do this", "let's check", "a neat trick").
+- **Zero Marketing Jargon**: No buzzwords (`smart`, `seamless`, `powerful`, `optimized`, `robust`, etc.).
+- **Technical Content Only**: Comments must state only architectural invariants, non-obvious constraints, side-effects, or rationale for non-trivial alternatives.
+- **No Redundant Comments**: Do not explain what clean code already states (e.g. no `// returns result` above `return result`).

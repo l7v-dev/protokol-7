@@ -18,7 +18,10 @@
     "consolidate": "node scripts/consolidate-memory.mjs",
     "memory": "node scripts/omega-memory.mjs",
     "sca": "node scripts/sca-check.mjs",
-    "mcp": "node scripts/omega-mcp-server.mjs"
+    "mcp": "node scripts/omega-mcp-server.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "checkpoint": "node scripts/checkpoint.mjs create",
+    "rollback": "node scripts/checkpoint.mjs rollback"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
