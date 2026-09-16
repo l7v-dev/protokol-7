@@ -18,6 +18,7 @@ export * from "./browser/browser-pool";
 export * from "./browser/browser-session-manager";
 export * from "./browser/dom-indexer";
 export * from "./browser/interactive-browser-controller";
+export * from "./browser/session-vault";
 export * from "./browser/stealth-manager";
 export * from "./core/server";
 // Core
@@ -29,8 +30,12 @@ export * from "./extractors/robots-parser";
 export * from "./extractors/structured-extractor";
 
 // Network
+export * from "./network/crawl-frontier";
 export * from "./network/crawl-url-accumulator";
 export * from "./network/politeness-limiter";
+export * from "./network/proxy-manager";
+export * from "./network/retry-handler";
+export * from "./network/safe-redirect-fetcher";
 export * from "./network/ssrf-guard";
 export * from "./network/url-normalizer";
 export * from "./network/url-pattern-matcher";

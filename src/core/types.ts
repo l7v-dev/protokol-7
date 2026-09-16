@@ -2,6 +2,10 @@
  * Scraping actor contracts and execution types.
  */
 
+import type { StoredSessionState } from "../browser/session-vault";
+import type { ProxyConfig } from "../network/proxy-manager";
+import type { RetryOptions } from "../network/retry-handler";
+
 export type EntityId = string;
 
 export type ActorType =
@@ -13,7 +17,8 @@ export type ActorType =
   | "markdown-reader"
   | "network-interceptor"
   | "serp-search"
-  | "pdf-document";
+  | "pdf-document"
+  | "saglik-ekutuphane";
 
 export interface ExtractedTable {
   id: string;
@@ -100,6 +105,11 @@ export interface CrawlerTaskOptions {
   extractTables?: boolean;
   extractJsonLd?: boolean;
   timeoutMs?: number;
+  frontierDirectory?: string;
+  outputJsonlPath?: string;
+  resume?: boolean;
+  proxy?: ProxyConfig;
+  retryOptions?: RetryOptions;
 }
 
 export interface CrawlerResult {
@@ -263,6 +273,9 @@ export interface ActorTask {
     serpOptions?: SerpSearchTaskOptions;
     pdfOptions?: PdfDocumentTaskOptions;
     contentType?: "markdown" | "text" | "html";
+    proxy?: ProxyConfig;
+    storageState?: string | StoredSessionState;
+    retryOptions?: RetryOptions;
   };
 }
 

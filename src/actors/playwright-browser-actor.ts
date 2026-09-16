@@ -47,6 +47,8 @@ export class PlaywrightBrowserActor implements IActor<ScrapedPageResult> {
         timeoutMs: timeout,
         blockAssets: task.options?.blockAssets !== false,
         allowLocalNetwork: process.env.NODE_ENV === "test",
+        proxy: task.options?.proxy,
+        storageState: task.options?.storageState,
       });
 
       const page = session.page;

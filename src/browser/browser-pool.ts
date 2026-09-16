@@ -6,7 +6,9 @@
 
 import * as fs from "node:fs";
 import { Browser, BrowserContext, chromium, Page } from "playwright";
+import type { ProxyConfig } from "../network/proxy-manager";
 import { SSRFGuard } from "../network/ssrf-guard";
+import type { StoredSessionState } from "./session-vault";
 import { StealthManager } from "./stealth-manager";
 
 export interface BrowserPoolOptions {
@@ -20,6 +22,8 @@ export interface AcquireContextOptions {
   blockAssets?: boolean;
   timeoutMs?: number;
   allowLocalNetwork?: boolean;
+  proxy?: ProxyConfig;
+  storageState?: string | StoredSessionState;
 }
 
 export interface PooledBrowserSession {
@@ -157,6 +161,16 @@ export class BrowserPool {
       extraHTTPHeaders: stealthProfile.headers,
       bypassCSP: false,
       ignoreHTTPSErrors: false,
+      ...(options?.proxy
+        ? {
+            proxy: {
+              server: options.proxy.server,
+              username: options.proxy.username,
+              password: options.proxy.password,
+            },
+          }
+        : {}),
+      ...(options?.storageState ? { storageState: options.storageState } : {}),
     });
     this.activeContexts += 1;
 
@@ -171,8 +185,8 @@ export class BrowserPool {
       const url = request.url();
       const resourceType = request.resourceType();
 
-      // 1. SSRF Guard Check: Block private IPs, metadata endpoints, and non-HTTP protocols
-      const ssrfCheck = SSRFGuard.validateUrl(url, { allowLocalNetwork });
+      // 1. SSRF Guard Check: Block private IPs, metadata endpoints, and DNS rebinding attacks
+      const ssrfCheck = await SSRFGuard.validateUrlWithDns(url, { allowLocalNetwork });
       if (!ssrfCheck.valid) {
         return route.abort("blockedbyclient");
       }
