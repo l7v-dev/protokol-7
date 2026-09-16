@@ -21,7 +21,8 @@
     "mcp": "node scripts/omega-mcp-server.mjs",
     "doctor": "node scripts/doctor.mjs",
     "checkpoint": "node scripts/checkpoint.mjs create",
-    "rollback": "node scripts/checkpoint.mjs rollback"
+    "rollback": "node scripts/checkpoint.mjs rollback",
+    "harvest:ekutuphane": "node scripts/harvest-ekutuphane.mjs"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
