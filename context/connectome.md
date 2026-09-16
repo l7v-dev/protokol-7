@@ -1,6 +1,6 @@
 # Connectome — Otomatik Üretilen Sistem Haritası
 
-> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-15). Elle düzenlenmez.
+> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-16). Elle düzenlenmez.
 > Çözümleyici Motor: TypeScript Compiler API AST (v5.9.3)
 
 ## Çekirdek Modüller ve Mimari Düğümler (Centrality)
@@ -9,19 +9,25 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/core/types.ts` | 13 | 30 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 12 | 3 | Yardımcı Modül |
+| `src/core/types.ts` | 17 | 30 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 9 | 3 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 7 | 2 | Yardımcı Modül |
 | `src/browser/browser-pool.ts` | 4 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/extractors/structured-extractor.ts` | 4 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/network/proxy-manager.ts` | 4 | 5 | Yardımcı Modül |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
+| `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
+| `src/browser/session-vault.ts` | 3 | 4 | Oturum Denetleyicisi |
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
-| `src/network/url-pattern-matcher.ts` | 3 | 2 | Yardımcı Modül |
+| `src/network/retry-handler.ts` | 3 | 4 | Yardımcı Modül |
+| `src/actors/actor-registry.ts` | 2 | 2 | Bileşen Tescili (Registry) |
 | `src/actors/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/pdf-document-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/playwright-browser-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/browser/stealth-manager.ts` | 2 | 2 | Yardımcı Modül |
-| `src/actors/actor-registry.ts` | 1 | 2 | Bileşen Tescili (Registry) |
+| `src/network/crawl-frontier.ts` | 2 | 4 | Yardımcı Modül |
+| `src/actors/actor-manifests.ts` | 1 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/actors/api-extractor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/crawler-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/markdown-reader-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
@@ -31,24 +37,29 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/browser-session-manager.ts` | 1 | 3 | Oturum Denetleyicisi |
 | `src/browser/dom-indexer.ts` | 1 | 3 | Yardımcı Modül |
 | `src/browser/interactive-browser-controller.ts` | 1 | 5 | Yardımcı Modül |
+| `src/core/run-registry.ts` | 1 | 4 | Bileşen Tescili (Registry) |
+| `src/core/server.ts` | 1 | 1 | Giriş Noktası (Server) |
+| `src/core/store-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/extractors/robots-parser.ts` | 1 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/network/crawl-url-accumulator.ts` | 1 | 3 | Yardımcı Modül |
 | `src/network/politeness-limiter.ts` | 1 | 2 | Yardımcı Modül |
+| `src/server.ts` | 1 | 0 | Giriş Noktası (Server) |
 | `scripts/checkpoint.mjs` | 0 | 3 | Yardımcı Modül |
 | `scripts/consolidate-memory.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/doctor.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/generate-connectome.mjs` | 0 | 4 | Sistem Haritacısı |
+| `scripts/harvest-ekutuphane.mjs` | 0 | 0 | Yardımcı Modül |
+| `scripts/harvest-ktb-ekitap.mjs` | 0 | 1 | Yardımcı Modül |
 | `scripts/omega-mcp-server.mjs` | 0 | 0 | Giriş Noktası (Server) |
 | `scripts/omega-memory.mjs` | 0 | 0 | Semantik Bellek |
 | `scripts/sca-check.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/verify-pipeline.mjs` | 0 | 0 | Doğrulama Hattı |
 | `src/core/index.ts` | 0 | 0 | Yardımcı Modül |
-| `src/core/server.ts` | 0 | 1 | Giriş Noktası (Server) |
 | `src/index.ts` | 0 | 0 | Yardımcı Modül |
-| `src/server.ts` | 0 | 0 | Giriş Noktası (Server) |
 | `tests/api-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/browser-pool.test.ts` | 0 | 0 | Kaynak Yöneticisi (BrowserPool) |
 | `tests/browser-session-manager.test.ts` | 0 | 0 | Oturum Denetleyicisi |
+| `tests/crawl-frontier.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/crawler-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/dom-indexer.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/interactive-browser-controller.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -56,14 +67,19 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/network-interceptor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/pdf-document-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/politeness-limiter.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/proxy-manager.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/readability-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/retry-handler.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/robots-parser.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/safe-redirect-fetcher.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/scraping-actors.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/serp-search-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/server.test.ts` | 0 | 0 | Giriş Noktası (Server) |
+| `tests/session-vault.test.ts` | 0 | 0 | Oturum Denetleyicisi |
 | `tests/sitemap-xml-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/ssrf-guard.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/stealth-manager.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/store-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/structured-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 
 ## Kayıtlı API Rotaları
@@ -93,6 +109,16 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `/browser/action` | POST | InteractiveBrowserController.executeAction |
 | `/api/v1/browser/session/:id` | DELETE | InteractiveBrowserController.closeSession |
 | `/browser/session/:id` | DELETE | InteractiveBrowserController.closeSession |
+| `/:id` | GET | — |
+| `/store` | GET | — |
+| `/dashboard` | GET | — |
+| `/.well-known/mcp.json` | GET | — |
+| `/api/v1/store/actors` | GET | ActorRegistry (list) |
+| `/api/v1/store/actors/:id` | GET | ActorRegistry (list) |
+| `/api/v1/store/actors/:id` | POST | ActorRegistry (execute) |
+| `/api/v1/store/runs` | GET | — |
+| `/api/v1/store/runs/:id` | GET | — |
+| `/api/v1/store/quarantine` | GET | — |
 
 ## Kayıtlı Aktörler & Bileşenler
 
@@ -125,11 +151,25 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `buildDependencyGraph(fileMap): void`
 - `generateConnectome(target): void`
 
+### `scripts/harvest-ktb-ekitap.mjs`
+
+**Fonksiyonlar (Functions):**
+- `sanitizeTextForLlm(pages): void`
+
 ### `scripts/telemetry-logger.mjs`
 
 **Fonksiyonlar (Functions):**
 - `logTrace(entry, telemetryFile): void`
 - `createTraceSession(task, tier, telemetryFile): void`
+
+### `src/actors/actor-manifests.ts`
+
+**Arayüzler (Interfaces):**
+- `interface ActorInputField` (9 üye)
+- `interface ActorInputSchema` (5 üye)
+- `interface ActorManifest` (13 üye)
+**Tipler (Types):**
+- `type ActorCategory`
 
 ### `src/actors/actor-registry.ts`
 
@@ -219,13 +259,14 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `shutdown(): Promise<void>`
 **Arayüzler (Interfaces):**
 - `interface BrowserPoolOptions` (2 üye)
-- `interface AcquireContextOptions` (5 üye)
+- `interface AcquireContextOptions` (7 üye)
 - `interface PooledBrowserSession` (3 üye)
 
 ### `src/browser/browser-session-manager.ts`
 
 **Sınıflar (Classes):**
 - `class BrowserSessionManager`
+  - `onSessionClosed(fn: (sessionId: string) => void): void`
   - `getOrCreateSession(sessionId: string, options: AcquireContextOptions): Promise<BrowserSessionState>`
   - `touchSession(session: BrowserSessionState): void`
   - `getActivePage(sessionId: string, options: AcquireContextOptions): Promise<Page>`
@@ -254,6 +295,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 **Sınıflar (Classes):**
 - `class InteractiveBrowserController`
+  - `cleanupSession(sessionId: string): void`
   - `attachListeners(sessionId: string, page: Page): void`
   - `navigate(sessionId: string, url: string, options: { captureScreenshot?: boolean; timeoutMs?: number }): Promise<BrowserActionResult>`
   - `click(sessionId: string, target: BrowserActionTarget, options: { captureScreenshot?: boolean }): Promise<BrowserActionResult>`
@@ -278,6 +320,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface TypeActionOptions` (3 üye)
 - `interface BrowserActionParams` (20 üye)
 
+### `src/browser/session-vault.ts`
+
+**Sınıflar (Classes):**
+- `class SessionVault`
+  - `saveState(context: BrowserContext, filePath: string): Promise<StoredSessionState>`
+  - `loadState(filePath: string): StoredSessionState | undefined`
+  - `hasState(filePath: string): boolean`
+**Arayüzler (Interfaces):**
+- `interface StoredCookie` (8 üye)
+- `interface StoredOriginStorage` (2 üye)
+- `interface StoredSessionState` (2 üye)
+
 ### `src/browser/stealth-manager.ts`
 
 **Sınıflar (Classes):**
@@ -291,10 +345,40 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Arayüzler (Interfaces):**
 - `interface StealthProfile` (3 üye)
 
+### `src/core/run-registry.ts`
+
+**Sınıflar (Classes):**
+- `class RunRegistry`
+  - `createRun(actorName: string, input: Record<string, unknown>): RunRecord`
+  - `getRun(runId: string): RunRecord | undefined`
+  - `listRuns(limit): RunRecord[]`
+  - `startRun(runId: string): void`
+  - `appendLog(runId: string, level: "INFO" | "WARN" | "ERROR" | "PASS" | "VETO", message: string): void`
+  - `completeRun(runId: string, output: unknown, itemCount): void`
+  - `failRun(runId: string, errorMessage: string): void`
+**Arayüzler (Interfaces):**
+- `interface RunRecord` (11 üye)
+**Tipler (Types):**
+- `type RunStatus`
+
 ### `src/core/server.ts`
 
 **Fonksiyonlar (Functions):**
 - `createServer(): http.Server`
+
+### `src/core/store-router.ts`
+
+**Sınıflar (Classes):**
+- `class StoreRouter`
+  - `handleListActors(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleGetActor(res: http.ServerResponse, name: string): void`
+  - `handleRunActor(res: http.ServerResponse, name: string, body: Record<string, unknown>): Promise<void>`
+  - `handleListRuns(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleGetRun(res: http.ServerResponse, runId: string): void`
+  - `handleRunEventsSSE(res: http.ServerResponse, runId: string): void`
+  - `handleGetQuarantine(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleGetMcpCatalog(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleServeWeb(_req: http.IncomingMessage, res: http.ServerResponse): void`
 
 ### `src/core/types.ts`
 
@@ -305,7 +389,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface ApiExtractorTaskOptions` (9 üye)
 - `interface ApiExtractorResult` (5 üye)
 - `interface CrawledPageData` (6 üye)
-- `interface CrawlerTaskOptions` (10 üye)
+- `interface CrawlerTaskOptions` (15 üye)
 - `interface CrawlerResult` (4 üye)
 - `interface SitemapUrlEntry` (4 üye)
 - `interface SitemapTaskOptions` (5 üye)
@@ -364,6 +448,27 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `extractJsonLd(html: string): unknown[]`
   - `extractMetaTags(html: string): Record<string, string>`
 
+### `src/network/crawl-frontier.ts`
+
+**Sınıflar (Classes):**
+- `class CrawlFrontier`
+  - `loadCheckpoint(): void`
+  - `enqueue(url: string, depth: number): boolean`
+  - `dequeue(): FrontierItem | undefined`
+  - `hasMore(): boolean`
+  - `size(): number`
+  - `getVisitedCount(): number`
+  - `getTotalCrawled(): number`
+  - `isVisited(url: string): boolean`
+  - `appendPage(page: CrawledPageData): void`
+  - `saveCheckpoint(): void`
+  - `readAllPages(): CrawledPageData[]`
+  - `clear(): void`
+**Arayüzler (Interfaces):**
+- `interface FrontierItem` (2 üye)
+- `interface FrontierCheckpoint` (4 üye)
+- `interface CrawlFrontierOptions` (3 üye)
+
 ### `src/network/crawl-url-accumulator.ts`
 
 **Sınıflar (Classes):**
@@ -382,6 +487,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 **Sınıflar (Classes):**
 - `class PolitenessLimiter`
+  - `setMinInterval(ms: number): void`
   - `extractHostname(rawUrl: string): string`
   - `computeJitter(baseDelay: number): number`
   - `waitForSlot(url: string): Promise<number>`
@@ -391,6 +497,45 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `clear(): void`
 **Arayüzler (Interfaces):**
 - `interface PolitenessLimiterOptions` (3 üye)
+
+### `src/network/proxy-manager.ts`
+
+**Sınıflar (Classes):**
+- `class ProxyManager`
+  - `addProxy(proxyInput: string | ProxyConfig): ProxyConfig`
+  - `addProxies(proxyList: Array<string | ProxyConfig>): void`
+  - `getProxyKey(config: ProxyConfig): string`
+  - `getHealthyProxies(): ProxyConfig[]`
+  - `getProxy(options: {
+    domain?: string;
+    strategy?: ProxyRotationStrategy;
+  }): ProxyConfig | undefined`
+  - `recordFailure(proxy: ProxyConfig | string): void`
+  - `recordSuccess(proxy: ProxyConfig | string): void`
+  - `getDispatcher(proxy: ProxyConfig): ProxyAgent`
+  - `size(): number`
+  - `clear(): void`
+**Arayüzler (Interfaces):**
+- `interface ProxyConfig` (3 üye)
+- `interface ProxyManagerOptions` (2 üye)
+**Tipler (Types):**
+- `type ProxyRotationStrategy`
+
+### `src/network/retry-handler.ts`
+
+**Fonksiyonlar (Functions):**
+- `isRetryableError(error: unknown, retryableStatuses): boolean`
+- `parseRetryAfter(headerValue: string | null | undefined): number | undefined`
+- `withRetry(operation: (attempt: number) => Promise<T>, options: RetryOptions): Promise<T>`
+**Arayüzler (Interfaces):**
+- `interface RetryOptions` (7 üye)
+
+### `src/network/safe-redirect-fetcher.ts`
+
+**Fonksiyonlar (Functions):**
+- `safeRedirectFetch(initialUrl: string, options: SafeFetchOptions): Promise<Response>`
+**Arayüzler (Interfaces):**
+- `interface SafeFetchOptions` (5 üye)
 
 ### `src/network/ssrf-guard.ts`
 
@@ -427,11 +572,14 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/consolidate-memory.mjs` |
 | `scripts/doctor.mjs` |
 | `scripts/generate-connectome.mjs` |
+| `scripts/harvest-ekutuphane.mjs` |
+| `scripts/harvest-ktb-ekitap.mjs` |
 | `scripts/omega-mcp-server.mjs` |
 | `scripts/omega-memory.mjs` |
 | `scripts/sca-check.mjs` |
 | `scripts/telemetry-logger.mjs` |
 | `scripts/verify-pipeline.mjs` |
+| `src/actors/actor-manifests.ts` |
 | `src/actors/actor-registry.ts` |
 | `src/actors/api-extractor-actor.ts` |
 | `src/actors/cheerio-scraper-actor.ts` |
@@ -446,16 +594,23 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/browser-session-manager.ts` |
 | `src/browser/dom-indexer.ts` |
 | `src/browser/interactive-browser-controller.ts` |
+| `src/browser/session-vault.ts` |
 | `src/browser/stealth-manager.ts` |
 | `src/core/index.ts` |
+| `src/core/run-registry.ts` |
 | `src/core/server.ts` |
+| `src/core/store-router.ts` |
 | `src/core/types.ts` |
 | `src/extractors/readability-extractor.ts` |
 | `src/extractors/robots-parser.ts` |
 | `src/extractors/structured-extractor.ts` |
 | `src/index.ts` |
+| `src/network/crawl-frontier.ts` |
 | `src/network/crawl-url-accumulator.ts` |
 | `src/network/politeness-limiter.ts` |
+| `src/network/proxy-manager.ts` |
+| `src/network/retry-handler.ts` |
+| `src/network/safe-redirect-fetcher.ts` |
 | `src/network/ssrf-guard.ts` |
 | `src/network/url-normalizer.ts` |
 | `src/network/url-pattern-matcher.ts` |
@@ -463,15 +618,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/api-extractor.test.ts` |
 | `tests/browser-pool.test.ts` |
 | `tests/browser-session-manager.test.ts` |
-| `tests/crawler-actor.test.ts` |
-| `tests/dom-indexer.test.ts` |
-| `tests/interactive-browser-controller.test.ts` |
-| `tests/markdown-reader-actor.test.ts` |
-| `tests/network-interceptor-actor.test.ts` |
-| `tests/pdf-document-actor.test.ts` |
-| `tests/politeness-limiter.test.ts` |
-| `tests/readability-extractor.test.ts` |
-| `tests/robots-parser.test.ts` |
-| `tests/scraping-actors.test.ts` |
-| *... ve 6 dosya daha* |
+| *... ve 22 dosya daha* |
 

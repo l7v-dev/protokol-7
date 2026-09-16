@@ -11,6 +11,8 @@ Single source of truth component inventory and file map for `protokol-7`.
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/core/types.ts` | `ScrapedPageResult`, `ActorTask`, `BrowserActionResult`, `CrawlerResult` | Core TypeScript interfaces and shared contract definitions. |
+| `src/core/run-registry.ts` | `RunRegistry`, `globalRunRegistry` | Tracks execution runs, in-memory run state, and emits live SSE events. |
+| `src/core/store-router.ts` | `StoreRouter` | Actor Store API router, live log SSE streaming, quarantine inspector, and embedded Web MVP dashboard. |
 | `src/core/server.ts` | `startServer`, `handleRequest` | Standalone Node.js HTTP REST server and API endpoint routing. |
 | `src/core/index.ts` | Core Barrel | Re-exports runtime contracts and HTTP server entrypoint. |
 | `src/server.ts` | Server Trampoline | Root-level entrypoint re-exporting `src/core/server.ts`. |
@@ -21,6 +23,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/actors/actor-registry.ts` | `ActorRegistry` | Central registry for discovering, registering, and instantiating extraction actors. |
+| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations. |
 | `src/actors/cheerio-scraper-actor.ts` | `CheerioScraperActor` | Static HTML scraping using Cheerio for low-latency DOM extraction. |
 | `src/actors/playwright-browser-actor.ts` | `PlaywrightBrowserActor` | Dynamic web scraping using headless Chromium with resource blocking. |
 | `src/actors/api-extractor-actor.ts` | `ApiExtractorActor` | REST API extraction actor supporting pagination and projection filtering. |
@@ -40,6 +43,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/browser/interactive-browser-controller.ts` | `InteractiveBrowserController` | Stateful browser actions (`navigate`, `click`, `fill`, `screenshot`, `evaluate`). |
 | `src/browser/stealth-manager.ts` | `StealthManager` | Headless Chromium anti-detection masking (`navigator.webdriver` evasion). |
 | `src/browser/dom-indexer.ts` | `DomIndexer` | Indexes DOM elements for interactive selector targeting. |
+| `src/browser/session-vault.ts` | `SessionVault`, `StoredSessionState` | Playwright storageState persistence, cookie management, and credential vault. |
 
 ### 1.4 Extractors (`src/extractors/`)
 
@@ -54,10 +58,14 @@ Single source of truth component inventory and file map for `protokol-7`.
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/network/ssrf-guard.ts` | `SSRFGuard` | IP validation against RFC 1918, loopback, cloud metadata, and DNS rebinding. |
+| `src/network/safe-redirect-fetcher.ts` | `safeRedirectFetch` | SSRF-guarded HTTP fetcher traversing 301/302/308 redirects with DNS validation at each hop. |
 | `src/network/politeness-limiter.ts` | `PolitenessLimiter` | Origin-based rate limiting with exponential backoff and jitter. |
 | `src/network/url-normalizer.ts` | `UrlNormalizer` | Canonical URL formatting, query parameter sorting, fragment stripping. |
 | `src/network/url-pattern-matcher.ts` | `UrlPatternMatcher` | Glob and regex pattern matching for include/exclude crawl filters. |
 | `src/network/crawl-url-accumulator.ts` | `CrawlUrlAccumulator` | Discovered URL queue and visited set tracking during crawl runs. |
+| `src/network/proxy-manager.ts` | `ProxyManager`, `globalProxyManager` | Upstream HTTP/SOCKS5 proxy rotation, health checks, domain stickiness, and undici ProxyAgent caching. |
+| `src/network/retry-handler.ts` | `withRetry`, `isTransientNetworkError` | Exponential backoff decorator with full jitter, status code retry policies, and transient socket error recovery. |
+| `src/network/crawl-frontier.ts` | `CrawlFrontier` | Disk-backed FIFO crawl queue, crash-resilient checkpointing, and append-only JSONL page streaming. |
 
 ---
 
@@ -84,6 +92,12 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/network-interceptor-actor.test.ts` | `NetworkInterceptorActor` | Background XHR/Fetch JSON interception, URL pattern matching, and SSRF guard. |
 | `tests/serp-search-actor.test.ts` | `SerpSearchActor` | SERP HTML parsing, redirect decoding, ranking, snippet extraction, and SSRF guard. |
 | `tests/pdf-document-actor.test.ts` | `PdfDocumentActor` | Binary PDF text extraction, metadata parsing, base64 payload, maxPages limit, and SSRF guard. |
+| `tests/safe-redirect-fetcher.test.ts` | `safeRedirectFetch` | Safe iterative redirect handling, max hops enforcement, loop detection, and SSRF rebinding defenses. |
+| `tests/store-api.test.ts` | `src/core/store-router.ts` | Store catalog, actor manifest, input validation, MCP tools, quarantine inspector, and embedded dashboard SPA. |
+| `tests/proxy-manager.test.ts` | `ProxyManager` | Proxy pool rotation, round-robin, random, sticky domain affinity, and health tracking. |
+| `tests/retry-handler.test.ts` | `withRetry` | Exponential backoff with jitter, retry status code triggers, non-retryable error handling, and terminal error throwing. |
+| `tests/session-vault.test.ts` | `SessionVault` | Playwright storageState save, load, directory creation, corrupted JSON recovery, and state existence verification. |
+| `tests/crawl-frontier.test.ts` | `CrawlFrontier` | FIFO disk queueing, URL deduplication, JSONL page streaming, and checkpoint resume. |
 
 ---
 
@@ -100,4 +114,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `docs/developer-onboarding.md` | Documentation | Getting started guide, environment variables, command references. |
 | `biome.json` | Linter / Formatter Config | Biome static analysis and formatting rules for src, tests, and scripts. |
 | `context/connectome.md` | System Map | Deterministically generated routing and actor dependency map. |
-| `docs/adr/` | Architectural Records | Architecture Decision Records (ADR 0001 - 0004). |
+| `docs/adr/` | Architectural Records | Architecture Decision Records (ADR 0001 - 0009). |
+| `docs/protokol-cold-vault-mimari-sartnamesi.md` | Architecture Spec | Specification for the upcoming protokol-cold-vault offline storage repository. |
+| `docs/plans/aktor-ekosistemi-ve-web-mvp-teknik-plani.md` | Architecture Plan | Specification and roadmap for Actor Store, Web MVP, CLI, and Mobile clients. |
+| `scripts/harvest-ekutuphane.mjs` | Pipeline Runner | Resumable data extraction pipeline for ekutuphane.saglik.gov.tr with 8-character naming and gzip compression. |
