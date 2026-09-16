@@ -7,9 +7,11 @@ import http from "node:http";
 import { createDefaultActorRegistry } from "../actors/actor-registry";
 import { BrowserPool } from "../browser/browser-pool";
 import { InteractiveBrowserController } from "../browser/interactive-browser-controller";
+import { StoreRouter } from "./store-router";
 import type { ActorTask, ActorType } from "./types";
 
 const registry = createDefaultActorRegistry();
+const storeRouter = new StoreRouter(registry);
 const PORT = parseInt(process.env.PORT || "4000", 10);
 const HOST = process.env.HOST || "0.0.0.0";
 
@@ -405,6 +407,72 @@ export function createServer(): http.Server {
           await InteractiveBrowserController.closeSession(sessionId);
         }
         sendJson(res, 200, { success: true, closedSessionId: sessionId });
+        return;
+      }
+
+      // 7. Actor Store & Web MVP Routes
+      if (
+        method === "GET" &&
+        (pathname === "/" || pathname === "/store" || pathname === "/dashboard")
+      ) {
+        storeRouter.handleServeWeb(req, res);
+        return;
+      }
+
+      if (method === "GET" && pathname === "/.well-known/mcp.json") {
+        storeRouter.handleGetMcpCatalog(req, res);
+        return;
+      }
+
+      if (method === "GET" && pathname === "/api/v1/store/actors") {
+        storeRouter.handleListActors(req, res);
+        return;
+      }
+
+      if (method === "GET" && pathname.startsWith("/api/v1/store/actors/")) {
+        const actorName = pathname.slice("/api/v1/store/actors/".length);
+        storeRouter.handleGetActor(res, actorName);
+        return;
+      }
+
+      if (
+        method === "POST" &&
+        pathname.startsWith("/api/v1/store/actors/") &&
+        pathname.endsWith("/run")
+      ) {
+        const match = pathname.match(/^\/api\/v1\/store\/actors\/([^/]+)\/run$/);
+        if (match) {
+          const body = await parseBody<Record<string, unknown>>(req);
+          await storeRouter.handleRunActor(res, match[1], body);
+          return;
+        }
+      }
+
+      if (method === "GET" && pathname === "/api/v1/store/runs") {
+        storeRouter.handleListRuns(req, res);
+        return;
+      }
+
+      if (
+        method === "GET" &&
+        pathname.startsWith("/api/v1/store/runs/") &&
+        pathname.endsWith("/events")
+      ) {
+        const match = pathname.match(/^\/api\/v1\/store\/runs\/([^/]+)\/events$/);
+        if (match) {
+          storeRouter.handleRunEventsSSE(res, match[1]);
+          return;
+        }
+      }
+
+      if (method === "GET" && pathname.startsWith("/api/v1/store/runs/")) {
+        const runId = pathname.slice("/api/v1/store/runs/".length);
+        storeRouter.handleGetRun(res, runId);
+        return;
+      }
+
+      if (method === "GET" && pathname === "/api/v1/store/quarantine") {
+        storeRouter.handleGetQuarantine(req, res);
         return;
       }
 
