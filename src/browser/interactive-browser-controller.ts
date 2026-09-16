@@ -64,6 +64,19 @@ export class InteractiveBrowserController {
   private static consoleErrorMap = new Map<string, string[]>();
   private static attachedPages = new WeakSet<Page>();
 
+  static {
+    BrowserSessionManager.onSessionClosed((sessionId) => {
+      InteractiveBrowserController.cleanupSession(sessionId);
+    });
+  }
+
+  /**
+   * Cleans up in-memory console errors and resources for closed sessions.
+   */
+  static cleanupSession(sessionId: string): void {
+    this.consoleErrorMap.delete(sessionId);
+  }
+
   /**
    * Attaches error listeners to the active page if not already attached.
    */

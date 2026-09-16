@@ -13,7 +13,7 @@ import type {
 } from "../core/types";
 import { ReadabilityExtractor } from "../extractors/readability-extractor";
 import { StructuredExtractor } from "../extractors/structured-extractor";
-import { SSRFGuard } from "../network/ssrf-guard";
+import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { normalizeUrl } from "../network/url-normalizer";
 
 const DEFAULT_TIMEOUT_MS = 20000;
@@ -41,28 +41,17 @@ export class CheerioScraperActor implements IActor<ScrapedPageResult> {
 
     const targetUrl = normalized.url;
 
-    const ssrfCheck = await SSRFGuard.validateUrlWithDns(targetUrl, {
-      allowLocalNetwork: process.env.NODE_ENV === "test",
-    });
-    if (!ssrfCheck.valid) {
-      return {
-        taskId: task.taskId,
-        actorType: this.actorType,
-        status: "failed",
-        errorMessage: ssrfCheck.reason ?? "SSRF guard blocked request.",
-        executionDurationMs: Date.now() - startTime,
-      };
-    }
-
     try {
-      const response = await fetch(targetUrl, {
+      const response = await safeRedirectFetch(targetUrl, {
         headers: {
           "User-Agent": USER_AGENT,
           Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
           ...task.options?.headers,
         },
-        redirect: "error",
-        signal: AbortSignal.timeout(timeout),
+        timeoutMs: timeout,
+        allowLocalNetwork: process.env.NODE_ENV === "test",
+        proxy: task.options?.proxy,
+        retryOptions: task.options?.retryOptions,
       });
 
       const statusCode = response.status;

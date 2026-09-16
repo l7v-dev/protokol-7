@@ -8,6 +8,7 @@ import type {
   SitemapResult,
   SitemapUrlEntry,
 } from "../core/types";
+import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../network/ssrf-guard";
 import { matchUrlPattern } from "../network/url-pattern-matcher";
 
@@ -29,7 +30,7 @@ export class SitemapXmlActor implements IActor<SitemapResult> {
     const filterPatterns = task.options?.sitemapOptions?.filterPatterns;
 
     const allowLocalNetwork = process.env.NODE_ENV === "test";
-    const ssrfCheck = SSRFGuard.validateUrl(task.targetUrl, { allowLocalNetwork });
+    const ssrfCheck = await SSRFGuard.validateUrlWithDns(task.targetUrl, { allowLocalNetwork });
     if (!ssrfCheck.valid) {
       return {
         taskId: task.taskId,
@@ -92,13 +93,9 @@ export class SitemapXmlActor implements IActor<SitemapResult> {
 
   private async fetchXml(url: string, signal: AbortSignal): Promise<string> {
     const allowLocalNetwork = process.env.NODE_ENV === "test";
-    const ssrfCheck = SSRFGuard.validateUrl(url, { allowLocalNetwork });
-    if (!ssrfCheck.valid) {
-      throw new Error(`SSRF blocked sub-sitemap: ${url}`);
-    }
-
-    const res = await fetch(url, {
+    const res = await safeRedirectFetch(url, {
       signal,
+      allowLocalNetwork,
       headers: {
         "User-Agent": "protokol-7/1.0.0 (+https://github.com/protokol-7; sitemap crawler)",
         Accept: "application/xml, text/xml, application/rss+xml, application/atom+xml, */*",

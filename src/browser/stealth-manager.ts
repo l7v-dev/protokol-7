@@ -44,13 +44,20 @@ export class StealthManager {
     const userAgent = this.USER_AGENTS[Math.floor(Math.random() * this.USER_AGENTS.length)];
     const viewport = this.VIEWPORTS[Math.floor(Math.random() * this.VIEWPORTS.length)];
 
+    let platform = '"Linux"';
+    if (userAgent.includes("Windows")) {
+      platform = '"Windows"';
+    } else if (userAgent.includes("Macintosh")) {
+      platform = '"macOS"';
+    }
+
     const headers: Record<string, string> = {
       Accept:
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
       "Accept-Language": "en-US,en;q=0.9,tr;q=0.8",
       "Sec-Ch-Ua": '"Chromium";v="131", "Not_A Brand";v="24"',
       "Sec-Ch-Ua-Mobile": "?0",
-      "Sec-Ch-Ua-Platform": '"Linux"',
+      "Sec-Ch-Ua-Platform": platform,
       "Upgrade-Insecure-Requests": "1",
     };
 

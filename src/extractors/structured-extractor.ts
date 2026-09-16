@@ -26,32 +26,50 @@ export class StructuredExtractor {
       const headerCells: string[] = [];
       const rows: string[][] = [];
 
+      const isDirectChild = (_: number, el: unknown) =>
+        $(el as Parameters<typeof $>[0]).closest("table")[0] === tableElement;
+
       // 1. Identify headers: Check <thead> first, otherwise inspect first <tr>
-      const $thead = $table.find("thead");
-      let $headerRow = $thead.find("tr").first();
+      const $thead = $table.children("thead");
+      let $headerRow = $thead.children("tr").first();
 
       if ($headerRow.length === 0) {
-        $headerRow = $table.find("tr").first();
+        $headerRow = $table.find("tr").filter(isDirectChild).first();
       }
 
-      $headerRow.find("th, td").each((colIndex, cell) => {
-        const text = $(cell).text().trim().replace(/\s+/g, " ");
-        headerCells.push(text || `Column ${colIndex + 1}`);
-      });
+      $headerRow
+        .find("th, td")
+        .filter(isDirectChild)
+        .each((colIndex, cell) => {
+          const text = $(cell).text().trim().replace(/\s+/g, " ") || `Column ${colIndex + 1}`;
+          const colspan = parseInt($(cell).attr("colspan") || "1", 10);
+          const span = !Number.isNaN(colspan) && colspan > 1 ? colspan : 1;
+          for (let s = 0; s < span; s++) {
+            headerCells.push(text);
+          }
+        });
 
       // 2. Identify data rows
       const $dataRows =
         $thead.length > 0
-          ? $table.find("tbody tr, tr").filter((_, el) => !$(el).parent().is("thead"))
-          : $table.find("tr").slice(1);
+          ? $table
+              .find("tr")
+              .filter(isDirectChild)
+              .filter((_, el) => !$(el).parent().is("thead"))
+          : $table.find("tr").filter(isDirectChild).slice(1);
 
       $dataRows.each((_, rowEl) => {
         const rowCells: string[] = [];
         $(rowEl)
           .find("td, th")
+          .filter(isDirectChild)
           .each((_, cell) => {
             const text = $(cell).text().trim().replace(/\s+/g, " ");
-            rowCells.push(text);
+            const colspan = parseInt($(cell).attr("colspan") || "1", 10);
+            const span = !Number.isNaN(colspan) && colspan > 1 ? colspan : 1;
+            for (let s = 0; s < span; s++) {
+              rowCells.push(text);
+            }
           });
 
         // Only add non-empty rows

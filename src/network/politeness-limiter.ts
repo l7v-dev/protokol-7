@@ -19,7 +19,7 @@ interface DomainRateState {
 
 export class PolitenessLimiter {
   private readonly domainStates = new Map<string, DomainRateState>();
-  private readonly minIntervalMs: number;
+  private minIntervalMs: number;
   private readonly maxIntervalMs: number;
   private readonly jitterRatio: number;
 
@@ -28,6 +28,15 @@ export class PolitenessLimiter {
     this.minIntervalMs = options?.minIntervalMs ?? (isTest ? 20 : 1000);
     this.maxIntervalMs = options?.maxIntervalMs ?? (isTest ? 500 : 30000);
     this.jitterRatio = options?.jitterRatio ?? 0.2;
+  }
+
+  /**
+   * Updates minimum interval between requests (e.g. from robots.txt crawl-delay).
+   */
+  setMinInterval(ms: number): void {
+    if (ms > 0) {
+      this.minIntervalMs = Math.min(ms, this.maxIntervalMs);
+    }
   }
 
   /**

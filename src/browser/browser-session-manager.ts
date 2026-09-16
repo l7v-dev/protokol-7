@@ -29,6 +29,14 @@ export interface BrowserSessionState {
 export class BrowserSessionManager {
   private static sessions = new Map<string, BrowserSessionState>();
   private static readonly SESSION_TTL_MS = 5 * 60 * 1000; // 5 minutes idle TTL
+  private static onSessionClosedListeners: Array<(sessionId: string) => void> = [];
+
+  /**
+   * Registers a callback to be notified when a session is closed or expires.
+   */
+  static onSessionClosed(fn: (sessionId: string) => void): void {
+    this.onSessionClosedListeners.push(fn);
+  }
 
   /**
    * Retrieves an existing session or provisions a new isolated context.
@@ -248,6 +256,13 @@ export class BrowserSessionManager {
     }
 
     this.sessions.delete(sessionId);
+    for (const listener of this.onSessionClosedListeners) {
+      try {
+        listener(sessionId);
+      } catch {
+        // Ignored
+      }
+    }
   }
 
   /**

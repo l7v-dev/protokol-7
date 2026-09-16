@@ -8,7 +8,7 @@ import type {
   SerpSearchResult,
   SerpSearchTaskOptions,
 } from "../core/types";
-import { SSRFGuard } from "../network/ssrf-guard";
+import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 
 const DEFAULT_TIMEOUT_MS = 20000;
 const DEFAULT_MAX_RESULTS = 10;
@@ -36,23 +36,11 @@ export class SerpSearchActor implements IActor<SerpSearchResult> {
         : `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
 
     const allowLocalNetwork = process.env.NODE_ENV === "test";
-    const ssrfCheck = SSRFGuard.validateUrl(endpointUrl, { allowLocalNetwork });
-    if (!ssrfCheck.valid) {
-      return {
-        taskId: task.taskId,
-        actorType: this.actorType,
-        status: "failed",
-        errorMessage: `SSRF validation failed: ${ssrfCheck.reason}`,
-        executionDurationMs: Date.now() - startTime,
-      };
-    }
 
     try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-      const res = await fetch(endpointUrl, {
-        signal: controller.signal,
+      const res = await safeRedirectFetch(endpointUrl, {
+        timeoutMs,
+        allowLocalNetwork,
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -61,8 +49,6 @@ export class SerpSearchActor implements IActor<SerpSearchResult> {
           "Accept-Language": "en-US,en;q=0.9",
         },
       });
-
-      clearTimeout(timer);
 
       if (!res.ok) {
         return {

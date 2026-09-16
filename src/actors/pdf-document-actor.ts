@@ -8,7 +8,7 @@ import type {
   PdfDocumentResult,
   PdfPageEntry,
 } from "../core/types";
-import { SSRFGuard } from "../network/ssrf-guard";
+import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 
 const MAX_PDF_SIZE_BYTES = 30 * 1024 * 1024; // 30 MB
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -32,22 +32,27 @@ export class PdfDocumentActor implements IActor<PdfDocumentResult> {
         uint8Data = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
       } else if (task.targetUrl) {
         sourceUrl = task.targetUrl;
-        const ssrfCheck = SSRFGuard.validateUrl(task.targetUrl);
-        if (!ssrfCheck.valid) {
+        let response: Response;
+        try {
+          response = await safeRedirectFetch(task.targetUrl, {
+            timeoutMs,
+            headers: task.options?.headers,
+            allowLocalNetwork: false,
+            proxy: task.options?.proxy,
+            retryOptions: task.options?.retryOptions,
+          });
+        } catch (fetchError) {
+          const msg = fetchError instanceof Error ? fetchError.message : String(fetchError);
+          const isSsrf = msg.includes("SSRF validation failed");
           return {
             taskId: task.taskId,
             actorType: this.actorType,
             status: "failed",
-            statusCode: 403,
-            errorMessage: `SSRF validation failed: ${ssrfCheck.reason}`,
+            statusCode: isSsrf ? 403 : 500,
+            errorMessage: msg,
             executionDurationMs: Date.now() - startTime,
           };
         }
-
-        const response = await fetch(task.targetUrl, {
-          signal: AbortSignal.timeout(timeoutMs),
-          headers: task.options?.headers,
-        });
 
         if (!response.ok) {
           return {

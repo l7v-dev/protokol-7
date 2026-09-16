@@ -31,7 +31,7 @@ export class NetworkInterceptorActor implements IActor<NetworkInterceptorResult>
     const idleWaitMs = options.waitForNetworkIdleMs ?? DEFAULT_IDLE_WAIT_MS;
 
     const allowLocalNetwork = process.env.NODE_ENV === "test";
-    const ssrfCheck = SSRFGuard.validateUrl(task.targetUrl, { allowLocalNetwork });
+    const ssrfCheck = await SSRFGuard.validateUrlWithDns(task.targetUrl, { allowLocalNetwork });
     if (!ssrfCheck.valid) {
       return {
         taskId: task.taskId,
@@ -53,48 +53,56 @@ export class NetworkInterceptorActor implements IActor<NetworkInterceptorResult>
 
       const page = session.page;
       const capturedResponses: InterceptedApiResponse[] = [];
+      const inFlightResponses = new Set<Promise<void>>();
 
-      page.on("response", async (response) => {
+      page.on("response", (response) => {
         if (capturedResponses.length >= maxCaptured) return;
 
-        const url = response.url();
-        if (options.urlPatterns && options.urlPatterns.length > 0) {
-          const matches = options.urlPatterns.some((pattern) => matchUrlPattern(url, pattern));
-          if (!matches) return;
-        }
-
-        const headers = response.headers();
-        const contentType = headers["content-type"] || "";
-        const isJson = contentType.includes("application/json") || url.endsWith(".json");
-
-        if (isJson || (options.urlPatterns && options.urlPatterns.length > 0)) {
-          try {
-            const responseJson = await response.json();
-            const request = response.request();
-            let requestPayload: unknown;
-
-            const postData = request.postData();
-            if (postData) {
-              try {
-                requestPayload = JSON.parse(postData);
-              } catch {
-                requestPayload = postData;
-              }
-            }
-
-            capturedResponses.push({
-              url,
-              method: request.method(),
-              statusCode: response.status(),
-              headers: options.captureHeaders ? headers : {},
-              requestPayload,
-              responseJson,
-              timestamp: Date.now(),
-            });
-          } catch {
-            // Non-JSON or streaming payload skipped
+        const op = (async () => {
+          const url = response.url();
+          if (options.urlPatterns && options.urlPatterns.length > 0) {
+            const matches = options.urlPatterns.some((pattern) => matchUrlPattern(url, pattern));
+            if (!matches) return;
           }
-        }
+
+          const headers = response.headers();
+          const contentType = headers["content-type"] || "";
+          const isJson = contentType.includes("application/json") || url.endsWith(".json");
+
+          if (isJson || (options.urlPatterns && options.urlPatterns.length > 0)) {
+            try {
+              const responseJson = await response.json();
+              const request = response.request();
+              let requestPayload: unknown;
+
+              const postData = request.postData();
+              if (postData) {
+                try {
+                  requestPayload = JSON.parse(postData);
+                } catch {
+                  requestPayload = postData;
+                }
+              }
+
+              if (capturedResponses.length < maxCaptured) {
+                capturedResponses.push({
+                  url,
+                  method: request.method(),
+                  statusCode: response.status(),
+                  headers: options.captureHeaders ? headers : {},
+                  requestPayload,
+                  responseJson,
+                  timestamp: Date.now(),
+                });
+              }
+            } catch {
+              // Non-JSON or streaming payload skipped
+            }
+          }
+        })();
+
+        inFlightResponses.add(op);
+        op.finally(() => inFlightResponses.delete(op));
       });
 
       await page.goto(task.targetUrl, {
@@ -110,6 +118,11 @@ export class NetworkInterceptorActor implements IActor<NetworkInterceptorResult>
 
       if (idleWaitMs > 0) {
         await page.waitForTimeout(idleWaitMs);
+      }
+
+      // Await in-flight response processing before tearing down browser context
+      if (inFlightResponses.size > 0) {
+        await Promise.allSettled(Array.from(inFlightResponses));
       }
 
       return {

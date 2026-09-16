@@ -12,6 +12,7 @@ import type {
   ApiExtractorTaskOptions,
   IActor,
 } from "../core/types";
+import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../network/ssrf-guard";
 
 const DEFAULT_TIMEOUT_MS = 25000;
@@ -273,12 +274,12 @@ export class ApiExtractorActor implements IActor<ApiExtractorResult> {
       }
     }
 
-    const response = await fetch(urlObj.toString(), {
+    const response = await safeRedirectFetch(urlObj.toString(), {
       method,
       headers,
       body: bodyPayload,
-      redirect: "error",
-      signal: AbortSignal.timeout(timeoutMs),
+      timeoutMs,
+      allowLocalNetwork: process.env.NODE_ENV === "test",
     });
 
     const responseHeaders: Record<string, string> = {};
