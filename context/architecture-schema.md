@@ -44,6 +44,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/actors/ietf-rfc-actor.ts` | `IetfRfcActor` | Queries IETF RFC Editor and Datatracker for official Internet standards, extracts metadata, and cleans plain text RFC streams. |
 | `src/actors/saglik-ekutuphane-actor.ts` | `SaglikEkutuphaneActor` | Scrapes Turkish Ministry of Health e-library (ekutuphane.saglik.gov.tr) for medical publications, books, journals, and articles with PDF distillation. |
 | `src/actors/ktb-ekitap-actor.ts` | `KtbEkitapActor` | Scrapes Turkish Ministry of Culture and Tourism e-book portal (ekitap.ktb.gov.tr) with anti-hotlink referral and LLM text sanitization. |
+| `src/actors/document-extractor-actor.ts` | `DocumentExtractorActor` | Extracts textual streams, structured records, tables, and document metadata from office files (DOCX, XLSX), tabular files (CSV, TSV), and plain text formats. |
 
 ### 1.3 Browser Engine (`src/browser/`)
 
@@ -63,6 +64,9 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/extractors/readability-extractor.ts` | `ReadabilityExtractor` | 3-stage HTML-to-GFM markdown distillation via Readability and Turndown. |
 | `src/extractors/structured-extractor.ts` | `StructuredExtractor` | HTML table to GFM markdown conversion and JSON-LD metadata extraction. |
 | `src/extractors/robots-parser.ts` | `RobotsParser` | Parses `robots.txt` directives to check URL crawling permissions. |
+| `src/extractors/pdf-anomaly-detector.ts` | `PdfAnomalyDetector` | Detects scanned image PDFs, empty text layers, password protected files, corrupt payloads, and font encoding glitches. |
+| `src/extractors/office-extractor.ts` | `OfficeExtractor` | Parses Microsoft Word (.docx) and Microsoft Excel (.xlsx) OpenXML files into clean text, structured records, and GFM markdown tables with zero external dependencies. |
+| `src/extractors/tabular-extractor.ts` | `TabularExtractor` | Parses CSV/TSV data with RFC 4180 compliance, auto-detects delimiters, and outputs structured JSON records and GFM markdown tables. |
 
 ### 1.5 Network & Security (`src/network/`)
 

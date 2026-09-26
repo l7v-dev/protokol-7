@@ -9,6 +9,7 @@ import type {
   PdfDocumentResult,
   PdfPageEntry,
 } from "../core/types";
+import { PdfAnomalyDetector } from "../extractors/pdf-anomaly-detector";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 
 const MAX_PDF_SIZE_BYTES = 30 * 1024 * 1024; // 30 MB
@@ -24,10 +25,10 @@ export class PdfDocumentActor implements IActor<PdfDocumentResult> {
     const pdfOptions = task.options?.pdfOptions;
     const timeoutMs = pdfOptions?.timeoutMs || task.options?.timeoutMs || DEFAULT_TIMEOUT_MS;
 
-    try {
-      let uint8Data: Uint8Array;
-      let sourceUrl: string | undefined;
+    let uint8Data: Uint8Array | undefined;
+    let sourceUrl: string | undefined;
 
+    try {
       if (pdfOptions?.pdfBase64) {
         const buffer = Buffer.from(pdfOptions.pdfBase64, "base64");
         uint8Data = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
@@ -105,7 +106,7 @@ export class PdfDocumentActor implements IActor<PdfDocumentResult> {
         };
       }
 
-      if (!this.validatePdfMagicBytes(uint8Data)) {
+      if (!uint8Data || !this.validatePdfMagicBytes(uint8Data)) {
         return {
           taskId: task.taskId,
           actorType: this.actorType,
@@ -143,6 +144,14 @@ export class PdfDocumentActor implements IActor<PdfDocumentResult> {
       const totalCharacters = pages.reduce((sum, p) => sum + p.characterCount, 0);
       const totalWords = pages.reduce((sum, p) => sum + p.wordCount, 0);
 
+      const anomaly = PdfAnomalyDetector.detect({
+        uint8Data,
+        totalPages,
+        rawPageTexts: rawPages,
+      });
+
+      const quarantined = Boolean(pdfOptions?.quarantineOnAnomaly && anomaly.isAnomaly);
+
       const metadata: PdfDocumentMetadata = {
         title: meta.info?.Title ? String(meta.info.Title) : undefined,
         author: meta.info?.Author ? String(meta.info.Author) : undefined,
@@ -161,6 +170,8 @@ export class PdfDocumentActor implements IActor<PdfDocumentResult> {
         fullText,
         totalCharacters,
         totalWords,
+        anomaly,
+        quarantined,
       };
 
       return {
@@ -173,12 +184,23 @@ export class PdfDocumentActor implements IActor<PdfDocumentResult> {
       };
     } catch (err: unknown) {
       const error = err as Error;
+      const anomaly = uint8Data
+        ? PdfAnomalyDetector.detect({ uint8Data, parseError: error })
+        : undefined;
+
+      const statusCode =
+        anomaly?.status === "PASSWORD_PROTECTED"
+          ? 423
+          : anomaly?.status === "CORRUPT_PAYLOAD" || anomaly?.status === "ENCODING_ERROR"
+            ? 422
+            : 500;
+
       return {
         taskId: task.taskId,
         actorType: this.actorType,
         status: "failed",
-        statusCode: 500,
-        errorMessage: `PDF extraction failed: ${error.message || "Unknown error"}`,
+        statusCode,
+        errorMessage: `PDF extraction failed: ${anomaly?.reason || error.message || "Unknown error"}`,
         executionDurationMs: Date.now() - startTime,
       };
     }

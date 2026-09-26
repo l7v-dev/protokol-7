@@ -1565,4 +1565,95 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+  "document-extractor": {
+    actorType: "document-extractor",
+    name: "document-extractor",
+    title: "Office Document & Tabular Extractor",
+    category: "DOCUMENT",
+    version: "1.0.0",
+    description:
+      "Extracts structured text, tables, records, and metadata from DOCX, XLSX, CSV, TSV, and plain text formats with zero external dependencies.",
+    author: "protokol-7",
+    tags: ["docx", "xlsx", "csv", "tsv", "excel", "word", "tables", "documents"],
+    inputSchema: {
+      type: "object",
+      title: "Document Extractor Input",
+      description: "Parameters for extracting office documents and tabular datasets",
+      properties: {
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description: "Remote document URL (HTTP/HTTPS)",
+          editor: "textfield",
+        },
+        documentBase64: {
+          name: "documentBase64",
+          type: "string",
+          title: "Document Base64",
+          description: "Base64-encoded document binary payload",
+          editor: "textarea",
+        },
+        format: {
+          name: "format",
+          type: "string",
+          title: "Document Format",
+          description: "Explicit document format (docx, xlsx, csv, tsv, txt, json, yaml)",
+          enum: ["docx", "xlsx", "csv", "tsv", "txt", "json", "yaml"],
+          editor: "select",
+        },
+        maxRows: {
+          name: "maxRows",
+          type: "integer",
+          title: "Max Rows",
+          description: "Maximum number of rows to extract from spreadsheets or CSVs",
+          editor: "number",
+        },
+        delimiter: {
+          name: "delimiter",
+          type: "string",
+          title: "Delimiter",
+          description: "Custom delimiter for tabular files (e.g. ',', ';', '\\t', '|')",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        format: { type: "string", description: "Resolved document format" },
+        fullText: { type: "string", description: "Extracted document text or Markdown table" },
+        totalCharacters: { type: "integer", description: "Total character count" },
+        records: { type: "array", description: "Extracted tabular records as objects" },
+        sheets: { type: "array", description: "Parsed spreadsheet sheets" },
+        metadata: { type: "object", description: "Document metadata" },
+      },
+    },
+    exampleInput: {
+      targetUrl: "https://example.com/data/report.docx",
+      format: "docx",
+    },
+    readme: `# Office Document & Tabular Extractor\n\nExtracts clean text, paragraphs, spreadsheets, and tables from Word (.docx), Excel (.xlsx), CSV, and TSV files. Converts tabular datasets to structured JSON records and GFM Markdown tables with zero external dependencies.`,
+    mcpTool: {
+      name: "extract_document",
+      description:
+        "Extract text, tables, and records from DOCX, XLSX, CSV, TSV, or plain text files.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          targetUrl: { type: "string", description: "Remote document URL" },
+          documentBase64: { type: "string", description: "Base64 document binary" },
+          format: {
+            type: "string",
+            enum: ["docx", "xlsx", "csv", "tsv", "txt", "json", "yaml"],
+            description: "Explicit document format",
+          },
+          maxRows: { type: "integer", description: "Max rows for tabular extraction" },
+          delimiter: { type: "string", description: "Custom CSV delimiter" },
+        },
+        required: [],
+      },
+    },
+  },
 };

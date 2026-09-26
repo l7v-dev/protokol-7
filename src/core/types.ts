@@ -26,7 +26,8 @@ export type ActorType =
   | "gutenberg"
   | "europe-pmc"
   | "ietf-rfc"
-  | "ktb-ekitap";
+  | "ktb-ekitap"
+  | "document-extractor";
 
 export interface ExtractedTable {
   id: string;
@@ -247,10 +248,30 @@ export interface PdfPageEntry {
   wordCount: number;
 }
 
+export type PdfAnomalyStatus =
+  | "EXTRACTABLE"
+  | "SCANNED_IMAGE_ONLY"
+  | "EMPTY_TEXT_LAYER"
+  | "PASSWORD_PROTECTED"
+  | "CORRUPT_PAYLOAD"
+  | "ENCODING_ERROR";
+
+export interface PdfDocumentAnomalyInfo {
+  status: PdfAnomalyStatus;
+  isAnomaly: boolean;
+  reason?: string;
+  averageCharsPerPage: number;
+  ocrRecommended: boolean;
+  detectedImageCount?: number;
+}
+
 export interface PdfDocumentTaskOptions {
   maxPages?: number;
   pdfBase64?: string;
   timeoutMs?: number;
+  quarantineOnAnomaly?: boolean;
+  enableOcrFallback?: boolean;
+  ocrConnector?: string;
 }
 
 export interface PdfDocumentResult {
@@ -262,6 +283,38 @@ export interface PdfDocumentResult {
   fullText: string;
   totalCharacters: number;
   totalWords: number;
+  anomaly?: PdfDocumentAnomalyInfo;
+  quarantined?: boolean;
+}
+
+export type SupportedDocumentFormat = "docx" | "xlsx" | "csv" | "tsv" | "txt" | "json" | "yaml";
+
+export interface DocumentExtractorTaskOptions {
+  format?: SupportedDocumentFormat;
+  documentBase64?: string;
+  timeoutMs?: number;
+  maxRows?: number;
+  delimiter?: string;
+}
+
+export interface DocumentSpreadsheetSheet {
+  sheetName: string;
+  rowCount: number;
+  columnCount: number;
+  records: Array<Record<string, unknown>>;
+  markdownTable?: string;
+}
+
+export interface DocumentExtractorResult {
+  url?: string;
+  format: SupportedDocumentFormat;
+  fullText: string;
+  totalCharacters: number;
+  totalWords?: number;
+  metadata?: Record<string, unknown>;
+  sheets?: DocumentSpreadsheetSheet[];
+  records?: Array<Record<string, unknown>>;
+  markdownTable?: string;
 }
 
 export interface ArxivAuthor {
@@ -624,6 +677,7 @@ export interface ActorTask {
     ietfRfcOptions?: IetfRfcActorTaskOptions;
     saglikEkutuphaneOptions?: SaglikEkutuphaneTaskOptions;
     ktbEkitapOptions?: KtbEkitapTaskOptions;
+    documentOptions?: DocumentExtractorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;
