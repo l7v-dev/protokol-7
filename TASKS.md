@@ -9,7 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- *(Aktif görev tamamlandı — MCP HTTP-SSE Transport Faz 1 & Faz 2 tamamlandı)*
+- [ ] **Belge Cikarimi, OCR Baglayicilari ve Arsiv Yonetimi** — `Tier: 1` — `docs/plans/document-extraction-ocr-archive-plani.md` hazirlandi; kullanici onayi bekleniyor.
 
 ## Bekleyen (Blok var)
 
