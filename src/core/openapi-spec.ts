@@ -243,6 +243,115 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/documents": {
+      post: {
+        tags: ["Documents"],
+        summary: "Office & Tabular Document Extractor",
+        description:
+          "Extracts text, structured records, and GFM markdown tables from DOCX, XLSX, CSV, TSV, TXT, JSON, and YAML files.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct URL to document file." },
+                  documentBase64: { type: "string", description: "Base64 encoded binary data." },
+                  format: {
+                    type: "string",
+                    enum: ["docx", "xlsx", "csv", "tsv", "txt", "json", "yaml"],
+                    description: "Explicit document format override.",
+                  },
+                  maxRows: { type: "integer", default: 1000 },
+                  delimiter: { type: "string", description: "CSV delimiter override." },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Extracted document text, records, and GFM tables." },
+          "400": { description: "Missing targetUrl or documentBase64 payload." },
+        },
+      },
+    },
+    "/api/v1/archives": {
+      post: {
+        tags: ["Documents"],
+        summary: "Safe Compressed Archive Extractor",
+        description:
+          "Safely extracts compressed archives (ZIP, TAR, GZ, TGZ, RAR) with Zip Slip path traversal and Zip Bomb volumetric guards.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct URL to archive file." },
+                  archiveBase64: { type: "string", description: "Base64 encoded archive binary." },
+                  format: {
+                    type: "string",
+                    enum: ["zip", "tar", "tar.gz", "gz", "rar"],
+                  },
+                  pattern: {
+                    type: "string",
+                    description: "Glob pattern to filter extracted files.",
+                  },
+                  previewMaxChars: { type: "integer", default: 250 },
+                  extractTextPreviews: { type: "boolean", default: true },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Archive entries, SHA-256 digests, and previews." },
+          "400": { description: "Missing targetUrl or archiveBase64 payload." },
+          "403": { description: "Zip Slip path traversal attack detected." },
+          "413": { description: "Zip Bomb limit exceeded." },
+        },
+      },
+    },
+    "/api/v1/ocr": {
+      post: {
+        tags: ["Documents"],
+        summary: "Optical Character Recognition (OCR)",
+        description:
+          "Performs optical character recognition using local vision LLMs (llama3.2-vision, qwen2.5-vl) or cloud/CLI connectors.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["imageBase64"],
+                properties: {
+                  imageBase64: { type: "string", description: "Base64 encoded image data." },
+                  mimeType: { type: "string", default: "image/png" },
+                  connector: {
+                    type: "string",
+                    enum: ["local-llm", "cloud-vision", "mistral", "tesseract", "generic-http"],
+                    description: "Preferred OCR connector.",
+                  },
+                  language: { type: "string", default: "eng" },
+                  prompt: {
+                    type: "string",
+                    description: "Custom extraction prompt for vision models.",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Transcribed text and page breakdown." },
+          "400": { description: "Missing imageBase64 payload." },
+          "422": { description: "OCR execution failed across all connectors." },
+        },
+      },
+    },
     "/api/v1/arxiv": {
       post: {
         tags: ["Academic & Search"],

@@ -185,4 +185,50 @@ Guven Kademesi (Trust Tier): `1`
 - **Depo ve Ortam Saglik Denetimi (`npm run doctor`):**
   - 7/7 kontrol basariyla gecti.
 
+---
+
+## Faz 4: REST API, OpenAPI 3.1.0 ve Uc-Uca Dogrulama
+
+### 1. Yapilan Degisiklikler ve Eklenen Bilesenler
+
+1. **`src/core/server.ts`**:
+   - `POST /api/v1/documents` (& `/documents`): Ofis ve tablosal dokumanlari (`document-extractor` aktoru) isleyen endpoint. Girdi dogrulamasi (`targetUrl` veya `documentBase64` zorunlu), `format`, `maxRows`, `delimiter` parametrelerini aktarir.
+   - `POST /api/v1/archives` (& `/archives`): Guvenli sikistirilmis arsiv cikarimi (`archive-extractor` aktoru) endpoint'i. `targetUrl` veya `archiveBase64`, `format`, `pattern`, `previewMaxChars`, `extractTextPreviews` destekler.
+   - `POST /api/v1/ocr` (& `/ocr`): Tekil/bagimsiz OCR cikarim endpoint'i. `imageBase64`, `mimeType`, `connector`, `language`, `prompt` parametrelerini `globalOcrRegistry` uzerinden calistirir.
+   - 400 (gecersiz arguman), 422 (OCR basarisizligi) ve 500 SelfHealingError standart yanitlari.
+
+2. **`src/core/openapi-spec.ts`**:
+   - OpenAPI 3.1.0 semasina `/api/v1/documents`, `/api/v1/archives` ve `/api/v1/ocr` yollari, sema nesneleri, istek govdeleri ve yanit ornekleri eklendi.
+
+3. **Uçtan Uca Dogrulama Test Paketi**:
+   - `tests/documents-archives-ocr-endpoints.test.ts`:
+     - `POST /api/v1/documents`: Gecersiz isteklerde 400 donmesi ve gecerli CSV payload'undan JSON kayitlari ile GFM tablosu cikarimi dogrulandi.
+     - `POST /api/v1/archives`: Gecersiz isteklerde 400 donmesi ve gecerli ZIP payload'undan guvenli SHA-256 ozetli dosya listesi ile metin onizlemesi cikarimi dogrulandi.
+     - `POST /api/v1/ocr`: Eksik gorselde 400 donmesi ve secilen baglayici uzerinden OCR metin donusumu dogrulandi.
+
+---
+
+### 2. Nihai Dogrulama ve Depo Saglik Sonuclari
+
+- **Birim ve Entegrasyon Testleri (`npm test`):**
+  - Toplam 55 test paketi, **322 / 322 test basariyla gecti** (0 fail, 0 skip).
+  - `tests/documents-archives-ocr-endpoints.test.ts`: 6/6 passed.
+  - `tests/ocr-connectors.test.ts`: 20/20 passed.
+  - `tests/pdf-rasterizer.test.ts`: 3/3 passed.
+  - `tests/pdf-ocr-pipeline.test.ts`: 2/2 passed.
+  - `tests/archive-guard.test.ts`: 15/15 passed.
+  - `tests/archive-extractor.test.ts`: 7/7 passed.
+  - `tests/archive-extractor-actor.test.ts`: 5/5 passed.
+  - `tests/pdf-anomaly-detector.test.ts`: 7/7 passed.
+  - `tests/tabular-extractor.test.ts`: 6/6 passed.
+  - `tests/office-extractor.test.ts`: 3/3 passed.
+  - `tests/document-extractor-actor.test.ts`: 6/6 passed.
+  - `tests/protokol-mcp-server.test.ts`: 10/10 passed (20 kayitli MCP araci).
+  - `tests/server.test.ts`: 12/12 passed.
+- **Deterministik Dogrulama Hattı (`npm run verify`):**
+  - 6/6 katman basariyla gecti (Mimari dosya butunlugu, pazarlama jargonsuz isimlendirme, sifir emoji disiplini, secret detection, canli SCA paket dogrulama, Biome linter).
+- **Depo ve Ortam Saglik Denetimi (`npm run doctor`):**
+  - 7/7 kontrol basariyla gecti.
+
+
 

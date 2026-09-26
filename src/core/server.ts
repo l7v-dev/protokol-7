@@ -9,9 +9,10 @@ import { BrowserPool } from "../browser/browser-pool";
 import { InteractiveBrowserController } from "../browser/interactive-browser-controller";
 import { globalPipedreamConnect } from "../integrations/pipedream-connect";
 import { HttpMcpTransport, ProtokolMcpServer } from "../mcp";
+import { globalOcrRegistry } from "../ocr";
 import { OPENAPI_SPECIFICATION, renderDocsHtml } from "./openapi-spec";
 import { StoreRouter } from "./store-router";
-import type { ActorTask, ActorType } from "./types";
+import type { ActorTask, ActorType, ArchiveFormat, SupportedDocumentFormat } from "./types";
 
 const registry = createDefaultActorRegistry();
 const storeRouter = new StoreRouter(registry);
@@ -528,6 +529,183 @@ export function createServer(): http.Server {
           success: result.status === "completed",
           ...result,
         });
+        return;
+      }
+
+      // Document Extractor (/documents or /api/v1/documents)
+      if (method === "POST" && (pathname === "/api/v1/documents" || pathname === "/documents")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          documentBase64?: string;
+          format?: SupportedDocumentFormat;
+          maxRows?: number;
+          delimiter?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        if (
+          !body.targetUrl &&
+          !body.documentBase64 &&
+          !body.options?.documentOptions?.documentBase64
+        ) {
+          sendError(
+            res,
+            400,
+            "INVALID_ARGUMENTS",
+            "Either targetUrl or documentBase64 must be provided.",
+            "Provide a target URL or base64 encoded document content."
+          );
+          return;
+        }
+
+        const docActor = registry.get("document-extractor");
+        if (!docActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Document extractor actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `doc-${Date.now()}`,
+          actorType: "document-extractor",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            documentOptions: {
+              format: body.format,
+              maxRows: body.maxRows,
+              delimiter: body.delimiter,
+              documentBase64: body.documentBase64 || body.options?.documentOptions?.documentBase64,
+              ...body.options?.documentOptions,
+            },
+          },
+        };
+
+        const result = await docActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Archive Extractor (/archives or /api/v1/archives)
+      if (method === "POST" && (pathname === "/api/v1/archives" || pathname === "/archives")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          archiveBase64?: string;
+          format?: ArchiveFormat;
+          pattern?: string;
+          previewMaxChars?: number;
+          extractTextPreviews?: boolean;
+          options?: ActorTask["options"];
+        }>(req);
+
+        if (
+          !body.targetUrl &&
+          !body.archiveBase64 &&
+          !body.options?.archiveOptions?.archiveBase64
+        ) {
+          sendError(
+            res,
+            400,
+            "INVALID_ARGUMENTS",
+            "Either targetUrl or archiveBase64 must be provided.",
+            "Provide a target URL or base64 encoded archive content."
+          );
+          return;
+        }
+
+        const archiveActor = registry.get("archive-extractor");
+        if (!archiveActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Archive extractor actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `archive-${Date.now()}`,
+          actorType: "archive-extractor",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            archiveOptions: {
+              format: body.format,
+              pattern: body.pattern,
+              previewLength: body.previewMaxChars,
+              extractTextPreviews: body.extractTextPreviews ?? true,
+              archiveBase64: body.archiveBase64 || body.options?.archiveOptions?.archiveBase64,
+              ...body.options?.archiveOptions,
+            },
+          },
+        };
+
+        const result = await archiveActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Optical Character Recognition (/ocr or /api/v1/ocr)
+      if (method === "POST" && (pathname === "/api/v1/ocr" || pathname === "/ocr")) {
+        const body = await parseBody<{
+          imageBase64?: string;
+          mimeType?: string;
+          connector?: string;
+          language?: string;
+          prompt?: string;
+          options?: Record<string, unknown>;
+        }>(req);
+
+        if (!body.imageBase64) {
+          sendError(
+            res,
+            400,
+            "INVALID_ARGUMENTS",
+            "imageBase64 payload is required for OCR extraction.",
+            "Provide base64-encoded image data."
+          );
+          return;
+        }
+
+        try {
+          const ocrResult = await globalOcrRegistry.executeOcr(
+            {
+              imageBase64: body.imageBase64,
+              mimeType: body.mimeType,
+              language: body.language,
+              prompt: body.prompt,
+              options: body.options,
+            },
+            body.connector
+          );
+
+          sendJson(res, 200, {
+            success: true,
+            data: ocrResult,
+          });
+        } catch (ocrErr) {
+          const msg = ocrErr instanceof Error ? ocrErr.message : String(ocrErr);
+          sendError(
+            res,
+            422,
+            "OCR_FAILED",
+            `OCR execution failed: ${msg}`,
+            "Verify image payload format, OCR connector availability, or endpoint configuration."
+          );
+        }
         return;
       }
 

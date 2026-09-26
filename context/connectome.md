@@ -9,26 +9,28 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/core/types.ts` | 31 | 65 | Yardımcı Modül |
+| `src/core/types.ts` | 44 | 75 | Yardımcı Modül |
+| `src/ocr/types.ts` | 44 | 5 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 18 | 2 | Yardımcı Modül |
 | `src/network/ssrf-guard.ts` | 18 | 3 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 16 | 2 | Yardımcı Modül |
-| `src/core/server.ts` | 12 | 1 | Giriş Noktası (Server) |
-| `src/server.ts` | 12 | 0 | Giriş Noktası (Server) |
+| `src/core/server.ts` | 13 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 13 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 11 | 13 | Yardımcı Modül |
 | `src/core/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/mcp/index.ts` | 10 | 0 | Yardımcı Modül |
+| `src/ocr/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/connectors/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/execution/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/pipeline/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/processors/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/index.ts` | 10 | 2 | Yardımcı Modül |
+| `src/browser/browser-pool.ts` | 7 | 4 | Kaynak Yöneticisi (BrowserPool) |
+| `src/core/context-guard.ts` | 6 | 4 | Yardımcı Modül |
 | `src/actors/actor-registry.ts` | 5 | 2 | Bileşen Tescili (Registry) |
-| `src/core/context-guard.ts` | 5 | 4 | Yardımcı Modül |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
 | `src/pipeline/storage/s3-storage.ts` | 5 | 4 | Yardımcı Modül |
 | `src/actors/actor-manifests.ts` | 4 | 5 | Etki Alanı Aktörü (Actor) |
-| `src/browser/browser-pool.ts` | 4 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
 | `src/core/run-registry.ts` | 4 | 4 | Bileşen Tescili (Registry) |
 | `src/extractors/structured-extractor.ts` | 4 | 1 | Etki Alanı Aktörü (Actor) |
@@ -36,6 +38,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
 | `src/pipeline/pipeline-runner.ts` | 4 | 3 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
+| `src/actors/pdf-document-actor.ts` | 3 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/integrations/pipedream-connect.ts` | 3 | 6 | Yardımcı Modül |
 | `src/mcp/protokol-mcp-server.ts` | 3 | 3 | Giriş Noktası (Server) |
@@ -43,19 +46,23 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/connectors/env-resolver.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/execution/local-executor.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/processors/jsonl-writer.ts` | 3 | 1 | Yardımcı Modül |
+| `src/actors/archive-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/document-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/europe-pmc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/gutenberg-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/ietf-rfc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/ktb-ekitap-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/openalex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/pdf-document-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/playwright-browser-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/saglik-ekutuphane-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/stack-exchange-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/wikimedia-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/browser/stealth-manager.ts` | 2 | 2 | Yardımcı Modül |
+| `src/extractors/office-extractor.ts` | 2 | 4 | Etki Alanı Aktörü (Actor) |
+| `src/extractors/pdf-anomaly-detector.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
+| `src/extractors/tabular-extractor.ts` | 2 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/mcp/auth-guard.ts` | 2 | 1 | Yardımcı Modül |
 | `src/network/crawl-frontier.ts` | 2 | 4 | Yardımcı Modül |
 | `src/pipeline/actor-resolver.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
@@ -86,6 +93,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/mcp/http-transport.ts` | 1 | 2 | Yardımcı Modül |
 | `src/network/crawl-url-accumulator.ts` | 1 | 3 | Yardımcı Modül |
 | `src/network/politeness-limiter.ts` | 1 | 2 | Yardımcı Modül |
+| `src/ocr/connectors/cloud-vision-connector.ts` | 1 | 2 | Yardımcı Modül |
+| `src/ocr/connectors/generic-http-connector.ts` | 1 | 2 | Yardımcı Modül |
+| `src/ocr/connectors/local-llm-vision-connector.ts` | 1 | 2 | Yardımcı Modül |
+| `src/ocr/connectors/local-tesseract-connector.ts` | 1 | 2 | Yardımcı Modül |
+| `src/ocr/connectors/mistral-ocr-connector.ts` | 1 | 2 | Yardımcı Modül |
+| `src/ocr/pdf-rasterizer.ts` | 1 | 2 | Yardımcı Modül |
 | `scripts/checkpoint.mjs` | 0 | 3 | Yardımcı Modül |
 | `scripts/consolidate-memory.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/doctor.mjs` | 0 | 0 | Yardımcı Modül |
@@ -97,15 +110,21 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/pipedream-cli.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/sca-check.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/verify-pipeline.mjs` | 0 | 0 | Doğrulama Hattı |
+| `src/ocr/ocr-connector-registry.ts` | 0 | 3 | Bileşen Tescili (Registry) |
 | `src/pipeline/cli.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/actor-resolver.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/api-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/archive-extractor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/archive-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/archive-guard.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/arxiv-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/browser-pool.test.ts` | 0 | 0 | Kaynak Yöneticisi (BrowserPool) |
 | `tests/browser-session-manager.test.ts` | 0 | 0 | Oturum Denetleyicisi |
 | `tests/context-guard.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/crawl-frontier.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/crawler-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/document-extractor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/documents-archives-ocr-endpoints.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/dom-indexer.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/europe-pmc-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/gutenberg-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -115,8 +134,13 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/markdown-reader-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/mcp-http-transport.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/network-interceptor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/ocr-connectors.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/office-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/openalex-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/pdf-anomaly-detector.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pdf-document-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/pdf-ocr-pipeline.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/pdf-rasterizer.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipedream-connect.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipeline-runner.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipeline-schema.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -140,6 +164,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/storage-router.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/store-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/structured-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/tabular-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/wikimedia-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 
 ## Kayıtlı API Rotaları
@@ -168,6 +193,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `/search` | POST | SerpSearchActor |
 | `/api/v1/pdf` | POST | PdfDocumentActor |
 | `/pdf` | POST | PdfDocumentActor |
+| `/api/v1/documents` | POST | — |
+| `/documents` | POST | — |
+| `/api/v1/archives` | POST | — |
+| `/archives` | POST | — |
+| `/api/v1/ocr` | POST | — |
+| `/ocr` | POST | — |
 | `/api/v1/arxiv` | POST | — |
 | `/arxiv` | POST | — |
 | `/api/v1/wikimedia` | POST | — |
@@ -236,6 +267,13 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `ietf-rfc` | `IetfRfcActor` |
 | `saglik-ekutuphane` | `SaglikEkutuphaneActor` |
 | `ktb-ekitap` | `KtbEkitapActor` |
+| `document-extractor` | `DocumentExtractorActor` |
+| `archive-extractor` | `ArchiveExtractorActor` |
+| `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
+| `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
+| `mistral-ocr-connector` | `MistralOcrConnector` |
+| `local-tesseract-ocr-connector` | `LocalTesseractOcrConnector` |
+| `generic-http-ocr-connector` | `GenericHttpOcrConnector` |
 | `main-r2` | `{
         type: "r2",
         bucket: "test-bucket",
@@ -298,6 +336,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ApiExtractorResult>>`
   - `executeRequest(url: string, method: string, options: ApiExtractorTaskOptions, timeoutMs: number): Promise<{ status: number; headers: Record<string, string>; data: unknown }>`
 
+### `src/actors/archive-extractor-actor.ts`
+
+**Sınıflar (Classes):**
+- `class ArchiveExtractorActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<ArchiveExtractorResult>>`
+
 ### `src/actors/arxiv-actor.ts`
 
 **Sınıflar (Classes):**
@@ -324,6 +368,13 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Sınıflar (Classes):**
 - `class CrawlerActor`
   - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<CrawlerResult>>`
+
+### `src/actors/document-extractor-actor.ts`
+
+**Sınıflar (Classes):**
+- `class DocumentExtractorActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<DocumentExtractorResult>>`
+  - `resolveFormat(url: string, buffer: Buffer, explicitFormat: SupportedDocumentFormat): SupportedDocumentFormat`
 
 ### `src/actors/europe-pmc-actor.ts`
 
@@ -632,8 +683,15 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface SerpSearchResult` (3 üye)
 - `interface PdfDocumentMetadata` (6 üye)
 - `interface PdfPageEntry` (4 üye)
-- `interface PdfDocumentTaskOptions` (3 üye)
-- `interface PdfDocumentResult` (8 üye)
+- `interface PdfDocumentAnomalyInfo` (6 üye)
+- `interface PdfDocumentTaskOptions` (6 üye)
+- `interface PdfDocumentResult` (12 üye)
+- `interface DocumentExtractorTaskOptions` (5 üye)
+- `interface DocumentSpreadsheetSheet` (5 üye)
+- `interface DocumentExtractorResult` (9 üye)
+- `interface ArchiveEntryResult` (6 üye)
+- `interface ArchiveExtractorTaskOptions` (7 üye)
+- `interface ArchiveExtractorResult` (6 üye)
 - `interface ArxivAuthor` (2 üye)
 - `interface ArxivPaperItem` (16 üye)
 - `interface ArxivActorTaskOptions` (8 üye)
@@ -672,10 +730,43 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Tipler (Types):**
 - `type EntityId`
 - `type ActorType`
+- `type PdfAnomalyStatus`
+- `type SupportedDocumentFormat`
+- `type ArchiveFormat`
 - `type SaglikEkutuphaneCategory`
 - `type SaglikEkutuphaneAction`
 - `type KtbEkitapCategory`
 - `type KtbEkitapAction`
+
+### `src/extractors/office-extractor.ts`
+
+**Sınıflar (Classes):**
+- `class OfficeExtractor`
+  - `readZipEntries(buffer: Buffer): Map<string, Buffer>`
+  - `extractDocx(buffer: Buffer): DocxExtractionResult`
+  - `extractXlsx(buffer: Buffer): XlsxExtractionResult`
+  - `extractTextFromP(pXml: string): string`
+  - `parseDocxTable(tableXml: string): string`
+  - `renderGridToMarkdown(headers: string[], dataRows: string[][]): string`
+  - `extractXmlTagValue(xml: string, tagName: string): string | undefined`
+  - `decodeXmlEntities(str: string): string`
+**Arayüzler (Interfaces):**
+- `interface ZipEntry` (5 üye)
+- `interface DocxExtractionResult` (6 üye)
+- `interface XlsxExtractionResult` (5 üye)
+
+### `src/extractors/pdf-anomaly-detector.ts`
+
+**Sınıflar (Classes):**
+- `class PdfAnomalyDetector`
+  - `detect(input: PdfAnalysisInput): PdfDocumentAnomalyInfo`
+  - `hasPdfMagicBytes(data: Uint8Array): boolean`
+  - `detectRasterImagePresence(data: Uint8Array): {
+    hasImages: boolean;
+    estimatedImageCount: number;
+  }`
+**Arayüzler (Interfaces):**
+- `interface PdfAnalysisInput` (4 üye)
 
 ### `src/extractors/readability-extractor.ts`
 
@@ -709,6 +800,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `extractTables(html: string): ExtractedTable[]`
   - `extractJsonLd(html: string): unknown[]`
   - `extractMetaTags(html: string): Record<string, string>`
+
+### `src/extractors/tabular-extractor.ts`
+
+**Sınıflar (Classes):**
+- `class TabularExtractor`
+  - `parse(content: string, options: TabularParseOptions): TabularParseResult`
+  - `detectDelimiter(sample: string): string`
+  - `tokenizeRfc4180(input: string, delimiter: string): string[][]`
+  - `renderMarkdown(headers: string[], rows: string[][]): string`
+**Arayüzler (Interfaces):**
+- `interface TabularParseOptions` (3 üye)
+- `interface TabularParseResult` (7 üye)
 
 ### `src/integrations/pipedream-connect.ts`
 
@@ -885,6 +988,96 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Fonksiyonlar (Functions):**
 - `isValidUrlPattern(pattern: string): boolean`
 - `matchUrlPattern(url: string, pattern: string): boolean`
+
+### `src/ocr/connectors/cloud-vision-connector.ts`
+
+**Sınıflar (Classes):**
+- `class CloudVisionOcrConnector`
+  - `isAvailable(): Promise<boolean>`
+  - `extract(request: OcrRequest): Promise<OcrResult>`
+  - `resolveImageBase64(request: OcrRequest): string | undefined`
+**Arayüzler (Interfaces):**
+- `interface CloudVisionOptions` (3 üye)
+
+### `src/ocr/connectors/generic-http-connector.ts`
+
+**Sınıflar (Classes):**
+- `class GenericHttpOcrConnector`
+  - `isAvailable(): Promise<boolean>`
+  - `extract(request: OcrRequest): Promise<OcrResult>`
+  - `resolveImageBase64(request: OcrRequest): string | undefined`
+  - `extractTextByPath(obj: Record<string, unknown>, pathStr: string): string`
+**Arayüzler (Interfaces):**
+- `interface GenericHttpOcrOptions` (5 üye)
+
+### `src/ocr/connectors/local-llm-vision-connector.ts`
+
+**Sınıflar (Classes):**
+- `class LocalLlmVisionOcrConnector`
+  - `isAvailable(): Promise<boolean>`
+  - `extract(request: OcrRequest): Promise<OcrResult>`
+  - `resolveImageBase64(request: OcrRequest): string | undefined`
+  - `callOllamaApi(imageBase64: string, prompt: string): Promise<string>`
+  - `callOpenAiCompatibleApi(imageBase64: string, prompt: string): Promise<string>`
+**Arayüzler (Interfaces):**
+- `interface LocalLlmVisionOptions` (4 üye)
+
+### `src/ocr/connectors/local-tesseract-connector.ts`
+
+**Sınıflar (Classes):**
+- `class LocalTesseractOcrConnector`
+  - `isAvailable(): Promise<boolean>`
+  - `extract(request: OcrRequest): Promise<OcrResult>`
+  - `resolveImageBuffer(request: OcrRequest): Buffer | undefined`
+**Arayüzler (Interfaces):**
+- `interface LocalTesseractOptions` (3 üye)
+
+### `src/ocr/connectors/mistral-ocr-connector.ts`
+
+**Sınıflar (Classes):**
+- `class MistralOcrConnector`
+  - `isAvailable(): Promise<boolean>`
+  - `extract(request: OcrRequest): Promise<OcrResult>`
+  - `resolveImageBase64(request: OcrRequest): string | undefined`
+**Arayüzler (Interfaces):**
+- `interface MistralOcrOptions` (4 üye)
+
+### `src/ocr/ocr-connector-registry.ts`
+
+**Sınıflar (Classes):**
+- `class NoAvailableOcrConnectorError`
+- `class OcrConnectorRegistry`
+  - `registerDefaults(): void`
+  - `register(connector: IOcrConnector): void`
+  - `unregister(name: string): boolean`
+  - `get(name: string): IOcrConnector | undefined`
+  - `list(): string[]`
+  - `getAvailable(): Promise<string[]>`
+  - `executeOcr(request: OcrRequest, preferredConnector: string): Promise<OcrResult>`
+  - `executeMultiPageOcr(pageImages: Buffer[], preferredConnector: string, options: Record<string, unknown>): Promise<OcrResult>`
+
+### `src/ocr/pdf-rasterizer.ts`
+
+**Sınıflar (Classes):**
+- `class PdfRasterizer`
+  - `getPdfJsSource(): string`
+  - `toPureUint8Array(input: Buffer | Uint8Array): Uint8Array`
+  - `extractEmbeddedImages(pdfBuffer: Buffer | Uint8Array, pageNumber): Promise<Buffer[]>`
+  - `rasterizePage(pdfBuffer: Buffer | Uint8Array, pageNumber, scale, timeoutMs): Promise<Buffer>`
+  - `rasterizeAllPages(pdfBuffer: Buffer | Uint8Array, options: PdfRasterizerOptions): Promise<Buffer[]>`
+  - `rasterizePages(pdfBuffer: Buffer | Uint8Array, pageNumbers: number[], scale: number, timeoutMs: number): Promise<Buffer[]>`
+**Arayüzler (Interfaces):**
+- `interface PdfRasterizerOptions` (3 üye)
+
+### `src/ocr/types.ts`
+
+**Arayüzler (Interfaces):**
+- `interface OcrRequest` (6 üye)
+- `interface OcrPageResult` (4 üye)
+- `interface OcrResult` (6 üye)
+- `interface IOcrConnector` (3 üye)
+**Tipler (Types):**
+- `type OcrConnectorType`
 
 ### `src/pipeline/actor-resolver.ts`
 
@@ -1108,9 +1301,11 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/actor-manifests.ts` |
 | `src/actors/actor-registry.ts` |
 | `src/actors/api-extractor-actor.ts` |
+| `src/actors/archive-extractor-actor.ts` |
 | `src/actors/arxiv-actor.ts` |
 | `src/actors/cheerio-scraper-actor.ts` |
 | `src/actors/crawler-actor.ts` |
+| `src/actors/document-extractor-actor.ts` |
 | `src/actors/europe-pmc-actor.ts` |
 | `src/actors/gutenberg-actor.ts` |
 | `src/actors/ietf-rfc-actor.ts` |
@@ -1138,10 +1333,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/core/server.ts` |
 | `src/core/store-router.ts` |
 | `src/core/types.ts` |
+| `src/extractors/office-extractor.ts` |
+| `src/extractors/pdf-anomaly-detector.ts` |
 | `src/extractors/readability-extractor.ts` |
-| `src/extractors/robots-parser.ts` |
-| `src/extractors/structured-extractor.ts` |
-| `src/index.ts` |
-| `src/integrations/pipedream-connect.ts` |
-| *... ve 82 dosya daha* |
+| *... ve 107 dosya daha* |
 
