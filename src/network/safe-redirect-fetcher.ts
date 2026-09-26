@@ -5,7 +5,7 @@
  */
 
 import { globalProxyManager, type ProxyConfig } from "./proxy-manager";
-import { type RetryOptions, withRetry } from "./retry-handler";
+import { parseRetryAfter, type RetryOptions, withRetry } from "./retry-handler";
 import { SSRFGuard } from "./ssrf-guard";
 
 export interface SafeFetchOptions extends RequestInit {
@@ -64,7 +64,7 @@ export async function safeRedirectFetch(
     let response: Response;
     try {
       const executeAttempt = async () => {
-        return await fetch(currentUrl, {
+        const res = await fetch(currentUrl, {
           ...options,
           method: currentMethod,
           headers: currentHeaders,
@@ -74,6 +74,25 @@ export async function safeRedirectFetch(
           // undici ProxyAgent dispatcher for upstream proxy routing
           dispatcher,
         } as RequestInit);
+
+        if (options.retryOptions && (options.retryOptions.maxRetries ?? 0) > 0) {
+          const retryableStatuses = new Set(
+            options.retryOptions.retryableStatusCodes ?? [408, 429, 500, 502, 503, 504]
+          );
+          if (retryableStatuses.has(res.status)) {
+            const retryAfterHeader = res.headers.get("retry-after");
+            const retryAfterMs = parseRetryAfter(retryAfterHeader);
+            const statusError = new Error(`HTTP ${res.status}: ${res.statusText}`);
+            (statusError as unknown as { statusCode: number; retryAfterMs?: number }).statusCode =
+              res.status;
+            if (retryAfterMs) {
+              (statusError as unknown as { retryAfterMs?: number }).retryAfterMs = retryAfterMs;
+            }
+            throw statusError;
+          }
+        }
+
+        return res;
       };
 
       if (options.retryOptions && (options.retryOptions.maxRetries ?? 0) > 0) {
@@ -122,6 +141,13 @@ export async function safeRedirectFetch(
       currentBody = undefined;
       currentHeaders.delete("content-length");
       currentHeaders.delete("content-type");
+    }
+
+    // Drain or cancel redirect response stream to release underlying TCP socket immediately
+    try {
+      await response.body?.cancel();
+    } catch {
+      // Ignored
     }
 
     currentUrl = nextUrl;

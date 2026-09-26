@@ -120,4 +120,38 @@ describe("safeRedirectFetch - SSRF Guarded HTTP Fetcher", () => {
       }
     );
   });
+
+  it("retries on transient HTTP 503 status code when retryOptions is provided", async () => {
+    let callCount = 0;
+    const retryServer = http.createServer((_req, res) => {
+      callCount++;
+      if (callCount === 1) {
+        res.writeHead(503, { "Retry-After": "0" });
+        res.end("Service Unavailable");
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end("Recovered After Retry");
+    });
+
+    await new Promise<void>((resolve) => retryServer.listen(0, "127.0.0.1", () => resolve()));
+    const port = (retryServer.address() as { port: number }).port;
+
+    try {
+      const res = await safeRedirectFetch(`http://127.0.0.1:${port}/flaky`, {
+        allowLocalNetwork: true,
+        retryOptions: {
+          maxRetries: 2,
+          initialDelayMs: 10,
+        },
+      });
+
+      assert.equal(res.status, 200);
+      const body = await res.text();
+      assert.equal(body, "Recovered After Retry");
+      assert.equal(callCount, 2);
+    } finally {
+      retryServer.close();
+    }
+  });
 });

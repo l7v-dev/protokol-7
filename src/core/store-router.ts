@@ -7,8 +7,10 @@ import type http from "node:http";
 import { join } from "node:path";
 import { ACTOR_MANIFESTS } from "../actors/actor-manifests";
 import type { ActorRegistry } from "../actors/actor-registry";
+import type { StoredSessionState } from "../browser/session-vault";
+import type { ProxyConfig } from "../network/proxy-manager";
 import { globalRunRegistry } from "./run-registry";
-import type { ActorTask } from "./types";
+import type { ActorTask, ApiExtractorTaskOptions, NetworkInterceptorTaskOptions } from "./types";
 
 const POOL_ROOT = process.env.PROTOKOL_POOL_ROOT || "/home/l7v/protokol-data-pool";
 
@@ -122,20 +124,148 @@ export class StoreRouter {
     }
 
     const targetUrl = String(body.targetUrl || "");
+    const rawOptions = (body.options as Record<string, unknown>) || {};
     const task: ActorTask = {
       taskId: run.runId,
       actorType: manifest.actorType,
       targetUrl,
       selectors: body.selectors as Record<string, string> | undefined,
       options: {
-        timeoutMs: Number(body.timeoutMs) || 30000,
-        waitForSelector: body.waitForSelector ? String(body.waitForSelector) : undefined,
-        captureScreenshot: Boolean(body.captureScreenshot),
-        blockAssets: body.blockAssets !== false,
-        crawlerOptions: body.maxPages ? { maxPages: Number(body.maxPages) } : undefined,
-        pdfOptions: body.maxPages ? { maxPages: Number(body.maxPages) } : undefined,
-        extractTables: body.extractTables !== false,
-        extractJsonLd: body.extractJsonLd !== false,
+        timeoutMs: Number(body.timeoutMs || rawOptions.timeoutMs) || 30000,
+        waitForSelector:
+          body.waitForSelector || rawOptions.waitForSelector
+            ? String(body.waitForSelector || rawOptions.waitForSelector)
+            : undefined,
+        captureScreenshot: Boolean(body.captureScreenshot || rawOptions.captureScreenshot),
+        blockAssets: body.blockAssets !== false && rawOptions.blockAssets !== false,
+        extractTables: body.extractTables !== false && rawOptions.extractTables !== false,
+        extractJsonLd: body.extractJsonLd !== false && rawOptions.extractJsonLd !== false,
+        crawlerOptions:
+          body.maxPages || rawOptions.crawlerOptions
+            ? {
+                maxPages: Number(body.maxPages) || undefined,
+                ...((rawOptions.crawlerOptions as object) || {}),
+              }
+            : undefined,
+        pdfOptions:
+          body.maxPages || body.pdfBase64 || rawOptions.pdfOptions
+            ? {
+                maxPages: body.maxPages ? Number(body.maxPages) : undefined,
+                pdfBase64: body.pdfBase64 ? String(body.pdfBase64) : undefined,
+                ...((rawOptions.pdfOptions as object) || {}),
+              }
+            : undefined,
+        serpOptions:
+          body.query || rawOptions.serpOptions
+            ? {
+                query: body.query ? String(body.query) : undefined,
+                maxResults: body.maxResults ? Number(body.maxResults) : undefined,
+                ...((rawOptions.serpOptions as object) || {}),
+              }
+            : undefined,
+        arxivOptions:
+          body.searchQuery || body.idList || rawOptions.arxivOptions
+            ? {
+                searchQuery: body.searchQuery ? String(body.searchQuery) : undefined,
+                idList: Array.isArray(body.idList) ? (body.idList as string[]) : undefined,
+                start: body.start !== undefined ? Number(body.start) : undefined,
+                maxResults: body.maxResults !== undefined ? Number(body.maxResults) : undefined,
+                sortBy:
+                  (body.sortBy as "relevance" | "lastUpdatedDate" | "submittedDate") || undefined,
+                sortOrder: (body.sortOrder as "ascending" | "descending") || undefined,
+                downloadPdf: Boolean(body.downloadPdf),
+                ...((rawOptions.arxivOptions as object) || {}),
+              }
+            : undefined,
+        wikimediaOptions:
+          body.title || body.lang || body.action || body.query || rawOptions.wikimediaOptions
+            ? {
+                title: body.title ? String(body.title) : undefined,
+                lang: body.lang ? String(body.lang) : undefined,
+                action: (body.action as "summary" | "article" | "search") || undefined,
+                query: body.query ? String(body.query) : undefined,
+                limit: body.limit !== undefined ? Number(body.limit) : undefined,
+                ...((rawOptions.wikimediaOptions as object) || {}),
+              }
+            : undefined,
+        openalexOptions:
+          body.searchQuery || body.doi || body.minCitations || rawOptions.openalexOptions
+            ? {
+                searchQuery: body.searchQuery ? String(body.searchQuery) : undefined,
+                doi: body.doi ? String(body.doi) : undefined,
+                author: body.author ? String(body.author) : undefined,
+                concept: body.concept ? String(body.concept) : undefined,
+                publicationYear:
+                  body.publicationYear !== undefined ? Number(body.publicationYear) : undefined,
+                minCitations:
+                  body.minCitations !== undefined ? Number(body.minCitations) : undefined,
+                isOpenAccess:
+                  body.isOpenAccess !== undefined ? Boolean(body.isOpenAccess) : undefined,
+                perPage: body.perPage !== undefined ? Number(body.perPage) : undefined,
+                page: body.page !== undefined ? Number(body.page) : undefined,
+                ...((rawOptions.openalexOptions as object) || {}),
+              }
+            : undefined,
+        stackExchangeOptions:
+          body.query || body.site || body.tagged || rawOptions.stackExchangeOptions
+            ? {
+                query: body.query ? String(body.query) : undefined,
+                site: body.site ? String(body.site) : undefined,
+                tagged: body.tagged ? String(body.tagged) : undefined,
+                minScore: body.minScore !== undefined ? Number(body.minScore) : undefined,
+                acceptedOnly:
+                  body.acceptedOnly !== undefined ? Boolean(body.acceptedOnly) : undefined,
+                pageSize: body.pageSize !== undefined ? Number(body.pageSize) : undefined,
+                page: body.page !== undefined ? Number(body.page) : undefined,
+                ...((rawOptions.stackExchangeOptions as object) || {}),
+              }
+            : undefined,
+        gutenbergOptions:
+          body.searchQuery ||
+          body.topic ||
+          body.bookId ||
+          body.downloadText ||
+          rawOptions.gutenbergOptions
+            ? {
+                searchQuery: body.searchQuery ? String(body.searchQuery) : undefined,
+                topic: body.topic ? String(body.topic) : undefined,
+                bookId: body.bookId !== undefined ? Number(body.bookId) : undefined,
+                downloadText: Boolean(body.downloadText),
+                maxBytes: body.maxBytes !== undefined ? Number(body.maxBytes) : undefined,
+                ...((rawOptions.gutenbergOptions as object) || {}),
+              }
+            : undefined,
+        europePmcOptions:
+          body.query || body.openAccessOnly || rawOptions.europePmcOptions
+            ? {
+                query: body.query ? String(body.query) : undefined,
+                openAccessOnly: Boolean(body.openAccessOnly),
+                pageSize: body.pageSize !== undefined ? Number(body.pageSize) : undefined,
+                cursorMark: body.cursorMark ? String(body.cursorMark) : undefined,
+                ...((rawOptions.europePmcOptions as object) || {}),
+              }
+            : undefined,
+        ietfRfcOptions:
+          body.rfcNumber || body.query || rawOptions.ietfRfcOptions
+            ? {
+                rfcNumber: body.rfcNumber !== undefined ? Number(body.rfcNumber) : undefined,
+                query: body.query ? String(body.query) : undefined,
+                limit: body.limit !== undefined ? Number(body.limit) : undefined,
+                ...((rawOptions.ietfRfcOptions as object) || {}),
+              }
+            : undefined,
+        apiOptions:
+          (rawOptions.apiOptions as ApiExtractorTaskOptions) ||
+          (rawOptions.apiExtractorOptions as ApiExtractorTaskOptions) ||
+          undefined,
+        networkInterceptorOptions:
+          (rawOptions.networkInterceptorOptions as NetworkInterceptorTaskOptions) || undefined,
+        proxy: (rawOptions.proxy as ProxyConfig) || undefined,
+        headers:
+          (rawOptions.headers as Record<string, string>) ||
+          (rawOptions.customHeaders as Record<string, string>) ||
+          undefined,
+        storageState: (rawOptions.storageState as string | StoredSessionState) || undefined,
       },
     };
 
@@ -150,6 +280,8 @@ export class StoreRouter {
           if (Array.isArray(d.items)) count = d.items.length;
           else if (Array.isArray(d.urls)) count = d.urls.length;
           else if (Array.isArray(d.pages)) count = d.pages.length;
+          else if (Array.isArray(d.papers)) count = d.papers.length;
+          else if (Array.isArray(d.results)) count = d.results.length;
         }
         globalRunRegistry.completeRun(run.runId, result.data, count);
         sendJson(res, 200, { runId: run.runId, status: "succeeded", result });

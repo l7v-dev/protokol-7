@@ -244,3 +244,84 @@ startxref
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });
+
+test("GET /openapi.json returns valid OpenAPI 3.1.0 specification", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/openapi.json`);
+    assert.equal(res.status, 200);
+    assert.ok(res.headers.get("content-type")?.includes("application/json"));
+
+    const schema = (await res.json()) as {
+      openapi: string;
+      info: { title: string; version: string };
+      paths: Record<string, unknown>;
+    };
+
+    assert.equal(schema.openapi, "3.1.0");
+    assert.equal(schema.info.title, "Protokol-7 Microservice API");
+    assert.ok(schema.paths["/health"]);
+    assert.ok(schema.paths["/openapi.json"]);
+    assert.ok(schema.paths["/docs"]);
+    assert.ok(schema.paths["/api/v1/scrape"]);
+    assert.ok(schema.paths["/api/v1/browser/action"]);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("GET /docs returns interactive Swagger UI HTML", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/docs`);
+    assert.equal(res.status, 200);
+    assert.ok(res.headers.get("content-type")?.includes("text/html"));
+
+    const html = await res.text();
+    assert.ok(html.includes("Protokol-7 // API Documentation"));
+    assert.ok(html.includes("swagger-ui-dist"));
+    assert.ok(html.includes("/openapi.json"));
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("Server error responses adhere to SelfHealingError contract", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    // 400 Missing parameter test
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/scrape`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    assert.equal(res.status, 400);
+
+    const json = (await res.json()) as {
+      success: boolean;
+      error: string;
+      code: string;
+      retryable: boolean;
+      remedy: string;
+      timestamp: string;
+    };
+
+    assert.equal(json.success, false);
+    assert.ok(json.error.includes("targetUrl"));
+    assert.equal(json.code, "MISSING_REQUIRED_PARAMETER");
+    assert.equal(json.retryable, false);
+    assert.ok(json.remedy.length > 5);
+    assert.ok(Date.parse(json.timestamp) > 0);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});

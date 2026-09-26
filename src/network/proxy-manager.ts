@@ -185,8 +185,10 @@ export class ProxyManager {
 
     if (!dispatcher) {
       const proxyUrl = new URL(proxy.server);
-      if (proxy.username && proxy.password) {
+      if (proxy.username) {
         proxyUrl.username = encodeURIComponent(proxy.username);
+      }
+      if (proxy.password) {
         proxyUrl.password = encodeURIComponent(proxy.password);
       }
 

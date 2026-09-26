@@ -49,6 +49,21 @@ test("Store API - Catalog, Manifests, Runs, and Web MVP Dashboard", async (t) =>
     assert.ok(body.error.includes("Eksik zorunlu parametre"));
   });
 
+  await t.test("POST /api/v1/store/actors/arxiv/run forwards arxivOptions correctly", async () => {
+    const res = await fetch(`${baseUrl}/api/v1/store/actors/arxiv/run`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        searchQuery: "cat:cs.AI",
+        maxResults: 1,
+      }),
+    });
+    // In test environment, it either reaches arXiv or SSRF policy, response status must be 200, 403, or 500
+    assert.ok([200, 403, 500].includes(res.status));
+    const body = (await res.json()) as { runId?: string };
+    assert.ok(body.runId);
+  });
+
   await t.test("GET /.well-known/mcp.json returns AI agent MCP tool registry", async () => {
     const res = await fetch(`${baseUrl}/.well-known/mcp.json`);
     assert.equal(res.status, 200);

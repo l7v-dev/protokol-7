@@ -51,6 +51,29 @@ export class PolitenessLimiter {
     }
   }
 
+  private static readonly MAX_DOMAINS = 10000;
+
+  /**
+   * Evicts expired or stale domain entries to maintain bounded memory footprint.
+   */
+  private pruneStaleDomains(now: number): void {
+    for (const [key, state] of this.domainStates.entries()) {
+      if (state.nextAllowedTime < now && state.currentBackoffMs === 0) {
+        this.domainStates.delete(key);
+      }
+      if (this.domainStates.size <= PolitenessLimiter.MAX_DOMAINS * 0.8) break;
+    }
+    if (this.domainStates.size >= PolitenessLimiter.MAX_DOMAINS) {
+      const keysToDelete = Array.from(this.domainStates.keys()).slice(
+        0,
+        Math.floor(PolitenessLimiter.MAX_DOMAINS * 0.2)
+      );
+      for (const k of keysToDelete) {
+        this.domainStates.delete(k);
+      }
+    }
+  }
+
   /**
    * Calculates random jitter to prevent synchronization collisions.
    */
@@ -86,6 +109,13 @@ export class PolitenessLimiter {
     const scheduledTime = Math.max(now, state.nextAllowedTime);
     state.nextAllowedTime = scheduledTime + requiredDelay;
     state.lastRequestTime = scheduledTime;
+
+    if (
+      !this.domainStates.has(hostname) &&
+      this.domainStates.size >= PolitenessLimiter.MAX_DOMAINS
+    ) {
+      this.pruneStaleDomains(now);
+    }
     this.domainStates.set(hostname, state);
 
     const waitTime = scheduledTime - now;

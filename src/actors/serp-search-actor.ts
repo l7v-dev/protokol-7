@@ -25,15 +25,15 @@ export class SerpSearchActor implements IActor<SerpSearchResult> {
     const maxResults = options.maxResults ?? DEFAULT_MAX_RESULTS;
 
     // Determine query and target endpoint
-    const query =
-      task.targetUrl.startsWith("http://") || task.targetUrl.startsWith("https://")
-        ? new URL(task.targetUrl).searchParams.get("q") || task.targetUrl
-        : task.targetUrl;
+    const rawTarget = (task.targetUrl || options.query || "").trim();
+    const isHttp = rawTarget.startsWith("http://") || rawTarget.startsWith("https://");
+    const query = isHttp
+      ? new URL(rawTarget).searchParams.get("q") || options.query || rawTarget
+      : options.query || rawTarget;
 
-    const endpointUrl =
-      task.targetUrl.startsWith("http://") || task.targetUrl.startsWith("https://")
-        ? task.targetUrl
-        : `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    const endpointUrl = isHttp
+      ? rawTarget
+      : `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
 
     const allowLocalNetwork = process.env.NODE_ENV === "test";
 

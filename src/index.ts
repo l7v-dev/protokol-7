@@ -5,14 +5,23 @@
 // Actors
 export * from "./actors/actor-registry";
 export * from "./actors/api-extractor-actor";
+export * from "./actors/arxiv-actor";
 export * from "./actors/cheerio-scraper-actor";
 export * from "./actors/crawler-actor";
+export * from "./actors/europe-pmc-actor";
+export * from "./actors/gutenberg-actor";
+export * from "./actors/ietf-rfc-actor";
+export * from "./actors/ktb-ekitap-actor";
 export * from "./actors/markdown-reader-actor";
 export * from "./actors/network-interceptor-actor";
+export * from "./actors/openalex-actor";
 export * from "./actors/pdf-document-actor";
 export * from "./actors/playwright-browser-actor";
+export * from "./actors/saglik-ekutuphane-actor";
 export * from "./actors/serp-search-actor";
 export * from "./actors/sitemap-xml-actor";
+export * from "./actors/stack-exchange-actor";
+export * from "./actors/wikimedia-actor";
 // Browser
 export * from "./browser/browser-pool";
 export * from "./browser/browser-session-manager";
@@ -23,11 +32,12 @@ export * from "./browser/stealth-manager";
 export * from "./core/server";
 // Core
 export * from "./core/types";
-
 // Extractors
 export * from "./extractors/readability-extractor";
 export * from "./extractors/robots-parser";
 export * from "./extractors/structured-extractor";
+// Integrations
+export * from "./integrations/pipedream-connect";
 
 // Network
 export * from "./network/crawl-frontier";

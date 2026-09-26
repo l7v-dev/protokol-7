@@ -1,3 +1,4 @@
+import { ContextGuard } from "../core/context-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -146,6 +147,23 @@ export class MarkdownReaderActor implements IActor<MarkdownReaderResult> {
       });
     }
 
+    // Apply ContextGuard if maxTokens or maxOutputLength specified
+    let guardedContent = contentMarkdown;
+    let isTruncated = false;
+    let retainedTokenCount = estimatedTokenCount;
+
+    if (options.maxTokens || options.maxOutputLength) {
+      const guardResult = ContextGuard.guardMarkdown(contentMarkdown, {
+        maxTokens: options.maxTokens,
+        maxChars: options.maxOutputLength,
+        tableOfContents,
+        url: targetUrl,
+      });
+      guardedContent = guardResult.content;
+      isTruncated = guardResult.isTruncated;
+      retainedTokenCount = guardResult.retainedTokens;
+    }
+
     // 7. Full document markdown assembly
     const documentParts: string[] = [];
     if (frontmatterYaml) {
@@ -154,8 +172,8 @@ export class MarkdownReaderActor implements IActor<MarkdownReaderResult> {
     if (options.includeTableOfContents && tableOfContents.length > 0) {
       documentParts.push(this.renderToc(tableOfContents));
     }
-    if (contentMarkdown.length > 0) {
-      documentParts.push(contentMarkdown);
+    if (guardedContent.length > 0) {
+      documentParts.push(guardedContent);
     }
 
     const fullDocumentMarkdown = documentParts.join("\n\n");
@@ -168,13 +186,15 @@ export class MarkdownReaderActor implements IActor<MarkdownReaderResult> {
       siteName,
       publishedTime,
       frontmatterYaml,
-      contentMarkdown,
+      contentMarkdown: guardedContent,
       fullDocumentMarkdown,
       estimatedTokenCount,
       characterCount,
       wordCount,
       tableOfContents,
       tables,
+      isTruncated,
+      retainedTokenCount,
     };
   }
 

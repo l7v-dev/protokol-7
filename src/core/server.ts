@@ -7,6 +7,8 @@ import http from "node:http";
 import { createDefaultActorRegistry } from "../actors/actor-registry";
 import { BrowserPool } from "../browser/browser-pool";
 import { InteractiveBrowserController } from "../browser/interactive-browser-controller";
+import { globalPipedreamConnect } from "../integrations/pipedream-connect";
+import { OPENAPI_SPECIFICATION, renderDocsHtml } from "./openapi-spec";
 import { StoreRouter } from "./store-router";
 import type { ActorTask, ActorType } from "./types";
 
@@ -23,6 +25,26 @@ function sendJson(res: http.ServerResponse, statusCode: number, data: unknown): 
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   });
   res.end(JSON.stringify(data));
+}
+
+function sendError(
+  res: http.ServerResponse,
+  statusCode: number,
+  code: string,
+  message: string,
+  remedy: string,
+  retryable = false,
+  details?: unknown
+): void {
+  sendJson(res, statusCode, {
+    success: false,
+    error: message,
+    code,
+    retryable,
+    remedy,
+    timestamp: new Date().toISOString(),
+    ...(details !== undefined ? { details } : {}),
+  });
 }
 
 const MAX_BODY_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
@@ -66,6 +88,21 @@ export function createServer(): http.Server {
     const method = req.method || "GET";
 
     try {
+      // 0. OpenAPI 3.1 Specification & Interactive Documentation
+      if (method === "GET" && pathname === "/openapi.json") {
+        sendJson(res, 200, OPENAPI_SPECIFICATION);
+        return;
+      }
+
+      if (method === "GET" && (pathname === "/docs" || pathname === "/api-docs")) {
+        res.writeHead(200, {
+          "Content-Type": "text/html; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+        });
+        res.end(renderDocsHtml());
+        return;
+      }
+
       // 1. Health check
       if (method === "GET" && pathname === "/health") {
         sendJson(res, 200, {
@@ -92,12 +129,24 @@ export function createServer(): http.Server {
       if (method === "POST" && (pathname === "/api/v1/actors" || pathname === "/actors")) {
         const body = await parseBody<ActorTask>(req);
         if (!body.actorType || !body.targetUrl) {
-          sendJson(res, 400, { error: "Missing required 'actorType' or 'targetUrl' parameter." });
+          sendError(
+            res,
+            400,
+            "MISSING_REQUIRED_PARAMETER",
+            "Missing required 'actorType' or 'targetUrl' parameter.",
+            "Provide both 'actorType' and 'targetUrl' in JSON body."
+          );
           return;
         }
         const actor = registry.get(body.actorType);
         if (!actor) {
-          sendJson(res, 404, { error: `Actor '${body.actorType}' not found.` });
+          sendError(
+            res,
+            404,
+            "ACTOR_NOT_FOUND",
+            `Actor '${body.actorType}' not found.`,
+            "Check GET /api/v1/actors for registered actor types."
+          );
           return;
         }
         const task: ActorTask = {
@@ -126,7 +175,13 @@ export function createServer(): http.Server {
         }>(req);
 
         if (!body.targetUrl) {
-          sendJson(res, 400, { error: "Missing required 'targetUrl' parameter." });
+          sendError(
+            res,
+            400,
+            "MISSING_REQUIRED_PARAMETER",
+            "Missing required 'targetUrl' parameter.",
+            "Provide 'targetUrl' string parameter in request body."
+          );
           return;
         }
 
@@ -134,7 +189,13 @@ export function createServer(): http.Server {
           body.actorType || (body.renderJavaScript ? "playwright-browser" : "cheerio-scraper");
         const actor = registry.get(actorType);
         if (!actor) {
-          sendJson(res, 400, { error: `Actor '${actorType}' not registered.` });
+          sendError(
+            res,
+            400,
+            "ACTOR_NOT_REGISTERED",
+            `Actor '${actorType}' not registered.`,
+            "Check GET /api/v1/actors for valid actor types."
+          );
           return;
         }
 
@@ -165,13 +226,25 @@ export function createServer(): http.Server {
         }>(req);
 
         if (!body.targetUrl) {
-          sendJson(res, 400, { error: "Missing required 'targetUrl' parameter." });
+          sendError(
+            res,
+            400,
+            "MISSING_REQUIRED_PARAMETER",
+            "Missing required 'targetUrl' parameter.",
+            "Provide 'targetUrl' in request body."
+          );
           return;
         }
 
         const crawler = registry.get("crawler");
         if (!crawler) {
-          sendJson(res, 500, { error: "Crawler actor is not available." });
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Crawler actor is not available.",
+            "Verify actor registry initialization."
+          );
           return;
         }
 
@@ -198,13 +271,25 @@ export function createServer(): http.Server {
         }>(req);
 
         if (!body.targetUrl) {
-          sendJson(res, 400, { error: "Missing required 'targetUrl' parameter." });
+          sendError(
+            res,
+            400,
+            "MISSING_REQUIRED_PARAMETER",
+            "Missing required 'targetUrl' parameter.",
+            "Provide 'targetUrl' in request body."
+          );
           return;
         }
 
         const sitemapActor = registry.get("sitemap-xml");
         if (!sitemapActor) {
-          sendJson(res, 500, { error: "Sitemap actor is not available." });
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Sitemap actor is not available.",
+            "Verify actor registry initialization."
+          );
           return;
         }
 
@@ -231,13 +316,25 @@ export function createServer(): http.Server {
         }>(req);
 
         if (!body.targetUrl) {
-          sendJson(res, 400, { error: "Missing required 'targetUrl' parameter." });
+          sendError(
+            res,
+            400,
+            "MISSING_REQUIRED_PARAMETER",
+            "Missing required 'targetUrl' parameter.",
+            "Provide 'targetUrl' in request body."
+          );
           return;
         }
 
         const readerActor = registry.get("markdown-reader");
         if (!readerActor) {
-          sendJson(res, 500, { error: "Markdown reader actor is not available." });
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Markdown reader actor is not available.",
+            "Verify actor registry initialization."
+          );
           return;
         }
 
@@ -267,13 +364,25 @@ export function createServer(): http.Server {
         }>(req);
 
         if (!body.targetUrl) {
-          sendJson(res, 400, { error: "Missing required 'targetUrl' parameter." });
+          sendError(
+            res,
+            400,
+            "MISSING_REQUIRED_PARAMETER",
+            "Missing required 'targetUrl' parameter.",
+            "Provide 'targetUrl' in request body."
+          );
           return;
         }
 
         const interceptor = registry.get("network-interceptor");
         if (!interceptor) {
-          sendJson(res, 500, { error: "Network interceptor actor is not available." });
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Network interceptor actor is not available.",
+            "Verify actor registry initialization."
+          );
           return;
         }
 
@@ -302,13 +411,25 @@ export function createServer(): http.Server {
 
         const target = body.targetUrl || body.query;
         if (!target) {
-          sendJson(res, 400, { error: "Missing required 'query' or 'targetUrl' parameter." });
+          sendError(
+            res,
+            400,
+            "MISSING_REQUIRED_PARAMETER",
+            "Missing required 'query' or 'targetUrl' parameter.",
+            "Provide 'query' or 'targetUrl' in request body."
+          );
           return;
         }
 
         const serpActor = registry.get("serp-search");
         if (!serpActor) {
-          sendJson(res, 500, { error: "SERP search actor is not available." });
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "SERP search actor is not available.",
+            "Verify actor registry initialization."
+          );
           return;
         }
 
@@ -336,13 +457,25 @@ export function createServer(): http.Server {
         }>(req);
 
         if (!body.targetUrl && !body.pdfBase64 && !body.options?.pdfOptions?.pdfBase64) {
-          sendJson(res, 400, { error: "Missing required 'targetUrl' or 'pdfBase64' parameter." });
+          sendError(
+            res,
+            400,
+            "MISSING_REQUIRED_PARAMETER",
+            "Missing required 'targetUrl' or 'pdfBase64' parameter.",
+            "Provide targetUrl or pdfBase64 parameter in request body."
+          );
           return;
         }
 
         const pdfActor = registry.get("pdf-document");
         if (!pdfActor) {
-          sendJson(res, 500, { error: "PDF document actor is not available." });
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "PDF document actor is not available.",
+            "Verify actor registry initialization."
+          );
           return;
         }
 
@@ -367,6 +500,488 @@ export function createServer(): http.Server {
         return;
       }
 
+      // arXiv Research Paper Extractor (/arxiv or /api/v1/arxiv)
+      if (method === "POST" && (pathname === "/api/v1/arxiv" || pathname === "/arxiv")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          searchQuery?: string;
+          idList?: string[];
+          start?: number;
+          maxResults?: number;
+          sortBy?: "relevance" | "lastUpdatedDate" | "submittedDate";
+          sortOrder?: "ascending" | "descending";
+          downloadPdf?: boolean;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const arxivActor = registry.get("arxiv");
+        if (!arxivActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "arXiv actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `arxiv-${Date.now()}`,
+          actorType: "arxiv",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            arxivOptions: {
+              searchQuery: body.searchQuery,
+              idList: body.idList,
+              start: body.start,
+              maxResults: body.maxResults,
+              sortBy: body.sortBy,
+              sortOrder: body.sortOrder,
+              downloadPdf: body.downloadPdf,
+              ...body.options?.arxivOptions,
+            },
+          },
+        };
+
+        const result = await arxivActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Wikimedia REST Knowledge Extractor (/wikimedia or /api/v1/wikimedia)
+      if (method === "POST" && (pathname === "/api/v1/wikimedia" || pathname === "/wikimedia")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          title?: string;
+          lang?: string;
+          action?: "summary" | "article" | "search";
+          query?: string;
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wikimediaActor = registry.get("wikimedia");
+        if (!wikimediaActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Wikimedia actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `wikimedia-${Date.now()}`,
+          actorType: "wikimedia",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wikimediaOptions: {
+              title: body.title,
+              lang: body.lang,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              ...body.options?.wikimediaOptions,
+            },
+          },
+        };
+
+        const result = await wikimediaActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // OpenAlex Scholarly Knowledge Extractor (/openalex or /api/v1/openalex)
+      if (method === "POST" && (pathname === "/api/v1/openalex" || pathname === "/openalex")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          searchQuery?: string;
+          doi?: string;
+          author?: string;
+          concept?: string;
+          publicationYear?: number;
+          minCitations?: number;
+          isOpenAccess?: boolean;
+          perPage?: number;
+          page?: number;
+          mailto?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const openalexActor = registry.get("openalex");
+        if (!openalexActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "OpenAlex actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `openalex-${Date.now()}`,
+          actorType: "openalex",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            openalexOptions: {
+              searchQuery: body.searchQuery,
+              doi: body.doi,
+              author: body.author,
+              concept: body.concept,
+              publicationYear: body.publicationYear,
+              minCitations: body.minCitations,
+              isOpenAccess: body.isOpenAccess,
+              perPage: body.perPage,
+              page: body.page,
+              mailto: body.mailto,
+              ...body.options?.openalexOptions,
+            },
+          },
+        };
+
+        const result = await openalexActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Stack Exchange Reasoning Extractor (/stack-exchange or /api/v1/stack-exchange)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/stack-exchange" || pathname === "/stack-exchange")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          query?: string;
+          site?: string;
+          tagged?: string;
+          minScore?: number;
+          acceptedOnly?: boolean;
+          pageSize?: number;
+          page?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const stackActor = registry.get("stack-exchange");
+        if (!stackActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Stack Exchange actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `stack-${Date.now()}`,
+          actorType: "stack-exchange",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            stackExchangeOptions: {
+              query: body.query,
+              site: body.site,
+              tagged: body.tagged,
+              minScore: body.minScore,
+              acceptedOnly: body.acceptedOnly,
+              pageSize: body.pageSize,
+              page: body.page,
+              ...body.options?.stackExchangeOptions,
+            },
+          },
+        };
+
+        const result = await stackActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Project Gutenberg Literature Extractor (/gutenberg or /api/v1/gutenberg)
+      if (method === "POST" && (pathname === "/api/v1/gutenberg" || pathname === "/gutenberg")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          searchQuery?: string;
+          topic?: string;
+          bookId?: number;
+          downloadText?: boolean;
+          maxBytes?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const gutenbergActor = registry.get("gutenberg");
+        if (!gutenbergActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Gutenberg actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `gutenberg-${Date.now()}`,
+          actorType: "gutenberg",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            gutenbergOptions: {
+              searchQuery: body.searchQuery,
+              topic: body.topic,
+              bookId: body.bookId,
+              downloadText: body.downloadText,
+              maxBytes: body.maxBytes,
+              ...body.options?.gutenbergOptions,
+            },
+          },
+        };
+
+        const result = await gutenbergActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Europe PMC Biomedical Extractor (/europe-pmc or /api/v1/europe-pmc)
+      if (method === "POST" && (pathname === "/api/v1/europe-pmc" || pathname === "/europe-pmc")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          query?: string;
+          openAccessOnly?: boolean;
+          pageSize?: number;
+          cursorMark?: string;
+          synonym?: boolean;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const europePmcActor = registry.get("europe-pmc");
+        if (!europePmcActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Europe PMC actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `europe-pmc-${Date.now()}`,
+          actorType: "europe-pmc",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            europePmcOptions: {
+              query: body.query,
+              openAccessOnly: body.openAccessOnly,
+              pageSize: body.pageSize,
+              cursorMark: body.cursorMark,
+              synonym: body.synonym,
+              ...body.options?.europePmcOptions,
+            },
+          },
+        };
+
+        const result = await europePmcActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // IETF RFC Standards Extractor (/ietf-rfc or /api/v1/ietf-rfc)
+      if (method === "POST" && (pathname === "/api/v1/ietf-rfc" || pathname === "/ietf-rfc")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          rfcNumber?: number;
+          query?: string;
+          stream?: string;
+          status?: string;
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const ietfRfcActor = registry.get("ietf-rfc");
+        if (!ietfRfcActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "IETF RFC actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `ietf-rfc-${Date.now()}`,
+          actorType: "ietf-rfc",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            ietfRfcOptions: {
+              rfcNumber: body.rfcNumber,
+              query: body.query,
+              stream: body.stream,
+              status: body.status,
+              limit: body.limit,
+              ...body.options?.ietfRfcOptions,
+            },
+          },
+        };
+
+        const result = await ietfRfcActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Saglik Bakanligi E-Kutuphane Extractor (/saglik-ekutuphane or /api/v1/saglik-ekutuphane)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/saglik-ekutuphane" || pathname === "/saglik-ekutuphane")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          action?: "list" | "detail" | "extract";
+          category?: "all" | "books" | "journals" | "articles";
+          publicationId?: number;
+          page?: number;
+          limit?: number;
+          downloadPdf?: boolean;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const saglikActor = registry.get("saglik-ekutuphane");
+        if (!saglikActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Saglik E-Kutuphane actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `saglik-${Date.now()}`,
+          actorType: "saglik-ekutuphane",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            saglikEkutuphaneOptions: {
+              action: body.action,
+              category: body.category,
+              publicationId: body.publicationId,
+              page: body.page,
+              limit: body.limit,
+              downloadPdf: body.downloadPdf,
+              ...body.options?.saglikEkutuphaneOptions,
+            },
+          },
+        };
+
+        const result = await saglikActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Kultur ve Turizm Bakanligi E-Kitap Extractor (/ktb-ekitap or /api/v1/ktb-ekitap)
+      if (method === "POST" && (pathname === "/api/v1/ktb-ekitap" || pathname === "/ktb-ekitap")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          action?: "list" | "detail" | "extract";
+          category?:
+            | "all"
+            | "edebiyat"
+            | "halk-bilimi"
+            | "halk-kutuphaneleri"
+            | "kultur"
+            | "kulturel-miras"
+            | "kutuphanecilik"
+            | "sanat"
+            | "tanitim"
+            | "tarih"
+            | "son-eklenen";
+          bookId?: number;
+          detailUrl?: string;
+          page?: number;
+          limit?: number;
+          downloadPdf?: boolean;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const ktbActor = registry.get("ktb-ekitap");
+        if (!ktbActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "KTB E-Kitap actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `ktb-${Date.now()}`,
+          actorType: "ktb-ekitap",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            ktbEkitapOptions: {
+              action: body.action,
+              category: body.category,
+              bookId: body.bookId,
+              detailUrl: body.detailUrl,
+              page: body.page,
+              limit: body.limit,
+              downloadPdf: body.downloadPdf,
+              ...body.options?.ktbEkitapOptions,
+            },
+          },
+        };
+
+        const result = await ktbActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&
@@ -379,7 +994,13 @@ export function createServer(): http.Server {
         }>(req);
 
         if (!body.sessionId || !body.action) {
-          sendJson(res, 400, { error: "Missing required 'sessionId' or 'action' parameter." });
+          sendError(
+            res,
+            400,
+            "MISSING_REQUIRED_PARAMETER",
+            "Missing required 'sessionId' or 'action' parameter.",
+            "Provide both 'sessionId' and 'action' in request body."
+          );
           return;
         }
 
@@ -476,19 +1097,170 @@ export function createServer(): http.Server {
         return;
       }
 
+      // Pipedream Connect Endpoints
+      if (
+        method === "GET" &&
+        (pathname === "/api/v1/pipedream/config" || pathname === "/api/pipedream/config")
+      ) {
+        sendJson(res, 200, {
+          status: "ok",
+          ...globalPipedreamConnect.getConfigSummary(),
+        });
+        return;
+      }
+
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/pipedream/connect-token" ||
+          pathname === "/api/v1/pipedream/tokens" ||
+          pathname === "/api/pipedream/tokens")
+      ) {
+        const body = await parseBody<{
+          externalUserId?: string;
+          external_user_id?: string;
+          app?: string;
+          successRedirectUrl?: string;
+          success_redirect_url?: string;
+          errorRedirectUrl?: string;
+          error_redirect_url?: string;
+        }>(req);
+        const externalUserId = body.externalUserId || body.external_user_id;
+        if (!externalUserId) {
+          sendJson(res, 400, { error: "Missing required 'externalUserId' parameter." });
+          return;
+        }
+        try {
+          const result = await globalPipedreamConnect.createConnectToken({
+            externalUserId,
+            app: body.app,
+            successRedirectUrl: body.successRedirectUrl || body.success_redirect_url,
+            errorRedirectUrl: body.errorRedirectUrl || body.error_redirect_url,
+          });
+          sendJson(res, 200, result);
+        } catch (tokenErr) {
+          const msg = tokenErr instanceof Error ? tokenErr.message : String(tokenErr);
+          sendJson(res, 500, {
+            error: "Failed to generate Pipedream Connect token",
+            details: msg,
+          });
+        }
+        return;
+      }
+
+      if (
+        method === "GET" &&
+        (pathname === "/api/v1/pipedream/accounts" || pathname === "/api/pipedream/accounts")
+      ) {
+        const externalUserId =
+          parsedUrl.searchParams.get("externalUserId") ||
+          parsedUrl.searchParams.get("external_user_id");
+        if (!externalUserId) {
+          sendJson(res, 400, { error: "Missing required query parameter 'externalUserId'." });
+          return;
+        }
+        const app = parsedUrl.searchParams.get("app") || undefined;
+        try {
+          const accounts = await globalPipedreamConnect.listAccounts(externalUserId, app);
+          sendJson(res, 200, {
+            accounts,
+            total: Array.isArray(accounts) ? accounts.length : 0,
+          });
+        } catch (accErr) {
+          const msg = accErr instanceof Error ? accErr.message : String(accErr);
+          sendJson(res, 500, {
+            error: "Failed to list connected accounts",
+            details: msg,
+          });
+        }
+        return;
+      }
+
+      if (
+        method === "DELETE" &&
+        (pathname.startsWith("/api/v1/pipedream/accounts/") ||
+          pathname.startsWith("/api/pipedream/accounts/"))
+      ) {
+        const prefix = pathname.startsWith("/api/v1/pipedream/accounts/")
+          ? "/api/v1/pipedream/accounts/"
+          : "/api/pipedream/accounts/";
+        const accountId = pathname.slice(prefix.length);
+        if (!accountId) {
+          sendJson(res, 400, { error: "Missing required 'accountId' path parameter." });
+          return;
+        }
+        try {
+          await globalPipedreamConnect.deleteAccount(accountId);
+          sendJson(res, 200, { status: "deleted", accountId });
+        } catch (delErr) {
+          const msg = delErr instanceof Error ? delErr.message : String(delErr);
+          sendJson(res, 500, {
+            error: "Failed to delete account",
+            details: msg,
+          });
+        }
+        return;
+      }
+
+      if (
+        method === "GET" &&
+        (pathname === "/api/v1/pipedream/mcp/config" || pathname === "/api/pipedream/mcp/config")
+      ) {
+        const appSlug = parsedUrl.searchParams.get("appSlug") || parsedUrl.searchParams.get("app");
+        const externalUserId =
+          parsedUrl.searchParams.get("externalUserId") ||
+          parsedUrl.searchParams.get("external_user_id");
+        if (!appSlug || !externalUserId) {
+          sendJson(res, 400, {
+            error: "Missing required query parameters 'appSlug' and 'externalUserId'.",
+          });
+          return;
+        }
+        const config = globalPipedreamConnect.getMcpConfig({ appSlug, externalUserId });
+        sendJson(res, 200, config);
+        return;
+      }
+
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/pipedream/mcp/token" || pathname === "/api/pipedream/mcp/token")
+      ) {
+        try {
+          const accessToken = await globalPipedreamConnect.getDeveloperAccessToken();
+          sendJson(res, 200, { accessToken });
+        } catch (tokenErr) {
+          const msg = tokenErr instanceof Error ? tokenErr.message : String(tokenErr);
+          sendJson(res, 500, {
+            error: "Failed to obtain developer access token",
+            details: msg,
+          });
+        }
+        return;
+      }
+
       // 404 Catch-all
-      sendJson(res, 404, {
-        error: "Route not found",
-        path: pathname,
-        method,
-      });
+      sendError(
+        res,
+        404,
+        "ROUTE_NOT_FOUND",
+        "Route not found",
+        "Check GET /docs or GET /openapi.json for registered routes.",
+        false,
+        { path: pathname, method }
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const isPayloadTooLarge = message.includes("Payload too large");
-      sendJson(res, isPayloadTooLarge ? 413 : 500, {
-        error: isPayloadTooLarge ? "Payload too large" : "Internal server error",
-        details: message,
-      });
+      sendError(
+        res,
+        isPayloadTooLarge ? 413 : 500,
+        isPayloadTooLarge ? "PAYLOAD_TOO_LARGE" : "INTERNAL_SERVER_ERROR",
+        isPayloadTooLarge ? "Payload too large" : "Internal server error",
+        isPayloadTooLarge
+          ? "Reduce body payload to under 10MB."
+          : "Inspect server logs and retry with valid payload.",
+        !isPayloadTooLarge,
+        message
+      );
     }
   });
 }

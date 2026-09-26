@@ -41,10 +41,10 @@ export class SitemapXmlActor implements IActor<SitemapResult> {
       };
     }
 
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
 
+    try {
       const aggregatedUrls: SitemapUrlEntry[] = [];
       const discoveredSubSitemaps: string[] = [];
       let isIndex = false;
@@ -62,8 +62,6 @@ export class SitemapXmlActor implements IActor<SitemapResult> {
           if (foundIndex) isIndex = true;
         }
       );
-
-      clearTimeout(timer);
 
       return {
         taskId: task.taskId,
@@ -88,6 +86,8 @@ export class SitemapXmlActor implements IActor<SitemapResult> {
         errorMessage: err instanceof Error ? err.message : String(err),
         executionDurationMs: Date.now() - startTime,
       };
+    } finally {
+      clearTimeout(timer);
     }
   }
 

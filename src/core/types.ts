@@ -18,7 +18,15 @@ export type ActorType =
   | "network-interceptor"
   | "serp-search"
   | "pdf-document"
-  | "saglik-ekutuphane";
+  | "saglik-ekutuphane"
+  | "arxiv"
+  | "wikimedia"
+  | "openalex"
+  | "stack-exchange"
+  | "gutenberg"
+  | "europe-pmc"
+  | "ietf-rfc"
+  | "ktb-ekitap";
 
 export interface ExtractedTable {
   id: string;
@@ -155,6 +163,8 @@ export interface MarkdownReaderTaskOptions {
   maxContentLength?: number;
   preserveImages?: boolean;
   timeoutMs?: number;
+  maxTokens?: number;
+  maxOutputLength?: number;
 }
 
 export interface MarkdownReaderResult {
@@ -172,6 +182,8 @@ export interface MarkdownReaderResult {
   wordCount: number;
   tableOfContents: MarkdownHeadingItem[];
   tables?: ExtractedTable[];
+  isTruncated?: boolean;
+  retainedTokenCount?: number;
 }
 
 export interface InterceptedApiResponse {
@@ -207,6 +219,7 @@ export interface SerpResultItem {
 }
 
 export interface SerpSearchTaskOptions {
+  query?: string;
   maxResults?: number;
   timeoutMs?: number;
   region?: string;
@@ -251,6 +264,336 @@ export interface PdfDocumentResult {
   totalWords: number;
 }
 
+export interface ArxivAuthor {
+  name: string;
+  affiliation?: string;
+}
+
+export interface ArxivPaperItem {
+  id: string;
+  entryUrl: string;
+  title: string;
+  summary: string;
+  authors: ArxivAuthor[];
+  published: string;
+  updated: string;
+  primaryCategory: string;
+  categories: string[];
+  doi?: string;
+  comment?: string;
+  journalRef?: string;
+  pdfUrl: string;
+  htmlUrl: string;
+  fullText?: string;
+  pageCount?: number;
+}
+
+export interface ArxivActorTaskOptions {
+  searchQuery?: string;
+  idList?: string[];
+  start?: number;
+  maxResults?: number;
+  sortBy?: "relevance" | "lastUpdatedDate" | "submittedDate";
+  sortOrder?: "ascending" | "descending";
+  downloadPdf?: boolean;
+  timeoutMs?: number;
+}
+
+export interface ArxivActorResult {
+  totalResults: number;
+  startIndex: number;
+  itemsPerPage: number;
+  papers: ArxivPaperItem[];
+  queryUrl: string;
+}
+
+export interface WikimediaArticleItem {
+  title: string;
+  extract?: string;
+  description?: string;
+  url: string;
+  markdown?: string;
+  lang: string;
+  thumbnailUrl?: string;
+  coordinates?: { lat: number; lon: number };
+  timestamp?: string;
+}
+
+export interface WikimediaActorTaskOptions {
+  lang?: string;
+  title?: string;
+  action?: "summary" | "article" | "search";
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface WikimediaActorResult {
+  lang: string;
+  action: "summary" | "article" | "search";
+  items: WikimediaArticleItem[];
+  queryUrl: string;
+}
+
+export interface OpenAlexWorkItem {
+  id: string;
+  doi?: string;
+  title: string;
+  displayName: string;
+  publicationYear?: number;
+  abstract?: string;
+  authors: string[];
+  citedByCount: number;
+  openAccessUrl?: string;
+  isOpenAccess: boolean;
+  concepts: string[];
+  sourceVenue?: string;
+}
+
+export interface OpenAlexActorTaskOptions {
+  searchQuery?: string;
+  doi?: string;
+  author?: string;
+  concept?: string;
+  publicationYear?: number;
+  minCitations?: number;
+  isOpenAccess?: boolean;
+  perPage?: number;
+  page?: number;
+  mailto?: string;
+  timeoutMs?: number;
+}
+
+export interface OpenAlexActorResult {
+  totalResults: number;
+  perPage: number;
+  page: number;
+  works: OpenAlexWorkItem[];
+  queryUrl: string;
+}
+
+export interface StackExchangeAnswerItem {
+  answerId: number;
+  score: number;
+  isAccepted: boolean;
+  bodyMarkdown: string;
+  authorName?: string;
+  creationDate: number;
+}
+
+export interface StackExchangeQuestionItem {
+  questionId: number;
+  title: string;
+  bodyMarkdown: string;
+  score: number;
+  tags: string[];
+  link: string;
+  isAnswered: boolean;
+  acceptedAnswerId?: number;
+  answers: StackExchangeAnswerItem[];
+  instructionPair?: {
+    prompt: string;
+    completion: string;
+  };
+}
+
+export interface StackExchangeActorTaskOptions {
+  query?: string;
+  site?: string;
+  tagged?: string;
+  minScore?: number;
+  acceptedOnly?: boolean;
+  order?: "desc" | "asc";
+  sort?: "votes" | "activity" | "creation" | "relevance";
+  pageSize?: number;
+  page?: number;
+  apiKey?: string;
+  timeoutMs?: number;
+}
+
+export interface StackExchangeActorResult {
+  site: string;
+  totalItems: number;
+  hasMore: boolean;
+  questions: StackExchangeQuestionItem[];
+  queryUrl: string;
+}
+
+export interface GutenbergBookItem {
+  id: number;
+  title: string;
+  authors: string[];
+  subjects: string[];
+  languages: string[];
+  downloadCount: number;
+  textUrl?: string;
+  cleanText?: string;
+}
+
+export interface GutenbergActorTaskOptions {
+  searchQuery?: string;
+  topic?: string;
+  languages?: string[];
+  bookId?: number;
+  downloadText?: boolean;
+  maxBytes?: number;
+  timeoutMs?: number;
+}
+
+export interface GutenbergActorResult {
+  totalCount: number;
+  books: GutenbergBookItem[];
+  queryUrl: string;
+}
+
+export interface EuropePmcArticleItem {
+  id: string;
+  source: string;
+  pmid?: string;
+  pmcid?: string;
+  doi?: string;
+  title: string;
+  authorString?: string;
+  journalTitle?: string;
+  pubYear?: number;
+  abstractText?: string;
+  isOpenAccess: boolean;
+  hasTextMinedTerms?: boolean;
+  fullTextUrl?: string;
+}
+
+export interface EuropePmcActorTaskOptions {
+  query?: string;
+  openAccessOnly?: boolean;
+  pageSize?: number;
+  cursorMark?: string;
+  synonym?: boolean;
+  timeoutMs?: number;
+}
+
+export interface EuropePmcActorResult {
+  hitCount: number;
+  nextCursorMark?: string;
+  articles: EuropePmcArticleItem[];
+  queryUrl: string;
+}
+
+export interface IetfRfcItem {
+  rfcNumber: number;
+  title: string;
+  abstract?: string;
+  status?: string;
+  authors?: string[];
+  pubDate?: string;
+  url: string;
+  obsoletes?: string[];
+  obsoletedBy?: string[];
+  cleanText?: string;
+}
+
+export interface IetfRfcActorTaskOptions {
+  rfcNumber?: number;
+  query?: string;
+  stream?: string;
+  status?: string;
+  limit?: number;
+  downloadText?: boolean;
+  timeoutMs?: number;
+}
+
+export interface IetfRfcActorResult {
+  totalResults: number;
+  rfcs: IetfRfcItem[];
+  queryUrl: string;
+}
+
+export type SaglikEkutuphaneCategory = "all" | "books" | "journals" | "articles";
+export type SaglikEkutuphaneAction = "list" | "detail" | "extract";
+
+export interface SaglikEkutuphaneItem {
+  id: number;
+  title: string;
+  category: string;
+  detailUrl: string;
+  downloadUrl?: string;
+  publisher?: string;
+  year?: string;
+  language?: string;
+  pageCount?: number;
+  fileSizeBytes?: number;
+  originalFilename?: string;
+  extractedText?: string;
+}
+
+export interface SaglikEkutuphaneTaskOptions {
+  action?: SaglikEkutuphaneAction;
+  category?: SaglikEkutuphaneCategory;
+  publicationId?: number;
+  page?: number;
+  limit?: number;
+  downloadPdf?: boolean;
+  timeoutMs?: number;
+}
+
+export interface SaglikEkutuphaneActorResult {
+  totalItems: number;
+  action: SaglikEkutuphaneAction;
+  category?: SaglikEkutuphaneCategory;
+  page?: number;
+  items: SaglikEkutuphaneItem[];
+  queryUrl: string;
+}
+
+export type KtbEkitapCategory =
+  | "all"
+  | "edebiyat"
+  | "halk-bilimi"
+  | "halk-kutuphaneleri"
+  | "kultur"
+  | "kulturel-miras"
+  | "kutuphanecilik"
+  | "sanat"
+  | "tanitim"
+  | "tarih"
+  | "son-eklenen";
+
+export type KtbEkitapAction = "list" | "detail" | "extract";
+
+export interface KtbEkitapItem {
+  id: number;
+  title: string;
+  category?: string;
+  detailUrl: string;
+  downloadUrl?: string;
+  thumbnailUrl?: string;
+  author?: string;
+  publisher?: string;
+  year?: string;
+  pageCount?: number;
+  summary?: string;
+  extractedMarkdown?: string;
+}
+
+export interface KtbEkitapTaskOptions {
+  action?: KtbEkitapAction;
+  category?: KtbEkitapCategory;
+  bookId?: number;
+  detailUrl?: string;
+  page?: number;
+  limit?: number;
+  downloadPdf?: boolean;
+  timeoutMs?: number;
+}
+
+export interface KtbEkitapActorResult {
+  totalItems: number;
+  action: KtbEkitapAction;
+  category?: KtbEkitapCategory;
+  page?: number;
+  items: KtbEkitapItem[];
+  queryUrl: string;
+}
+
 export interface ActorTask {
   taskId: EntityId;
   actorType: ActorType;
@@ -272,6 +615,15 @@ export interface ActorTask {
     networkInterceptorOptions?: NetworkInterceptorTaskOptions;
     serpOptions?: SerpSearchTaskOptions;
     pdfOptions?: PdfDocumentTaskOptions;
+    arxivOptions?: ArxivActorTaskOptions;
+    wikimediaOptions?: WikimediaActorTaskOptions;
+    openalexOptions?: OpenAlexActorTaskOptions;
+    stackExchangeOptions?: StackExchangeActorTaskOptions;
+    gutenbergOptions?: GutenbergActorTaskOptions;
+    europePmcOptions?: EuropePmcActorTaskOptions;
+    ietfRfcOptions?: IetfRfcActorTaskOptions;
+    saglikEkutuphaneOptions?: SaglikEkutuphaneTaskOptions;
+    ktbEkitapOptions?: KtbEkitapTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;
@@ -298,4 +650,23 @@ export interface IActor<T = unknown> {
   readonly actorType: ActorType;
   readonly description: string;
   run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<T>>;
+}
+
+export interface SelfHealingError {
+  code: string;
+  message: string;
+  retryable: boolean;
+  remedy: string;
+  timestamp: string;
+  details?: unknown;
+}
+
+export interface SelfHealingErrorResponse {
+  success: false;
+  error: string;
+  code: string;
+  retryable: boolean;
+  remedy: string;
+  timestamp: string;
+  details?: unknown;
 }

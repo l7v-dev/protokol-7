@@ -174,58 +174,75 @@ export class BrowserPool {
     });
     this.activeContexts += 1;
 
-    // Polyfill bundler helpers (e.g. esbuild/tsx __name) in browser execution context
-    await context.addInitScript("window.__name = (fn) => fn; var __name = (fn) => fn;");
-    // Anti-detection stealth script: hide navigator.webdriver, mock languages, patch chrome
-    await context.addInitScript(StealthManager.getInitScript());
+    try {
+      // Polyfill bundler helpers (e.g. esbuild/tsx __name) in browser execution context
+      await context.addInitScript("window.__name = (fn) => fn; var __name = (fn) => fn;");
+      // Anti-detection stealth script: hide navigator.webdriver, mock languages, patch chrome
+      await context.addInitScript(StealthManager.getInitScript());
 
-    // Intercept all outgoing network requests for SSRF protection and asset blocking across ALL pages/tabs
-    await context.route("**/*", async (route) => {
-      const request = route.request();
-      const url = request.url();
-      const resourceType = request.resourceType();
+      // Intercept all outgoing network requests for SSRF protection and asset blocking across ALL pages/tabs
+      await context.route("**/*", async (route) => {
+        const request = route.request();
+        const url = request.url();
+        const resourceType = request.resourceType();
 
-      // 1. SSRF Guard Check: Block private IPs, metadata endpoints, and DNS rebinding attacks
-      const ssrfCheck = await SSRFGuard.validateUrlWithDns(url, { allowLocalNetwork });
-      if (!ssrfCheck.valid) {
-        return route.abort("blockedbyclient");
-      }
+        // 1. SSRF Guard Check: Block private IPs, metadata endpoints, and DNS rebinding attacks
+        // Exempt in-memory schemes (data:, blob:, about:) that do not generate outbound network requests
+        const isSafeLocalScheme =
+          url.startsWith("data:") || url.startsWith("blob:") || url.startsWith("about:");
 
-      // 2. Resource Optimization: Block heavy media, images, and fonts when enabled
-      if (blockAssets) {
-        if (this.BLOCKED_RESOURCE_TYPES.has(resourceType) || this.BLOCKED_EXTENSIONS.test(url)) {
-          return route.abort("blockedbyclient");
+        if (!isSafeLocalScheme) {
+          const ssrfCheck = await SSRFGuard.validateUrlWithDns(url, { allowLocalNetwork });
+          if (!ssrfCheck.valid) {
+            return route.abort("blockedbyclient");
+          }
         }
 
-        const isTracker = this.BLOCKED_TRACKER_HOSTS.some((host) => url.includes(host));
-        if (isTracker) {
-          return route.abort("blockedbyclient");
+        // 2. Resource Optimization: Block heavy media, images, and fonts when enabled
+        if (blockAssets) {
+          if (this.BLOCKED_RESOURCE_TYPES.has(resourceType) || this.BLOCKED_EXTENSIONS.test(url)) {
+            return route.abort("blockedbyclient");
+          }
+
+          const isTracker = this.BLOCKED_TRACKER_HOSTS.some((host) => url.includes(host));
+          if (isTracker) {
+            return route.abort("blockedbyclient");
+          }
         }
+
+        return route.continue();
+      });
+
+      const page = await context.newPage();
+      if (options?.timeoutMs) {
+        page.setDefaultTimeout(options.timeoutMs);
       }
 
-      return route.continue();
-    });
+      let released = false;
+      const release = async () => {
+        if (released) return;
+        released = true;
+        try {
+          await context.close();
+        } catch {
+          // Ignored
+        } finally {
+          this.activeContexts = Math.max(0, this.activeContexts - 1);
+          this.scheduleIdleShutdown();
+        }
+      };
 
-    const page = await context.newPage();
-    if (options?.timeoutMs) {
-      page.setDefaultTimeout(options.timeoutMs);
-    }
-
-    let released = false;
-    const release = async () => {
-      if (released) return;
-      released = true;
+      return { context, page, release };
+    } catch (setupError) {
+      this.activeContexts = Math.max(0, this.activeContexts - 1);
       try {
         await context.close();
       } catch {
         // Ignored
-      } finally {
-        this.activeContexts = Math.max(0, this.activeContexts - 1);
-        this.scheduleIdleShutdown();
       }
-    };
-
-    return { context, page, release };
+      this.scheduleIdleShutdown();
+      throw setupError;
+    }
   }
 
   /**
