@@ -9,13 +9,22 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/core/types.ts` | 29 | 65 | Yardımcı Modül |
+| `src/core/types.ts` | 31 | 65 | Yardımcı Modül |
 | `src/network/ssrf-guard.ts` | 18 | 3 | Yardımcı Modül |
 | `src/network/safe-redirect-fetcher.ts` | 16 | 2 | Yardımcı Modül |
 | `src/core/server.ts` | 11 | 1 | Giriş Noktası (Server) |
 | `src/server.ts` | 11 | 0 | Giriş Noktası (Server) |
+| `src/core/index.ts` | 6 | 0 | Yardımcı Modül |
+| `src/index.ts` | 6 | 0 | Yardımcı Modül |
+| `src/pipeline/execution/index.ts` | 6 | 2 | Yardımcı Modül |
+| `src/pipeline/index.ts` | 6 | 0 | Yardımcı Modül |
+| `src/pipeline/processors/index.ts` | 6 | 2 | Yardımcı Modül |
+| `src/pipeline/storage/index.ts` | 6 | 2 | Yardımcı Modül |
+| `src/actors/actor-registry.ts` | 5 | 2 | Bileşen Tescili (Registry) |
+| `src/core/context-guard.ts` | 5 | 4 | Yardımcı Modül |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
-| `src/actors/actor-registry.ts` | 4 | 2 | Bileşen Tescili (Registry) |
+| `src/pipeline/schema.ts` | 5 | 13 | Yardımcı Modül |
+| `src/actors/actor-manifests.ts` | 4 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/browser/browser-pool.ts` | 4 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
 | `src/extractors/structured-extractor.ts` | 4 | 1 | Etki Alanı Aktörü (Actor) |
@@ -25,7 +34,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/integrations/pipedream-connect.ts` | 3 | 6 | Yardımcı Modül |
 | `src/network/retry-handler.ts` | 3 | 4 | Yardımcı Modül |
-| `src/actors/actor-manifests.ts` | 2 | 5 | Etki Alanı Aktörü (Actor) |
+| `src/pipeline/processors/jsonl-writer.ts` | 3 | 1 | Yardımcı Modül |
 | `src/actors/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/europe-pmc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -40,6 +49,14 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/wikimedia-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/browser/stealth-manager.ts` | 2 | 2 | Yardımcı Modül |
 | `src/network/crawl-frontier.ts` | 2 | 4 | Yardımcı Modül |
+| `src/pipeline/actor-resolver.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
+| `src/pipeline/execution/local-executor.ts` | 2 | 2 | Yardımcı Modül |
+| `src/pipeline/output-sink.ts` | 2 | 3 | Yardımcı Modül |
+| `src/pipeline/pipeline-runner.ts` | 2 | 3 | Yardımcı Modül |
+| `src/pipeline/processors/csv-writer.ts` | 2 | 1 | Yardımcı Modül |
+| `src/pipeline/processors/parquet-packer.ts` | 2 | 1 | Yardımcı Modül |
+| `src/pipeline/processors/passthrough-writer.ts` | 2 | 1 | Yardımcı Modül |
+| `src/pipeline/storage/local-storage.ts` | 2 | 1 | Yardımcı Modül |
 | `src/actors/api-extractor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/crawler-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/markdown-reader-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
@@ -49,7 +66,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/browser-session-manager.ts` | 1 | 3 | Oturum Denetleyicisi |
 | `src/browser/dom-indexer.ts` | 1 | 3 | Yardımcı Modül |
 | `src/browser/interactive-browser-controller.ts` | 1 | 5 | Yardımcı Modül |
-| `src/core/context-guard.ts` | 1 | 3 | Yardımcı Modül |
 | `src/core/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
 | `src/core/run-registry.ts` | 1 | 4 | Bileşen Tescili (Registry) |
 | `src/core/store-router.ts` | 1 | 1 | Yardımcı Modül |
@@ -68,8 +84,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/pipedream-cli.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/sca-check.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/verify-pipeline.mjs` | 0 | 0 | Doğrulama Hattı |
-| `src/core/index.ts` | 0 | 0 | Yardımcı Modül |
-| `src/index.ts` | 0 | 0 | Yardımcı Modül |
+| `src/pipeline/cli.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/actor-resolver.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/api-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/arxiv-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/browser-pool.test.ts` | 0 | 0 | Kaynak Yöneticisi (BrowserPool) |
@@ -88,6 +104,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/openalex-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/pdf-document-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/pipedream-connect.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/pipeline-runner.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/pipeline-schema.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/politeness-limiter.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/protokol-mcp-server.test.ts` | 0 | 0 | Giriş Noktası (Server) |
 | `tests/proxy-manager.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -519,11 +537,14 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 **Sınıflar (Classes):**
 - `class ContextGuard`
+  - `stripInvisibleUnicode(text: string, options: { preserveZwnj?: boolean }): string`
+  - `sanitizeInvisibleCharacters(text: string, options: { preserveZwnj?: boolean }): InvisibleCharacterSanitizeResult`
   - `estimateTokens(text: string): number`
   - `guardMarkdown(content: string, options: ContextGuardOptions): GuardedContentResult`
 **Arayüzler (Interfaces):**
 - `interface ContextGuardOptions` (4 üye)
 - `interface GuardedContentResult` (6 üye)
+- `interface InvisibleCharacterSanitizeResult` (3 üye)
 
 ### `src/core/openapi-spec.ts`
 
@@ -563,7 +584,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `handleRunEventsSSE(res: http.ServerResponse, runId: string): void`
   - `handleGetQuarantine(_req: http.IncomingMessage, res: http.ServerResponse): void`
   - `handleGetMcpCatalog(_req: http.IncomingMessage, res: http.ServerResponse): void`
-  - `handleServeWeb(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleServiceInfo(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleServeWeb(req: http.IncomingMessage, res: http.ServerResponse): void`
 
 ### `src/core/types.ts`
 
@@ -826,6 +848,120 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `isValidUrlPattern(pattern: string): boolean`
 - `matchUrlPattern(url: string, pattern: string): boolean`
 
+### `src/pipeline/actor-resolver.ts`
+
+**Sınıflar (Classes):**
+- `class ActorResolver`
+  - `resolve(actorId: string, inputConfig: Record<string, unknown>): ResolvedActor`
+  - `has(actorId: string): boolean`
+  - `listAvailableActors(): string[]`
+**Arayüzler (Interfaces):**
+- `interface ResolvedActor` (3 üye)
+
+### `src/pipeline/execution/index.ts`
+
+**Arayüzler (Interfaces):**
+- `interface ExecutionResult` (6 üye)
+- `interface ExecutionTarget` (2 üye)
+
+### `src/pipeline/execution/local-executor.ts`
+
+**Sınıflar (Classes):**
+- `class LocalExecutor`
+  - `run(actorId: string, config: Record<string, unknown>): Promise<ExecutionResult>`
+  - `normalizeItems(rawOutput: unknown): unknown[]`
+**Tipler (Types):**
+- `type CustomActorRunner`
+
+### `src/pipeline/output-sink.ts`
+
+**Sınıflar (Classes):**
+- `class BufferedSink`
+  - `write(newItems: unknown[]): void`
+  - `close(): void`
+  - `getItems(): unknown[]`
+  - `getItemCount(): number`
+  - `getByteLength(): number`
+- `class StreamSink`
+  - `write(newItems: unknown[]): void`
+  - `close(): void`
+  - `getItems(): unknown[]`
+  - `getItemCount(): number`
+  - `getByteLength(): number`
+**Arayüzler (Interfaces):**
+- `interface OutputSink` (5 üye)
+
+### `src/pipeline/pipeline-runner.ts`
+
+**Sınıflar (Classes):**
+- `class PipelineRunner`
+  - `registerProcessor(processor: OutputProcessor): void`
+  - `registerStorage(storage: StorageBackend): void`
+  - `runFile(filePath: string): Promise<PipelineRunResult>`
+  - `runYaml(yamlString: string): Promise<PipelineRunResult>`
+  - `runConfig(config: PipelineConfig): Promise<PipelineRunResult>`
+  - `resolveExecutor(target: string): ExecutionTarget`
+  - `getRunHistory(): PipelineRunResult[]`
+  - `getFailedRuns(): PipelineRunResult[]`
+**Arayüzler (Interfaces):**
+- `interface PipelineRunResult` (10 üye)
+- `interface PipelineRunnerOptions` (4 üye)
+
+### `src/pipeline/processors/csv-writer.ts`
+
+**Sınıflar (Classes):**
+- `class CsvWriter`
+  - `process(items: unknown[], baseName: string): Promise<ProcessedOutput>`
+  - `escapeCsvValue(val: unknown): string`
+
+### `src/pipeline/processors/index.ts`
+
+**Arayüzler (Interfaces):**
+- `interface ProcessedOutput` (5 üye)
+- `interface OutputProcessor` (2 üye)
+
+### `src/pipeline/processors/jsonl-writer.ts`
+
+**Sınıflar (Classes):**
+- `class JsonlWriter`
+  - `process(items: unknown[], baseName: string): Promise<ProcessedOutput>`
+
+### `src/pipeline/processors/parquet-packer.ts`
+
+**Sınıflar (Classes):**
+- `class ParquetPacker`
+  - `process(items: unknown[], baseName: string): Promise<ProcessedOutput>`
+
+### `src/pipeline/processors/passthrough-writer.ts`
+
+**Sınıflar (Classes):**
+- `class PassthroughWriter`
+  - `process(items: unknown[], baseName: string): Promise<ProcessedOutput>`
+
+### `src/pipeline/schema.ts`
+
+**Sınıflar (Classes):**
+- `class PipelineError`
+**Fonksiyonlar (Functions):**
+- `parsePipelineYaml(yamlString: string): PipelineConfig`
+- `loadPipelineConfigFile(filePath: string): PipelineConfig`
+**Tipler (Types):**
+- `type PipelineConfig`
+- `type ConnectorConfig`
+
+### `src/pipeline/storage/index.ts`
+
+**Arayüzler (Interfaces):**
+- `interface StorageReceipt` (5 üye)
+- `interface StorageBackend` (2 üye)
+
+### `src/pipeline/storage/local-storage.ts`
+
+**Sınıflar (Classes):**
+- `class LocalStorage`
+  - `upload(fileName: string, data: Buffer, prefix): Promise<StorageReceipt>`
+  - `getBaseDir(): string`
+
 ## Modül ve Dosya Envanteri
 
 | Dosya Yolu |
@@ -880,5 +1016,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/extractors/structured-extractor.ts` |
 | `src/index.ts` |
 | `src/integrations/pipedream-connect.ts` |
-| *... ve 48 dosya daha* |
+| *... ve 66 dosya daha* |
 

@@ -90,6 +90,26 @@ Single source of truth component inventory and file map for `protokol-7`.
 |---|---|---|
 | `src/mcp/protokol-mcp-server.ts` | `ProtokolMcpServer` | Native Stdio JSON-RPC 2.0 MCP server exposing all extraction actors to AI agent clients. |
 
+### 1.8 Pipeline Orchestration (`src/pipeline/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/pipeline/schema.ts` | `parsePipelineYaml`, `loadPipelineConfigFile`, `PipelineConfigSchema`, `PipelineError` | Pipeline Zod schema, YAML parsing, credential env-var guard, and pipeline errors. |
+| `src/pipeline/actor-resolver.ts` | `ActorResolver` | Validates actor catalog registration and required configuration parameters. |
+| `src/pipeline/output-sink.ts` | `BufferedSink`, `StreamSink`, `OutputSink` | In-memory and streaming sinks collecting raw extraction items. |
+| `src/pipeline/execution/index.ts` | `ExecutionTarget`, `ExecutionResult` | Execution target interfaces and output normalization contracts. |
+| `src/pipeline/execution/local-executor.ts` | `LocalExecutor` | Local execution engine dispatching actor tasks via ActorRegistry. |
+| `src/pipeline/processors/index.ts` | `OutputProcessor`, `ProcessedOutput` | Output processor interfaces and format transformation contracts. |
+| `src/pipeline/processors/jsonl-writer.ts` | `JsonlWriter` | Formats extracted records into newline-delimited JSON (JSONL). |
+| `src/pipeline/processors/passthrough-writer.ts` | `PassthroughWriter` | Formats extracted records into structured JSON without altering layout. |
+| `src/pipeline/processors/csv-writer.ts` | `CsvWriter` | Formats extracted records into RFC 4180 CSV tables. |
+| `src/pipeline/processors/parquet-packer.ts` | `ParquetPacker` | PyArrow subprocess bridge for ZSTD Parquet packaging with JSONL fallback. |
+| `src/pipeline/storage/index.ts` | `StorageBackend`, `StorageReceipt` | Storage provider contract and SHA-256 receipt generation interface. |
+| `src/pipeline/storage/local-storage.ts` | `LocalStorage` | Local disk pool storage provider calculating SHA-256 receipts. |
+| `src/pipeline/pipeline-runner.ts` | `PipelineRunner`, `PipelineRunResult` | Master orchestrator coordinating validation, execution, formatting, and storage routing. |
+| `src/pipeline/cli.ts` | Pipeline CLI Runner | Command-line entrypoint for executing YAML pipeline configurations (`npm run pipeline`). |
+| `src/pipeline/index.ts` | Pipeline Barrel | Re-exports all pipeline contracts, runner, schema, processors, and storage backends. |
+
 ---
 
 ## 2. Test Suite Inventory (`tests/`)
@@ -130,6 +150,9 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/gutenberg-actor.test.ts` | `GutenbergActor`, `src/core/server.ts` | Gutendex search and book metadata, plain text download, license delimiter stripping, SSRF guard, and REST route. |
 | `tests/europe-pmc-actor.test.ts` | `EuropePmcActor`, `src/core/server.ts` | Europe PMC search, abstract parsing, open-access query filtering, SSRF guard, and REST route. |
 | `tests/ietf-rfc-actor.test.ts` | `IetfRfcActor`, `src/core/server.ts` | RFC text retrieval, running page headers & form feed stripping, Datatracker search, SSRF guard, and REST route. |
+| `tests/pipeline-schema.test.ts` | `parsePipelineYaml`, `PipelineConfigSchema` | Zod validation, YAML parsing, required fields, and credential env var enforcement. |
+| `tests/actor-resolver.test.ts` | `ActorResolver` | Catalog discovery, registered actor verification, and missing config parameter rejection. |
+| `tests/pipeline-runner.test.ts` | `PipelineRunner`, `LocalExecutor`, `LocalStorage` | End-to-end execution, sink buffering, processor transformations, storage receipts, and error recovery. |
 
 ---
 

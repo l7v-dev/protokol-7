@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
+    "pipeline": "tsx src/pipeline/cli.ts",
     "build": "tsc",
     "test": "NODE_ENV=test tsx --test 'tests/**/*.test.ts'",
     "lint": "biome check",
@@ -35,6 +36,7 @@
     "@mozilla/readability": "^0.6.0",
     "@pipedream/sdk": "^3.1.6",
     "cheerio": "^1.2.0",
+    "js-yaml": "^5.4.2",
     "jsdom": "^30.0.1",
     "playwright": "^1.62.1",
     "turndown": "^7.2.4",
@@ -43,6 +45,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.13",
+    "@types/js-yaml": "^4.0.9",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^20",
     "@types/turndown": "^5.0.6",

@@ -1,0 +1,22 @@
+name: wikimedia-tr-sample
+version: 1
+
+actor:
+  id: wikimedia
+  config:
+    title: "Türkiye"
+    action: summary
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: local
+  prefix: "samples/wikimedia"
