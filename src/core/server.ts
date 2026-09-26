@@ -1191,6 +1191,167 @@ export function createServer(): http.Server {
         return;
       }
 
+      // EPUB Extractor (/epub or /api/v1/epub)
+      if (method === "POST" && (pathname === "/api/v1/epub" || pathname === "/epub")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          epubBase64?: string;
+          includeTableOfContents?: boolean;
+          maxChapters?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        if (!body.targetUrl && !body.epubBase64 && !body.options?.epubOptions?.epubBase64) {
+          sendError(
+            res,
+            400,
+            "INVALID_ARGUMENTS",
+            "Either targetUrl or epubBase64 must be provided.",
+            "Provide an EPUB download URL or base64-encoded EPUB container payload."
+          );
+          return;
+        }
+
+        const epubActor = registry.get("epub-extractor");
+        if (!epubActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "EPUB extractor actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `epub-${Date.now()}`,
+          actorType: "epub-extractor",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            epubOptions: {
+              epubBase64: body.epubBase64 || body.options?.epubOptions?.epubBase64,
+              includeTableOfContents:
+                body.includeTableOfContents ?? body.options?.epubOptions?.includeTableOfContents,
+              maxChapters: body.maxChapters ?? body.options?.epubOptions?.maxChapters,
+              ...body.options?.epubOptions,
+            },
+          },
+        };
+
+        const result = await epubActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // DergiPark Academic Journal Harvester (/dergipark or /api/v1/dergipark)
+      if (method === "POST" && (pathname === "/api/v1/dergipark" || pathname === "/dergipark")) {
+        const body = await parseBody<{
+          action?: "search" | "record" | "list-sets";
+          set?: string;
+          identifier?: string;
+          keyword?: string;
+          maxRecords?: number;
+          resumptionToken?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const dergiParkActor = registry.get("dergipark");
+        if (!dergiParkActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "DergiPark actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `dp-${Date.now()}`,
+          actorType: "dergipark",
+          targetUrl: "https://dergipark.org.tr/api/public/oai",
+          options: {
+            ...body.options,
+            dergiParkOptions: {
+              action: body.action,
+              set: body.set,
+              identifier: body.identifier,
+              keyword: body.keyword,
+              maxRecords: body.maxRecords,
+              resumptionToken: body.resumptionToken,
+              ...body.options?.dergiParkOptions,
+            },
+          },
+        };
+
+        const result = await dergiParkActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Internet Archive Item Fetcher (/internet-archive or /api/v1/internet-archive)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/internet-archive" || pathname === "/internet-archive")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          action?: "metadata" | "search" | "text";
+          identifier?: string;
+          searchQuery?: string;
+          mediaType?: string;
+          maxResults?: number;
+          maxTextChars?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const iaActor = registry.get("internet-archive");
+        if (!iaActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Internet Archive actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `ia-${Date.now()}`,
+          actorType: "internet-archive",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            internetArchiveOptions: {
+              action: body.action,
+              identifier: body.identifier,
+              searchQuery: body.searchQuery,
+              mediaType: body.mediaType,
+              maxResults: body.maxResults,
+              maxTextChars: body.maxTextChars,
+              ...body.options?.internetArchiveOptions,
+            },
+          },
+        };
+
+        const result = await iaActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

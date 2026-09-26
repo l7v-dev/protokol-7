@@ -102,3 +102,27 @@ Guven Kademesi (Trust Tier): `1`
   - Internet Archive: 11/11 test basarili.
   - Depo genelinde test sayisi **356'dan 378'e** cikti; 62 test paketinin tamami hatasiz gecti.
 
+---
+
+## Faz 4: REST API, OpenAPI 3.1.0 ve Uc-Uca Dogrulama
+
+### 1. Eklenen Bilesenler ve Mekanizmalar
+
+- **`src/core/server.ts`**:
+  - `POST /api/v1/epub` (veya `/epub`): `targetUrl` veya `epubBase64` payload parametreleri ile `epub-extractor` aktorunu tetikler.
+  - `POST /api/v1/dergipark` (veya `/dergipark`): `action`, `identifier`, `set`, `keyword`, `maxRecords`, `resumptionToken` parametreleri ile `dergipark` aktorunu tetikler.
+  - `POST /api/v1/internet-archive` (veya `/internet-archive`): `targetUrl`, `action`, `identifier`, `searchQuery`, `mediaType`, `maxResults`, `maxTextChars` parametreleri ile `internet-archive` aktorunu tetikler.
+- **`src/core/openapi-spec.ts`**:
+  - OpenAPI 3.1.0 semasina `/api/v1/epub` (tag: `Documents`), `/api/v1/dergipark` (tag: `Clean Datasets`), `/api/v1/internet-archive` (tag: `Clean Datasets`) yollari ve istek/yanit modelleri eklendi.
+- **`tests/server.test.ts`**:
+  - `/openapi.json` uzerinde uc yeni rotanin varligi dogrulandi.
+  - `/api/v1/epub`, `/api/v1/dergipark`, `/api/v1/internet-archive` uzerinde sunucu rotalama ve girdi dogrulama testleri eklendi (15/15 test basarili).
+- **`context/architecture-schema.md`**:
+  - Yeni rotalar ve yeni test dosyalari mimari sema tablosuna kaydedildi.
+
+### 2. Dogrulama Sonuclari
+
+- **Genel Test Durumu**: Toplam 381 test, 62 suite, 0 hata.
+- **Deterministik Dogrulama Hatti (`npm run verify`)**: 6/6 katman basariyla gecti.
+- **Depo Saglik Denetimi (`npm run doctor`)**: 7/7 kontrol basariyla tamamlandi.
+

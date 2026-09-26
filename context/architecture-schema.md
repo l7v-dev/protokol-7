@@ -163,7 +163,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 
 | Test File | Target Under Test | Test Verification Scope |
 |---|---|---|
-| `tests/server.test.ts` | `src/server.ts` | HTTP REST endpoints (`/health`, `/api/v1/actors`, `/api/v1/scrape`, `/api/v1/crawl`, `/api/v1/browser/action`, `/api/v1/browser/session/:id`). |
+| `tests/server.test.ts` | `src/server.ts` | HTTP REST endpoints (`/health`, `/api/v1/actors`, `/api/v1/scrape`, `/api/v1/crawl`, `/api/v1/browser/action`, `/api/v1/epub`, `/api/v1/dergipark`, `/api/v1/internet-archive`, `/api/v1/browser/session/:id`). |
 | `tests/scraping-actors.test.ts` | `CheerioScraperActor`, `PlaywrightBrowserActor` | Static HTML parsing, title/content/link extraction, markdown rendering. |
 | `tests/browser-pool.test.ts` | `BrowserPool` | Context acquisition, counter safety, idle timer shutdown, resource blocking. |
 | `tests/interactive-browser-controller.test.ts` | `InteractiveBrowserController` | Multi-turn navigation, clicking, text entry, screenshots, evaluation, session closing. |
@@ -203,6 +203,11 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/storage-router.test.ts` | `ConnectorRegistry`, `S3Storage`, `R2Storage`, `B2Storage` | Environment variable resolution, connector lookup, S3/R2/B2 driver uploads, and pipeline cloud storage integration. |
 | `tests/scheduler-and-remote.test.ts` | `ScheduleBroker`, `RemoteHttpExecutor`, `PipedreamExecutor`, `GoogleDriveStorage` | Cron matching engine, scheduler lifecycle, remote HTTP execution, Pipedream webhooks, and Google Drive upload. |
 | `tests/mcp-http-transport.test.ts` | `HttpMcpTransport`, `verifyMcpToken`, `src/core/server.ts` | Unit and HTTP server integration tests for initialize, tools/list, tools/call, auth guard, and SSE events. |
+| `tests/epub-extractor.test.ts` | `EpubExtractor` | EPUB 2/3 container parsing, Dublin Core metadata, spine ordering, TOC trees (nav.xhtml, toc.ncx), Zip Slip defense. |
+| `tests/epub-extractor-actor.test.ts` | `EpubExtractorActor`, `src/core/server.ts` | EPUB base64 payloads, remote downloads, SSRF validation, chapter limits, and REST route. |
+| `tests/multi-column-layout-resolver.test.ts` | `MultiColumnLayoutResolver`, `HeaderFooterStripper` | Coordinate-based column gutter detection, column sorting, and recurring header/footer stripping. |
+| `tests/dergipark-actor.test.ts` | `DergiParkActor`, `src/core/server.ts` | OAI-PMH 2.0 harvesting, ListRecords, GetRecord, ListSets, keyword filters, and REST route. |
+| `tests/internet-archive-actor.test.ts` | `InternetArchiveActor`, `src/core/server.ts` | Archive.org metadata JSON, Scraping API search, DjVuTXT / Abbyy GZ OCR decompression, and REST route. |
 
 ---
 

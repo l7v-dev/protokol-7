@@ -632,6 +632,102 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/epub": {
+      post: {
+        tags: ["Documents"],
+        summary: "EPUB E-Book & Publication Extractor",
+        description:
+          "Extracts e-books and periodicals from EPUB 2/3 containers with Dublin Core metadata, hierarchical TOC, and spine-ordered GFM Markdown.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Remote EPUB URL" },
+                  epubBase64: { type: "string", description: "Base64-encoded EPUB binary" },
+                  includeTableOfContents: { type: "boolean", default: true },
+                  maxChapters: { type: "integer", default: 100 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "EPUB metadata, TOC, and chapters converted to GFM markdown." },
+        },
+      },
+    },
+    "/api/v1/dergipark": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "DergiPark Academic Journal Harvester",
+        description:
+          "Harvests article metadata and PDF links from DergiPark academic journals via OAI-PMH 2.0 Dublin Core.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["search", "record", "list-sets"],
+                    default: "search",
+                  },
+                  identifier: { type: "string", description: "OAI-PMH record identifier" },
+                  set: { type: "string", description: "OAI-PMH journal set specifier" },
+                  keyword: { type: "string", description: "Client-side keyword filter" },
+                  maxRecords: { type: "integer", default: 20 },
+                  resumptionToken: { type: "string", description: "Pagination cursor" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "DergiPark articles, sets, or single record metadata." },
+        },
+      },
+    },
+    "/api/v1/internet-archive": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Internet Archive Item Fetcher",
+        description:
+          "Fetches item metadata, search results, and OCR text streams from archive.org public collections.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Archive.org item URL" },
+                  action: {
+                    type: "string",
+                    enum: ["metadata", "search", "text"],
+                    default: "metadata",
+                  },
+                  identifier: { type: "string", description: "Archive item identifier" },
+                  searchQuery: { type: "string", description: "Full-text search query" },
+                  mediaType: { type: "string", default: "texts" },
+                  maxResults: { type: "integer", default: 20 },
+                  maxTextChars: { type: "integer", default: 100000 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Internet Archive item metadata, search docs, or OCR text stream.",
+          },
+        },
+      },
+    },
     "/api/v1/sitemap": {
       post: {
         tags: ["Crawling"],

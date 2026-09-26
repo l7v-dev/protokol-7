@@ -268,6 +268,70 @@ test("GET /openapi.json returns valid OpenAPI 3.1.0 specification", async () => 
     assert.ok(schema.paths["/docs"]);
     assert.ok(schema.paths["/api/v1/scrape"]);
     assert.ok(schema.paths["/api/v1/browser/action"]);
+    assert.ok(schema.paths["/api/v1/epub"]);
+    assert.ok(schema.paths["/api/v1/dergipark"]);
+    assert.ok(schema.paths["/api/v1/internet-archive"]);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/epub validates payload and rejects empty request", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/epub`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    assert.equal(res.status, 400);
+    const json = (await res.json()) as { error: string };
+    assert.ok(json.error.includes("targetUrl or epubBase64"));
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/dergipark routes correctly via server router", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/dergipark`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "record" }),
+    });
+    // Record action without identifier should return 400 from DergiParkActor
+    assert.equal(res.status, 400);
+    const json = (await res.json()) as { success: boolean; errorMessage?: string };
+    assert.equal(json.success, false);
+    assert.ok(json.errorMessage?.includes("identifier"));
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/internet-archive routes correctly via server router", async () => {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/internet-archive`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "search" }),
+    });
+    // Search action without searchQuery should return 400 from InternetArchiveActor
+    assert.equal(res.status, 400);
+    const json = (await res.json()) as { success: boolean; errorMessage?: string };
+    assert.equal(json.success, false);
+    assert.ok(json.errorMessage?.includes("searchQuery"));
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
