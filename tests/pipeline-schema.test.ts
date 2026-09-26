@@ -72,7 +72,8 @@ connectors:
 `;
     const config = parsePipelineYaml(yaml);
     const expectedEnvRef = ["$", "{R2_ACCOUNT_ID}"].join("");
-    assert.equal(config.connectors["primary-r2"].account_id, expectedEnvRef);
+    assert.ok(config.connectors);
+    assert.equal(config.connectors["primary-r2"]?.account_id, expectedEnvRef);
   });
 
   it("strictly rejects raw plain-text secret credentials in connectors", () => {

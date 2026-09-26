@@ -15,4 +15,7 @@ export interface StorageBackend {
   upload(fileName: string, data: Buffer, prefix?: string): Promise<StorageReceipt>;
 }
 
+export * from "./b2-storage";
 export * from "./local-storage";
+export * from "./r2-storage";
+export * from "./s3-storage";

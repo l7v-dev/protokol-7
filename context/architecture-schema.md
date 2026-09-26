@@ -104,8 +104,14 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/pipeline/processors/passthrough-writer.ts` | `PassthroughWriter` | Formats extracted records into structured JSON without altering layout. |
 | `src/pipeline/processors/csv-writer.ts` | `CsvWriter` | Formats extracted records into RFC 4180 CSV tables. |
 | `src/pipeline/processors/parquet-packer.ts` | `ParquetPacker` | PyArrow subprocess bridge for ZSTD Parquet packaging with JSONL fallback. |
+| `src/pipeline/connectors/env-resolver.ts` | `resolveEnvString`, `resolveConnectorConfig` | Resolves runtime `${ENV_VAR}` tokens in connector configs. |
+| `src/pipeline/connectors/connector-registry.ts` | `ConnectorRegistry` | Stores, manages, and resolves connector credentials and endpoints. |
+| `src/pipeline/connectors/index.ts` | Connector Barrel | Re-exports connector registry and environment resolver. |
 | `src/pipeline/storage/index.ts` | `StorageBackend`, `StorageReceipt` | Storage provider contract and SHA-256 receipt generation interface. |
 | `src/pipeline/storage/local-storage.ts` | `LocalStorage` | Local disk pool storage provider calculating SHA-256 receipts. |
+| `src/pipeline/storage/s3-storage.ts` | `S3Storage`, `detectMimeType` | AWS S3 storage driver using PutObjectCommand and SHA-256 receipts. |
+| `src/pipeline/storage/r2-storage.ts` | `R2Storage` | Cloudflare R2 storage driver with custom account endpoint mapping. |
+| `src/pipeline/storage/b2-storage.ts` | `B2Storage` | Backblaze B2 storage driver with S3-compatible endpoints. |
 | `src/pipeline/pipeline-runner.ts` | `PipelineRunner`, `PipelineRunResult` | Master orchestrator coordinating validation, execution, formatting, and storage routing. |
 | `src/pipeline/cli.ts` | Pipeline CLI Runner | Command-line entrypoint for executing YAML pipeline configurations (`npm run pipeline`). |
 | `src/pipeline/index.ts` | Pipeline Barrel | Re-exports all pipeline contracts, runner, schema, processors, and storage backends. |
@@ -153,6 +159,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/pipeline-schema.test.ts` | `parsePipelineYaml`, `PipelineConfigSchema` | Zod validation, YAML parsing, required fields, and credential env var enforcement. |
 | `tests/actor-resolver.test.ts` | `ActorResolver` | Catalog discovery, registered actor verification, and missing config parameter rejection. |
 | `tests/pipeline-runner.test.ts` | `PipelineRunner`, `LocalExecutor`, `LocalStorage` | End-to-end execution, sink buffering, processor transformations, storage receipts, and error recovery. |
+| `tests/storage-router.test.ts` | `ConnectorRegistry`, `S3Storage`, `R2Storage`, `B2Storage` | Environment variable resolution, connector lookup, S3/R2/B2 driver uploads, and pipeline cloud storage integration. |
 
 ---
 

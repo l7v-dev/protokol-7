@@ -1,8 +1,8 @@
-# Pipeline Orchestrator (Faz 1: Çekirdek) Walkthrough
+# Pipeline Orchestrator (Faz 1 & Faz 2) Walkthrough
 
 ## 1. Genel Bakış
 
-Bu çalışma kapsamında `docs/plans/pipeline-orchestrator-plani.md` mimari şartnamesi uyarınca Protokol-7 bünyesindeki 18 veri çıkarma aktörünü, zamanlama ve yürütme hedeflerini, çıktı biçimlendiricilerini ve yerel depolama yönlendirmesini birleştiren genel amaçlı boru hattı orkestrasyon katmanının Faz 1 çekirdeği hayata geçirilmiştir.
+Bu çalışma kapsamında `docs/plans/pipeline-orchestrator-plani.md` mimari şartnamesi uyarınca Protokol-7 bünyesindeki veri çıkarma aktörlerini, zamanlama ve yürütme hedeflerini, çıktı biçimlendiricilerini ve çoklu depolama yönlendirmesini (yerel disk, AWS S3, Cloudflare R2, Backblaze B2) birleştiren genel amaçlı boru hattı orkestrasyon katmanının **Faz 1 (Çekirdek)** ve **Faz 2 (Depolama Bağlayıcıları)** modülleri hayata geçirilmiştir.
 
 ## 2. Hayata Geçirilen Bileşenler
 
@@ -28,12 +28,16 @@ Bu çalışma kapsamında `docs/plans/pipeline-orchestrator-plani.md` mimari şa
 - **`CsvWriter`:** RFC 4180 uyumlu virgülle ayrılmış değerler tablosu üretir.
 - **`ParquetPacker`:** PyArrow subprocess köprüsü üzerinden ZSTD-6 Parquet paketlemesi yapar; alt süreç başarısız olduğunda mimari kural gereği JSONL fallback'e geçer.
 
-### 2.6. Depolama Katmanı (`src/pipeline/storage/`)
-- **Sözleşme:** `StorageBackend` arayüzü ve kriptografik `StorageReceipt` (dosya yolu, bayt boyutu, SHA-256 sağlama toplamı, zaman damgası) veri sözleşmesi oluşturuldu.
+### 2.6. Depolama Katmanı ve Bağlayıcılar (`src/pipeline/storage/` & `src/pipeline/connectors/`)
+- **Ortam Değişkeni Çözümleyici (`env-resolver.ts`):** `${ENV_VAR}` belirteçlerini çalışma zamanı ortamından (`process.env`) güvenle çözer; eksik tanımlarda `MISSING_ENV_VAR` hatası fırlatır.
+- **Bağlayıcı Kayıt Defteri (`connector-registry.ts`):** YAML içinden veya koddan gelen depolama bağlayıcılarını adlarına göre yönetir ve kimlik bilgilerini çözümler.
 - **`LocalStorage`:** Çıktıları `PROTOKOL_POOL_ROOT` veya belirtilen dizin altına yazar; SHA-256 sağlama toplamını hesaplayıp `StorageReceipt` döndürür.
+- **`S3Storage`:** `@aws-sdk/client-s3` üzerinden `PutObjectCommand` ile AWS S3 kovalarına yükleme yapar; MIME türünü dinamik tespit eder ve `s3://` URI formatında `StorageReceipt` üretir.
+- **`R2Storage`:** Cloudflare R2 hesaba özel uç nokta (`https://${accountId}.r2.cloudflarestorage.com`) ve `auto` bölge eşlemesiyle S3-uyumlu sıfır-egress depolama sağlar.
+- **`B2Storage`:** Backblaze B2 S3-uyumlu uç noktası (`https://s3.${region}.backblazeb2.com`) ile depolama sağlar.
 
 ### 2.7. Ana Orkestratör (`src/pipeline/pipeline-runner.ts`)
-- **Akış Döngüsü:** Yapılandırma doğrulama -> aktör çözümleme -> yürütme -> çıktı havuzu -> formatlama -> depolama yüklemesi aşamalarını yönetir.
+- **Akış Döngüsü:** Yapılandırma doğrulama -> aktör çözümleme -> yürütme -> çıktı havuzu -> formatlama -> depolama yüklemesi (yerel, S3, R2, B2) aşamalarını yönetir.
 - **Süreç Güvenliği:** Yürütme ve depolama hatalarını yakalar, `failedRuns` listesine kaydeder ve süreci çökertmeden `status: "failed"` sonucu döndürür.
 
 ### 2.8. Komut Satırı Arayüzü (`src/pipeline/cli.ts` & `npm run pipeline`)
@@ -42,11 +46,12 @@ Bu çalışma kapsamında `docs/plans/pipeline-orchestrator-plani.md` mimari şa
 
 ## 3. Doğrulama ve Test Sonuçları
 
-- **Yeni Boru Hattı Testleri:** 24/24 başarılı:
+- **Boru Hattı ve Depolama Testleri:** 37/37 başarılı:
   - `tests/pipeline-schema.test.ts` (9 test)
   - `tests/actor-resolver.test.ts` (5 test)
   - `tests/pipeline-runner.test.ts` (10 test)
-- **Genel Test Paketi (`npm test`):** 206/206 başarılı (0 hata, 0 atlama).
+  - `tests/storage-router.test.ts` (13 test)
+- **Genel Test Paketi (`npm test`):** 219/219 başarılı (0 hata, 0 atlama).
 - **Statik Tip ve Lint Denetimi (`npm run typecheck && npm run lint`):** Sıfır hata.
 - **Deterministik Doğrulama Hattı (`npm run verify`):** 6 katmanın tümünden (Mimari Bütünlük, İsimlendirme Disiplini, Sıfır Emoji, Secret Detection, SCA Paket Halüsinasyonu, Biome Lint) başarıyla geçti.
 - **Canlı CLI Yürütmesi:** `npm run pipeline -- --config examples/pipelines/wikimedia-sample.yaml` başarıyla çalıştı ve 1372 baytlık doğrulanmış JSONL çıktısı oluşturdu.

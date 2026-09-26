@@ -33,6 +33,7 @@
     "bigdata:test": "scripts/wikipedia_pipeline/.venv/bin/python scripts/bigdata_pipeline/test_bigdata_pipeline.py"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
     "@mozilla/readability": "^0.6.0",
     "@pipedream/sdk": "^3.1.6",
     "cheerio": "^1.2.0",

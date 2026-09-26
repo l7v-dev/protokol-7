@@ -14,26 +14,30 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/network/safe-redirect-fetcher.ts` | 16 | 2 | Yardımcı Modül |
 | `src/core/server.ts` | 11 | 1 | Giriş Noktası (Server) |
 | `src/server.ts` | 11 | 0 | Giriş Noktası (Server) |
-| `src/core/index.ts` | 6 | 0 | Yardımcı Modül |
-| `src/index.ts` | 6 | 0 | Yardımcı Modül |
-| `src/pipeline/execution/index.ts` | 6 | 2 | Yardımcı Modül |
-| `src/pipeline/index.ts` | 6 | 0 | Yardımcı Modül |
-| `src/pipeline/processors/index.ts` | 6 | 2 | Yardımcı Modül |
-| `src/pipeline/storage/index.ts` | 6 | 2 | Yardımcı Modül |
+| `src/pipeline/schema.ts` | 8 | 13 | Yardımcı Modül |
+| `src/core/index.ts` | 7 | 0 | Yardımcı Modül |
+| `src/index.ts` | 7 | 0 | Yardımcı Modül |
+| `src/pipeline/connectors/index.ts` | 7 | 0 | Yardımcı Modül |
+| `src/pipeline/execution/index.ts` | 7 | 2 | Yardımcı Modül |
+| `src/pipeline/index.ts` | 7 | 0 | Yardımcı Modül |
+| `src/pipeline/processors/index.ts` | 7 | 2 | Yardımcı Modül |
+| `src/pipeline/storage/index.ts` | 7 | 2 | Yardımcı Modül |
 | `src/actors/actor-registry.ts` | 5 | 2 | Bileşen Tescili (Registry) |
 | `src/core/context-guard.ts` | 5 | 4 | Yardımcı Modül |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
-| `src/pipeline/schema.ts` | 5 | 13 | Yardımcı Modül |
 | `src/actors/actor-manifests.ts` | 4 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/browser/browser-pool.ts` | 4 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
 | `src/extractors/structured-extractor.ts` | 4 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
+| `src/pipeline/storage/s3-storage.ts` | 4 | 4 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/integrations/pipedream-connect.ts` | 3 | 6 | Yardımcı Modül |
 | `src/network/retry-handler.ts` | 3 | 4 | Yardımcı Modül |
+| `src/pipeline/execution/local-executor.ts` | 3 | 2 | Yardımcı Modül |
+| `src/pipeline/pipeline-runner.ts` | 3 | 3 | Yardımcı Modül |
 | `src/pipeline/processors/jsonl-writer.ts` | 3 | 1 | Yardımcı Modül |
 | `src/actors/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -50,13 +54,15 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/stealth-manager.ts` | 2 | 2 | Yardımcı Modül |
 | `src/network/crawl-frontier.ts` | 2 | 4 | Yardımcı Modül |
 | `src/pipeline/actor-resolver.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
-| `src/pipeline/execution/local-executor.ts` | 2 | 2 | Yardımcı Modül |
+| `src/pipeline/connectors/connector-registry.ts` | 2 | 1 | Bileşen Tescili (Registry) |
+| `src/pipeline/connectors/env-resolver.ts` | 2 | 2 | Yardımcı Modül |
 | `src/pipeline/output-sink.ts` | 2 | 3 | Yardımcı Modül |
-| `src/pipeline/pipeline-runner.ts` | 2 | 3 | Yardımcı Modül |
 | `src/pipeline/processors/csv-writer.ts` | 2 | 1 | Yardımcı Modül |
 | `src/pipeline/processors/parquet-packer.ts` | 2 | 1 | Yardımcı Modül |
 | `src/pipeline/processors/passthrough-writer.ts` | 2 | 1 | Yardımcı Modül |
+| `src/pipeline/storage/b2-storage.ts` | 2 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/local-storage.ts` | 2 | 1 | Yardımcı Modül |
+| `src/pipeline/storage/r2-storage.ts` | 2 | 2 | Yardımcı Modül |
 | `src/actors/api-extractor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/crawler-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/markdown-reader-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
@@ -122,6 +128,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/ssrf-guard.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/stack-exchange-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/stealth-manager.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/storage-router.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/store-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/structured-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/wikimedia-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -220,6 +227,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `ietf-rfc` | `IetfRfcActor` |
 | `saglik-ekutuphane` | `SaglikEkutuphaneActor` |
 | `ktb-ekitap` | `KtbEkitapActor` |
+| `main-r2` | `{
+        type: "r2",
+        bucket: "test-bucket",
+      }` |
 
 ## İhraç Edilen Semboller ve Arayüz Kontratları (AST)
 
@@ -858,6 +869,22 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Arayüzler (Interfaces):**
 - `interface ResolvedActor` (3 üye)
 
+### `src/pipeline/connectors/connector-registry.ts`
+
+**Sınıflar (Classes):**
+- `class ConnectorRegistry`
+  - `register(name: string, config: ConnectorConfig): void`
+  - `has(name: string): boolean`
+  - `get(name: string): ConnectorConfig | undefined`
+  - `resolve(name: string, env: NodeJS.ProcessEnv): T`
+  - `list(): Array<{ name: string; type: string }>`
+
+### `src/pipeline/connectors/env-resolver.ts`
+
+**Fonksiyonlar (Functions):**
+- `resolveEnvString(value: string, env: NodeJS.ProcessEnv): string`
+- `resolveConnectorConfig(rawConfig: T, env: NodeJS.ProcessEnv): T`
+
 ### `src/pipeline/execution/index.ts`
 
 **Arayüzler (Interfaces):**
@@ -897,15 +924,17 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `class PipelineRunner`
   - `registerProcessor(processor: OutputProcessor): void`
   - `registerStorage(storage: StorageBackend): void`
+  - `registerConnector(name: string, config: ConnectorConfig): void`
   - `runFile(filePath: string): Promise<PipelineRunResult>`
   - `runYaml(yamlString: string): Promise<PipelineRunResult>`
   - `runConfig(config: PipelineConfig): Promise<PipelineRunResult>`
   - `resolveExecutor(target: string): ExecutionTarget`
+  - `resolveStorageBackend(config: PipelineConfig): StorageBackend`
   - `getRunHistory(): PipelineRunResult[]`
   - `getFailedRuns(): PipelineRunResult[]`
 **Arayüzler (Interfaces):**
 - `interface PipelineRunResult` (10 üye)
-- `interface PipelineRunnerOptions` (4 üye)
+- `interface PipelineRunnerOptions` (6 üye)
 
 ### `src/pipeline/processors/csv-writer.ts`
 
@@ -949,6 +978,13 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `type PipelineConfig`
 - `type ConnectorConfig`
 
+### `src/pipeline/storage/b2-storage.ts`
+
+**Sınıflar (Classes):**
+- `class B2Storage`
+**Arayüzler (Interfaces):**
+- `interface B2StorageOptions` (0 üye)
+
 ### `src/pipeline/storage/index.ts`
 
 **Arayüzler (Interfaces):**
@@ -961,6 +997,25 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `class LocalStorage`
   - `upload(fileName: string, data: Buffer, prefix): Promise<StorageReceipt>`
   - `getBaseDir(): string`
+
+### `src/pipeline/storage/r2-storage.ts`
+
+**Sınıflar (Classes):**
+- `class R2Storage`
+**Arayüzler (Interfaces):**
+- `interface R2StorageOptions` (2 üye)
+
+### `src/pipeline/storage/s3-storage.ts`
+
+**Sınıflar (Classes):**
+- `class S3Storage`
+  - `upload(fileName: string, data: Buffer, prefix): Promise<StorageReceipt>`
+  - `getBucket(): string`
+**Fonksiyonlar (Functions):**
+- `detectMimeType(fileName: string): string`
+**Arayüzler (Interfaces):**
+- `interface S3ClientLike` (1 üye)
+- `interface S3StorageOptions` (5 üye)
 
 ## Modül ve Dosya Envanteri
 
@@ -1016,5 +1071,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/extractors/structured-extractor.ts` |
 | `src/index.ts` |
 | `src/integrations/pipedream-connect.ts` |
-| *... ve 66 dosya daha* |
+| *... ve 73 dosya daha* |
 

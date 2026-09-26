@@ -4,6 +4,7 @@
  */
 
 import { ActorResolver } from "./actor-resolver";
+import { ConnectorRegistry } from "./connectors/connector-registry";
 import type { ExecutionTarget } from "./execution";
 import { LocalExecutor } from "./execution/local-executor";
 import { BufferedSink, type OutputSink } from "./output-sink";
@@ -13,13 +14,17 @@ import { JsonlWriter } from "./processors/jsonl-writer";
 import { ParquetPacker } from "./processors/parquet-packer";
 import { PassthroughWriter } from "./processors/passthrough-writer";
 import {
+  type ConnectorConfig,
   loadPipelineConfigFile,
   type PipelineConfig,
   PipelineError,
   parsePipelineYaml,
 } from "./schema";
 import type { StorageBackend, StorageReceipt } from "./storage";
+import { B2Storage } from "./storage/b2-storage";
 import { LocalStorage } from "./storage/local-storage";
+import { R2Storage } from "./storage/r2-storage";
+import { S3Storage } from "./storage/s3-storage";
 
 export interface PipelineRunResult {
   runId: string;
@@ -37,6 +42,8 @@ export interface PipelineRunResult {
 export interface PipelineRunnerOptions {
   actorResolver?: ActorResolver;
   executor?: ExecutionTarget;
+  connectorRegistry?: ConnectorRegistry;
+  connectors?: Record<string, ConnectorConfig>;
   processors?: Record<string, OutputProcessor>;
   storageBackends?: Record<string, StorageBackend>;
 }
@@ -44,6 +51,7 @@ export interface PipelineRunnerOptions {
 export class PipelineRunner {
   private readonly actorResolver: ActorResolver;
   private readonly defaultExecutor: ExecutionTarget;
+  private readonly connectorRegistry: ConnectorRegistry;
   private readonly processors: Map<string, OutputProcessor> = new Map();
   private readonly storageBackends: Map<string, StorageBackend> = new Map();
   private readonly runHistory: PipelineRunResult[] = [];
@@ -52,6 +60,8 @@ export class PipelineRunner {
   constructor(options?: PipelineRunnerOptions) {
     this.actorResolver = options?.actorResolver || new ActorResolver();
     this.defaultExecutor = options?.executor || new LocalExecutor();
+    this.connectorRegistry =
+      options?.connectorRegistry || new ConnectorRegistry(options?.connectors);
 
     // Register processors
     this.registerProcessor(new JsonlWriter());
@@ -81,6 +91,10 @@ export class PipelineRunner {
 
   registerStorage(storage: StorageBackend): void {
     this.storageBackends.set(storage.backend, storage);
+  }
+
+  registerConnector(name: string, config: ConnectorConfig): void {
+    this.connectorRegistry.register(name, config);
   }
 
   /**
@@ -145,6 +159,13 @@ export class PipelineRunner {
     const runId = `run_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
     try {
+      // 0. Register any config-level connectors
+      if (config.connectors) {
+        for (const [name, connectorConfig] of Object.entries(config.connectors)) {
+          this.connectorRegistry.register(name, connectorConfig);
+        }
+      }
+
       // 1. Resolve and validate actor
       this.actorResolver.resolve(config.actor.id, config.actor.config);
 
@@ -178,15 +199,7 @@ export class PipelineRunner {
       const processedOutput = await processor.process(sink.getItems(), fileBaseName);
 
       // 5. Select storage backend and upload
-      const storageBackendType = config.storage?.backend || "local";
-      const storage = this.storageBackends.get(storageBackendType);
-      if (!storage) {
-        throw new PipelineError(
-          `Unsupported storage backend '${storageBackendType}'. Registered backends: ${Array.from(this.storageBackends.keys()).join(", ")}`,
-          "UNSUPPORTED_STORAGE_BACKEND"
-        );
-      }
-
+      const storage = this.resolveStorageBackend(config);
       const prefix = config.storage?.prefix || "";
       const receipt = await storage.upload(
         processedOutput.fileName,
@@ -235,6 +248,88 @@ export class PipelineRunner {
     throw new PipelineError(
       `Execution target '${target}' is not yet supported in Phase 1 (Local execution available).`,
       "TARGET_NOT_IMPLEMENTED"
+    );
+  }
+
+  private resolveStorageBackend(config: PipelineConfig): StorageBackend {
+    const backendType = config.storage?.backend || "local";
+
+    // 1. Explicitly registered custom storage backend takes priority
+    if (backendType !== "local" && this.storageBackends.has(backendType)) {
+      return this.storageBackends.get(backendType)!;
+    }
+
+    if (backendType === "local") {
+      if (config.storage?.destination_path) {
+        return new LocalStorage({ baseDir: config.storage.destination_path });
+      }
+      return this.storageBackends.get("local") || new LocalStorage();
+    }
+
+    // 2. Cloud storage backends (S3, R2, B2)
+    if (backendType === "s3" || backendType === "r2" || backendType === "b2") {
+      const connectorName = config.storage?.connector;
+      if (!connectorName) {
+        throw new PipelineError(
+          `Storage backend '${backendType}' requires a 'connector' name specified in storage configuration.`,
+          "MISSING_CONNECTOR_NAME",
+          { backend: backendType }
+        );
+      }
+
+      const connector = this.connectorRegistry.resolve(connectorName);
+      const bucket = connector.bucket || config.storage?.destination_path;
+
+      if (!bucket) {
+        throw new PipelineError(
+          `Storage backend '${backendType}' requires a bucket defined either in connector '${connectorName}' or storage 'destination_path'.`,
+          "MISSING_STORAGE_BUCKET",
+          { connector: connectorName }
+        );
+      }
+
+      const credentials =
+        connector.access_key_id && connector.secret_access_key
+          ? {
+              accessKeyId: connector.access_key_id,
+              secretAccessKey: connector.secret_access_key,
+            }
+          : undefined;
+
+      switch (backendType) {
+        case "s3":
+          return new S3Storage({
+            bucket,
+            region: connector.region,
+            endpoint: connector.endpoint,
+            credentials,
+          });
+        case "r2":
+          return new R2Storage({
+            bucket,
+            accountId: connector.account_id,
+            region: connector.region,
+            endpoint: connector.endpoint,
+            credentials,
+          });
+        case "b2":
+          return new B2Storage({
+            bucket,
+            region: connector.region,
+            endpoint: connector.endpoint,
+            credentials,
+          });
+      }
+    }
+
+    // 3. Fallback for custom registered backend
+    if (this.storageBackends.has(backendType)) {
+      return this.storageBackends.get(backendType)!;
+    }
+
+    throw new PipelineError(
+      `Unsupported storage backend '${backendType}'. Registered backends: ${Array.from(this.storageBackends.keys()).join(", ")}`,
+      "UNSUPPORTED_STORAGE_BACKEND"
     );
   }
 

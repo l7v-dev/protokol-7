@@ -40,6 +40,7 @@ export const ConnectorConfigSchema = z
     secret_access_key: ConnectorCredentialString.optional(),
     token: ConnectorCredentialString.optional(),
     endpoint: z.string().url().optional(),
+    region: z.string().optional(),
     folder_id: z.string().optional(),
   })
   .passthrough();
