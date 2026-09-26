@@ -29,7 +29,9 @@ export type ActorType =
   | "ktb-ekitap"
   | "document-extractor"
   | "archive-extractor"
-  | "epub-extractor";
+  | "epub-extractor"
+  | "dergipark"
+  | "internet-archive";
 
 export interface ExtractedTable {
   id: string;
@@ -408,6 +410,105 @@ export interface MultiColumnLayoutOptions {
   expectedColumns?: number;
 }
 
+// ---------------------------------------------------------------------------
+// DergiPark
+// ---------------------------------------------------------------------------
+
+export type DergiParkAction = "search" | "record" | "list-sets";
+
+export interface DergiParkActorTaskOptions {
+  action?: DergiParkAction;
+  /**
+   * OAI-PMH set identifier, e.g. "tbd:dergi:1234".
+   * Required for action="record". Optional filter for action="search".
+   */
+  set?: string;
+  /** OAI-PMH identifier for a single record (action="record"). */
+  identifier?: string;
+  /** Full-text keyword filter applied client-side on titles/abstracts. */
+  keyword?: string;
+  /** Maximum number of records to return (default 20). */
+  maxRecords?: number;
+  /** OAI-PMH resumption token for cursor-based pagination. */
+  resumptionToken?: string;
+  timeoutMs?: number;
+}
+
+export interface DergiParkArticle {
+  identifier: string;
+  title: string;
+  authors: string[];
+  abstract?: string;
+  keywords?: string[];
+  journal?: string;
+  issn?: string;
+  doi?: string;
+  publicationDate?: string;
+  language?: string;
+  pdfUrl?: string;
+  htmlUrl?: string;
+}
+
+export interface DergiParkActorResult {
+  action: DergiParkAction;
+  totalItems: number;
+  articles: DergiParkArticle[];
+  resumptionToken?: string;
+  sets?: Array<{ setSpec: string; setName: string }>;
+  queryUrl: string;
+}
+
+// ---------------------------------------------------------------------------
+// InternetArchive
+// ---------------------------------------------------------------------------
+
+export type InternetArchiveAction = "metadata" | "search" | "text";
+
+export interface InternetArchiveActorTaskOptions {
+  action?: InternetArchiveAction;
+  /** Archive.org item identifier, e.g. "gutenberg99" or "encyclopediabritan28chisrich". */
+  identifier?: string;
+  /** Full-text search query (action="search"). */
+  searchQuery?: string;
+  /** Media type filter: "texts", "audio", "movies", etc. */
+  mediaType?: string;
+  /** Maximum number of search results (default 20). */
+  maxResults?: number;
+  /** For action="text": maximum characters to return from OCR text stream. */
+  maxTextChars?: number;
+  timeoutMs?: number;
+}
+
+export interface InternetArchiveFile {
+  name: string;
+  format: string;
+  size?: number;
+  url: string;
+}
+
+export interface InternetArchiveItem {
+  identifier: string;
+  title: string;
+  creator?: string;
+  description?: string;
+  subject?: string[];
+  publisher?: string;
+  date?: string;
+  language?: string;
+  mediaType?: string;
+  downloadUrl?: string;
+  textUrl?: string;
+  files: InternetArchiveFile[];
+}
+
+export interface InternetArchiveActorResult {
+  action: InternetArchiveAction;
+  totalItems: number;
+  items: InternetArchiveItem[];
+  extractedText?: string;
+  queryUrl: string;
+}
+
 export interface ArxivAuthor {
   name: string;
   affiliation?: string;
@@ -771,6 +872,8 @@ export interface ActorTask {
     documentOptions?: DocumentExtractorTaskOptions;
     archiveOptions?: ArchiveExtractorTaskOptions;
     epubOptions?: EpubExtractorTaskOptions;
+    dergiParkOptions?: DergiParkActorTaskOptions;
+    internetArchiveOptions?: InternetArchiveActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

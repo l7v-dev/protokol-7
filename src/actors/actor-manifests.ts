@@ -1877,4 +1877,221 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+
+  dergipark: {
+    actorType: "dergipark",
+    name: "dergipark",
+    title: "DergiPark Academic Journal Harvester",
+    category: "DOCUMENT",
+    version: "1.0.0",
+    description:
+      "DergiPark OAI-PMH 2.0 uzerinden Turkiye akademik hakemli dergilerinden Dublin Core metadata, yazar, ozet, anahtar kelime ve PDF baglantisi cekan aktor.",
+    author: "protokol-7",
+    tags: ["oai-pmh", "dergipark", "academic", "periodical", "xml", "turkey"],
+    inputSchema: {
+      type: "object",
+      title: "DergiPark Harvester Input",
+      description: "DergiPark OAI-PMH sorgu parametreleri",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Eylem",
+          description: "'search' (ListRecords), 'record' (GetRecord), 'list-sets' (SetList).",
+          enum: ["search", "record", "list-sets"],
+          default: "search",
+          editor: "select",
+        },
+        identifier: {
+          name: "identifier",
+          type: "string",
+          title: "OAI Tanımlayıcı",
+          description: "Tek kayit cekmek icin OAI-PMH identifier (action='record').",
+          editor: "textfield",
+        },
+        set: {
+          name: "set",
+          type: "string",
+          title: "Set Tanımlayıcı",
+          description: "OAI-PMH set kodu, ornegin 'tbd:dergi:1234'.",
+          editor: "textfield",
+        },
+        keyword: {
+          name: "keyword",
+          type: "string",
+          title: "Anahtar Kelime",
+          description: "Baslik ve ozet uzerinde istemci tarafli kelime filtresi.",
+          editor: "textfield",
+        },
+        maxRecords: {
+          name: "maxRecords",
+          type: "integer",
+          title: "Maksimum Kayit",
+          description: "Dondurecek maksimum makale sayisi.",
+          default: 20,
+          editor: "number",
+        },
+        resumptionToken: {
+          name: "resumptionToken",
+          type: "string",
+          title: "Devam Jetonu",
+          description: "OAI-PMH sayfalama icin bir onceki yanittaki resumptionToken.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Gerceklestirilen eylem" },
+        totalItems: { type: "number", description: "Dondurdulen kayit sayisi" },
+        articles: { type: "array", description: "Makale metadata dizisi" },
+        resumptionToken: { type: "string", description: "Sonraki sayfa icin devam jetonu" },
+      },
+    },
+    exampleInput: {
+      action: "search",
+      keyword: "makine ogrenimi",
+      maxRecords: 10,
+    },
+    readme: `# DergiPark Academic Journal Harvester\n\nDergiPark OAI-PMH servisi uzerinden Turkiye akademik dergilerine erisir.`,
+    mcpTool: {
+      name: "query_dergipark",
+      description:
+        "Harvests article metadata from DergiPark Turkish academic journals via OAI-PMH 2.0 Dublin Core.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["search", "record", "list-sets"],
+            description: "OAI-PMH verb: search=ListRecords, record=GetRecord, list-sets=ListSets.",
+          },
+          identifier: { type: "string", description: "OAI-PMH record identifier (action=record)." },
+          set: { type: "string", description: "OAI-PMH set specifier (e.g. tbd:dergi:1234)." },
+          keyword: { type: "string", description: "Client-side keyword filter on title/abstract." },
+          maxRecords: { type: "integer", description: "Maximum records to return (default 20)." },
+          resumptionToken: {
+            type: "string",
+            description: "Pagination cursor from previous response.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+
+  "internet-archive": {
+    actorType: "internet-archive",
+    name: "internet-archive",
+    title: "Internet Archive Item Fetcher",
+    category: "DOCUMENT",
+    version: "1.0.0",
+    description:
+      "archive.org uzerindeki kamuya acik kitap ve dergi koleksiyonlarina item metadata JSON API, gelismis arama ve DjVuTXT / Abbyy GZ OCR metin akisi erisimi saglayan aktor.",
+    author: "protokol-7",
+    tags: ["internet-archive", "archive.org", "oai", "book", "djvu", "ocr", "public-domain"],
+    inputSchema: {
+      type: "object",
+      title: "Internet Archive Input",
+      description: "archive.org sorgu parametreleri",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Eylem",
+          description: "'metadata' (item JSON), 'search' (Scraping API), 'text' (OCR metin).",
+          enum: ["metadata", "search", "text"],
+          default: "metadata",
+          editor: "select",
+        },
+        identifier: {
+          name: "identifier",
+          type: "string",
+          title: "Item Tanımlayıcı",
+          description: "archive.org item identifier, ornegin 'gutenberg99'.",
+          editor: "textfield",
+          prefill: "encyclopediabritan28chisrich",
+        },
+        searchQuery: {
+          name: "searchQuery",
+          type: "string",
+          title: "Arama Terimi",
+          description: "Tam metin arama sorgusu (action='search').",
+          editor: "textfield",
+        },
+        mediaType: {
+          name: "mediaType",
+          type: "string",
+          title: "Medya Tipi",
+          description: "Arama filtresi: 'texts', 'audio', 'movies' vb. (varsayilan: texts).",
+          default: "texts",
+          editor: "textfield",
+        },
+        maxResults: {
+          name: "maxResults",
+          type: "integer",
+          title: "Maksimum Sonuc",
+          description: "Arama sonuc limiti (varsayilan: 20).",
+          default: 20,
+          editor: "number",
+        },
+        maxTextChars: {
+          name: "maxTextChars",
+          type: "integer",
+          title: "Maksimum Karakter",
+          description: "action='text' icin OCR metin cikisi maksimum karakter sayisi.",
+          default: 100000,
+          editor: "number",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Gerceklestirilen eylem" },
+        totalItems: { type: "number", description: "Dondurdulen item sayisi" },
+        items: { type: "array", description: "Archive item listesi" },
+        extractedText: { type: "string", description: "OCR metin cikisi (action=text)" },
+      },
+    },
+    exampleInput: {
+      action: "metadata",
+      identifier: "encyclopediabritan28chisrich",
+    },
+    readme: `# Internet Archive Item Fetcher\n\narchive.org kamuya acik koleksiyonlardan metadata, arama ve OCR metin erisimi saglar.`,
+    mcpTool: {
+      name: "query_internet_archive",
+      description:
+        "Fetches item metadata, search results, or OCR text streams from the Internet Archive (archive.org).",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["metadata", "search", "text"],
+            description:
+              "Action: metadata=item JSON, search=full-text search, text=OCR extraction.",
+          },
+          identifier: {
+            type: "string",
+            description: "Archive.org item identifier (required for metadata/text).",
+          },
+          searchQuery: { type: "string", description: "Search terms (action=search)." },
+          mediaType: {
+            type: "string",
+            description: "Media type filter for search: texts, audio, movies (default: texts).",
+          },
+          maxResults: { type: "integer", description: "Max search results (default 20)." },
+          maxTextChars: {
+            type: "integer",
+            description: "Max characters from OCR text stream (default 100000).",
+          },
+        },
+        required: [],
+      },
+    },
+  },
 };

@@ -47,6 +47,8 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/actors/document-extractor-actor.ts` | `DocumentExtractorActor` | Extracts textual streams, structured records, tables, and document metadata from office files (DOCX, XLSX), tabular files (CSV, TSV), and plain text formats. |
 | `src/actors/archive-extractor-actor.ts` | `ArchiveExtractorActor` | Extracts and inspects compressed archives (ZIP, TAR, GZ, RAR) with strict Zip Slip path traversal and Zip Bomb volumetric guards. |
 | `src/actors/epub-extractor-actor.ts` | `EpubExtractorActor` | Extracts e-books and periodicals from EPUB 2/3 containers with Dublin Core metadata, hierarchical TOC, and spine-ordered GFM Markdown. |
+| `src/actors/dergipark-actor.ts` | `DergiParkActor` | Harvests article metadata and PDF links from DergiPark academic journals via OAI-PMH 2.0 Dublin Core with keyword filtering. |
+| `src/actors/internet-archive-actor.ts` | `InternetArchiveActor` | Fetches item metadata, search results, and OCR text streams (DjVuTXT, Abbyy GZ) from archive.org public collections. |
 
 ### 1.3 Archive Subsystem (`src/archive/`)
 

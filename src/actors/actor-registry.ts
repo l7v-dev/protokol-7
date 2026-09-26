@@ -8,11 +8,13 @@ import { ArchiveExtractorActor } from "./archive-extractor-actor";
 import { ArxivActor } from "./arxiv-actor";
 import { CheerioScraperActor } from "./cheerio-scraper-actor";
 import { CrawlerActor } from "./crawler-actor";
+import { DergiParkActor } from "./dergipark-actor";
 import { DocumentExtractorActor } from "./document-extractor-actor";
 import { EpubExtractorActor } from "./epub-extractor-actor";
 import { EuropePmcActor } from "./europe-pmc-actor";
 import { GutenbergActor } from "./gutenberg-actor";
 import { IetfRfcActor } from "./ietf-rfc-actor";
+import { InternetArchiveActor } from "./internet-archive-actor";
 import { KtbEkitapActor } from "./ktb-ekitap-actor";
 import { MarkdownReaderActor } from "./markdown-reader-actor";
 import { NetworkInterceptorActor } from "./network-interceptor-actor";
@@ -68,5 +70,7 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new DocumentExtractorActor());
   registry.register(new ArchiveExtractorActor());
   registry.register(new EpubExtractorActor());
+  registry.register(new DergiParkActor());
+  registry.register(new InternetArchiveActor());
   return registry;
 }

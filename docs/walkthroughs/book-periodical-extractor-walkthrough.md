@@ -47,3 +47,58 @@ Guven Kademesi (Trust Tier): `1`
 - **Depo Saglik Denetimi (`npm run doctor`)**:
   - 7/7 kontrol basariyla tamamlandi.
 
+---
+
+## Faz 2: Cok Sutunlu Mizanpaj ve Baslik/Altbilgi Cozucu (`MultiColumnLayoutResolver` & `HeaderFooterStripper`)
+
+### 1. Eklenen Bilesenler ve Mekanizmalar
+
+- **`src/extractors/multi-column-layout-resolver.ts`**:
+  - `MultiColumnLayoutResolver`: `unpdf` kutuphanesinin `extractTextItems()` API'sinden gelen `StructuredTextItem[][]` dizisini koordinat tabanli (`x`, `y`, `width`, `height`) histogram analiziyle ayristirir.
+  - X ekseni histogramindaki belirgin bosluklardan (gutters >= 20pt) 2 veya 3 sutunlu mizanpaj tespiti yapar, metin ogelerini ilgili sutunlara boler, sutun icinde yukaridan asagiya (y azalan sira) dizer ve sutunlari soldan saga dogru birlestirir.
+  - `HeaderFooterStripper`: Sayfanin ust %8 ve alt %8 dilimindeki yineleyen satirlari frekans analiziyle (sayfalarin >= %50'sinde gecme sarti) tespit edip ayiklar. Pozisyon verisi bulunmayan durumlar icin ilk 2 / son 2 satir uzerinde metin-tabanli fallback mekanizmasi sunar.
+- **`src/actors/pdf-document-actor.ts`**:
+  - `multiColumnOptions.enabled=true` oldugunda `extractText` yerine `extractTextItems` kullanan ayrik koordinat hatti devreye girer. `HeaderFooterStripper.stripFromItems` ve `MultiColumnLayoutResolver.resolvePages` isleminden gecirilen metin bloklari standart `PdfPageEntry` akisina donusturulur.
+- **`src/core/types.ts` & Manifestolar**:
+  - `PdfDocumentTaskOptions` arayuzune `multiColumnOptions?: MultiColumnLayoutOptions` eklendi.
+  - `pdf-document` manifestosu `v1.2.0` surumune yukseltildi ve `multiColumnOptions` girdi semasina eklendi.
+
+### 2. Dogrulama Sonuclari
+
+- **Birim Testleri (`tests/multi-column-layout-resolver.test.ts`)**:
+  - 18 yeni test; sutun algilama, sutun ici dikey siralama, soldan saga birlestirme, ust/altbilgi frekans esigi ve hata toleransi dogrulandi.
+  - Depo genelinde test sayisi **338'den 356'ya** yukseldi (60 suite).
+
+---
+
+## Faz 3: Sureli Yayin Aktorleri (`DergiParkActor` & `InternetArchiveActor`)
+
+### 1. Eklenen Bilesenler ve Mekanizmalar
+
+- **`src/actors/dergipark-actor.ts` (`DergiParkActor`)**:
+  - Turkiye akademik hakemli dergilerine OAI-PMH 2.0 protokolu (`https://dergipark.org.tr/api/public/oai`) uzerinden Dublin Core standardinda erisim saglar.
+  - Eylemler:
+    - `search`: `ListRecords` ile toplu makale metadata hasadi; baslik ve ozet uzerinde istemci tarafli anahtar kelime (`keyword`) filtresi; `resumptionToken` ile imlec bazli sayfalama.
+    - `record`: `GetRecord` ile tekil makale metadatasi (yazarlar, baslik, ozet, dergi/yayinci, ISSN, DOI, PDF baglantisi).
+    - `list-sets`: `ListSets` ile kayitli dergi setlerinin listelenmesi.
+  - Sifir harici XML kutuphanesi bagimliligi: `cheerio`'nun yerel XML modunu kullanir.
+- **`src/actors/internet-archive-actor.ts` (`InternetArchiveActor`)**:
+  - `archive.org` kamuya acik koleksiyonlarina erisir.
+  - Eylemler:
+    - `metadata`: `https://archive.org/metadata/{identifier}` JSON API'si uzerinden kitap/dergi metadatalarini ve dosya listesini dondurur.
+    - `search`: `advancedsearch.php` Scraping API'si ile tam metin arama ve filtreleme.
+    - `text`: DjVuTXT veya Abbyy GZ formatindaki OCR tam metin akislarini indirir. Node.js yerel `zlib.gunzip` ile sikistirilmis Abbyy GZ dosyalarini cozer ve `maxTextChars` ile boyut sinirlamasini uygular.
+- **Manifestolar & MCP Entegrasyonu**:
+  - `src/actors/actor-manifests.ts` icine `dergipark` (22. MCP araci: `query_dergipark`) ve `internet-archive` (23. MCP araci: `query_internet_archive`) eklendi.
+  - `src/actors/actor-registry.ts` icine her iki aktor kaydedildi.
+  - `src/mcp/protokol-mcp-server.ts` icinde secenek yonlendirmeleri (`dergiParkOptions`, `internetArchiveOptions`) yapildi.
+  - `tests/protokol-mcp-server.test.ts` icinde toplam arac sayisi 21'den 23'e cikarilarak dogrulandi.
+  - `context/architecture-schema.md` guncellendi.
+
+### 2. Dogrulama Sonuclari
+
+- **Birim Testleri (`tests/dergipark-actor.test.ts`, `tests/internet-archive-actor.test.ts`)**:
+  - DergiPark: 11/11 test basarili.
+  - Internet Archive: 11/11 test basarili.
+  - Depo genelinde test sayisi **356'dan 378'e** cikti; 62 test paketinin tamami hatasiz gecti.
+

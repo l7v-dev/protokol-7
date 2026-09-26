@@ -19,11 +19,13 @@ import type {
   ApiExtractorTaskOptions,
   ArchiveExtractorTaskOptions,
   ArxivActorTaskOptions,
+  DergiParkActorTaskOptions,
   DocumentExtractorTaskOptions,
   EpubExtractorTaskOptions,
   EuropePmcActorTaskOptions,
   GutenbergActorTaskOptions,
   IetfRfcActorTaskOptions,
+  InternetArchiveActorTaskOptions,
   KtbEkitapTaskOptions,
   NetworkInterceptorTaskOptions,
   OpenAlexActorTaskOptions,
@@ -237,6 +239,14 @@ export class ProtokolMcpServer {
             epubOptions:
               manifest.actorType === "epub-extractor"
                 ? (toolArgs as unknown as EpubExtractorTaskOptions)
+                : undefined,
+            dergiParkOptions:
+              manifest.actorType === "dergipark"
+                ? (toolArgs as unknown as DergiParkActorTaskOptions)
+                : undefined,
+            internetArchiveOptions:
+              manifest.actorType === "internet-archive"
+                ? (toolArgs as unknown as InternetArchiveActorTaskOptions)
                 : undefined,
           },
         };
