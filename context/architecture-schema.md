@@ -13,6 +13,8 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/core/types.ts` | `ScrapedPageResult`, `ActorTask`, `BrowserActionResult`, `CrawlerResult` | Core TypeScript interfaces and shared contract definitions. |
 | `src/core/run-registry.ts` | `RunRegistry`, `globalRunRegistry` | Tracks execution runs, in-memory run state, and emits live SSE events. |
 | `src/core/store-router.ts` | `StoreRouter` | Actor Store API router, live log SSE streaming, quarantine inspector, and embedded Web MVP dashboard. |
+| `src/core/openapi-spec.ts` | `OPENAPI_SPECIFICATION`, `renderDocsHtml` | OpenAPI 3.1.0 schema specification and zero-dependency interactive documentation HTML generator. |
+| `src/core/context-guard.ts` | `ContextGuard` | LLM token estimation, context window budgeting, and hierarchical semantic boundary truncation. |
 | `src/core/server.ts` | `startServer`, `handleRequest` | Standalone Node.js HTTP REST server and API endpoint routing. |
 | `src/core/index.ts` | Core Barrel | Re-exports runtime contracts and HTTP server entrypoint. |
 | `src/server.ts` | Server Trampoline | Root-level entrypoint re-exporting `src/core/server.ts`. |
@@ -33,6 +35,15 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/actors/network-interceptor-actor.ts` | `NetworkInterceptorActor` | Headless browser actor intercepting and extracting background XHR/Fetch JSON API responses. |
 | `src/actors/serp-search-actor.ts` | `SerpSearchActor` | Organic search engine result page parser extracting rankings, URLs, snippets, and domains. |
 | `src/actors/pdf-document-actor.ts` | `PdfDocumentActor` | Extracts text streams, page boundaries, metrics, and document metadata from PDF files via unpdf. |
+| `src/actors/arxiv-actor.ts` | `ArxivActor` | Queries arXiv Export API (Atom 1.0) for preprints, extracts metadata, abstracts, and optional PDF text. |
+| `src/actors/wikimedia-actor.ts` | `WikimediaActor` | Queries official Wikimedia REST API v1 for clean encyclopedic summaries, articles as markdown, and search. |
+| `src/actors/openalex-actor.ts` | `OpenAlexActor` | Queries OpenAlex API for scholarly works, reconstructs abstracts from inverted index, and extracts citations. |
+| `src/actors/stack-exchange-actor.ts` | `StackExchangeActor` | Queries Stack Exchange API v2.3 for verified algorithmic Q&A pairs and instruction-tuning pairs. |
+| `src/actors/gutenberg-actor.ts` | `GutenbergActor` | Queries Gutendex API for public domain books, extracts metadata, and downloads book text stripped of license blocks. |
+| `src/actors/europe-pmc-actor.ts` | `EuropePmcActor` | Queries Europe PMC REST API for biomedical literature, abstracts, and open-access full-text links. |
+| `src/actors/ietf-rfc-actor.ts` | `IetfRfcActor` | Queries IETF RFC Editor and Datatracker for official Internet standards, extracts metadata, and cleans plain text RFC streams. |
+| `src/actors/saglik-ekutuphane-actor.ts` | `SaglikEkutuphaneActor` | Scrapes Turkish Ministry of Health e-library (ekutuphane.saglik.gov.tr) for medical publications, books, journals, and articles with PDF distillation. |
+| `src/actors/ktb-ekitap-actor.ts` | `KtbEkitapActor` | Scrapes Turkish Ministry of Culture and Tourism e-book portal (ekitap.ktb.gov.tr) with anti-hotlink referral and LLM text sanitization. |
 
 ### 1.3 Browser Engine (`src/browser/`)
 
@@ -67,6 +78,18 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/network/retry-handler.ts` | `withRetry`, `isTransientNetworkError` | Exponential backoff decorator with full jitter, status code retry policies, and transient socket error recovery. |
 | `src/network/crawl-frontier.ts` | `CrawlFrontier` | Disk-backed FIFO crawl queue, crash-resilient checkpointing, and append-only JSONL page streaming. |
 
+### 1.6 External Integrations (`src/integrations/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/integrations/pipedream-connect.ts` | `PipedreamConnectService`, `globalPipedreamConnect` | Pipedream Connect SDK wrapper, token creation, account management, and MCP endpoint configurator. |
+
+### 1.7 Model Context Protocol (`src/mcp/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/mcp/protokol-mcp-server.ts` | `ProtokolMcpServer` | Native Stdio JSON-RPC 2.0 MCP server exposing all extraction actors to AI agent clients. |
+
 ---
 
 ## 2. Test Suite Inventory (`tests/`)
@@ -98,6 +121,15 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/retry-handler.test.ts` | `withRetry` | Exponential backoff with jitter, retry status code triggers, non-retryable error handling, and terminal error throwing. |
 | `tests/session-vault.test.ts` | `SessionVault` | Playwright storageState save, load, directory creation, corrupted JSON recovery, and state existence verification. |
 | `tests/crawl-frontier.test.ts` | `CrawlFrontier` | FIFO disk queueing, URL deduplication, JSONL page streaming, and checkpoint resume. |
+| `tests/pipedream-connect.test.ts` | `PipedreamConnectService`, `src/core/server.ts` | Pipedream defaults, MCP config generator, token guards, and `/api/v1/pipedream/*` REST endpoints. |
+| `tests/arxiv-actor.test.ts` | `ArxivActor`, `src/core/server.ts` | arXiv Export API Atom XML parsing, searchQuery/idList param building, URL ID parsing, PDF extraction, SSRF protection, and REST routes. |
+| `tests/protokol-mcp-server.test.ts` | `ProtokolMcpServer` | Model Context Protocol JSON-RPC 2.0 handshake, tools/list inspection, actor execution via tools/call, and stream error handling. |
+| `tests/wikimedia-actor.test.ts` | `WikimediaActor`, `src/core/server.ts` | Page summaries, full article Parsoid HTML to Markdown, search parsing, SSRF guard, and REST route. |
+| `tests/openalex-actor.test.ts` | `OpenAlexActor`, `src/core/server.ts` | Inverted index abstract reconstruction, citation and open access filters, SSRF guard, and REST route. |
+| `tests/stack-exchange-actor.test.ts` | `StackExchangeActor`, `src/core/server.ts` | Questions and answers retrieval, instruction-tuning pair formatting, score filters, SSRF guard, and REST route. |
+| `tests/gutenberg-actor.test.ts` | `GutenbergActor`, `src/core/server.ts` | Gutendex search and book metadata, plain text download, license delimiter stripping, SSRF guard, and REST route. |
+| `tests/europe-pmc-actor.test.ts` | `EuropePmcActor`, `src/core/server.ts` | Europe PMC search, abstract parsing, open-access query filtering, SSRF guard, and REST route. |
+| `tests/ietf-rfc-actor.test.ts` | `IetfRfcActor`, `src/core/server.ts` | RFC text retrieval, running page headers & form feed stripping, Datatracker search, SSRF guard, and REST route. |
 
 ---
 
@@ -105,7 +137,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 
 | File | Type | Purpose |
 |---|---|---|
-| `package.json` | Project Config | Dependencies, npm scripts (`dev`, `build`, `start`, `test`, `lint`, `lint:naming`). |
+| `package.json` | Project Config | Dependencies, npm scripts (`dev`, `build`, `start`, `test`, `lint`, `lint:naming`, `pipedream`). |
 | `tsconfig.json` | TypeScript Config | Compiler options: ES2022, NodeNext resolution, strict mode. |
 | `AGENTS.md` | Agent Context | Operational rules, naming discipline, neuro-ergonomic communication rules. |
 | `GEMINI.md` | Agent Context | Project rules and architectural integrity instructions. |
@@ -116,5 +148,36 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `context/connectome.md` | System Map | Deterministically generated routing and actor dependency map. |
 | `docs/adr/` | Architectural Records | Architecture Decision Records (ADR 0001 - 0009). |
 | `docs/protokol-cold-vault-mimari-sartnamesi.md` | Architecture Spec | Specification for the upcoming protokol-cold-vault offline storage repository. |
-| `docs/plans/aktor-ekosistemi-ve-web-mvp-teknik-plani.md` | Architecture Plan | Specification and roadmap for Actor Store, Web MVP, CLI, and Mobile clients. |
+| `.env.example` | Config Template | Environment template with `PIPEDREAM_PROJECT_ID=proj_zNsBAEe` and `PIPEDREAM_ENVIRONMENT=production`. |
+| `scripts/pipedream-cli.mjs` | CLI Runner | Pipedream Connect status verification, user token generation, account listing, and MCP endpoint inspector. |
 | `scripts/harvest-ekutuphane.mjs` | Pipeline Runner | Resumable data extraction pipeline for ekutuphane.saglik.gov.tr with 8-character naming and gzip compression. |
+| `notebooks/tr_wikipedia_pipeline.ipynb` | Colab Notebook | End-to-end pipeline: trwiki dump download, Wikitext parsing, ZSTD Parquet chunking, and Drive packaging. |
+| `docs/plans/tr-wikipedia-colab-drive-plani.md` | Architecture Plan | Complete plan specification for Turkish Wikipedia dump processing and Google Drive delivery. |
+| `docs/plans/pipedream-connect-entegrasyon-plani.md` | Architecture Plan | Plan specification for Pipedream Connect SDK, REST/MCP routes, and CLI tooling. |
+| `docs/plans/tr-wikipedia-yerel-pipeline-plani.md` | Architecture Plan | Local Wikipedia dump streaming, Wikitext cleaner, 10GB Parquet sharder, and sequential Drive sync queue plan. |
+| `docs/plans/cok-dilli-wikipedia-pipeline-plani.md` | Architecture Plan | Multi-language Wikipedia pipeline plan with size-ordered (ascending article count) queue strategy. |
+| `scripts/wikipedia_pipeline/downloader.py` | Pipeline Module | Unified Wikimedia XML bz2 dump downloader with in-flight MD5 verification, 4MB chunks, and CLI entrypoint. |
+| `scripts/wikipedia_pipeline/cleaner.py` | Pipeline Module | Streaming SAX XML parser, Namespace 0 filtering, redirect stripping, and clean text extractor for LLM pre-training. |
+| `scripts/wikipedia_pipeline/packer.py` | Pipeline Module | StreamingParquetSharder with PyArrow, Zstandard (zstd-6) compression, and 10GB part rolling. |
+| `scripts/wikipedia_pipeline/drive_queue.py` | Pipeline Module | Sequential (concurrency=1) Google Drive sync queue, md5Checksum verification, and local file unlinking. |
+| `scripts/wikipedia_pipeline/run_pipeline.py` | CLI Entrypoint | Master orchestrator CLI for local Wikipedia dump streaming, Parquet packaging, and Google Drive delivery. |
+| `scripts/wikipedia_pipeline/multi_lang_orchestrator.py` | CLI Orchestrator | Multi-language queue runner ordering languages from smallest to largest with per-language disk cleanup. |
+| `scripts/wikipedia_pipeline/schema.sql` | Database Schema | ANSI/SQLite relational DDL for pipeline runs, cryptographic shard ledger, and article provenance index. |
+| `scripts/wikipedia_pipeline/metadata_db.py` | Pipeline Module | SQLite-backed dataset metadata manager, audit trail, provenance tracker, and manifest.json exporter. |
+| `scripts/wikipedia_pipeline/test_pipeline.py` | Test Suite | Unit tests for wikitext cleaner, streaming XML parser, Parquet writer, and Drive hash verification. |
+| `scripts/wikipedia_pipeline/test_metadata_db.py` | Test Suite | Unit tests for MetadataDB lifecycle, cryptographic hash ledger, and manifest export. |
+| `scripts/wikipedia_pipeline/test_multi_lang.py` | Test Suite | Unit tests for size-based ascending language queue ordering. |
+| `scripts/bigdata_pipeline/schema.sql` | Database Schema | ANSI/SQLite relational DDL for enterprise datasets, shards, replicas, and audit ledger. |
+| `scripts/bigdata_pipeline/metadata_catalog.py` | Catalog Manager | Enterprise metadata manager, shard ledger, replica tracking, and manifest exporter. |
+| `scripts/bigdata_pipeline/storage/base.py` | Storage Interface | Abstract StorageProvider interface and StorageReceipt data contract. |
+| `scripts/bigdata_pipeline/storage/local_cold_vault.py` | Storage Provider | Offline/removable HDD/SSD cold storage provider with Btrfs SHA256SUMS ledger. |
+| `scripts/bigdata_pipeline/storage/cloudflare_r2.py` | Storage Provider | Cloudflare R2 / S3 zero-egress object storage provider with checksum verification. |
+| `scripts/bigdata_pipeline/storage/__init__.py` | Storage Factory | Registry and factory resolver for pluggable storage providers. |
+| `scripts/bigdata_pipeline/cleaner.py` | Cleaner & Filter | TextNormalizer (Unicode NFKC) and QualityFilter (Gopher/FineWeb heuristics). |
+| `scripts/bigdata_pipeline/packer.py` | Parquet Packer | StreamingParquetPacker with ZSTD-6 compression, RowGroups, and chunk rolling. |
+| `scripts/bigdata_pipeline/verifier.py` | Verification Gate | 4-point verification gatekeeper and zero-raw purge engine with audit logging. |
+| `scripts/bigdata_pipeline/orchestrator.py` | CLI Orchestrator | Master orchestrator CLI for big data processing, storage replication, and zero-raw purge. |
+| `scripts/bigdata_pipeline/test_bigdata_pipeline.py` | Test Suite | Unit and integration tests for catalog, storage, cleaner, packer, gatekeeper, and purge. |
+| `scripts/bigdata_pipeline/requirements.txt` | Package Dependencies | Production dependencies for big data pipeline (blake3, tiktoken, duckdb, lingua, boto3). |
+| `docs/plans/kurumsal-big-data-pipeline-plani.md` | Architecture Plan | Architecture plan specification for 500 TB multi-tier big data LLM pipeline. |
+| `docs/walkthroughs/kurumsal-big-data-pipeline-walkthrough.md` | Walkthrough | Execution and validation walkthrough for big data pipeline and verification gate. |

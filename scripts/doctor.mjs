@@ -101,7 +101,10 @@ function scanSecrets(dir) {
       f === "node_modules" ||
       f === "archive" ||
       f === "dist" ||
-      f === "package-lock.json"
+      f === "package-lock.json" ||
+      f === "service_account.json" ||
+      f === "credentials.json" ||
+      f === "token.json"
     ) {
       continue;
     }

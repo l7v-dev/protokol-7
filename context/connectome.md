@@ -1,6 +1,6 @@
 # Connectome — Otomatik Üretilen Sistem Haritası
 
-> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-16). Elle düzenlenmez.
+> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-26). Elle düzenlenmez.
 > Çözümleyici Motor: TypeScript Compiler API AST (v5.9.3)
 
 ## Çekirdek Modüller ve Mimari Düğümler (Centrality)
@@ -9,25 +9,37 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/core/types.ts` | 17 | 30 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 9 | 3 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 7 | 2 | Yardımcı Modül |
+| `src/core/types.ts` | 29 | 65 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 18 | 3 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 16 | 2 | Yardımcı Modül |
+| `src/core/server.ts` | 11 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 11 | 0 | Giriş Noktası (Server) |
+| `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
+| `src/actors/actor-registry.ts` | 4 | 2 | Bileşen Tescili (Registry) |
 | `src/browser/browser-pool.ts` | 4 | 4 | Kaynak Yöneticisi (BrowserPool) |
+| `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
 | `src/extractors/structured-extractor.ts` | 4 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/network/proxy-manager.ts` | 4 | 5 | Yardımcı Modül |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
-| `src/browser/session-vault.ts` | 3 | 4 | Oturum Denetleyicisi |
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
+| `src/integrations/pipedream-connect.ts` | 3 | 6 | Yardımcı Modül |
 | `src/network/retry-handler.ts` | 3 | 4 | Yardımcı Modül |
-| `src/actors/actor-registry.ts` | 2 | 2 | Bileşen Tescili (Registry) |
+| `src/actors/actor-manifests.ts` | 2 | 5 | Etki Alanı Aktörü (Actor) |
+| `src/actors/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/europe-pmc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/gutenberg-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/ietf-rfc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/ktb-ekitap-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/openalex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/pdf-document-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/playwright-browser-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/saglik-ekutuphane-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/stack-exchange-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/wikimedia-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/browser/stealth-manager.ts` | 2 | 2 | Yardımcı Modül |
 | `src/network/crawl-frontier.ts` | 2 | 4 | Yardımcı Modül |
-| `src/actors/actor-manifests.ts` | 1 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/actors/api-extractor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/crawler-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/markdown-reader-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
@@ -37,13 +49,14 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/browser-session-manager.ts` | 1 | 3 | Oturum Denetleyicisi |
 | `src/browser/dom-indexer.ts` | 1 | 3 | Yardımcı Modül |
 | `src/browser/interactive-browser-controller.ts` | 1 | 5 | Yardımcı Modül |
+| `src/core/context-guard.ts` | 1 | 3 | Yardımcı Modül |
+| `src/core/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
 | `src/core/run-registry.ts` | 1 | 4 | Bileşen Tescili (Registry) |
-| `src/core/server.ts` | 1 | 1 | Giriş Noktası (Server) |
 | `src/core/store-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/extractors/robots-parser.ts` | 1 | 3 | Etki Alanı Aktörü (Actor) |
+| `src/mcp/protokol-mcp-server.ts` | 1 | 3 | Giriş Noktası (Server) |
 | `src/network/crawl-url-accumulator.ts` | 1 | 3 | Yardımcı Modül |
 | `src/network/politeness-limiter.ts` | 1 | 2 | Yardımcı Modül |
-| `src/server.ts` | 1 | 0 | Giriş Noktası (Server) |
 | `scripts/checkpoint.mjs` | 0 | 3 | Yardımcı Modül |
 | `scripts/consolidate-memory.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/doctor.mjs` | 0 | 0 | Yardımcı Modül |
@@ -52,40 +65,56 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/harvest-ktb-ekitap.mjs` | 0 | 1 | Yardımcı Modül |
 | `scripts/omega-mcp-server.mjs` | 0 | 0 | Giriş Noktası (Server) |
 | `scripts/omega-memory.mjs` | 0 | 0 | Semantik Bellek |
+| `scripts/pipedream-cli.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/sca-check.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/verify-pipeline.mjs` | 0 | 0 | Doğrulama Hattı |
 | `src/core/index.ts` | 0 | 0 | Yardımcı Modül |
 | `src/index.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/api-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/arxiv-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/browser-pool.test.ts` | 0 | 0 | Kaynak Yöneticisi (BrowserPool) |
 | `tests/browser-session-manager.test.ts` | 0 | 0 | Oturum Denetleyicisi |
+| `tests/context-guard.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/crawl-frontier.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/crawler-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/dom-indexer.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/europe-pmc-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/gutenberg-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/ietf-rfc-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/interactive-browser-controller.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/ktb-ekitap-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/markdown-reader-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/network-interceptor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/openalex-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/pdf-document-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/pipedream-connect.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/politeness-limiter.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/protokol-mcp-server.test.ts` | 0 | 0 | Giriş Noktası (Server) |
 | `tests/proxy-manager.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/readability-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/retry-handler.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/robots-parser.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/safe-redirect-fetcher.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/saglik-ekutuphane-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/scraping-actors.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/serp-search-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/server.test.ts` | 0 | 0 | Giriş Noktası (Server) |
 | `tests/session-vault.test.ts` | 0 | 0 | Oturum Denetleyicisi |
 | `tests/sitemap-xml-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/ssrf-guard.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/stack-exchange-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/stealth-manager.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/store-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/structured-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/wikimedia-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 
 ## Kayıtlı API Rotaları
 
 | Route | Method | Bağlı Actor / Controller |
 |---|---|---|
+| `/openapi.json` | GET | — |
+| `/docs` | GET | — |
+| `/api-docs` | GET | — |
 | `/health` | GET | BrowserPool (health) |
 | `/api/v1/actors` | GET | ActorRegistry (list) |
 | `/actors` | GET | ActorRegistry (list) |
@@ -105,6 +134,24 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `/search` | POST | SerpSearchActor |
 | `/api/v1/pdf` | POST | PdfDocumentActor |
 | `/pdf` | POST | PdfDocumentActor |
+| `/api/v1/arxiv` | POST | — |
+| `/arxiv` | POST | — |
+| `/api/v1/wikimedia` | POST | — |
+| `/wikimedia` | POST | — |
+| `/api/v1/openalex` | POST | — |
+| `/openalex` | POST | — |
+| `/api/v1/stack-exchange` | POST | — |
+| `/stack-exchange` | POST | — |
+| `/api/v1/gutenberg` | POST | — |
+| `/gutenberg` | POST | — |
+| `/api/v1/europe-pmc` | POST | — |
+| `/europe-pmc` | POST | — |
+| `/api/v1/ietf-rfc` | POST | — |
+| `/ietf-rfc` | POST | — |
+| `/api/v1/saglik-ekutuphane` | POST | — |
+| `/saglik-ekutuphane` | POST | — |
+| `/api/v1/ktb-ekitap` | POST | — |
+| `/ktb-ekitap` | POST | — |
 | `/api/v1/browser/action` | POST | InteractiveBrowserController.executeAction |
 | `/browser/action` | POST | InteractiveBrowserController.executeAction |
 | `/api/v1/browser/session/:id` | DELETE | InteractiveBrowserController.closeSession |
@@ -119,6 +166,19 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `/api/v1/store/runs` | GET | — |
 | `/api/v1/store/runs/:id` | GET | — |
 | `/api/v1/store/quarantine` | GET | — |
+| `/api/v1/pipedream/config` | GET | — |
+| `/api/pipedream/config` | GET | — |
+| `/api/v1/pipedream/connect-token` | POST | — |
+| `/api/v1/pipedream/tokens` | POST | — |
+| `/api/pipedream/tokens` | POST | — |
+| `/api/v1/pipedream/accounts` | GET | — |
+| `/api/pipedream/accounts` | GET | — |
+| `/api/v1/pipedream/accounts/:id` | DELETE | — |
+| `/api/pipedream/accounts/:id` | DELETE | — |
+| `/api/v1/pipedream/mcp/config` | GET | — |
+| `/api/pipedream/mcp/config` | GET | — |
+| `/api/v1/pipedream/mcp/token` | POST | — |
+| `/api/pipedream/mcp/token` | POST | — |
 
 ## Kayıtlı Aktörler & Bileşenler
 
@@ -133,6 +193,15 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `network-interceptor` | `NetworkInterceptorActor` |
 | `serp-search` | `SerpSearchActor` |
 | `pdf-document` | `PdfDocumentActor` |
+| `arxiv` | `ArxivActor` |
+| `wikimedia` | `WikimediaActor` |
+| `open-alex` | `OpenAlexActor` |
+| `stack-exchange` | `StackExchangeActor` |
+| `gutenberg` | `GutenbergActor` |
+| `europe-pmc` | `EuropePmcActor` |
+| `ietf-rfc` | `IetfRfcActor` |
+| `saglik-ekutuphane` | `SaglikEkutuphaneActor` |
+| `ktb-ekitap` | `KtbEkitapActor` |
 
 ## İhraç Edilen Semboller ve Arayüz Kontratları (AST)
 
@@ -191,6 +260,21 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ApiExtractorResult>>`
   - `executeRequest(url: string, method: string, options: ApiExtractorTaskOptions, timeoutMs: number): Promise<{ status: number; headers: Record<string, string>; data: unknown }>`
 
+### `src/actors/arxiv-actor.ts`
+
+**Sınıflar (Classes):**
+- `class ArxivActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<ArxivActorResult>>`
+  - `buildApiUrl(targetUrl: string | undefined, options: ArxivActorTaskOptions): string`
+  - `extractArxivId(input: string): string | undefined`
+  - `parseAtomFeed(xml: string): {
+    totalResults: number;
+    startIndex: number;
+    itemsPerPage: number;
+    papers: ArxivPaperItem[];
+  }`
+  - `enrichPapersWithPdfText(papers: ArxivPaperItem[], timeoutMs: number, allowLocalNetwork: boolean): Promise<void>`
+
 ### `src/actors/cheerio-scraper-actor.ts`
 
 **Sınıflar (Classes):**
@@ -202,6 +286,51 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Sınıflar (Classes):**
 - `class CrawlerActor`
   - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<CrawlerResult>>`
+
+### `src/actors/europe-pmc-actor.ts`
+
+**Sınıflar (Classes):**
+- `class EuropePmcActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<EuropePmcActorResult>>`
+  - `buildApiUrl(targetUrl: string | undefined, options: EuropePmcActorTaskOptions): string`
+
+### `src/actors/gutenberg-actor.ts`
+
+**Sınıflar (Classes):**
+- `class GutenbergActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<GutenbergActorResult>>`
+  - `downloadAndCleanTexts(books: GutenbergBookItem[], maxBytes: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<void>`
+  - `stripGutenbergHeaders(rawText: string): string`
+  - `buildApiUrl(targetUrl: string | undefined, options: GutenbergActorTaskOptions): string`
+
+### `src/actors/ietf-rfc-actor.ts`
+
+**Sınıflar (Classes):**
+- `class IetfRfcActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<IetfRfcActorResult>>`
+  - `cleanRfcText(rawText: string): string`
+  - `parseRfcTextHeader(text: string, rfcNumber: number): {
+    title: string;
+    status?: string;
+    authors?: string[];
+    pubDate?: string;
+    abstract?: string;
+    obsoletes?: string[];
+  }`
+  - `resolveRfcNumber(targetUrl: string | undefined, options: IetfRfcActorTaskOptions): number | undefined`
+  - `buildRfcTextUrl(targetUrl: string | undefined, rfcNumber: number): string`
+  - `buildDatatrackerSearchUrl(targetUrl: string | undefined, options: IetfRfcActorTaskOptions): string`
+
+### `src/actors/ktb-ekitap-actor.ts`
+
+**Sınıflar (Classes):**
+- `class KtbEkitapActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<KtbEkitapActorResult>>`
+  - `resolveBaseUrl(targetUrl: string): string`
+  - `extractIdFromUrl(url: string): number | undefined`
+  - `handleListAction(task: ActorTask, baseUrl: string, category: KtbEkitapCategory, page: number, limit: number, timeoutMs: number, allowLocalNetwork: boolean, startTime: number): Promise<ActorResult<KtbEkitapActorResult>>`
+  - `handleDetailOrExtractAction(task: ActorTask, baseUrl: string, detailUrl: string, explicitBookId: number | undefined, shouldExtractText: boolean, timeoutMs: number, allowLocalNetwork: boolean, startTime: number): Promise<ActorResult<KtbEkitapActorResult>>`
+  - `sanitizeTextForLlm(pages: string[]): string`
 
 ### `src/actors/markdown-reader-actor.ts`
 
@@ -219,6 +348,14 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `class NetworkInterceptorActor`
   - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<NetworkInterceptorResult>>`
 
+### `src/actors/openalex-actor.ts`
+
+**Sınıflar (Classes):**
+- `class OpenAlexActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<OpenAlexActorResult>>`
+  - `reconstructAbstract(invertedIndex: Record<string, number[]>): string | undefined`
+  - `buildApiUrl(targetUrl: string | undefined, options: OpenAlexActorTaskOptions): string`
+
 ### `src/actors/pdf-document-actor.ts`
 
 **Sınıflar (Classes):**
@@ -231,6 +368,17 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Sınıflar (Classes):**
 - `class PlaywrightBrowserActor`
   - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ScrapedPageResult>>`
+
+### `src/actors/saglik-ekutuphane-actor.ts`
+
+**Sınıflar (Classes):**
+- `class SaglikEkutuphaneActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<SaglikEkutuphaneActorResult>>`
+  - `resolveBaseUrl(targetUrl: string): string`
+  - `extractIdFromUrl(url: string): number | undefined`
+  - `handleListAction(task: ActorTask, baseUrl: string, category: SaglikEkutuphaneCategory, page: number, limit: number, timeoutMs: number, allowLocalNetwork: boolean, startTime: number): Promise<ActorResult<SaglikEkutuphaneActorResult>>`
+  - `handleDetailOrExtractAction(task: ActorTask, baseUrl: string, publicationId: number, shouldExtractText: boolean, timeoutMs: number, allowLocalNetwork: boolean, startTime: number): Promise<ActorResult<SaglikEkutuphaneActorResult>>`
+  - `parseSizeToBytes(sizeStr: string): number | undefined`
 
 ### `src/actors/serp-search-actor.ts`
 
@@ -246,6 +394,28 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<SitemapResult>>`
   - `fetchXml(url: string, signal: AbortSignal): Promise<string>`
   - `crawlSitemapRecursive(url: string, currentDepth: number, maxDepth: number, maxUrls: number, filterPatterns: string[] | undefined, aggregatedUrls: SitemapUrlEntry[], subSitemapsList: string[], signal: AbortSignal, setIndexFlag: (isIndex: boolean) => void): Promise<void>`
+
+### `src/actors/stack-exchange-actor.ts`
+
+**Sınıflar (Classes):**
+- `class StackExchangeActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<StackExchangeActorResult>>`
+  - `fetchAnswersForQuestions(questionIds: number[], site: string, apiKey: string | undefined, timeoutMs: number, allowLocalNetwork: boolean, baseApiUrl: string): Promise<Map<number, RawAnswer[]>>`
+  - `buildSearchUrl(targetUrl: string | undefined, options: StackExchangeActorTaskOptions, site: string): string`
+
+### `src/actors/wikimedia-actor.ts`
+
+**Sınıflar (Classes):**
+- `class WikimediaActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikimediaActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: WikimediaActorTaskOptions): {
+    lang: string;
+    title?: string;
+    action: "summary" | "article" | "search";
+    query?: string;
+  }`
+  - `buildApiUrl(targetUrl: string | undefined, lang: string, action: "summary" | "article" | "search", title: string, query: string, limit: number): string`
+  - `stripHtmlTags(input: string): string`
 
 ### `src/browser/browser-pool.ts`
 
@@ -345,6 +515,21 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Arayüzler (Interfaces):**
 - `interface StealthProfile` (3 üye)
 
+### `src/core/context-guard.ts`
+
+**Sınıflar (Classes):**
+- `class ContextGuard`
+  - `estimateTokens(text: string): number`
+  - `guardMarkdown(content: string, options: ContextGuardOptions): GuardedContentResult`
+**Arayüzler (Interfaces):**
+- `interface ContextGuardOptions` (4 üye)
+- `interface GuardedContentResult` (6 üye)
+
+### `src/core/openapi-spec.ts`
+
+**Fonksiyonlar (Functions):**
+- `renderDocsHtml(): string`
+
 ### `src/core/run-registry.ts`
 
 **Sınıflar (Classes):**
@@ -395,25 +580,60 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface SitemapTaskOptions` (5 üye)
 - `interface SitemapResult` (5 üye)
 - `interface MarkdownHeadingItem` (3 üye)
-- `interface MarkdownReaderTaskOptions` (6 üye)
-- `interface MarkdownReaderResult` (14 üye)
+- `interface MarkdownReaderTaskOptions` (8 üye)
+- `interface MarkdownReaderResult` (16 üye)
 - `interface InterceptedApiResponse` (7 üye)
 - `interface NetworkInterceptorTaskOptions` (5 üye)
 - `interface NetworkInterceptorResult` (3 üye)
 - `interface SerpResultItem` (5 üye)
-- `interface SerpSearchTaskOptions` (3 üye)
+- `interface SerpSearchTaskOptions` (4 üye)
 - `interface SerpSearchResult` (3 üye)
 - `interface PdfDocumentMetadata` (6 üye)
 - `interface PdfPageEntry` (4 üye)
 - `interface PdfDocumentTaskOptions` (3 üye)
 - `interface PdfDocumentResult` (8 üye)
+- `interface ArxivAuthor` (2 üye)
+- `interface ArxivPaperItem` (16 üye)
+- `interface ArxivActorTaskOptions` (8 üye)
+- `interface ArxivActorResult` (5 üye)
+- `interface WikimediaArticleItem` (9 üye)
+- `interface WikimediaActorTaskOptions` (6 üye)
+- `interface WikimediaActorResult` (4 üye)
+- `interface OpenAlexWorkItem` (12 üye)
+- `interface OpenAlexActorTaskOptions` (11 üye)
+- `interface OpenAlexActorResult` (5 üye)
+- `interface StackExchangeAnswerItem` (6 üye)
+- `interface StackExchangeQuestionItem` (10 üye)
+- `interface StackExchangeActorTaskOptions` (11 üye)
+- `interface StackExchangeActorResult` (5 üye)
+- `interface GutenbergBookItem` (8 üye)
+- `interface GutenbergActorTaskOptions` (7 üye)
+- `interface GutenbergActorResult` (3 üye)
+- `interface EuropePmcArticleItem` (13 üye)
+- `interface EuropePmcActorTaskOptions` (6 üye)
+- `interface EuropePmcActorResult` (4 üye)
+- `interface IetfRfcItem` (10 üye)
+- `interface IetfRfcActorTaskOptions` (7 üye)
+- `interface IetfRfcActorResult` (3 üye)
+- `interface SaglikEkutuphaneItem` (12 üye)
+- `interface SaglikEkutuphaneTaskOptions` (7 üye)
+- `interface SaglikEkutuphaneActorResult` (6 üye)
+- `interface KtbEkitapItem` (12 üye)
+- `interface KtbEkitapTaskOptions` (8 üye)
+- `interface KtbEkitapActorResult` (6 üye)
 - `interface ActorTask` (5 üye)
 - `interface ActorResult` (7 üye)
 - `interface ActorRunContext` (2 üye)
 - `interface IActor` (3 üye)
+- `interface SelfHealingError` (6 üye)
+- `interface SelfHealingErrorResponse` (7 üye)
 **Tipler (Types):**
 - `type EntityId`
 - `type ActorType`
+- `type SaglikEkutuphaneCategory`
+- `type SaglikEkutuphaneAction`
+- `type KtbEkitapCategory`
+- `type KtbEkitapAction`
 
 ### `src/extractors/readability-extractor.ts`
 
@@ -447,6 +667,47 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `extractTables(html: string): ExtractedTable[]`
   - `extractJsonLd(html: string): unknown[]`
   - `extractMetaTags(html: string): Record<string, string>`
+
+### `src/integrations/pipedream-connect.ts`
+
+**Sınıflar (Classes):**
+- `class PipedreamConnectService`
+  - `isConfigured(): boolean`
+  - `getConfigSummary(): {
+    projectId: string;
+    projectEnvironment: "production" | "development";
+    isConfigured: boolean;
+    hasClientId: boolean;
+    hasClientSecret: boolean;
+  }`
+  - `getClient(): PipedreamClient`
+  - `createConnectToken(options: CreateConnectTokenOptions): Promise<ConnectTokenResult>`
+  - `validateConnectToken(token: string, appId: string): Promise<boolean>`
+  - `listAccounts(externalUserId: string, app: string): Promise<unknown[]>`
+  - `deleteAccount(accountId: string): Promise<void>`
+  - `getDeveloperAccessToken(): Promise<string>`
+  - `getMcpConfig(options: {
+    appSlug: string;
+    externalUserId: string;
+    developerAccessToken?: string;
+  }): PipedreamMcpConfig`
+**Arayüzler (Interfaces):**
+- `interface PipedreamConnectConfig` (5 üye)
+- `interface CreateConnectTokenOptions` (4 üye)
+- `interface ConnectTokenResult` (4 üye)
+- `interface PipedreamMcpConfig` (7 üye)
+
+### `src/mcp/protokol-mcp-server.ts`
+
+**Sınıflar (Classes):**
+- `class ProtokolMcpServer`
+  - `getTools(): void`
+  - `processRequest(request: JsonRpcRequest): Promise<JsonRpcResponse | null>`
+  - `start(input: NodeJS.ReadableStream, output: NodeJS.WritableStream): void`
+  - `close(): void`
+**Arayüzler (Interfaces):**
+- `interface JsonRpcRequest` (4 üye)
+- `interface JsonRpcResponse` (4 üye)
 
 ### `src/network/crawl-frontier.ts`
 
@@ -489,6 +750,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `class PolitenessLimiter`
   - `setMinInterval(ms: number): void`
   - `extractHostname(rawUrl: string): string`
+  - `pruneStaleDomains(now: number): void`
   - `computeJitter(baseDelay: number): number`
   - `waitForSlot(url: string): Promise<number>`
   - `recordRateLimit(url: string, retryAfterSeconds: number): void`
@@ -576,27 +838,39 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/harvest-ktb-ekitap.mjs` |
 | `scripts/omega-mcp-server.mjs` |
 | `scripts/omega-memory.mjs` |
+| `scripts/pipedream-cli.mjs` |
 | `scripts/sca-check.mjs` |
 | `scripts/telemetry-logger.mjs` |
 | `scripts/verify-pipeline.mjs` |
 | `src/actors/actor-manifests.ts` |
 | `src/actors/actor-registry.ts` |
 | `src/actors/api-extractor-actor.ts` |
+| `src/actors/arxiv-actor.ts` |
 | `src/actors/cheerio-scraper-actor.ts` |
 | `src/actors/crawler-actor.ts` |
+| `src/actors/europe-pmc-actor.ts` |
+| `src/actors/gutenberg-actor.ts` |
+| `src/actors/ietf-rfc-actor.ts` |
+| `src/actors/ktb-ekitap-actor.ts` |
 | `src/actors/markdown-reader-actor.ts` |
 | `src/actors/network-interceptor-actor.ts` |
+| `src/actors/openalex-actor.ts` |
 | `src/actors/pdf-document-actor.ts` |
 | `src/actors/playwright-browser-actor.ts` |
+| `src/actors/saglik-ekutuphane-actor.ts` |
 | `src/actors/serp-search-actor.ts` |
 | `src/actors/sitemap-xml-actor.ts` |
+| `src/actors/stack-exchange-actor.ts` |
+| `src/actors/wikimedia-actor.ts` |
 | `src/browser/browser-pool.ts` |
 | `src/browser/browser-session-manager.ts` |
 | `src/browser/dom-indexer.ts` |
 | `src/browser/interactive-browser-controller.ts` |
 | `src/browser/session-vault.ts` |
 | `src/browser/stealth-manager.ts` |
+| `src/core/context-guard.ts` |
 | `src/core/index.ts` |
+| `src/core/openapi-spec.ts` |
 | `src/core/run-registry.ts` |
 | `src/core/server.ts` |
 | `src/core/store-router.ts` |
@@ -605,18 +879,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/extractors/robots-parser.ts` |
 | `src/extractors/structured-extractor.ts` |
 | `src/index.ts` |
-| `src/network/crawl-frontier.ts` |
-| `src/network/crawl-url-accumulator.ts` |
-| `src/network/politeness-limiter.ts` |
-| `src/network/proxy-manager.ts` |
-| `src/network/retry-handler.ts` |
-| `src/network/safe-redirect-fetcher.ts` |
-| `src/network/ssrf-guard.ts` |
-| `src/network/url-normalizer.ts` |
-| `src/network/url-pattern-matcher.ts` |
-| `src/server.ts` |
-| `tests/api-extractor.test.ts` |
-| `tests/browser-pool.test.ts` |
-| `tests/browser-session-manager.test.ts` |
-| *... ve 22 dosya daha* |
+| `src/integrations/pipedream-connect.ts` |
+| *... ve 48 dosya daha* |
 
