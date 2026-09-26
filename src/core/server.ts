@@ -8,12 +8,15 @@ import { createDefaultActorRegistry } from "../actors/actor-registry";
 import { BrowserPool } from "../browser/browser-pool";
 import { InteractiveBrowserController } from "../browser/interactive-browser-controller";
 import { globalPipedreamConnect } from "../integrations/pipedream-connect";
+import { HttpMcpTransport, ProtokolMcpServer } from "../mcp";
 import { OPENAPI_SPECIFICATION, renderDocsHtml } from "./openapi-spec";
 import { StoreRouter } from "./store-router";
 import type { ActorTask, ActorType } from "./types";
 
 const registry = createDefaultActorRegistry();
 const storeRouter = new StoreRouter(registry);
+const mcpServer = new ProtokolMcpServer(registry);
+const httpMcpTransport = new HttpMcpTransport(mcpServer);
 const PORT = parseInt(process.env.PORT || "4000", 10);
 const HOST = process.env.HOST || "0.0.0.0";
 
@@ -112,6 +115,34 @@ export function createServer(): http.Server {
           timestamp: new Date().toISOString(),
           activeBrowserContexts: BrowserPool.getActiveContexts(),
         });
+        return;
+      }
+
+      // MCP Model Context Protocol HTTP Transport
+      if (pathname === "/mcp") {
+        if (method === "POST") {
+          await httpMcpTransport.handleRequest(req, res);
+          return;
+        }
+        res.writeHead(405, {
+          "Content-Type": "application/json; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+        });
+        res.end(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: null,
+            error: {
+              code: -32600,
+              message: "Method Not Allowed: MCP HTTP endpoint accepts only POST requests.",
+            },
+          })
+        );
+        return;
+      }
+
+      if (pathname === "/mcp/events" && method === "GET") {
+        httpMcpTransport.handleEvents(req, res);
         return;
       }
 

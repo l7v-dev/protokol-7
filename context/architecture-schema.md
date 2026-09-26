@@ -88,7 +88,10 @@ Single source of truth component inventory and file map for `protokol-7`.
 
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
+| `src/mcp/auth-guard.ts` | `verifyMcpToken` | Constant-time Bearer token validator against configured `MCP_API_TOKEN`. |
+| `src/mcp/http-transport.ts` | `HttpMcpTransport` | HTTP POST /mcp JSON-RPC 2.0 dispatcher and GET /mcp/events SSE streamer. |
 | `src/mcp/protokol-mcp-server.ts` | `ProtokolMcpServer` | Native Stdio JSON-RPC 2.0 MCP server exposing all extraction actors to AI agent clients. |
+| `src/mcp/index.ts` | MCP Barrel | Re-exports MCP server, HTTP transport, and auth guard. |
 
 ### 1.8 Pipeline Orchestration (`src/pipeline/`)
 
@@ -165,6 +168,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/pipeline-runner.test.ts` | `PipelineRunner`, `LocalExecutor`, `LocalStorage` | End-to-end execution, sink buffering, processor transformations, storage receipts, and error recovery. |
 | `tests/storage-router.test.ts` | `ConnectorRegistry`, `S3Storage`, `R2Storage`, `B2Storage` | Environment variable resolution, connector lookup, S3/R2/B2 driver uploads, and pipeline cloud storage integration. |
 | `tests/scheduler-and-remote.test.ts` | `ScheduleBroker`, `RemoteHttpExecutor`, `PipedreamExecutor`, `GoogleDriveStorage` | Cron matching engine, scheduler lifecycle, remote HTTP execution, Pipedream webhooks, and Google Drive upload. |
+| `tests/mcp-http-transport.test.ts` | `HttpMcpTransport`, `verifyMcpToken`, `src/core/server.ts` | Unit and HTTP server integration tests for initialize, tools/list, tools/call, auth guard, and SSE events. |
 
 ---
 

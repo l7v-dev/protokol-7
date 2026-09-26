@@ -12,11 +12,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/core/types.ts` | 31 | 65 | Yardımcı Modül |
 | `src/network/ssrf-guard.ts` | 18 | 3 | Yardımcı Modül |
 | `src/network/safe-redirect-fetcher.ts` | 16 | 2 | Yardımcı Modül |
-| `src/core/server.ts` | 11 | 1 | Giriş Noktası (Server) |
+| `src/core/server.ts` | 12 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 12 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 11 | 13 | Yardımcı Modül |
-| `src/server.ts` | 11 | 0 | Giriş Noktası (Server) |
 | `src/core/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/index.ts` | 10 | 0 | Yardımcı Modül |
+| `src/mcp/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/connectors/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/execution/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/pipeline/index.ts` | 10 | 0 | Yardımcı Modül |
@@ -36,6 +37,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/integrations/pipedream-connect.ts` | 3 | 6 | Yardımcı Modül |
+| `src/mcp/protokol-mcp-server.ts` | 3 | 3 | Giriş Noktası (Server) |
 | `src/network/retry-handler.ts` | 3 | 4 | Yardımcı Modül |
 | `src/pipeline/connectors/env-resolver.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/execution/local-executor.ts` | 3 | 2 | Yardımcı Modül |
@@ -53,6 +55,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/stack-exchange-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/wikimedia-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/browser/stealth-manager.ts` | 2 | 2 | Yardımcı Modül |
+| `src/mcp/auth-guard.ts` | 2 | 1 | Yardımcı Modül |
 | `src/network/crawl-frontier.ts` | 2 | 4 | Yardımcı Modül |
 | `src/pipeline/actor-resolver.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
 | `src/pipeline/connectors/connector-registry.ts` | 2 | 1 | Bileşen Tescili (Registry) |
@@ -80,7 +83,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/core/run-registry.ts` | 1 | 4 | Bileşen Tescili (Registry) |
 | `src/core/store-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/extractors/robots-parser.ts` | 1 | 3 | Etki Alanı Aktörü (Actor) |
-| `src/mcp/protokol-mcp-server.ts` | 1 | 3 | Giriş Noktası (Server) |
+| `src/mcp/http-transport.ts` | 1 | 2 | Yardımcı Modül |
 | `src/network/crawl-url-accumulator.ts` | 1 | 3 | Yardımcı Modül |
 | `src/network/politeness-limiter.ts` | 1 | 2 | Yardımcı Modül |
 | `scripts/checkpoint.mjs` | 0 | 3 | Yardımcı Modül |
@@ -110,6 +113,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/interactive-browser-controller.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/ktb-ekitap-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/markdown-reader-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/mcp-http-transport.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/network-interceptor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/openalex-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/pdf-document-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -735,6 +739,23 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface ConnectTokenResult` (4 üye)
 - `interface PipedreamMcpConfig` (7 üye)
 
+### `src/mcp/auth-guard.ts`
+
+**Fonksiyonlar (Functions):**
+- `verifyMcpToken(req: IncomingMessage): boolean`
+
+### `src/mcp/http-transport.ts`
+
+**Sınıflar (Classes):**
+- `class HttpMcpTransport`
+  - `handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void>`
+  - `handleEvents(req: IncomingMessage, res: ServerResponse): void`
+  - `readRequestBody(req: IncomingMessage): Promise<string>`
+  - `isValidJsonRpcRequest(val: unknown): val is JsonRpcRequest`
+  - `sendJsonRpc(res: ServerResponse, statusCode: number, payload: JsonRpcResponse): void`
+**Arayüzler (Interfaces):**
+- `interface HttpMcpTransportOptions` (1 üye)
+
 ### `src/mcp/protokol-mcp-server.ts`
 
 **Sınıflar (Classes):**
@@ -1121,5 +1142,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/extractors/structured-extractor.ts` |
 | `src/index.ts` |
 | `src/integrations/pipedream-connect.ts` |
-| *... ve 78 dosya daha* |
+| *... ve 82 dosya daha* |
 
