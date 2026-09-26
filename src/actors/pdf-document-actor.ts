@@ -1,4 +1,4 @@
-import { extractText, getDocumentProxy, getMeta } from "unpdf";
+import { extractText, extractTextItems, getDocumentProxy, getMeta } from "unpdf";
 import { ContextGuard } from "../core/context-guard";
 import type {
   ActorResult,
@@ -10,6 +10,10 @@ import type {
   PdfDocumentResult,
   PdfPageEntry,
 } from "../core/types";
+import {
+  HeaderFooterStripper,
+  MultiColumnLayoutResolver,
+} from "../extractors/multi-column-layout-resolver";
 import { PdfAnomalyDetector } from "../extractors/pdf-anomaly-detector";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { globalOcrRegistry, PdfRasterizer } from "../ocr";
@@ -121,31 +125,63 @@ export class PdfDocumentActor implements IActor<PdfDocumentResult> {
 
       const doc = await getDocumentProxy(uint8Data);
       const meta = await getMeta(doc);
-      const extracted = await extractText(doc);
+      const multiColOpts = pdfOptions?.multiColumnOptions;
+      const useMultiColumn = multiColOpts?.enabled === true;
 
-      const totalPages = extracted.totalPages;
-      const rawPages = Array.isArray(extracted.text) ? extracted.text : [extracted.text];
+      let totalPages: number;
+      let pages: PdfPageEntry[];
 
-      const maxPages = pdfOptions?.maxPages;
-      const pagesToProcess = maxPages && maxPages > 0 ? rawPages.slice(0, maxPages) : rawPages;
+      if (useMultiColumn) {
+        // Coordinate-based path: extract items with x,y bounding boxes,
+        // strip recurring headers/footers, then resolve column order.
+        const extracted = await extractTextItems(doc);
+        totalPages = extracted.totalPages;
+        const maxPages = pdfOptions?.maxPages;
+        const rawItems =
+          maxPages && maxPages > 0 ? extracted.items.slice(0, maxPages) : extracted.items;
 
-      const pages: PdfPageEntry[] = pagesToProcess.map((pageText, idx) => {
-        const cleanText = ContextGuard.stripInvisibleUnicode((pageText || "").trim());
-        const characterCount = cleanText.length;
-        const wordCount = cleanText.length > 0 ? cleanText.split(/\s+/).length : 0;
+        const cleanedItems = HeaderFooterStripper.stripFromItems(rawItems);
+        const resolvedTexts = MultiColumnLayoutResolver.resolvePages(cleanedItems, multiColOpts);
 
-        return {
-          pageNumber: idx + 1,
-          text: cleanText,
-          characterCount,
-          wordCount,
-        };
-      });
+        pages = resolvedTexts.map((pageText, idx) => {
+          const cleanText = ContextGuard.stripInvisibleUnicode((pageText || "").trim());
+          const characterCount = cleanText.length;
+          const wordCount = cleanText.length > 0 ? cleanText.split(/\s+/).length : 0;
+          return {
+            pageNumber: idx + 1,
+            text: cleanText,
+            characterCount,
+            wordCount,
+          };
+        });
+      } else {
+        // Default path: plain text extraction.
+        const extracted = await extractText(doc);
+        totalPages = extracted.totalPages;
+        const rawPages = Array.isArray(extracted.text) ? extracted.text : [extracted.text];
+        const maxPages = pdfOptions?.maxPages;
+        const pagesToProcess = maxPages && maxPages > 0 ? rawPages.slice(0, maxPages) : rawPages;
+
+        pages = pagesToProcess.map((pageText, idx) => {
+          const cleanText = ContextGuard.stripInvisibleUnicode((pageText || "").trim());
+          const characterCount = cleanText.length;
+          const wordCount = cleanText.length > 0 ? cleanText.split(/\s+/).length : 0;
+          return {
+            pageNumber: idx + 1,
+            text: cleanText,
+            characterCount,
+            wordCount,
+          };
+        });
+      }
+
+      // rawPageTexts needed for anomaly detector — derive from built pages.
+      const rawPageTexts = pages.map((p) => p.text);
 
       const anomaly = PdfAnomalyDetector.detect({
         uint8Data,
         totalPages,
-        rawPageTexts: rawPages,
+        rawPageTexts,
       });
 
       let ocrApplied = false;

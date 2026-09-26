@@ -230,7 +230,7 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
     name: "pdf-document",
     title: "PDF Document Distiller",
     category: "DOCUMENT",
-    version: "1.1.0",
+    version: "1.2.0",
     description:
       "İkili PDF belgelerinden metin akışlarını, sayfa sınırlarını, sözcük metriklerini ve metaverileri ayıklayan aktör.",
     author: "protokol-7",
@@ -256,6 +256,30 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           description: "İşlenecek maksimum sayfa adedi (sınırlandırma için).",
           default: 50,
           editor: "number",
+        },
+        multiColumnOptions: {
+          name: "multiColumnOptions",
+          type: "object",
+          title: "Cok Sutun Secenekleri",
+          description:
+            "Etkinlestirildiginde metin ogelerini koordinat tabanli sutun siralamasiyla yeniden duzenler ve tekrarlayan ustbilgi/altbilgileri sizer.",
+          properties: {
+            enabled: {
+              type: "boolean",
+              description: "Cok sutun cozucuyu etkinlestirir.",
+              default: false,
+            },
+            minColumnGap: {
+              type: "number",
+              description: "Sutun arasi minimum bosluk (PDF koordinat birimi).",
+              default: 20,
+            },
+            expectedColumns: {
+              type: "integer",
+              description:
+                "Beklenen sutun sayisi (1, 2 veya 3). Belirtilmezse otomatik tespit edilir.",
+            },
+          },
         },
       },
       required: ["targetUrl"],
@@ -283,6 +307,18 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
         properties: {
           targetUrl: { type: "string", description: "PDF baglantisi." },
           maxPages: { type: "number", description: "Maksimum sayfa sayisi." },
+          multiColumnOptions: {
+            type: "object",
+            description: "Cok sutun cozucu secenekleri.",
+            properties: {
+              enabled: { type: "boolean", description: "Cok sutun cozucuyu etkinlestirir." },
+              minColumnGap: { type: "number", description: "Sutun oluğu minimum genisligi (pt)." },
+              expectedColumns: {
+                type: "integer",
+                description: "Beklenen sutun sayisi (2 veya 3).",
+              },
+            },
+          },
         },
         required: ["targetUrl"],
       },

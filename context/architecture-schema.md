@@ -79,6 +79,8 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/extractors/office-extractor.ts` | `OfficeExtractor` | Parses Microsoft Word (.docx) and Microsoft Excel (.xlsx) OpenXML files into clean text, structured records, and GFM markdown tables with zero external dependencies. |
 | `src/extractors/tabular-extractor.ts` | `TabularExtractor` | Parses CSV/TSV data with RFC 4180 compliance, auto-detects delimiters, and outputs structured JSON records and GFM markdown tables. |
 | `src/extractors/epub-extractor.ts` | `EpubExtractor` | Zero-dependency EPUB 2/3 container unpacker, OPF metadata & spine reader, hierarchical TOC extractor, and XHTML-to-GFM markdown converter. |
+| `src/extractors/multi-column-layout-resolver.ts` | `MultiColumnLayoutResolver` | Reorders PDF text items from `extractTextItems` into correct reading order for 2-3 column layouts using x-coordinate gap histogram (gutter) analysis. |
+| `src/extractors/multi-column-layout-resolver.ts` | `HeaderFooterStripper` | Strips recurring page headers and footers from PDF text item arrays (coordinate-based) or plain-text page arrays (line-index fallback) using frequency threshold detection. |
 
 ### 1.5 Network & Security (`src/network/`)
 

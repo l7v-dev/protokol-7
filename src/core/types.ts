@@ -274,6 +274,7 @@ export interface PdfDocumentTaskOptions {
   quarantineOnAnomaly?: boolean;
   enableOcrFallback?: boolean;
   ocrConnector?: string;
+  multiColumnOptions?: MultiColumnLayoutOptions;
 }
 
 export interface PdfDocumentResult {
