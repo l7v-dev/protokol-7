@@ -28,7 +28,8 @@ export type ActorType =
   | "ietf-rfc"
   | "ktb-ekitap"
   | "document-extractor"
-  | "archive-extractor";
+  | "archive-extractor"
+  | "epub-extractor";
 
 export interface ExtractedTable {
   id: string;
@@ -348,6 +349,62 @@ export interface ArchiveExtractorResult {
   totalUncompressedBytes: number;
   entries: ArchiveEntryResult[];
   securityCheckPassed: boolean;
+}
+
+export interface PublicationIssueMetadata {
+  publicationTitle: string;
+  issn?: string;
+  isbn?: string;
+  volume?: string;
+  issue?: string;
+  publicationDate?: string;
+  publisher?: string;
+  language?: string;
+  doi?: string;
+  authors?: string[];
+  description?: string;
+}
+
+export interface TableOfContentsItem {
+  id: string;
+  title: string;
+  level: number;
+  href?: string;
+  pageNumber?: number;
+  children?: TableOfContentsItem[];
+}
+
+export interface EpubChapterItem {
+  id: string;
+  title: string;
+  href: string;
+  markdownContent: string;
+  wordCount: number;
+  characterCount: number;
+}
+
+export interface EpubExtractorTaskOptions {
+  epubBase64?: string;
+  includeTableOfContents?: boolean;
+  maxChapters?: number;
+  timeoutMs?: number;
+}
+
+export interface EpubExtractorResult {
+  url?: string;
+  metadata: PublicationIssueMetadata;
+  tableOfContents: TableOfContentsItem[];
+  chapters: EpubChapterItem[];
+  fullText: string;
+  totalChapters: number;
+  totalWords: number;
+  totalCharacters: number;
+}
+
+export interface MultiColumnLayoutOptions {
+  enabled?: boolean;
+  minColumnGap?: number;
+  expectedColumns?: number;
 }
 
 export interface ArxivAuthor {
@@ -712,6 +769,7 @@ export interface ActorTask {
     ktbEkitapOptions?: KtbEkitapTaskOptions;
     documentOptions?: DocumentExtractorTaskOptions;
     archiveOptions?: ArchiveExtractorTaskOptions;
+    epubOptions?: EpubExtractorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

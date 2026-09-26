@@ -46,6 +46,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/actors/ktb-ekitap-actor.ts` | `KtbEkitapActor` | Scrapes Turkish Ministry of Culture and Tourism e-book portal (ekitap.ktb.gov.tr) with anti-hotlink referral and LLM text sanitization. |
 | `src/actors/document-extractor-actor.ts` | `DocumentExtractorActor` | Extracts textual streams, structured records, tables, and document metadata from office files (DOCX, XLSX), tabular files (CSV, TSV), and plain text formats. |
 | `src/actors/archive-extractor-actor.ts` | `ArchiveExtractorActor` | Extracts and inspects compressed archives (ZIP, TAR, GZ, RAR) with strict Zip Slip path traversal and Zip Bomb volumetric guards. |
+| `src/actors/epub-extractor-actor.ts` | `EpubExtractorActor` | Extracts e-books and periodicals from EPUB 2/3 containers with Dublin Core metadata, hierarchical TOC, and spine-ordered GFM Markdown. |
 
 ### 1.3 Archive Subsystem (`src/archive/`)
 
@@ -77,6 +78,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/extractors/pdf-anomaly-detector.ts` | `PdfAnomalyDetector` | Detects scanned image PDFs, empty text layers, password protected files, corrupt payloads, and font encoding glitches. |
 | `src/extractors/office-extractor.ts` | `OfficeExtractor` | Parses Microsoft Word (.docx) and Microsoft Excel (.xlsx) OpenXML files into clean text, structured records, and GFM markdown tables with zero external dependencies. |
 | `src/extractors/tabular-extractor.ts` | `TabularExtractor` | Parses CSV/TSV data with RFC 4180 compliance, auto-detects delimiters, and outputs structured JSON records and GFM markdown tables. |
+| `src/extractors/epub-extractor.ts` | `EpubExtractor` | Zero-dependency EPUB 2/3 container unpacker, OPF metadata & spine reader, hierarchical TOC extractor, and XHTML-to-GFM markdown converter. |
 
 ### 1.5 Network & Security (`src/network/`)
 

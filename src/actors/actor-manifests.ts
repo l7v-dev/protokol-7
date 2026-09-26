@@ -1757,4 +1757,88 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+
+  "epub-extractor": {
+    actorType: "epub-extractor",
+    name: "epub-extractor",
+    title: "EPUB E-Book & Publication Extractor",
+    category: "DOCUMENT",
+    version: "1.0.0",
+    description:
+      "EPUB 2 ve EPUB 3 e-kitap ve süreli yayın arşivlerini sıfır bağımlılıkla açar, OPF Dublin Core metadatalarını çözer, hiyerarşik içindekiler tablosunu oluşturur ve bölümleri GFM Markdown formatına dönüştürür.",
+    author: "protokol-7",
+    tags: ["epub", "ebook", "publication", "periodical", "markdown", "book"],
+    inputSchema: {
+      type: "object",
+      title: "EPUB Extractor Input",
+      description: "EPUB ayrıştırma girdisi",
+      properties: {
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "EPUB URL",
+          description: "İndirilecek uzaktaki EPUB dosyasının doğrudan web adresi",
+          editor: "textfield",
+        },
+        epubBase64: {
+          name: "epubBase64",
+          type: "string",
+          title: "EPUB Base64",
+          description: "Base64 kodlanmış EPUB ikili verisi",
+          editor: "textarea",
+        },
+        includeTableOfContents: {
+          name: "includeTableOfContents",
+          type: "boolean",
+          title: "İçindekiler Ağacını Ekle",
+          description: "Hiyerarşik içindekiler tablosunu (TOC) ayrıştırıp sonuca dahil et",
+          default: true,
+          editor: "checkbox",
+        },
+        maxChapters: {
+          name: "maxChapters",
+          type: "integer",
+          title: "Maksimum Bölüm Adedi",
+          description: "Ayıklanacak en fazla bölüm sayısı",
+          editor: "number",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        metadata: { type: "object", description: "Yayın ve kitap üstverileri (Dublin Core)" },
+        tableOfContents: { type: "array", description: "Hiyerarşik içindekiler tablosu" },
+        chapters: { type: "array", description: "Sıralı GFM Markdown bölümleri" },
+        fullText: { type: "string", description: "Tüm bölümlerin birleştirilmiş tam metni" },
+        totalChapters: { type: "integer", description: "Ayrıştırılan toplam bölüm sayısı" },
+        totalWords: { type: "integer", description: "Toplam kelime sayısı" },
+        totalCharacters: { type: "integer", description: "Toplam karakter sayısı" },
+      },
+    },
+    exampleInput: {
+      targetUrl: "https://example.com/sample-book.epub",
+      includeTableOfContents: true,
+    },
+    readme: `# EPUB E-Book & Publication Extractor\n\nEPUB 2 ve EPUB 3 e-kitaplarını açarak Dublin Core metadatalarını, içindekiler ağacını ve bölümleri kronolojik sırada temiz Markdown'a dönüştürür.`,
+    mcpTool: {
+      name: "extract_epub",
+      description:
+        "Extract e-books and periodicals from EPUB 2/3 archives with Dublin Core metadata, hierarchical TOC, and spine-ordered GFM Markdown.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          targetUrl: { type: "string", description: "Remote EPUB URL" },
+          epubBase64: { type: "string", description: "Base64-encoded EPUB binary" },
+          includeTableOfContents: {
+            type: "boolean",
+            description: "Whether to extract hierarchical table of contents",
+          },
+          maxChapters: { type: "integer", description: "Maximum chapters to extract" },
+        },
+        required: [],
+      },
+    },
+  },
 };

@@ -17,7 +17,10 @@ import type {
   ActorTask,
   ActorType,
   ApiExtractorTaskOptions,
+  ArchiveExtractorTaskOptions,
   ArxivActorTaskOptions,
+  DocumentExtractorTaskOptions,
+  EpubExtractorTaskOptions,
   EuropePmcActorTaskOptions,
   GutenbergActorTaskOptions,
   IetfRfcActorTaskOptions,
@@ -222,6 +225,18 @@ export class ProtokolMcpServer {
             networkInterceptorOptions:
               manifest.actorType === "network-interceptor"
                 ? (toolArgs as unknown as NetworkInterceptorTaskOptions)
+                : undefined,
+            documentOptions:
+              manifest.actorType === "document-extractor"
+                ? (toolArgs as unknown as DocumentExtractorTaskOptions)
+                : undefined,
+            archiveOptions:
+              manifest.actorType === "archive-extractor"
+                ? (toolArgs as unknown as ArchiveExtractorTaskOptions)
+                : undefined,
+            epubOptions:
+              manifest.actorType === "epub-extractor"
+                ? (toolArgs as unknown as EpubExtractorTaskOptions)
                 : undefined,
           },
         };

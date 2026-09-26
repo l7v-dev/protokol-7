@@ -9,6 +9,7 @@ import { ArxivActor } from "./arxiv-actor";
 import { CheerioScraperActor } from "./cheerio-scraper-actor";
 import { CrawlerActor } from "./crawler-actor";
 import { DocumentExtractorActor } from "./document-extractor-actor";
+import { EpubExtractorActor } from "./epub-extractor-actor";
 import { EuropePmcActor } from "./europe-pmc-actor";
 import { GutenbergActor } from "./gutenberg-actor";
 import { IetfRfcActor } from "./ietf-rfc-actor";
@@ -66,5 +67,6 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new KtbEkitapActor());
   registry.register(new DocumentExtractorActor());
   registry.register(new ArchiveExtractorActor());
+  registry.register(new EpubExtractorActor());
   return registry;
 }

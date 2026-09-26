@@ -10,6 +10,7 @@ export * from "./actors/arxiv-actor";
 export * from "./actors/cheerio-scraper-actor";
 export * from "./actors/crawler-actor";
 export * from "./actors/document-extractor-actor";
+export * from "./actors/epub-extractor-actor";
 export * from "./actors/europe-pmc-actor";
 export * from "./actors/gutenberg-actor";
 export * from "./actors/ietf-rfc-actor";
@@ -40,6 +41,7 @@ export * from "./core/server";
 // Core
 export * from "./core/types";
 // Extractors
+export * from "./extractors/epub-extractor";
 export * from "./extractors/office-extractor";
 export * from "./extractors/pdf-anomaly-detector";
 export * from "./extractors/readability-extractor";
