@@ -7,9 +7,12 @@
  * using standard JSON-RPC 2.0 over standard I/O (stdio).
  */
 
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import readline from "node:readline";
 import { ACTOR_MANIFESTS, type ActorManifest } from "../actors/actor-manifests";
 import { ActorRegistry, createDefaultActorRegistry } from "../actors/actor-registry";
+import { globalRunRegistry } from "../core/run-registry";
 import type {
   ActorTask,
   ActorType,
@@ -46,6 +49,8 @@ export interface JsonRpcResponse {
   };
 }
 
+const POOL_ROOT = process.env.PROTOKOL_POOL_ROOT || "/home/l7v/protokol-data-pool";
+
 export class ProtokolMcpServer {
   private readonly registry: ActorRegistry;
   private readonly toolToManifestMap = new Map<string, ActorManifest>();
@@ -80,6 +85,10 @@ export class ProtokolMcpServer {
             protocolVersion: "2024-11-05",
             capabilities: {
               tools: {},
+              resources: {
+                subscribe: true,
+                listChanged: true,
+              },
             },
             serverInfo: {
               name: "protokol-7-mcp",
@@ -271,6 +280,151 @@ export class ProtokolMcpServer {
         }
       }
 
+      case "resources/list": {
+        const runs = globalRunRegistry.listRuns(50);
+        const resources = [
+          {
+            uri: "quarantine://items",
+            name: "Quarantined Vetoed Audit Items",
+            description: "Audit trail of quarantined and vetoed datasets and shards",
+            mimeType: "application/json",
+          },
+          ...runs.map((r) => ({
+            uri: `run://${r.runId}`,
+            name: `Execution Run ${r.runId} (${r.actorName})`,
+            description: `Status: ${r.status}, startedAt: ${r.startedAt}`,
+            mimeType: "application/json",
+          })),
+        ];
+
+        return {
+          jsonrpc: "2.0",
+          id,
+          result: {
+            resources,
+          },
+        };
+      }
+
+      case "resources/read": {
+        const uri = params?.uri as string | undefined;
+        if (!uri || typeof uri !== "string") {
+          return {
+            jsonrpc: "2.0",
+            id,
+            error: {
+              code: -32602,
+              message: "Invalid params: Missing required 'uri' parameter.",
+            },
+          };
+        }
+
+        if (uri === "quarantine://items" || uri === "quarantine://") {
+          const items = this.getQuarantineItems();
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              contents: [
+                {
+                  uri,
+                  mimeType: "application/json",
+                  text: JSON.stringify(items, null, 2),
+                },
+              ],
+            },
+          };
+        }
+
+        if (uri.startsWith("quarantine://")) {
+          const target = uri.slice("quarantine://".length);
+          const auditPath = join(POOL_ROOT, "quarantine_vetoed", target, "veto_audit.json");
+          if (existsSync(auditPath)) {
+            try {
+              const content = readFileSync(auditPath, "utf8");
+              return {
+                jsonrpc: "2.0",
+                id,
+                result: {
+                  contents: [
+                    {
+                      uri,
+                      mimeType: "application/json",
+                      text: content,
+                    },
+                  ],
+                },
+              };
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : String(err);
+              return {
+                jsonrpc: "2.0",
+                id,
+                error: {
+                  code: -32603,
+                  message: `Failed to read quarantine file: ${msg}`,
+                },
+              };
+            }
+          }
+          return {
+            jsonrpc: "2.0",
+            id,
+            error: {
+              code: -32002,
+              message: `Resource not found: '${uri}'`,
+            },
+          };
+        }
+
+        if (uri.startsWith("run://")) {
+          const runId = uri.slice("run://".length);
+          const run = globalRunRegistry.getRun(runId);
+          if (!run) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              error: {
+                code: -32002,
+                message: `Resource not found: No execution run with id '${runId}' found.`,
+              },
+            };
+          }
+
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              contents: [
+                {
+                  uri,
+                  mimeType: "application/json",
+                  text: JSON.stringify(run, null, 2),
+                },
+              ],
+            },
+          };
+        }
+
+        return {
+          jsonrpc: "2.0",
+          id,
+          error: {
+            code: -32002,
+            message: `Resource not found: Unsupported resource URI scheme '${uri}'`,
+          },
+        };
+      }
+
+      case "resources/subscribe":
+      case "resources/unsubscribe": {
+        return {
+          jsonrpc: "2.0",
+          id,
+          result: {},
+        };
+      }
+
       default: {
         return {
           jsonrpc: "2.0",
@@ -322,6 +476,32 @@ export class ProtokolMcpServer {
     });
 
     return this;
+  }
+
+  private getQuarantineItems(): unknown[] {
+    const quarantineDir = join(POOL_ROOT, "quarantine_vetoed");
+    const items: unknown[] = [];
+    if (existsSync(quarantineDir)) {
+      try {
+        const entries = readdirSync(quarantineDir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isDirectory()) {
+            const auditPath = join(quarantineDir, entry.name, "veto_audit.json");
+            if (existsSync(auditPath)) {
+              try {
+                const audit = JSON.parse(readFileSync(auditPath, "utf8"));
+                items.push(audit);
+              } catch {
+                // ignore corrupted audit file
+              }
+            }
+          }
+        }
+      } catch {
+        // ignore read error
+      }
+    }
+    return items;
   }
 
   close() {

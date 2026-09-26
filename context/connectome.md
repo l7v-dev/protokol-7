@@ -30,6 +30,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/actor-manifests.ts` | 4 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/browser/browser-pool.ts` | 4 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
+| `src/core/run-registry.ts` | 4 | 4 | Bileşen Tescili (Registry) |
 | `src/extractors/structured-extractor.ts` | 4 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
@@ -80,7 +81,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/dom-indexer.ts` | 1 | 3 | Yardımcı Modül |
 | `src/browser/interactive-browser-controller.ts` | 1 | 5 | Yardımcı Modül |
 | `src/core/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
-| `src/core/run-registry.ts` | 1 | 4 | Bileşen Tescili (Registry) |
 | `src/core/store-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/extractors/robots-parser.ts` | 1 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/mcp/http-transport.ts` | 1 | 2 | Yardımcı Modül |
@@ -763,6 +763,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `getTools(): void`
   - `processRequest(request: JsonRpcRequest): Promise<JsonRpcResponse | null>`
   - `start(input: NodeJS.ReadableStream, output: NodeJS.WritableStream): void`
+  - `getQuarantineItems(): unknown[]`
   - `close(): void`
 **Arayüzler (Interfaces):**
 - `interface JsonRpcRequest` (4 üye)

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import type http from "node:http";
 import { describe, it } from "node:test";
+import { globalRunRegistry } from "../src/core/run-registry";
 import { verifyMcpToken } from "../src/mcp/auth-guard";
 import { HttpMcpTransport } from "../src/mcp/http-transport";
 import { ProtokolMcpServer } from "../src/mcp/protokol-mcp-server";
@@ -434,6 +435,223 @@ describe("MCP HTTP-SSE Transport (Phase 1)", () => {
         const text = new TextDecoder().decode(value);
         assert.ok(text.includes("event: connected"));
         assert.ok(text.includes("protocolVersion"));
+
+        controller.abort();
+      } finally {
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+      }
+    });
+  });
+
+  describe("MCP Resources & SSE Events (Phase 2)", () => {
+    it("lists available resources including quarantine and active runs", async () => {
+      const server = new ProtokolMcpServer();
+      const testRun = globalRunRegistry.createRun("cheerio-scraper", {
+        url: "https://example.com",
+      });
+
+      const res = await server.processRequest({
+        jsonrpc: "2.0",
+        id: "res-list-test",
+        method: "resources/list",
+      });
+
+      assert.ok(res);
+      assert.equal(res.id, "res-list-test");
+      const result = res.result as {
+        resources: Array<{ uri: string; name: string; mimeType: string }>;
+      };
+
+      assert.ok(Array.isArray(result.resources));
+      assert.ok(result.resources.some((r) => r.uri === "quarantine://items"));
+      assert.ok(result.resources.some((r) => r.uri === `run://${testRun.runId}`));
+    });
+
+    it("reads run and quarantine resources via resources/read", async () => {
+      const server = new ProtokolMcpServer();
+      const testRun = globalRunRegistry.createRun("playwright-browser", {
+        url: "https://test.local",
+      });
+      globalRunRegistry.appendLog(testRun.runId, "INFO", "Browser context created");
+
+      // Read run resource
+      const runRes = await server.processRequest({
+        jsonrpc: "2.0",
+        id: "read-run-test",
+        method: "resources/read",
+        params: { uri: `run://${testRun.runId}` },
+      });
+
+      assert.ok(runRes);
+      assert.equal(runRes.id, "read-run-test");
+      const runResult = runRes.result as {
+        contents: Array<{ uri: string; mimeType: string; text: string }>;
+      };
+      assert.equal(runResult.contents[0].uri, `run://${testRun.runId}`);
+      assert.equal(runResult.contents[0].mimeType, "application/json");
+      assert.ok(runResult.contents[0].text.includes(testRun.runId));
+      assert.ok(runResult.contents[0].text.includes("Browser context created"));
+
+      // Read quarantine resource
+      const quarRes = await server.processRequest({
+        jsonrpc: "2.0",
+        id: "read-quar-test",
+        method: "resources/read",
+        params: { uri: "quarantine://items" },
+      });
+
+      assert.ok(quarRes);
+      const quarResult = quarRes.result as {
+        contents: Array<{ uri: string; mimeType: string; text: string }>;
+      };
+      assert.equal(quarResult.contents[0].uri, "quarantine://items");
+      assert.equal(quarResult.contents[0].mimeType, "application/json");
+      assert.doesNotThrow(() => JSON.parse(quarResult.contents[0].text));
+    });
+
+    it("handles resources/read errors correctly", async () => {
+      const server = new ProtokolMcpServer();
+
+      // Missing uri
+      const errMissing = await server.processRequest({
+        jsonrpc: "2.0",
+        id: "err-missing",
+        method: "resources/read",
+      });
+      assert.ok(errMissing);
+      assert.equal(errMissing.error?.code, -32602);
+
+      // Unknown run
+      const errNotFound = await server.processRequest({
+        jsonrpc: "2.0",
+        id: "err-notfound",
+        method: "resources/read",
+        params: { uri: "run://non_existent_run_99999" },
+      });
+      assert.ok(errNotFound);
+      assert.equal(errNotFound.error?.code, -32002);
+
+      // Unsupported scheme
+      const errScheme = await server.processRequest({
+        jsonrpc: "2.0",
+        id: "err-scheme",
+        method: "resources/read",
+        params: { uri: "ftp://files/artifact.json" },
+      });
+      assert.ok(errScheme);
+      assert.equal(errScheme.error?.code, -32002);
+    });
+
+    it("handles resources/subscribe and resources/unsubscribe as no-op success", async () => {
+      const server = new ProtokolMcpServer();
+
+      const subRes = await server.processRequest({
+        jsonrpc: "2.0",
+        id: "sub-test",
+        method: "resources/subscribe",
+        params: { uri: "run://run_123" },
+      });
+      assert.ok(subRes);
+      assert.deepEqual(subRes.result, {});
+
+      const unsubRes = await server.processRequest({
+        jsonrpc: "2.0",
+        id: "unsub-test",
+        method: "resources/unsubscribe",
+        params: { uri: "run://run_123" },
+      });
+      assert.ok(unsubRes);
+      assert.deepEqual(unsubRes.result, {});
+    });
+
+    it("executes resources/list and resources/read through HTTP POST /mcp endpoint", async () => {
+      const server = createServer();
+      await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+      const port = (server.address() as { port: number }).port;
+
+      const httpRun = globalRunRegistry.createRun("arxiv", { id: "2401.00001" });
+
+      try {
+        // resources/list
+        const listRes = await fetch(`http://127.0.0.1:${port}/mcp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: "http-res-list",
+            method: "resources/list",
+          }),
+        });
+        assert.equal(listRes.status, 200);
+        const listData = (await listRes.json()) as {
+          result: { resources: Array<{ uri: string }> };
+        };
+        assert.ok(listData.result.resources.some((r) => r.uri === `run://${httpRun.runId}`));
+
+        // resources/read
+        const readRes = await fetch(`http://127.0.0.1:${port}/mcp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: "http-res-read",
+            method: "resources/read",
+            params: { uri: `run://${httpRun.runId}` },
+          }),
+        });
+        assert.equal(readRes.status, 200);
+        const readData = (await readRes.json()) as {
+          result: { contents: Array<{ uri: string; text: string }> };
+        };
+        assert.equal(readData.result.contents[0].uri, `run://${httpRun.runId}`);
+        assert.ok(readData.result.contents[0].text.includes("2401.00001"));
+      } finally {
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+      }
+    });
+
+    it("streams live run lifecycle and log events over GET /mcp/events?runId=<runId>", async () => {
+      const server = createServer();
+      await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+      const port = (server.address() as { port: number }).port;
+
+      const liveRun = globalRunRegistry.createRun("wikimedia", { title: "Live Streaming" });
+
+      try {
+        const controller = new AbortController();
+        const res = await fetch(`http://127.0.0.1:${port}/mcp/events?runId=${liveRun.runId}`, {
+          signal: controller.signal,
+        });
+
+        assert.equal(res.status, 200);
+        assert.ok(res.headers.get("content-type")?.includes("text/event-stream"));
+
+        const reader = res.body?.getReader();
+        assert.ok(reader);
+
+        // Read initial connection & run-status
+        const firstChunk = await reader.read();
+        const firstText = new TextDecoder().decode(firstChunk.value);
+        assert.ok(firstText.includes("event: connected"));
+        assert.ok(firstText.includes("event: run-status"));
+
+        // Trigger log and completion asynchronously
+        setTimeout(() => {
+          globalRunRegistry.appendLog(liveRun.runId, "INFO", "Live processing message stream");
+          globalRunRegistry.completeRun(liveRun.runId, { title: "Done" }, 1);
+        }, 20);
+
+        // Read subsequent events
+        let accumulated = "";
+        while (!accumulated.includes("event: done")) {
+          const chunk = await reader.read();
+          if (chunk.done) break;
+          accumulated += new TextDecoder().decode(chunk.value);
+        }
+
+        assert.ok(accumulated.includes("event: log"));
+        assert.ok(accumulated.includes("Live processing message stream"));
+        assert.ok(accumulated.includes("event: done"));
 
         controller.abort();
       } finally {

@@ -6,6 +6,7 @@
  */
 
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { globalRunRegistry } from "../core/run-registry";
 import { verifyMcpToken } from "./auth-guard";
 import type { JsonRpcRequest, JsonRpcResponse, ProtokolMcpServer } from "./protokol-mcp-server";
 
@@ -129,7 +130,8 @@ export class HttpMcpTransport {
   }
 
   /**
-   * Handles Server-Sent Events (SSE) stream over GET /mcp/events (Phase 2 foundation).
+   * Handles Server-Sent Events (SSE) stream over GET /mcp/events (Phase 2).
+   * Supports filtering by runId via query parameter '?runId=<runId>'.
    */
   handleEvents(req: IncomingMessage, res: ServerResponse): void {
     if (!verifyMcpToken(req)) {
@@ -144,6 +146,9 @@ export class HttpMcpTransport {
       return;
     }
 
+    const parsedUrl = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+    const targetRunId = parsedUrl.searchParams.get("runId");
+
     res.writeHead(200, {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
@@ -153,12 +158,50 @@ export class HttpMcpTransport {
 
     res.write('event: connected\ndata: {"status":"connected","protocolVersion":"2024-11-05"}\n\n');
 
+    let onLog: ((logEntry: unknown) => void) | undefined;
+    let onStatus: ((status: unknown) => void) | undefined;
+    let onDone: ((doneRun: unknown) => void) | undefined;
+    let onCreated: ((createdRun: unknown) => void) | undefined;
+
+    if (targetRunId) {
+      const existingRun = globalRunRegistry.getRun(targetRunId);
+      if (existingRun) {
+        res.write(`event: run-status\ndata: ${JSON.stringify(existingRun)}\n\n`);
+      }
+
+      onLog = (logEntry: unknown) => {
+        res.write(`event: log\ndata: ${JSON.stringify(logEntry)}\n\n`);
+      };
+      onStatus = (status: unknown) => {
+        res.write(`event: status\ndata: ${JSON.stringify({ runId: targetRunId, status })}\n\n`);
+      };
+      onDone = (doneRun: unknown) => {
+        res.write(`event: done\ndata: ${JSON.stringify(doneRun)}\n\n`);
+      };
+
+      globalRunRegistry.on(`log:${targetRunId}`, onLog);
+      globalRunRegistry.on(`status:${targetRunId}`, onStatus);
+      globalRunRegistry.on(`done:${targetRunId}`, onDone);
+    } else {
+      onCreated = (createdRun: unknown) => {
+        res.write(`event: run-created\ndata: ${JSON.stringify(createdRun)}\n\n`);
+      };
+      globalRunRegistry.on("created", onCreated);
+    }
+
     const pingTimer = setInterval(() => {
       res.write(": ping\n\n");
     }, 15000);
 
     res.on("close", () => {
       clearInterval(pingTimer);
+      if (targetRunId) {
+        if (onLog) globalRunRegistry.removeListener(`log:${targetRunId}`, onLog);
+        if (onStatus) globalRunRegistry.removeListener(`status:${targetRunId}`, onStatus);
+        if (onDone) globalRunRegistry.removeListener(`done:${targetRunId}`, onDone);
+      } else if (onCreated) {
+        globalRunRegistry.removeListener("created", onCreated);
+      }
     });
   }
 
