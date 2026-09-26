@@ -1,8 +1,8 @@
-# Pipeline Orchestrator (Faz 1 & Faz 2) Walkthrough
+# Pipeline Orchestrator (Faz 1, Faz 2 & Faz 3) Walkthrough
 
 ## 1. Genel Bakış
 
-Bu çalışma kapsamında `docs/plans/pipeline-orchestrator-plani.md` mimari şartnamesi uyarınca Protokol-7 bünyesindeki veri çıkarma aktörlerini, zamanlama ve yürütme hedeflerini, çıktı biçimlendiricilerini ve çoklu depolama yönlendirmesini (yerel disk, AWS S3, Cloudflare R2, Backblaze B2) birleştiren genel amaçlı boru hattı orkestrasyon katmanının **Faz 1 (Çekirdek)** ve **Faz 2 (Depolama Bağlayıcıları)** modülleri hayata geçirilmiştir.
+Bu çalışma kapsamında `docs/plans/pipeline-orchestrator-plani.md` mimari şartnamesi uyarınca Protokol-7 bünyesindeki veri çıkarma aktörlerini, zamanlama ve yürütme hedeflerini, çıktı biçimlendiricilerini ve çoklu depolama yönlendirmesini (yerel disk, AWS S3, Cloudflare R2, Backblaze B2, Google Drive) birleştiren genel amaçlı boru hattı orkestrasyon katmanının tüm fazları (**Faz 1: Çekirdek**, **Faz 2: Depolama Bağlayıcıları**, **Faz 3: Zamanlayıcı ve Uzaktan Yürütme**) eksiksiz olarak hayata geçirilmiştir.
 
 ## 2. Hayata Geçirilen Bileşenler
 
@@ -18,6 +18,8 @@ Bu çalışma kapsamında `docs/plans/pipeline-orchestrator-plani.md` mimari şa
 ### 2.3. Yürütme Katmanı ve Yerel Yürütücü (`src/pipeline/execution/`)
 - **Sözleşme:** `ExecutionTarget` arayüzü ve `ExecutionResult` çıktı sözleşmesi tanımlandı.
 - **Yerel Yürütücü (`LocalExecutor`):** Aktörleri `ActorRegistry` üzerinden `ActorRunContext` ile çalıştırır veya test/mock amaçlı enjekte edilebilir `CustomActorRunner` kullanır. Aktör ham çıktılarını normalize edilmiş nesne dizisine dönüştürür.
+- **Uzak HTTP Yürütücüsü (`RemoteHttpExecutor`):** Uzak Protokol-7 REST uç noktalarına Bearer token kimlik doğrulamasıyla istek göndererek yürütme yaptırır.
+- **Pipedream Yürütücüsü (`PipedreamExecutor`):** Veri çıkarma yüklerini Pipedream webhook uç noktalarına dağıtır.
 
 ### 2.4. Çıktı Havuzu (`src/pipeline/output-sink.ts`)
 - **Bileşenler:** Akış ve bellek içi veri toplama amacıyla `BufferedSink` ve `StreamSink` uygulandı. Öğe sayısı ve tahmini bayt boyutu metriklerini hesaplar.
@@ -35,23 +37,30 @@ Bu çalışma kapsamında `docs/plans/pipeline-orchestrator-plani.md` mimari şa
 - **`S3Storage`:** `@aws-sdk/client-s3` üzerinden `PutObjectCommand` ile AWS S3 kovalarına yükleme yapar; MIME türünü dinamik tespit eder ve `s3://` URI formatında `StorageReceipt` üretir.
 - **`R2Storage`:** Cloudflare R2 hesaba özel uç nokta (`https://${accountId}.r2.cloudflarestorage.com`) ve `auto` bölge eşlemesiyle S3-uyumlu sıfır-egress depolama sağlar.
 - **`B2Storage`:** Backblaze B2 S3-uyumlu uç noktası (`https://s3.${region}.backblazeb2.com`) ile depolama sağlar.
+- **`GoogleDriveStorage`:** Google Drive v3 REST API üzerinden hedef klasöre yükleme yapar ve `drive://` şemalı `StorageReceipt` üretir.
 
-### 2.7. Ana Orkestratör (`src/pipeline/pipeline-runner.ts`)
-- **Akış Döngüsü:** Yapılandırma doğrulama -> aktör çözümleme -> yürütme -> çıktı havuzu -> formatlama -> depolama yüklemesi (yerel, S3, R2, B2) aşamalarını yönetir.
+### 2.7. Zamanlayıcı Aracısı (`src/pipeline/schedule-broker.ts`)
+- **Cron Eşleme Motoru (`isCronMatch`, `matchCronField`):** Standart 5 alanlı (`dakika saat ayın-günü ay haftanın-günü`) cron ifadelerini harici kütüphane bağımlılığı olmaksızın ayrıştırır ve zaman eşleşmesini hesaplar.
+- **İş Yönetimi:** Periyodik cron ve aralık (interval) işlerini başlatma, durdurma ve `stopAll()` ile zarif iptal yeteneği sağlar.
+
+### 2.8. Ana Orkestratör (`src/pipeline/pipeline-runner.ts`)
+- **Akış Döngüsü:** Yapılandırma doğrulama -> aktör çözümleme -> yürütme hedefi seçimi (local, remote-http, pipedream) -> çıktı havuzu -> formatlama -> depolama yüklemesi (yerel, S3, R2, B2, Google Drive) aşamalarını yönetir.
 - **Süreç Güvenliği:** Yürütme ve depolama hatalarını yakalar, `failedRuns` listesine kaydeder ve süreci çökertmeden `status: "failed"` sonucu döndürür.
+- **Zamanlama Entegrasyonu:** `scheduleConfig` ve `scheduleConfigFile` metotlarıyla boru hatlarını arka plan zamanlamasına bağlar.
 
-### 2.8. Komut Satırı Arayüzü (`src/pipeline/cli.ts` & `npm run pipeline`)
-- **Kullanım:** `npm run pipeline -- --config <dosya.yaml>` komutuyla doğrudan YAML boru hatlarını çalıştırır.
+### 2.9. Komut Satırı Arayüzü (`src/pipeline/cli.ts` & `npm run pipeline`)
+- **Tekil Yürütme:** `npm run pipeline -- --config <dosya.yaml>` komutuyla doğrudan YAML boru hatlarını anlık çalıştırır.
+- **Zamanlama Daemon Modu:** `npm run pipeline -- --config <dosya.yaml> --schedule` komutuyla zamanlanmış boru hattını arka planda dinler ve SIGINT/SIGTERM sinyallerinde zarif kapanır.
 - **Çıktı:** Standart ASCII loglama disipliniyle başarı durumunda JSON çıktı ve makbuz, hata durumunda hata detayını basar.
 
 ## 3. Doğrulama ve Test Sonuçları
 
-- **Boru Hattı ve Depolama Testleri:** 37/37 başarılı:
+- **Boru Hattı Testleri:** 48/48 başarılı:
   - `tests/pipeline-schema.test.ts` (9 test)
   - `tests/actor-resolver.test.ts` (5 test)
   - `tests/pipeline-runner.test.ts` (10 test)
   - `tests/storage-router.test.ts` (13 test)
-- **Genel Test Paketi (`npm test`):** 219/219 başarılı (0 hata, 0 atlama).
+  - `tests/scheduler-and-remote.test.ts` (11 test)
+- **Genel Test Paketi (`npm test`):** 230/230 başarılı (0 hata, 0 atlama).
 - **Statik Tip ve Lint Denetimi (`npm run typecheck && npm run lint`):** Sıfır hata.
 - **Deterministik Doğrulama Hattı (`npm run verify`):** 6 katmanın tümünden (Mimari Bütünlük, İsimlendirme Disiplini, Sıfır Emoji, Secret Detection, SCA Paket Halüsinasyonu, Biome Lint) başarıyla geçti.
-- **Canlı CLI Yürütmesi:** `npm run pipeline -- --config examples/pipelines/wikimedia-sample.yaml` başarıyla çalıştı ve 1372 baytlık doğrulanmış JSONL çıktısı oluşturdu.

@@ -8,5 +8,6 @@ export * from "./execution";
 export * from "./output-sink";
 export * from "./pipeline-runner";
 export * from "./processors";
+export * from "./schedule-broker";
 export * from "./schema";
 export * from "./storage";

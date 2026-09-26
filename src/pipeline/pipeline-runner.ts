@@ -5,14 +5,18 @@
 
 import { ActorResolver } from "./actor-resolver";
 import { ConnectorRegistry } from "./connectors/connector-registry";
+import { resolveEnvString } from "./connectors/env-resolver";
 import type { ExecutionTarget } from "./execution";
 import { LocalExecutor } from "./execution/local-executor";
+import { PipedreamExecutor } from "./execution/pipedream-executor";
+import { RemoteHttpExecutor } from "./execution/remote-http-executor";
 import { BufferedSink, type OutputSink } from "./output-sink";
 import type { OutputProcessor } from "./processors";
 import { CsvWriter } from "./processors/csv-writer";
 import { JsonlWriter } from "./processors/jsonl-writer";
 import { ParquetPacker } from "./processors/parquet-packer";
 import { PassthroughWriter } from "./processors/passthrough-writer";
+import { ScheduleBroker } from "./schedule-broker";
 import {
   type ConnectorConfig,
   loadPipelineConfigFile,
@@ -22,6 +26,7 @@ import {
 } from "./schema";
 import type { StorageBackend, StorageReceipt } from "./storage";
 import { B2Storage } from "./storage/b2-storage";
+import { GoogleDriveStorage } from "./storage/google-drive-storage";
 import { LocalStorage } from "./storage/local-storage";
 import { R2Storage } from "./storage/r2-storage";
 import { S3Storage } from "./storage/s3-storage";
@@ -42,16 +47,20 @@ export interface PipelineRunResult {
 export interface PipelineRunnerOptions {
   actorResolver?: ActorResolver;
   executor?: ExecutionTarget;
+  executors?: Record<string, ExecutionTarget>;
   connectorRegistry?: ConnectorRegistry;
   connectors?: Record<string, ConnectorConfig>;
   processors?: Record<string, OutputProcessor>;
   storageBackends?: Record<string, StorageBackend>;
+  scheduleBroker?: ScheduleBroker;
 }
 
 export class PipelineRunner {
   private readonly actorResolver: ActorResolver;
   private readonly defaultExecutor: ExecutionTarget;
+  private readonly executors: Map<string, ExecutionTarget> = new Map();
   private readonly connectorRegistry: ConnectorRegistry;
+  private readonly scheduleBroker: ScheduleBroker;
   private readonly processors: Map<string, OutputProcessor> = new Map();
   private readonly storageBackends: Map<string, StorageBackend> = new Map();
   private readonly runHistory: PipelineRunResult[] = [];
@@ -62,6 +71,14 @@ export class PipelineRunner {
     this.defaultExecutor = options?.executor || new LocalExecutor();
     this.connectorRegistry =
       options?.connectorRegistry || new ConnectorRegistry(options?.connectors);
+    this.scheduleBroker = options?.scheduleBroker || new ScheduleBroker();
+
+    this.registerExecutor(this.defaultExecutor);
+    if (options?.executors) {
+      for (const [, exec] of Object.entries(options.executors)) {
+        this.registerExecutor(exec);
+      }
+    }
 
     // Register processors
     this.registerProcessor(new JsonlWriter());
@@ -85,6 +102,10 @@ export class PipelineRunner {
     }
   }
 
+  registerExecutor(executor: ExecutionTarget): void {
+    this.executors.set(executor.name, executor);
+  }
+
   registerProcessor(processor: OutputProcessor): void {
     this.processors.set(processor.format, processor);
   }
@@ -95,6 +116,31 @@ export class PipelineRunner {
 
   registerConnector(name: string, config: ConnectorConfig): void {
     this.connectorRegistry.register(name, config);
+  }
+
+  /**
+   * Schedules a recurring pipeline using its configured cron expression.
+   */
+  scheduleConfig(config: PipelineConfig, checkIntervalMs?: number): { stop: () => void } {
+    if (config.schedule?.type !== "cron" || !config.schedule.expression) {
+      throw new PipelineError(
+        `Cannot schedule pipeline '${config.name}' without schedule.type='cron' and a valid expression.`,
+        "INVALID_SCHEDULE_CONFIG"
+      );
+    }
+
+    return this.scheduleBroker.scheduleJob(
+      config.name,
+      config.schedule.expression,
+      async () => {
+        await this.runConfig(config);
+      },
+      checkIntervalMs
+    );
+  }
+
+  getScheduleBroker(): ScheduleBroker {
+    return this.scheduleBroker;
   }
 
   /**
@@ -170,7 +216,7 @@ export class PipelineRunner {
       this.actorResolver.resolve(config.actor.id, config.actor.config);
 
       // 2. Select execution target
-      const executor = this.resolveExecutor(config.execution?.target);
+      const executor = this.resolveExecutor(config);
 
       // 3. Execute actor and populate sink
       const execResult = await executor.run(config.actor.id, config.actor.config);
@@ -241,12 +287,44 @@ export class PipelineRunner {
     }
   }
 
-  private resolveExecutor(target?: string): ExecutionTarget {
-    if (!target || target === "local") {
+  private resolveExecutor(config: PipelineConfig): ExecutionTarget {
+    const target = config.execution?.target || "local";
+
+    // 1. Explicitly registered or injected executor takes priority
+    if (this.executors.has(target)) {
+      return this.executors.get(target)!;
+    }
+
+    if (target === "local") {
       return this.defaultExecutor;
     }
+
+    if (target === "remote-http") {
+      const endpoint = config.execution?.endpoint;
+      if (!endpoint) {
+        throw new PipelineError(
+          "Execution target 'remote-http' requires an 'endpoint' URL in execution configuration.",
+          "MISSING_REMOTE_ENDPOINT"
+        );
+      }
+      const token = config.execution?.token ? resolveEnvString(config.execution.token) : undefined;
+      return new RemoteHttpExecutor({ endpoint, token });
+    }
+
+    if (target === "pipedream") {
+      const webhookUrl = config.execution?.endpoint;
+      if (!webhookUrl) {
+        throw new PipelineError(
+          "Execution target 'pipedream' requires an 'endpoint' (webhook URL) in execution configuration.",
+          "MISSING_PIPEDREAM_ENDPOINT"
+        );
+      }
+      const token = config.execution?.token ? resolveEnvString(config.execution.token) : undefined;
+      return new PipedreamExecutor({ webhookUrl, token });
+    }
+
     throw new PipelineError(
-      `Execution target '${target}' is not yet supported in Phase 1 (Local execution available).`,
+      `Unsupported execution target '${target}'. Available targets: local, remote-http, pipedream.`,
       "TARGET_NOT_IMPLEMENTED"
     );
   }
@@ -266,7 +344,28 @@ export class PipelineRunner {
       return this.storageBackends.get("local") || new LocalStorage();
     }
 
-    // 2. Cloud storage backends (S3, R2, B2)
+    // 2. Google Drive storage backend
+    if (backendType === "drive") {
+      const connectorName = config.storage?.connector;
+      let folderId = config.storage?.folder_id;
+      let credentialsJson: string | Record<string, unknown> | undefined;
+      let keyFile: string | undefined;
+
+      if (connectorName) {
+        const connector = this.connectorRegistry.resolve(connectorName);
+        folderId = folderId || connector.folder_id;
+        credentialsJson = connector.token || connector.secret_access_key;
+        keyFile = connector.endpoint;
+      }
+
+      return new GoogleDriveStorage({
+        folderId,
+        credentialsJson,
+        keyFile,
+      });
+    }
+
+    // 3. Cloud storage backends (S3, R2, B2)
     if (backendType === "s3" || backendType === "r2" || backendType === "b2") {
       const connectorName = config.storage?.connector;
       if (!connectorName) {
@@ -322,7 +421,7 @@ export class PipelineRunner {
       }
     }
 
-    // 3. Fallback for custom registered backend
+    // 4. Fallback for custom registered backend
     if (this.storageBackends.has(backendType)) {
       return this.storageBackends.get(backendType)!;
     }

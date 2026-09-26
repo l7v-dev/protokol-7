@@ -16,6 +16,7 @@ export interface StorageBackend {
 }
 
 export * from "./b2-storage";
+export * from "./google-drive-storage";
 export * from "./local-storage";
 export * from "./r2-storage";
 export * from "./s3-storage";

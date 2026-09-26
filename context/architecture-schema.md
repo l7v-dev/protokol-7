@@ -99,6 +99,8 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/pipeline/output-sink.ts` | `BufferedSink`, `StreamSink`, `OutputSink` | In-memory and streaming sinks collecting raw extraction items. |
 | `src/pipeline/execution/index.ts` | `ExecutionTarget`, `ExecutionResult` | Execution target interfaces and output normalization contracts. |
 | `src/pipeline/execution/local-executor.ts` | `LocalExecutor` | Local execution engine dispatching actor tasks via ActorRegistry. |
+| `src/pipeline/execution/remote-http-executor.ts` | `RemoteHttpExecutor` | Dispatches actor execution tasks to remote Protokol-7 instances via REST. |
+| `src/pipeline/execution/pipedream-executor.ts` | `PipedreamExecutor` | Dispatches extraction payloads to Pipedream webhook workflows. |
 | `src/pipeline/processors/index.ts` | `OutputProcessor`, `ProcessedOutput` | Output processor interfaces and format transformation contracts. |
 | `src/pipeline/processors/jsonl-writer.ts` | `JsonlWriter` | Formats extracted records into newline-delimited JSON (JSONL). |
 | `src/pipeline/processors/passthrough-writer.ts` | `PassthroughWriter` | Formats extracted records into structured JSON without altering layout. |
@@ -109,9 +111,11 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/pipeline/connectors/index.ts` | Connector Barrel | Re-exports connector registry and environment resolver. |
 | `src/pipeline/storage/index.ts` | `StorageBackend`, `StorageReceipt` | Storage provider contract and SHA-256 receipt generation interface. |
 | `src/pipeline/storage/local-storage.ts` | `LocalStorage` | Local disk pool storage provider calculating SHA-256 receipts. |
+| `src/pipeline/storage/google-drive-storage.ts` | `GoogleDriveStorage` | Google Drive storage backend uploading artifacts via Drive API v3. |
 | `src/pipeline/storage/s3-storage.ts` | `S3Storage`, `detectMimeType` | AWS S3 storage driver using PutObjectCommand and SHA-256 receipts. |
 | `src/pipeline/storage/r2-storage.ts` | `R2Storage` | Cloudflare R2 storage driver with custom account endpoint mapping. |
 | `src/pipeline/storage/b2-storage.ts` | `B2Storage` | Backblaze B2 storage driver with S3-compatible endpoints. |
+| `src/pipeline/schedule-broker.ts` | `ScheduleBroker`, `isCronMatch`, `matchCronField` | Standard 5-field cron parser and scheduler using native node:timers. |
 | `src/pipeline/pipeline-runner.ts` | `PipelineRunner`, `PipelineRunResult` | Master orchestrator coordinating validation, execution, formatting, and storage routing. |
 | `src/pipeline/cli.ts` | Pipeline CLI Runner | Command-line entrypoint for executing YAML pipeline configurations (`npm run pipeline`). |
 | `src/pipeline/index.ts` | Pipeline Barrel | Re-exports all pipeline contracts, runner, schema, processors, and storage backends. |
@@ -160,6 +164,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/actor-resolver.test.ts` | `ActorResolver` | Catalog discovery, registered actor verification, and missing config parameter rejection. |
 | `tests/pipeline-runner.test.ts` | `PipelineRunner`, `LocalExecutor`, `LocalStorage` | End-to-end execution, sink buffering, processor transformations, storage receipts, and error recovery. |
 | `tests/storage-router.test.ts` | `ConnectorRegistry`, `S3Storage`, `R2Storage`, `B2Storage` | Environment variable resolution, connector lookup, S3/R2/B2 driver uploads, and pipeline cloud storage integration. |
+| `tests/scheduler-and-remote.test.ts` | `ScheduleBroker`, `RemoteHttpExecutor`, `PipedreamExecutor`, `GoogleDriveStorage` | Cron matching engine, scheduler lifecycle, remote HTTP execution, Pipedream webhooks, and Google Drive upload. |
 
 ---
 

@@ -17,3 +17,5 @@ export interface ExecutionTarget {
 }
 
 export * from "./local-executor";
+export * from "./pipedream-executor";
+export * from "./remote-http-executor";
