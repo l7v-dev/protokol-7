@@ -329,3 +329,26 @@ test("CheerioScraperActor integrates ReadabilityExtractor producing markdown con
     globalThis.fetch = originalFetch;
   }
 });
+
+test("ReadabilityExtractor strips invisible zero-width unicode characters from output", () => {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head><title>Water\u200Bmarked Title</title></head>
+      <body>
+        <article>
+          <h1>Secret\uFEFF Article</h1>
+          <p>This paragraph contains steganographic \u200Bzero-width\u200D spaces and soft\u00ADhyphens.</p>
+        </article>
+      </body>
+    </html>
+  `;
+
+  const result = ReadabilityExtractor.extract(html, "https://example.com/steganography");
+  assert.equal(result.title, "Watermarked Title");
+  assert.ok(!result.markdown.includes("\u200B"));
+  assert.ok(!result.markdown.includes("\uFEFF"));
+  assert.ok(!result.markdown.includes("\u200D"));
+  assert.ok(!result.markdown.includes("\u00AD"));
+  assert.ok(result.markdown.includes("zero-width spaces and softhyphens"));
+});

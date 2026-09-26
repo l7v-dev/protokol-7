@@ -8,6 +8,7 @@ import { Readability } from "@mozilla/readability";
 import * as cheerio from "cheerio";
 import { JSDOM } from "jsdom";
 import TurndownService from "turndown";
+import { ContextGuard } from "../core/context-guard";
 import { StructuredExtractor } from "./structured-extractor";
 
 export interface ReadabilityExtractOptions {
@@ -111,7 +112,7 @@ export class ReadabilityExtractor {
 
     try {
       const dom = new JSDOM(sanitizedHtml, {
-        url: targetUrl.startsWith("http") ? targetUrl : "https://agent-smith.local",
+        url: targetUrl.startsWith("http") ? targetUrl : "https://protokol-7.internal",
       });
 
       const reader = new Readability(dom.window.document, {
@@ -122,14 +123,20 @@ export class ReadabilityExtractor {
       const textContent = article?.textContent?.trim() || "";
 
       if (article?.content && textContent.length >= (options.charThreshold ?? 100)) {
-        const markdown = turndown.turndown(article.content).trim();
+        const rawMarkdown = turndown.turndown(article.content).trim();
+        const markdown = ContextGuard.stripInvisibleUnicode(rawMarkdown);
+        const text = ContextGuard.stripInvisibleUnicode(textContent);
         return {
-          title: article.title || "",
-          byline: article.byline || undefined,
-          siteName: article.siteName || undefined,
-          excerpt: article.excerpt || undefined,
+          title: ContextGuard.stripInvisibleUnicode(article.title || ""),
+          byline: article.byline ? ContextGuard.stripInvisibleUnicode(article.byline) : undefined,
+          siteName: article.siteName
+            ? ContextGuard.stripInvisibleUnicode(article.siteName)
+            : undefined,
+          excerpt: article.excerpt
+            ? ContextGuard.stripInvisibleUnicode(article.excerpt)
+            : undefined,
           markdown,
-          text: textContent,
+          text,
           isArticle: true,
           length: markdown.length,
           fallbackUsed: false,
@@ -179,18 +186,21 @@ export class ReadabilityExtractor {
       }
     }
 
-    const text = ($target.length > 0 ? $target.text() : $("body").text())
+    const rawText = ($target.length > 0 ? $target.text() : $("body").text())
       .replace(/\s+/g, " ")
       .trim();
 
+    const cleanMarkdown = ContextGuard.stripInvisibleUnicode(markdown || rawText);
+    const text = ContextGuard.stripInvisibleUnicode(rawText);
+
     return {
-      title,
-      siteName,
-      excerpt: description,
-      markdown: markdown || text,
+      title: ContextGuard.stripInvisibleUnicode(title),
+      siteName: siteName ? ContextGuard.stripInvisibleUnicode(siteName) : undefined,
+      excerpt: description ? ContextGuard.stripInvisibleUnicode(description) : undefined,
+      markdown: cleanMarkdown,
       text,
       isArticle: false,
-      length: (markdown || text).length,
+      length: cleanMarkdown.length,
       fallbackUsed: true,
     };
   }

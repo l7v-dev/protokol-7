@@ -1,4 +1,5 @@
 import { extractText, getDocumentProxy, getMeta } from "unpdf";
+import { ContextGuard } from "../core/context-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -126,7 +127,7 @@ export class PdfDocumentActor implements IActor<PdfDocumentResult> {
       const pagesToProcess = maxPages && maxPages > 0 ? rawPages.slice(0, maxPages) : rawPages;
 
       const pages: PdfPageEntry[] = pagesToProcess.map((pageText, idx) => {
-        const cleanText = (pageText || "").trim();
+        const cleanText = ContextGuard.stripInvisibleUnicode((pageText || "").trim());
         const characterCount = cleanText.length;
         const wordCount = cleanText.length > 0 ? cleanText.split(/\s+/).length : 0;
 
