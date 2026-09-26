@@ -13,7 +13,8 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Bekleyen (Blok var)
 
-- *(Bekleyen görev yok)*
+- [ ] **MCP HTTP-SSE Transport** — `Tier: 1` — `docs/plans/mcp-http-transport-plani.md`; uzak AI agent'ların HTTP üzerinden bağlanabilmesi için POST /mcp adapter katmanı ve Bearer token guard; sıfır yeni bağımlılık; Pipeline Orchestrator'dan önce yapılabilir.
+- [ ] **Pipeline Orchestrator** — `Tier: 1` — `docs/plans/pipeline-orchestrator-plani.md`; actor → schedule → execution target → output processor → storage router tam pipeline orkestrasyon katmanı; Faz 1 önce local+JSONL+local-storage.
 
 ## Sağlamlaştırma bekliyor
 
