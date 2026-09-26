@@ -205,7 +205,8 @@ function scanDocumentation(dir) {
       }
       // Buzzword kontrolu
       for (const bw of BANNED_BUZZWORDS) {
-        const r = new RegExp(`\\b${bw}\\b`, "i");
+        // 'super' is a reserved JavaScript keyword when followed by ( or . for parent class inheritance
+        const r = bw === "super" ? /\bsuper\b(?!\s*[.(])/i : new RegExp(`\\b${bw}\\b`, "i");
         if (
           r.test(content) &&
           !fullPath.includes("doctor.mjs") &&
