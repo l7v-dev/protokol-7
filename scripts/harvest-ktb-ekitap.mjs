@@ -180,7 +180,7 @@ function validateMetadataGate(meta) {
   if (!meta.title || meta.title.trim().length === 0) {
     throw createVetoError("GATE1_METADATA", "Yayin basligi bos veya eksik.");
   }
-  if (!meta.download_url || !meta.download_url.includes("/Eklenti/")) {
+  if (!meta.download_url?.includes("/Eklenti/")) {
     throw createVetoError("GATE1_METADATA", "Gecersiz indirme baglantisi.");
   }
 }
@@ -343,7 +343,7 @@ export function sanitizeTextForLlm(pages) {
         if (boilerplateLines.has(line)) return false;
         if (/^[-—–\s]*\d+[-—–\s]*$/.test(line)) return false;
         if (/^Sayfa\s+\d+$/i.test(line)) return false;
-        if (/^[<\s>•\.\-_=]{4,}$/.test(line)) return false;
+        if (/^[<\s>•.\-_=]{4,}$/.test(line)) return false;
         return true;
       })
       .join("\n");
@@ -369,9 +369,9 @@ export function sanitizeTextForLlm(pages) {
       const lastChar = fullText.slice(-1);
       const isSentenceEnd = [".", "!", "?", ":", ";"].includes(lastChar);
       if (isSentenceEnd) {
-        fullText += "\n\n" + trimmed;
+        fullText += `\n\n${trimmed}`;
       } else {
-        fullText += " " + trimmed;
+        fullText += ` ${trimmed}`;
       }
     }
   }

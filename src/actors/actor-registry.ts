@@ -4,14 +4,23 @@
 
 import type { ActorType, IActor } from "../core/types";
 import { ApiExtractorActor } from "./api-extractor-actor";
+import { ArxivActor } from "./arxiv-actor";
 import { CheerioScraperActor } from "./cheerio-scraper-actor";
 import { CrawlerActor } from "./crawler-actor";
+import { EuropePmcActor } from "./europe-pmc-actor";
+import { GutenbergActor } from "./gutenberg-actor";
+import { IetfRfcActor } from "./ietf-rfc-actor";
+import { KtbEkitapActor } from "./ktb-ekitap-actor";
 import { MarkdownReaderActor } from "./markdown-reader-actor";
 import { NetworkInterceptorActor } from "./network-interceptor-actor";
+import { OpenAlexActor } from "./openalex-actor";
 import { PdfDocumentActor } from "./pdf-document-actor";
 import { PlaywrightBrowserActor } from "./playwright-browser-actor";
+import { SaglikEkutuphaneActor } from "./saglik-ekutuphane-actor";
 import { SerpSearchActor } from "./serp-search-actor";
 import { SitemapXmlActor } from "./sitemap-xml-actor";
+import { StackExchangeActor } from "./stack-exchange-actor";
+import { WikimediaActor } from "./wikimedia-actor";
 
 export class ActorRegistry {
   private readonly actors = new Map<ActorType, IActor<unknown>>();
@@ -44,5 +53,14 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new NetworkInterceptorActor());
   registry.register(new SerpSearchActor());
   registry.register(new PdfDocumentActor());
+  registry.register(new ArxivActor());
+  registry.register(new WikimediaActor());
+  registry.register(new OpenAlexActor());
+  registry.register(new StackExchangeActor());
+  registry.register(new GutenbergActor());
+  registry.register(new EuropePmcActor());
+  registry.register(new IetfRfcActor());
+  registry.register(new SaglikEkutuphaneActor());
+  registry.register(new KtbEkitapActor());
   return registry;
 }
