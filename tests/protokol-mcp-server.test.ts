@@ -50,7 +50,7 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.deepEqual(res.result, {});
   });
 
-  it("returns all 17 registered extraction tools in tools/list", async () => {
+  it("returns all 18 registered extraction tools in tools/list", async () => {
     const server = new ProtokolMcpServer();
     const res = await server.processRequest({
       jsonrpc: "2.0",
@@ -64,7 +64,7 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 17);
+    assert.equal(result.tools.length, 18);
 
     const toolNames = result.tools.map((t) => t.name);
     assert.ok(toolNames.includes("scrape_static_html"));

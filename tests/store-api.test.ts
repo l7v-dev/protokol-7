@@ -82,12 +82,44 @@ test("Store API - Catalog, Manifests, Runs, and Web MVP Dashboard", async (t) =>
     assert.ok(Array.isArray(body.items));
   });
 
-  await t.test("GET / serves the embedded Web MVP Single Page Application", async () => {
+  await t.test("GET / returns headless service metadata JSON", async () => {
     const res = await fetch(`${baseUrl}/`);
     assert.equal(res.status, 200);
-    assert.equal(res.headers.get("content-type"), "text/html; charset=utf-8");
-    const html = await res.text();
-    assert.ok(html.includes("PROTOKOL-7"));
-    assert.ok(html.includes("ACTOR STORE & RUNTIME"));
+    assert.ok(res.headers.get("content-type")?.includes("application/json"));
+    const body = (await res.json()) as {
+      service: string;
+      mode: string;
+      status: string;
+      endpoints: Record<string, string>;
+    };
+    assert.equal(body.service, "protokol-7");
+    assert.equal(body.mode, "headless");
+    assert.equal(body.status, "operational");
+    assert.ok(body.endpoints.docs);
+  });
+
+  await t.test("GET /api/v1/store/actors includes network-interceptor manifest", async () => {
+    const res = await fetch(`${baseUrl}/api/v1/store/actors`);
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as {
+      actors: Array<{ name: string; category: string }>;
+    };
+    assert.ok(body.actors.some((a) => a.name === "network-interceptor"));
+  });
+
+  await t.test("POST /api/v1/store/actors/ktb-ekitap/run accepts valid payload", async () => {
+    const res = await fetch(`${baseUrl}/api/v1/store/actors/ktb-ekitap/run`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "list",
+        category: "edebiyat",
+        page: 1,
+        limit: 5,
+      }),
+    });
+    // In test environment without network, returns 200, 400 or 500 with runId
+    const body = (await res.json()) as { runId?: string };
+    assert.ok(body.runId);
   });
 });

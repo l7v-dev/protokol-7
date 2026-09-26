@@ -19,6 +19,7 @@ import type {
   GutenbergActorTaskOptions,
   IetfRfcActorTaskOptions,
   KtbEkitapTaskOptions,
+  NetworkInterceptorTaskOptions,
   OpenAlexActorTaskOptions,
   PdfDocumentTaskOptions,
   SaglikEkutuphaneTaskOptions,
@@ -208,6 +209,10 @@ export class ProtokolMcpServer {
             ktbEkitapOptions:
               manifest.actorType === "ktb-ekitap"
                 ? (toolArgs as unknown as KtbEkitapTaskOptions)
+                : undefined,
+            networkInterceptorOptions:
+              manifest.actorType === "network-interceptor"
+                ? (toolArgs as unknown as NetworkInterceptorTaskOptions)
                 : undefined,
           },
         };

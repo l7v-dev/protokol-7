@@ -34,7 +34,7 @@ export interface ActorInputSchema {
 }
 
 export interface ActorManifest {
-  actorType: ActorType | "saglik-ekutuphane";
+  actorType: ActorType;
   name: string;
   title: string;
   category: ActorCategory;
@@ -598,6 +598,102 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
         type: "object",
         properties: {
           targetUrl: { type: "string", description: "Sayfa adresi." },
+        },
+        required: ["targetUrl"],
+      },
+    },
+  },
+
+  "network-interceptor": {
+    actorType: "network-interceptor",
+    name: "network-interceptor",
+    title: "Network API Interceptor",
+    category: "NETWORK",
+    version: "1.0.0",
+    description:
+      "Headless browser actor that intercepts and extracts background XHR and Fetch JSON API network responses.",
+    author: "protokol-7",
+    tags: ["network", "interceptor", "xhr", "fetch", "api", "json"],
+    inputSchema: {
+      type: "object",
+      title: "Network Interceptor Input",
+      description: "Background network request interception parameters",
+      properties: {
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target Page URL",
+          description: "Web page address to load and monitor for network activity.",
+          required: true,
+          editor: "textfield",
+          prefill: "https://example.com",
+        },
+        urlPatterns: {
+          name: "urlPatterns",
+          type: "array",
+          title: "URL Patterns",
+          description:
+            "Optional wildcard URL patterns to filter captured API calls (e.g. ['*/api/*']).",
+          editor: "json",
+        },
+        maxCapturedRequests: {
+          name: "maxCapturedRequests",
+          type: "integer",
+          title: "Max Captured Requests",
+          description: "Maximum number of responses to intercept (default: 50).",
+          default: 50,
+          editor: "number",
+        },
+        waitForNetworkIdleMs: {
+          name: "waitForNetworkIdleMs",
+          type: "integer",
+          title: "Wait Idle (ms)",
+          description: "Milliseconds to wait for network to settle after load.",
+          default: 1000,
+          editor: "number",
+        },
+        captureHeaders: {
+          name: "captureHeaders",
+          type: "boolean",
+          title: "Capture Headers",
+          description: "Whether to record response headers.",
+          default: false,
+          editor: "checkbox",
+        },
+      },
+      required: ["targetUrl"],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        pageUrl: { type: "string", description: "Target page URL" },
+        totalCaptured: { type: "number", description: "Count of intercepted API responses" },
+        responses: { type: "array", description: "Captured XHR/Fetch JSON responses" },
+      },
+    },
+    exampleInput: {
+      targetUrl: "https://example.com",
+      urlPatterns: ["*/api/*"],
+      maxCapturedRequests: 10,
+    },
+    readme: `# Network Interceptor\n\nIntercepts background XHR and Fetch JSON API calls during browser rendering.`,
+    mcpTool: {
+      name: "intercept_network_api",
+      description:
+        "Intercepts and captures background XHR/Fetch JSON API responses from dynamic web applications.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          targetUrl: { type: "string", description: "Target web page URL to load and monitor." },
+          urlPatterns: {
+            type: "array",
+            items: { type: "string" },
+            description: "Optional URL wildcard patterns to filter intercepted responses.",
+          },
+          maxCapturedRequests: {
+            type: "integer",
+            description: "Maximum number of JSON responses to capture (default 50).",
+          },
         },
         required: ["targetUrl"],
       },

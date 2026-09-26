@@ -17,7 +17,7 @@ import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { normalizeUrl } from "../network/url-normalizer";
 
 const DEFAULT_TIMEOUT_MS = 20000;
-const USER_AGENT = "Mozilla/5.0 (compatible; AgentSmithScraper/1.0; +https://agent-smith.local)";
+const USER_AGENT = "Mozilla/5.0 (compatible; Protokol7Scraper/1.0; +https://protokol-7.local)";
 
 export class CheerioScraperActor implements IActor<ScrapedPageResult> {
   readonly actorType = "cheerio-scraper" as const;

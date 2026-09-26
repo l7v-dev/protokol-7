@@ -16,7 +16,7 @@ import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../network/ssrf-guard";
 
 const DEFAULT_TIMEOUT_MS = 25000;
-const USER_AGENT = "AgentSmithApiExtractor/1.0 (+https://agent-smith.local)";
+const USER_AGENT = "Protokol7ApiExtractor/1.0 (+https://protokol-7.local)";
 
 export class ApiExtractorActor implements IActor<ApiExtractorResult> {
   readonly actorType = "api-extractor" as const;

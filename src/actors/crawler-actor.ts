@@ -170,6 +170,7 @@ export class CrawlerActor implements IActor<CrawlerResult> {
 
       // 1. Robots.txt policy compliance check
       if (robotsParser && !robotsParser.isAllowed(current.url)) {
+        failedUrls.push(current.url);
         continue;
       }
 

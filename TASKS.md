@@ -9,7 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- *(Aktif görev yok)*
+- [ ] **Sistem Hataları Giderimi ve Web UI Tasfiyesi** — `Tier: 2` — `docs/plans/sistem-optimizasyonu-ve-web-ui-tasfiyesi-plani.md`, `docs/walkthroughs/sistem-optimizasyonu-ve-web-ui-tasfiyesi-walkthrough.md`; StoreRouter seçenek eşlemeleri, NetworkInterceptor manifestosu, DNS doğrulama zamanlaması, zarif kapatma ve eski isimlendirmelerin düzeltilmesi; gereksiz web UI frontend'inin tamamen kaldırılarak saf headless mikroservis mimarisinin pekiştirilmesi.
 
 ## Bekleyen (Blok var)
 

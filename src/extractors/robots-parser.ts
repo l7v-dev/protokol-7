@@ -131,7 +131,7 @@ export class RobotsParser {
   /**
    * Checks whether the specified URL or path is allowed to be crawled.
    */
-  isAllowed(urlOrPath: string, userAgent = "AgentSmithBot"): boolean {
+  isAllowed(urlOrPath: string, userAgent = "Protokol7Bot"): boolean {
     let targetPath = urlOrPath;
     try {
       const parsed = new URL(
@@ -170,7 +170,7 @@ export class RobotsParser {
   /**
    * Retrieves crawl delay in seconds specified in robots.txt for the given User-Agent.
    */
-  getCrawlDelay(userAgent = "AgentSmithBot"): number | undefined {
+  getCrawlDelay(userAgent = "Protokol7Bot"): number | undefined {
     const group = this.findMatchingGroup(userAgent);
     return group?.crawlDelaySeconds;
   }
@@ -212,7 +212,7 @@ export class RobotsParser {
     try {
       const response = await fetch(robotsUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; AgentSmithBot/1.0; +https://agent-smith.local)",
+          "User-Agent": "Mozilla/5.0 (compatible; Protokol7Bot/1.0; +https://protokol-7.local)",
         },
         signal: AbortSignal.timeout(options?.timeoutMs ?? 5000),
       });

@@ -117,7 +117,7 @@ export class InteractiveBrowserController {
     options?: { captureScreenshot?: boolean; timeoutMs?: number }
   ): Promise<BrowserActionResult> {
     const allowLocalNetwork = process.env.NODE_ENV === "test";
-    const ssrfCheck = SSRFGuard.validateUrl(url, { allowLocalNetwork });
+    const ssrfCheck = await SSRFGuard.validateUrlWithDns(url, { allowLocalNetwork });
     if (!ssrfCheck.valid) {
       throw new Error(`SSRF blocked: ${ssrfCheck.reason || "Destination URL not permitted."}`);
     }

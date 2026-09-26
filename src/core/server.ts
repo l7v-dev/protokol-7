@@ -1031,12 +1031,12 @@ export function createServer(): http.Server {
         return;
       }
 
-      // 7. Actor Store & Web MVP Routes
+      // 7. Headless Service Information & Actor Store Routes
       if (
         method === "GET" &&
         (pathname === "/" || pathname === "/store" || pathname === "/dashboard")
       ) {
-        storeRouter.handleServeWeb(req, res);
+        storeRouter.handleServiceInfo(req, res);
         return;
       }
 
@@ -1275,5 +1275,24 @@ if (isMainModule && process.env.NODE_ENV !== "test") {
     console.log(
       `[protokol-7] Web Scraping & Browser Automation Service listening on http://${HOST}:${PORT}`
     );
+  });
+
+  const gracefulShutdown = async (signal: string) => {
+    console.log(`[protokol-7] Received ${signal}. Initiating graceful shutdown...`);
+    server.close(async () => {
+      try {
+        await BrowserPool.shutdown();
+      } catch (err) {
+        console.error("[protokol-7] Error during browser pool shutdown:", err);
+      }
+      process.exit(0);
+    });
+  };
+
+  process.on("SIGINT", () => {
+    void gracefulShutdown("SIGINT");
+  });
+  process.on("SIGTERM", () => {
+    void gracefulShutdown("SIGTERM");
   });
 }
