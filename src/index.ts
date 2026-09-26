@@ -5,6 +5,7 @@
 // Actors
 export * from "./actors/actor-registry";
 export * from "./actors/api-extractor-actor";
+export * from "./actors/archive-extractor-actor";
 export * from "./actors/arxiv-actor";
 export * from "./actors/cheerio-scraper-actor";
 export * from "./actors/crawler-actor";
@@ -23,6 +24,11 @@ export * from "./actors/serp-search-actor";
 export * from "./actors/sitemap-xml-actor";
 export * from "./actors/stack-exchange-actor";
 export * from "./actors/wikimedia-actor";
+// Archive
+export * from "./archive/archive-extractor";
+export * from "./archive/archive-guard";
+export * from "./archive/tar-parser";
+export * from "./archive/zip-parser";
 // Browser
 export * from "./browser/browser-pool";
 export * from "./browser/browser-session-manager";

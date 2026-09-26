@@ -27,7 +27,8 @@ export type ActorType =
   | "europe-pmc"
   | "ietf-rfc"
   | "ktb-ekitap"
-  | "document-extractor";
+  | "document-extractor"
+  | "archive-extractor";
 
 export interface ExtractedTable {
   id: string;
@@ -315,6 +316,36 @@ export interface DocumentExtractorResult {
   sheets?: DocumentSpreadsheetSheet[];
   records?: Array<Record<string, unknown>>;
   markdownTable?: string;
+}
+
+export type ArchiveFormat = "zip" | "tar" | "tar.gz" | "gz" | "rar" | "unknown";
+
+export interface ArchiveEntryResult {
+  path: string;
+  size: number;
+  compressedSize?: number;
+  mimeType: string;
+  sha256: string;
+  textPreview?: string;
+}
+
+export interface ArchiveExtractorTaskOptions {
+  archiveBase64?: string;
+  format?: ArchiveFormat;
+  maxFiles?: number;
+  maxTotalBytes?: number;
+  extractTextPreviews?: boolean;
+  previewLength?: number;
+  timeoutMs?: number;
+}
+
+export interface ArchiveExtractorResult {
+  url?: string;
+  format: ArchiveFormat;
+  totalFiles: number;
+  totalUncompressedBytes: number;
+  entries: ArchiveEntryResult[];
+  securityCheckPassed: boolean;
 }
 
 export interface ArxivAuthor {
@@ -678,6 +709,7 @@ export interface ActorTask {
     saglikEkutuphaneOptions?: SaglikEkutuphaneTaskOptions;
     ktbEkitapOptions?: KtbEkitapTaskOptions;
     documentOptions?: DocumentExtractorTaskOptions;
+    archiveOptions?: ArchiveExtractorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

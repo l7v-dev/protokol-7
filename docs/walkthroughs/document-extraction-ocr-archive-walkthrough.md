@@ -64,3 +64,59 @@ Guven Kademesi (Trust Tier): `1`
   - 6/6 katman basariyla gecti.
 - **Depo ve Ortam Saglik Denetimi (`npm run doctor`):**
   - 7/7 kontrol basariyla gecti.
+
+---
+
+## Faz 2: Guvenli Arsiv Cikarim Motoru (ZIP, TAR, GZ, TGZ, RAR)
+
+### 1. Yapilan Degisiklikler ve Eklenen Bilesenler
+
+1. **`src/core/types.ts`**:
+   - `ArchiveFormat`: `"zip" | "tar" | "tar.gz" | "gz" | "rar" | "unknown"` tipleri tanimlandi.
+   - `ArchiveEntryResult`: Isim, bayt boyutu, dosya turu (file/dir), SHA-256 ozeti, guvenlik uyarisi ve metin onizleme alanlari eklendi.
+   - `ArchiveExtractorTaskOptions` & `ArchiveExtractorResult`: Arsiv cikarim gorevi ve cikti sozlesmesi tanimlandi.
+   - `ActorType` birligine `"archive-extractor"` eklendi.
+
+2. **`src/archive/archive-guard.ts` (`ArchiveGuard`)**:
+   - **Zip Slip Savunmasi**: Null bayt (`\0`), surucu harfleri (`C:`), baslangic egik cizgileri (`/`, `\`) ve goreli yol atlatmalari (`..`) temizlenir; cikarim kokunun disina tasmalar engellenir.
+   - **Zip Bomb Savunmasi**: Maksimum dosya boyutu (100 MB), maksimum dosya sayisi (500) ve acilma orani (maksimum 100:1) sinirlari bayt bazinda dinamik takip edilir; asildiginda guvenlik istisnasi firlatilir.
+
+3. **`src/archive/tar-parser.ts` (`TarParser`)**:
+   - POSIX ustar standardina dayali sifir bagimlilikli TAR arsiv ayristiricisi.
+   - 512 baytlik bloklar uzerinde dosya adi, boyutu, tur bayragi ve checksum dogrulamasi.
+
+4. **`src/archive/zip-parser.ts` (`ZipParser`)**:
+   - Standart PKZip formatini End of Central Directory (EOCD) ve Local File Header basliklariyla ayristirir.
+   - Sikistirilmamis (Store - 0) ve DEFLATE (8) yontemlerini yerel `node:zlib.inflateRawSync` ile acar.
+
+5. **`src/archive/archive-extractor.ts` (`ArchiveExtractor`)**:
+   - ZIP, TAR, TAR.GZ/TGZ, tekli GZ ve RAR (teshis ve baslik analizi) formatlarini destekler.
+   - Magic bytes uzerinden format tespiti (`PK\x03\x04`, `\x1f\x8b`, `Rar!\x1a\x07\x00` veya `ustar`).
+   - Her dosya icin SHA-256 ozeti hesaplar ve metin dosyalarinda `ContextGuard` ile guvenli metin onizlemesi cikarir.
+
+6. **`src/actors/archive-extractor-actor.ts` (`ArchiveExtractorActor`)**:
+   - URL veya Base64 bayt girdisi kabul eder.
+   - `safeRedirectFetch` ile SSRF korumasi ve 100 MB maksimum indirme boyutu uygular.
+   - Istege bagli dosya yolu deseni (`pattern`) ve onizleme karakter limiti (`previewMaxChars`) destekler.
+
+7. **Sistem Entegrasyonu**:
+   - `src/actors/actor-manifests.ts`: `archive-extractor` Store ve MCP araci (`extract_archive`) manifestosu eklendi (toplam 20 MCP araci).
+   - `src/actors/actor-registry.ts`: `ArchiveExtractorActor` merkezi aktör kaydına eklendi.
+   - `src/index.ts`: Arsiv modulleri (`ArchiveGuard`, `ArchiveExtractor`, `TarParser`, `ZipParser`, `ArchiveExtractorActor`) disa aktarildi.
+   - `context/architecture-schema.md`: Arsiv modulu mimari semaya islendi.
+
+---
+
+### 2. Dogrulama Sonuclari
+
+- **Birim ve Entegrasyon Testleri (`npm test`):**
+  - Toplam 42 test paketi, 291/291 test basariyla gecti (0 fail, 0 skip).
+  - `tests/archive-guard.test.ts`: 15/15 passed.
+  - `tests/archive-extractor.test.ts`: 7/7 passed.
+  - `tests/archive-extractor-actor.test.ts`: 5/5 passed.
+  - `tests/protokol-mcp-server.test.ts`: 10/10 passed (20 kayitli MCP araci dogrulandi).
+- **Deterministik Dogrulama Hattı (`npm run verify`):**
+  - 6/6 katman basariyla gecti (Mimari dosya butunlugu, isimlendirme, sifir emoji, secret detection, canli SCA paket dogrulama, Biome linter).
+- **Depo ve Ortam Saglik Denetimi (`npm run doctor`):**
+  - 7/7 kontrol basariyla gecti.
+

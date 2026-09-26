@@ -4,6 +4,7 @@
 
 import type { ActorType, IActor } from "../core/types";
 import { ApiExtractorActor } from "./api-extractor-actor";
+import { ArchiveExtractorActor } from "./archive-extractor-actor";
 import { ArxivActor } from "./arxiv-actor";
 import { CheerioScraperActor } from "./cheerio-scraper-actor";
 import { CrawlerActor } from "./crawler-actor";
@@ -64,5 +65,6 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new SaglikEkutuphaneActor());
   registry.register(new KtbEkitapActor());
   registry.register(new DocumentExtractorActor());
+  registry.register(new ArchiveExtractorActor());
   return registry;
 }

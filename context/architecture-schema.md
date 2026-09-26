@@ -45,8 +45,18 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/actors/saglik-ekutuphane-actor.ts` | `SaglikEkutuphaneActor` | Scrapes Turkish Ministry of Health e-library (ekutuphane.saglik.gov.tr) for medical publications, books, journals, and articles with PDF distillation. |
 | `src/actors/ktb-ekitap-actor.ts` | `KtbEkitapActor` | Scrapes Turkish Ministry of Culture and Tourism e-book portal (ekitap.ktb.gov.tr) with anti-hotlink referral and LLM text sanitization. |
 | `src/actors/document-extractor-actor.ts` | `DocumentExtractorActor` | Extracts textual streams, structured records, tables, and document metadata from office files (DOCX, XLSX), tabular files (CSV, TSV), and plain text formats. |
+| `src/actors/archive-extractor-actor.ts` | `ArchiveExtractorActor` | Extracts and inspects compressed archives (ZIP, TAR, GZ, RAR) with strict Zip Slip path traversal and Zip Bomb volumetric guards. |
 
-### 1.3 Browser Engine (`src/browser/`)
+### 1.3 Archive Subsystem (`src/archive/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/archive/archive-guard.ts` | `ArchiveGuard`, `ArchiveSecurityError` | Enforces Zip Slip path traversal defense and Zip Bomb limits on file size, count, and compression ratio. |
+| `src/archive/tar-parser.ts` | `TarParser` | Parses POSIX ustar standard TAR archive streams with zero external dependencies. |
+| `src/archive/zip-parser.ts` | `ZipParser` | Parses ZIP archives using both Central Directory and Local File Headers with decompression support via native zlib. |
+| `src/archive/archive-extractor.ts` | `ArchiveExtractor` | Safely extracts ZIP, TAR, GZ, and TGZ archives, enforcing Zip Slip and Zip Bomb security checks. |
+
+### 1.4 Browser Engine (`src/browser/`)
 
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|

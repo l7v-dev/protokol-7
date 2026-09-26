@@ -1656,4 +1656,105 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+  "archive-extractor": {
+    actorType: "archive-extractor",
+    name: "archive-extractor",
+    title: "Compressed Archive Extractor",
+    category: "DOCUMENT",
+    version: "1.0.0",
+    description:
+      "Extracts and inspects compressed archives (ZIP, TAR, GZ, RAR) with strict Zip Slip path traversal and Zip Bomb volumetric guards.",
+    author: "protokol-7",
+    tags: ["archive", "zip", "tar", "gzip", "rar", "compression", "security"],
+    inputSchema: {
+      type: "object",
+      title: "Archive Extractor Input",
+      description: "Parameters for extracting and inspecting compressed archives",
+      properties: {
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description: "Remote archive URL (HTTP/HTTPS)",
+          editor: "textfield",
+        },
+        archiveBase64: {
+          name: "archiveBase64",
+          type: "string",
+          title: "Archive Base64",
+          description: "Base64-encoded compressed archive binary payload",
+          editor: "textarea",
+        },
+        format: {
+          name: "format",
+          type: "string",
+          title: "Archive Format",
+          description: "Explicit archive format (zip, tar, tar.gz, gz, rar)",
+          enum: ["zip", "tar", "tar.gz", "gz", "rar"],
+          editor: "select",
+        },
+        maxFiles: {
+          name: "maxFiles",
+          type: "integer",
+          title: "Max Files",
+          description: "Maximum number of files allowed in archive before aborting",
+          editor: "number",
+        },
+        maxTotalBytes: {
+          name: "maxTotalBytes",
+          type: "integer",
+          title: "Max Total Bytes",
+          description: "Maximum uncompressed total byte threshold (Zip Bomb defense)",
+          editor: "number",
+        },
+        extractTextPreviews: {
+          name: "extractTextPreviews",
+          type: "boolean",
+          title: "Extract Text Previews",
+          description: "Whether to extract text preview snippets for textual entries",
+          editor: "checkbox",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        format: { type: "string", description: "Resolved archive format" },
+        totalFiles: { type: "integer", description: "Total extracted file count" },
+        totalUncompressedBytes: {
+          type: "integer",
+          description: "Total uncompressed size in bytes",
+        },
+        entries: { type: "array", description: "List of extracted file entries and hashes" },
+        securityCheckPassed: { type: "boolean", description: "Whether security barriers passed" },
+      },
+    },
+    exampleInput: {
+      targetUrl: "https://example.com/dataset.zip",
+      extractTextPreviews: true,
+    },
+    readme: `# Compressed Archive Extractor\n\nSafely extracts ZIP, TAR, GZ, and TGZ archives with strict defenses against Zip Slip path traversal and decompression bomb exploits.`,
+    mcpTool: {
+      name: "extract_archive",
+      description:
+        "Inspect and extract compressed archives (ZIP, TAR, GZ, RAR) with Zip Slip and Zip Bomb security barriers.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          targetUrl: { type: "string", description: "Remote archive URL" },
+          archiveBase64: { type: "string", description: "Base64 archive binary" },
+          format: {
+            type: "string",
+            enum: ["zip", "tar", "tar.gz", "gz", "rar"],
+            description: "Explicit archive format",
+          },
+          maxFiles: { type: "integer", description: "Maximum files limit" },
+          maxTotalBytes: { type: "integer", description: "Maximum uncompressed size limit" },
+          extractTextPreviews: { type: "boolean", description: "Generate text previews" },
+        },
+        required: [],
+      },
+    },
+  },
 };
