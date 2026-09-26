@@ -19,13 +19,21 @@
     "memory": "node scripts/omega-memory.mjs",
     "sca": "node scripts/sca-check.mjs",
     "mcp": "node scripts/omega-mcp-server.mjs",
+    "mcp:server": "tsx src/mcp/protokol-mcp-server.ts",
     "doctor": "node scripts/doctor.mjs",
     "checkpoint": "node scripts/checkpoint.mjs create",
     "rollback": "node scripts/checkpoint.mjs rollback",
-    "harvest:ekutuphane": "node scripts/harvest-ekutuphane.mjs"
+    "harvest:ekutuphane": "node scripts/harvest-ekutuphane.mjs",
+    "pipedream": "node scripts/pipedream-cli.mjs",
+    "wiki:download": "scripts/wikipedia_pipeline/.venv/bin/python scripts/wikipedia_pipeline/downloader.py",
+    "trwiki:pipeline": "scripts/wikipedia_pipeline/.venv/bin/python scripts/wikipedia_pipeline/run_pipeline.py",
+    "trwiki:multilang": "scripts/wikipedia_pipeline/.venv/bin/python scripts/wikipedia_pipeline/multi_lang_orchestrator.py",
+    "bigdata:pipeline": "scripts/wikipedia_pipeline/.venv/bin/python scripts/bigdata_pipeline/orchestrator.py",
+    "bigdata:test": "scripts/wikipedia_pipeline/.venv/bin/python scripts/bigdata_pipeline/test_bigdata_pipeline.py"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
+    "@pipedream/sdk": "^3.1.6",
     "cheerio": "^1.2.0",
     "jsdom": "^30.0.1",
     "playwright": "^1.62.1",
