@@ -98,7 +98,21 @@ Single source of truth component inventory and file map for `protokol-7`.
 |---|---|---|
 | `src/integrations/pipedream-connect.ts` | `PipedreamConnectService`, `globalPipedreamConnect` | Pipedream Connect SDK wrapper, token creation, account management, and MCP endpoint configurator. |
 
-### 1.7 Model Context Protocol (`src/mcp/`)
+### 1.7 OCR Subsystem (`src/ocr/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/ocr/types.ts` | `IOcrConnector`, `OcrRequest`, `OcrResult`, `OcrPageResult` | Common contracts, interfaces, and request/result schemas for optical character recognition. |
+| `src/ocr/pdf-rasterizer.ts` | `PdfRasterizer` | Converts PDF pages into high-resolution PNG image buffers via Playwright Chromium canvas rendering and extracts embedded images. |
+| `src/ocr/ocr-connector-registry.ts` | `OcrConnectorRegistry`, `globalOcrRegistry` | Registry managing OCR connectors with deterministic fallback priority and multi-page processing. |
+| `src/ocr/connectors/local-llm-vision-connector.ts` | `LocalLlmVisionOcrConnector` | Connects to local multimodal vision LLM endpoints (Ollama, llama.cpp, vLLM, LocalAI) supporting models like llama3.2-vision, qwen2.5-vl, minicpm-v. |
+| `src/ocr/connectors/cloud-vision-connector.ts` | `CloudVisionOcrConnector` | Google Cloud Vision API connector utilizing DOCUMENT_TEXT_DETECTION. |
+| `src/ocr/connectors/mistral-ocr-connector.ts` | `MistralOcrConnector` | Mistral AI Document OCR API connector extracting structured markdown. |
+| `src/ocr/connectors/local-tesseract-connector.ts` | `LocalTesseractOcrConnector` | Local system Tesseract CLI bridge executed via child_process. |
+| `src/ocr/connectors/generic-http-connector.ts` | `GenericHttpOcrConnector` | Configurable HTTP POST connector for enterprise and third-party OCR microservices. |
+| `src/ocr/index.ts` | OCR Barrel | Re-exports all OCR connectors, registry, and rasterizer. |
+
+### 1.8 Model Context Protocol (`src/mcp/`)
 
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
@@ -107,7 +121,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/mcp/protokol-mcp-server.ts` | `ProtokolMcpServer` | Native Stdio JSON-RPC 2.0 MCP server exposing all extraction actors to AI agent clients. |
 | `src/mcp/index.ts` | MCP Barrel | Re-exports MCP server, HTTP transport, and auth guard. |
 
-### 1.8 Pipeline Orchestration (`src/pipeline/`)
+### 1.9 Pipeline Orchestration (`src/pipeline/`)
 
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|

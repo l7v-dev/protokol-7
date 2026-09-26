@@ -5,12 +5,14 @@ import type {
   ActorRunContext,
   ActorTask,
   IActor,
+  PdfDocumentAnomalyInfo,
   PdfDocumentMetadata,
   PdfDocumentResult,
   PdfPageEntry,
 } from "../core/types";
 import { PdfAnomalyDetector } from "../extractors/pdf-anomaly-detector";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
+import { globalOcrRegistry, PdfRasterizer } from "../ocr";
 
 const MAX_PDF_SIZE_BYTES = 30 * 1024 * 1024; // 30 MB
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -140,17 +142,68 @@ export class PdfDocumentActor implements IActor<PdfDocumentResult> {
         };
       });
 
-      const fullText = pages.map((p) => p.text).join("\n\n");
-      const totalCharacters = pages.reduce((sum, p) => sum + p.characterCount, 0);
-      const totalWords = pages.reduce((sum, p) => sum + p.wordCount, 0);
-
       const anomaly = PdfAnomalyDetector.detect({
         uint8Data,
         totalPages,
         rawPageTexts: rawPages,
       });
 
-      const quarantined = Boolean(pdfOptions?.quarantineOnAnomaly && anomaly.isAnomaly);
+      let ocrApplied = false;
+      let ocrConnectorUsed: string | undefined;
+
+      if (pdfOptions?.enableOcrFallback && anomaly.ocrRecommended) {
+        try {
+          let pageImages = await PdfRasterizer.extractEmbeddedImages(uint8Data, 1);
+          if (pageImages.length === 0) {
+            pageImages = await PdfRasterizer.rasterizeAllPages(uint8Data, {
+              maxPages: pdfOptions.maxPages,
+              timeoutMs: pdfOptions.timeoutMs ?? 15000,
+            });
+          }
+
+          if (pageImages.length > 0) {
+            const ocrResult = await globalOcrRegistry.executeMultiPageOcr(
+              pageImages,
+              pdfOptions.ocrConnector
+            );
+
+            if (ocrResult.text.length > 0) {
+              ocrApplied = true;
+              ocrConnectorUsed = ocrResult.connectorName;
+
+              pages.length = 0;
+              for (const p of ocrResult.pages) {
+                const clean = ContextGuard.stripInvisibleUnicode(p.text);
+                pages.push({
+                  pageNumber: p.pageNumber,
+                  text: clean,
+                  characterCount: clean.length,
+                  wordCount: clean.length > 0 ? clean.split(/\s+/).length : 0,
+                });
+              }
+            }
+          }
+        } catch {
+          // OCR fallback failed, retain original anomaly
+        }
+      }
+
+      const finalFullText = pages.map((p) => p.text).join("\n\n");
+      const finalTotalCharacters = pages.reduce((sum, p) => sum + p.characterCount, 0);
+      const finalTotalWords = pages.reduce((sum, p) => sum + p.wordCount, 0);
+
+      const effectiveAnomaly: PdfDocumentAnomalyInfo = ocrApplied
+        ? {
+            status: "EXTRACTABLE",
+            isAnomaly: false,
+            averageCharsPerPage: Math.round(finalTotalCharacters / (pages.length || 1)),
+            ocrRecommended: false,
+            reason: `Extracted via OCR fallback connector (${ocrConnectorUsed}).`,
+            detectedImageCount: anomaly.detectedImageCount,
+          }
+        : anomaly;
+
+      const quarantined = Boolean(pdfOptions?.quarantineOnAnomaly && effectiveAnomaly.isAnomaly);
 
       const metadata: PdfDocumentMetadata = {
         title: meta.info?.Title ? String(meta.info.Title) : undefined,
@@ -167,11 +220,13 @@ export class PdfDocumentActor implements IActor<PdfDocumentResult> {
         extractedPages: pages.length,
         metadata,
         pages,
-        fullText,
-        totalCharacters,
-        totalWords,
-        anomaly,
+        fullText: finalFullText,
+        totalCharacters: finalTotalCharacters,
+        totalWords: finalTotalWords,
+        anomaly: effectiveAnomaly,
         quarantined,
+        ocrApplied,
+        ocrConnectorUsed,
       };
 
       return {

@@ -59,3 +59,6 @@ export * from "./network/safe-redirect-fetcher";
 export * from "./network/ssrf-guard";
 export * from "./network/url-normalizer";
 export * from "./network/url-pattern-matcher";
+
+// OCR
+export * from "./ocr";

@@ -286,6 +286,8 @@ export interface PdfDocumentResult {
   totalWords: number;
   anomaly?: PdfDocumentAnomalyInfo;
   quarantined?: boolean;
+  ocrApplied?: boolean;
+  ocrConnectorUsed?: string;
 }
 
 export type SupportedDocumentFormat = "docx" | "xlsx" | "csv" | "tsv" | "txt" | "json" | "yaml";

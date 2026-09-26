@@ -120,3 +120,69 @@ Guven Kademesi (Trust Tier): `1`
 - **Depo ve Ortam Saglik Denetimi (`npm run doctor`):**
   - 7/7 kontrol basariyla gecti.
 
+---
+
+## Faz 3: OCR Baglayicilari ve Yerel LLM Vizyon Entegrasyonu
+
+### 1. Yapilan Degisiklikler ve Eklenen Bilesenler
+
+1. **`src/ocr/types.ts`**:
+   - `OcrRequest`: `imageBuffer`, `imageBase64`, `mimeType`, `language`, `prompt` ve ek secenekler.
+   - `OcrPageResult`: Sayfa numarasi, taninan metin, guven orani ve tespit edilen dil.
+   - `OcrResult`: Baglayici adi, toplam metin, sayfa dokumu, toplam karakter ve kelime sayisi.
+   - `IOcrConnector`: `name`, `isAvailable(): Promise<boolean>`, `extract(request): Promise<OcrResult>`.
+
+2. **`src/ocr/pdf-rasterizer.ts` (`PdfRasterizer`)**:
+   - **Playwright Chromium + HTML Canvas**: PDF sayfalarini harici Cairo/C++ yerel kutuphanelerine ihtiyac duymadan yuksek cozunurluklu (olceklenebilir) PNG tamponuna donusturur.
+   - **Gömülü Resim Cikarimi**: Taranmis PDF'lerde sayfaya gomulu raster resimleri dogrudan `unpdf.extractImages` ile hizlica ayiklar.
+   - Cikarilan sayfalar ve tarayici oturumlari bellek sizintisi olmadan `BrowserPool.acquireSession` uzerinden guvenle yonetilir.
+
+3. **`src/ocr/connectors/local-llm-vision-connector.ts` (`LocalLlmVisionOcrConnector`)**:
+   - Yerel calisan cok modlu vizyon modelleri (Ollama, llama.cpp, vLLM, LocalAI) icin baglayici.
+   - `llama3.2-vision`, `qwen2.5-vl`, `minicpm-v` modelleriyle tam uyumlu.
+   - Ollama `/api/chat` ve OpenAI uyumlu `/v1/chat/completions` API bicimlerini otomatik algilar.
+   - Goruntuleri base64 formatinda aktarir, hiyerarsik Markdown metni olarak cikarir.
+
+4. **`src/ocr/connectors/cloud-vision-connector.ts` (`CloudVisionOcrConnector`)**:
+   - Google Cloud Vision REST API (`DOCUMENT_TEXT_DETECTION`) baglayicisi.
+   - API anahtari veya servis hesabi ile kimlik dogrulama.
+
+5. **`src/ocr/connectors/mistral-ocr-connector.ts` (`MistralOcrConnector`)**:
+   - Mistral AI Document OCR API (`/v1/ocr`) entegrasyonu.
+   - Cok sayfali dokumanlarda yapisal Markdown cikarimi.
+
+6. **`src/ocr/connectors/local-tesseract-connector.ts` (`LocalTesseractOcrConnector`)**:
+   - Sunucuda `tesseract` binary mevcut oldugunda `child_process` uzerinden yerel OCR gerceklestirir.
+   - Binary yoksa guvenle `isAvailable() === false` dondurur.
+
+7. **`src/ocr/connectors/generic-http-connector.ts` (`GenericHttpOcrConnector`)**:
+   - Kurumsal ozel OCR mikroservisleri icin yapilandirilabilir HTTP POST entegrasyonu (nokta notasyonu JSON cikti cozumleme).
+
+8. **`src/ocr/ocr-connector-registry.ts` (`OcrConnectorRegistry`, `globalOcrRegistry`)**:
+   - Varsayilan baglayicilari kaydeder ve sirali yedekleme (fallback order: `local-llm` -> `cloud-vision` -> `mistral` -> `tesseract` -> `generic-http`) sunar.
+   - Cok sayfali dokumanlar icin `executeMultiPageOcr` yurutucusunu saglar.
+
+9. **`src/actors/pdf-document-actor.ts` Entegrasyonu**:
+   - `enableOcrFallback: true` verildiginde ve taranmis resim PDF'i tespit edildiginde (`anomaly.ocrRecommended === true`), PDF rasterize edilip OCR motoruna aktarilir.
+   - OCR basarili oldugunda dokuman karantinadan cikarilir (`quarantined: false`), durumu `EXTRACTABLE` olarak guncellenir ve sonuca `ocrApplied: true`, `ocrConnectorUsed` alanlari eklenir.
+
+10. **Mimari ve Tip Entegrasyonu**:
+    - `src/core/types.ts`: `PdfDocumentResult` genisletildi (`ocrApplied`, `ocrConnectorUsed`).
+    - `src/index.ts`: OCR alt sistemi disa aktarildi.
+    - `context/architecture-schema.md`: 1.7 OCR Subsystem mimari semaya islendi.
+
+---
+
+### 2. Dogrulama Sonuclari
+
+- **Birim ve Entegrasyon Testleri (`npm test`):**
+  - Toplam 51 test paketi, 316/316 test basariyla gecti (0 fail, 0 skip).
+  - `tests/ocr-connectors.test.ts`: 20/20 passed.
+  - `tests/pdf-rasterizer.test.ts`: 3/3 passed.
+  - `tests/pdf-ocr-pipeline.test.ts`: 2/2 passed.
+- **Deterministik Dogrulama Hattı (`npm run verify`):**
+  - 6/6 katman basariyla gecti.
+- **Depo ve Ortam Saglik Denetimi (`npm run doctor`):**
+  - 7/7 kontrol basariyla gecti.
+
+
