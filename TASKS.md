@@ -9,6 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
+- [x] **Node.js Cekirdegi icin SQLite Kalici Kayit Defteri (RegistryDatabase)** — `Tier: 2` — `node:sqlite` ile `RunRegistry`, `PipelineRunner` ve `ScheduleBroker` kalici SQLite veri katmaninin kurulmasi. Commit: b54018a, 432/432 test gecti.
 - [ ] **GitHub Actions Uzak Wikipedia LLM Parquet ETL Boru Hatti** — `Tier: 1` — Durum: [1] arc, tk, lzh, la tamamlandi ve Google Drive'a muhurlendi (Drive'da 22 dil tamam). [2] dewiki (Run 36305934705) ve [3] enwiki (Run 36306339969) uzak sunucularda aktif calisiyor. Sifir yerel donanim yuku.
 
 ## Bekleyen (Blok var)

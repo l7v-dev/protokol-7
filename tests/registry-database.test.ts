@@ -236,4 +236,76 @@ describe("RegistryDatabase - RunRegistry integration", () => {
     assert.ok(persisted, "run should be in DB");
     assert.equal(persisted?.status, "succeeded");
   });
+
+  it("persists and reads rich metadata (version, domain, status code, byte size)", async () => {
+    const { RunRegistry } = await import("../src/core/run-registry");
+    const db = new RegistryDatabase({ inMemory: true });
+    const registry = new RunRegistry({ db });
+
+    const run = registry.createRun(
+      "cheerio-scraper",
+      { targetUrl: "https://example.com/articles/1" },
+      {
+        actorVersion: "1.2.0",
+        actorCategory: "SCRAPING",
+        executionTarget: "local",
+        sourceUrl: "https://example.com/articles/1",
+        sourceDomain: "example.com",
+        contentLanguage: "en",
+        pipelineRunId: "pipe-batch-42",
+      }
+    );
+
+    registry.startRun(run.runId);
+    const mockOutput = { title: "Test Article", content: "Body text" };
+    const byteSize = Buffer.byteLength(JSON.stringify(mockOutput));
+    registry.completeRun(run.runId, mockOutput, 1, {
+      httpStatusCode: 200,
+      retryCount: 0,
+      byteSizeOutput: byteSize,
+    });
+
+    const retrieved = db.getRun(run.runId);
+    assert.ok(retrieved?.metadata, "metadata should be populated");
+    assert.equal(retrieved.metadata.actorVersion, "1.2.0");
+    assert.equal(retrieved.metadata.actorCategory, "SCRAPING");
+    assert.equal(retrieved.metadata.executionTarget, "local");
+    assert.equal(retrieved.metadata.sourceUrl, "https://example.com/articles/1");
+    assert.equal(retrieved.metadata.sourceDomain, "example.com");
+    assert.equal(retrieved.metadata.contentLanguage, "en");
+    assert.equal(retrieved.metadata.pipelineRunId, "pipe-batch-42");
+    assert.equal(retrieved.metadata.httpStatusCode, 200);
+    assert.equal(retrieved.metadata.retryCount, 0);
+    assert.equal(retrieved.metadata.byteSizeOutput, byteSize);
+  });
+
+  it("persists failure metadata with status code and retry count", async () => {
+    const { RunRegistry } = await import("../src/core/run-registry");
+    const db = new RegistryDatabase({ inMemory: true });
+    const registry = new RunRegistry({ db });
+
+    const run = registry.createRun(
+      "arxiv",
+      { id: "2401.99999" },
+      {
+        actorVersion: "1.1.0",
+        actorCategory: "DOCUMENT",
+        sourceUrl: "https://arxiv.org/abs/2401.99999",
+        sourceDomain: "arxiv.org",
+      }
+    );
+
+    registry.startRun(run.runId);
+    registry.failRun(run.runId, "Paper not found", {
+      httpStatusCode: 404,
+      retryCount: 2,
+    });
+
+    const retrieved = db.getRun(run.runId);
+    assert.ok(retrieved?.metadata);
+    assert.equal(retrieved.status, "failed");
+    assert.equal(retrieved.metadata.httpStatusCode, 404);
+    assert.equal(retrieved.metadata.retryCount, 2);
+    assert.equal(retrieved.metadata.sourceDomain, "arxiv.org");
+  });
 });

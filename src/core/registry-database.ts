@@ -9,7 +9,7 @@ import { dirname } from "node:path";
 import { DatabaseSync, type StatementSync } from "node:sqlite";
 import type { PipelineRunResult } from "../pipeline/pipeline-runner";
 import type { ScheduledJobInfo } from "../pipeline/schedule-broker";
-import type { RunRecord, RunStatus } from "./run-registry";
+import type { RunMetadata, RunRecord, RunStatus } from "./run-registry";
 
 export interface RegistryDatabaseOptions {
   dbPath?: string;
@@ -78,10 +78,46 @@ export class RegistryDatabase {
         error_message TEXT,
         item_count INTEGER DEFAULT 0,
         duration_ms INTEGER,
+        actor_version TEXT,
+        actor_category TEXT,
+        execution_target TEXT DEFAULT 'local',
+        source_url TEXT,
+        source_domain TEXT,
+        content_language TEXT,
+        http_status_code INTEGER,
+        retry_count INTEGER DEFAULT 0,
+        byte_size_output INTEGER DEFAULT 0,
+        pipeline_run_id TEXT,
         started_at TEXT NOT NULL,
         finished_at TEXT
       );
     `);
+
+    // Migration for existing tables created before metadata columns
+    try {
+      const existingCols = new Set(
+        (this.db.prepare("PRAGMA table_info(actor_runs);").all() as Array<{ name: string }>).map((c) => c.name)
+      );
+      const newCols: Array<{ name: string; type: string }> = [
+        { name: "actor_version", type: "TEXT" },
+        { name: "actor_category", type: "TEXT" },
+        { name: "execution_target", type: "TEXT DEFAULT 'local'" },
+        { name: "source_url", type: "TEXT" },
+        { name: "source_domain", type: "TEXT" },
+        { name: "content_language", type: "TEXT" },
+        { name: "http_status_code", type: "INTEGER" },
+        { name: "retry_count", type: "INTEGER DEFAULT 0" },
+        { name: "byte_size_output", type: "INTEGER DEFAULT 0" },
+        { name: "pipeline_run_id", type: "TEXT" },
+      ];
+      for (const col of newCols) {
+        if (!existingCols.has(col.name)) {
+          this.db.exec(`ALTER TABLE actor_runs ADD COLUMN ${col.name} ${col.type};`);
+        }
+      }
+    } catch {
+      // Ignore migration errors during in-memory initialization
+    }
 
     // 2. Actor Run Logs
     this.db.exec(`
@@ -127,6 +163,8 @@ export class RegistryDatabase {
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_actor_runs_status ON actor_runs(status);
       CREATE INDEX IF NOT EXISTS idx_actor_runs_started_at ON actor_runs(started_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_actor_runs_domain ON actor_runs(source_domain);
+      CREATE INDEX IF NOT EXISTS idx_actor_runs_pipeline ON actor_runs(pipeline_run_id);
       CREATE INDEX IF NOT EXISTS idx_actor_run_logs_run_id ON actor_run_logs(run_id);
       CREATE INDEX IF NOT EXISTS idx_pipeline_exec_started ON pipeline_executions(started_at DESC);
       CREATE INDEX IF NOT EXISTS idx_scheduled_jobs_running ON scheduled_jobs(running);
@@ -136,8 +174,9 @@ export class RegistryDatabase {
   private prepareStatements(): void {
     this.stmtInsertRun = this.db.prepare(`
       INSERT OR REPLACE INTO actor_runs (
-        run_id, actor_name, status, input_json, started_at
-      ) VALUES (?, ?, ?, ?, ?)
+        run_id, actor_name, status, input_json, actor_version, actor_category,
+        execution_target, source_url, source_domain, content_language, pipeline_run_id, started_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     this.stmtUpdateRunStatus = this.db.prepare(`
@@ -149,6 +188,9 @@ export class RegistryDatabase {
         status = 'succeeded',
         output_json = ?,
         item_count = ?,
+        http_status_code = COALESCE(?, http_status_code),
+        retry_count = COALESCE(?, retry_count),
+        byte_size_output = COALESCE(?, byte_size_output),
         finished_at = ?,
         duration_ms = ?
       WHERE run_id = ?
@@ -158,6 +200,8 @@ export class RegistryDatabase {
       UPDATE actor_runs SET
         status = 'failed',
         error_message = ?,
+        http_status_code = COALESCE(?, http_status_code),
+        retry_count = COALESCE(?, retry_count),
         finished_at = ?,
         duration_ms = ?
       WHERE run_id = ?
@@ -165,13 +209,19 @@ export class RegistryDatabase {
 
     this.stmtGetRun = this.db.prepare(`
       SELECT run_id, actor_name, status, input_json, output_json, error_message,
-             item_count, duration_ms, started_at, finished_at
+             item_count, duration_ms, actor_version, actor_category,
+             execution_target, source_url, source_domain, content_language,
+             http_status_code, retry_count, byte_size_output, pipeline_run_id,
+             started_at, finished_at
       FROM actor_runs WHERE run_id = ?
     `);
 
     this.stmtListRuns = this.db.prepare(`
       SELECT run_id, actor_name, status, input_json, output_json, error_message,
-             item_count, duration_ms, started_at, finished_at
+             item_count, duration_ms, actor_version, actor_category,
+             execution_target, source_url, source_domain, content_language,
+             http_status_code, retry_count, byte_size_output, pipeline_run_id,
+             started_at, finished_at
       FROM actor_runs ORDER BY started_at DESC LIMIT ?
     `);
 
@@ -235,12 +285,21 @@ export class RegistryDatabase {
     actorName: string;
     input: Record<string, unknown>;
     startedAt: string;
+    metadata?: RunMetadata;
   }): void {
+    const meta = record.metadata;
     this.stmtInsertRun.run(
       record.runId,
       record.actorName,
       "pending",
       JSON.stringify(record.input),
+      meta?.actorVersion || null,
+      meta?.actorCategory || null,
+      meta?.executionTarget || "local",
+      meta?.sourceUrl || null,
+      meta?.sourceDomain || null,
+      meta?.contentLanguage || null,
+      meta?.pipelineRunId || null,
       record.startedAt
     );
   }
@@ -261,19 +320,38 @@ export class RegistryDatabase {
     output: unknown,
     itemCount: number,
     finishedAt: string,
-    durationMs: number
+    durationMs: number,
+    metadata?: RunMetadata
   ): void {
+    const outputJson = output !== undefined ? JSON.stringify(output) : null;
+    const byteSize = metadata?.byteSizeOutput ?? (outputJson ? Buffer.byteLength(outputJson) : 0);
     this.stmtCompleteRun.run(
-      output !== undefined ? JSON.stringify(output) : null,
+      outputJson,
       itemCount,
+      metadata?.httpStatusCode ?? 200,
+      metadata?.retryCount ?? null,
+      byteSize,
       finishedAt,
       durationMs,
       runId
     );
   }
 
-  failRun(runId: string, errorMessage: string, finishedAt: string, durationMs: number): void {
-    this.stmtFailRun.run(errorMessage, finishedAt, durationMs, runId);
+  failRun(
+    runId: string,
+    errorMessage: string,
+    finishedAt: string,
+    durationMs: number,
+    metadata?: RunMetadata
+  ): void {
+    this.stmtFailRun.run(
+      errorMessage,
+      metadata?.httpStatusCode ?? null,
+      metadata?.retryCount ?? null,
+      finishedAt,
+      durationMs,
+      runId
+    );
   }
 
   getRun(runId: string): RunRecord | undefined {
@@ -328,6 +406,42 @@ export class RegistryDatabase {
       }
     }
 
+    const hasMetadata =
+      row.actor_version ||
+      row.actor_category ||
+      row.execution_target ||
+      row.source_url ||
+      row.source_domain ||
+      row.content_language ||
+      row.http_status_code !== null ||
+      row.retry_count !== null ||
+      row.byte_size_output !== null ||
+      row.pipeline_run_id;
+
+    const metadata: RunMetadata | undefined = hasMetadata
+      ? {
+          actorVersion: row.actor_version ? String(row.actor_version) : undefined,
+          actorCategory: row.actor_category ? String(row.actor_category) : undefined,
+          executionTarget: row.execution_target ? String(row.execution_target) : undefined,
+          sourceUrl: row.source_url ? String(row.source_url) : undefined,
+          sourceDomain: row.source_domain ? String(row.source_domain) : undefined,
+          contentLanguage: row.content_language ? String(row.content_language) : undefined,
+          httpStatusCode:
+            row.http_status_code !== null && row.http_status_code !== undefined
+              ? Number(row.http_status_code)
+              : undefined,
+          retryCount:
+            row.retry_count !== null && row.retry_count !== undefined
+              ? Number(row.retry_count)
+              : undefined,
+          byteSizeOutput:
+            row.byte_size_output !== null && row.byte_size_output !== undefined
+              ? Number(row.byte_size_output)
+              : undefined,
+          pipelineRunId: row.pipeline_run_id ? String(row.pipeline_run_id) : undefined,
+        }
+      : undefined;
+
     return {
       runId: String(row.run_id),
       actorName: String(row.actor_name),
@@ -335,11 +449,12 @@ export class RegistryDatabase {
       input,
       output,
       errorMessage: row.error_message ? String(row.error_message) : undefined,
-      itemCount: row.item_count !== null ? Number(row.item_count) : undefined,
-      durationMs: row.duration_ms !== null ? Number(row.duration_ms) : undefined,
+      itemCount: row.item_count !== null && row.item_count !== undefined ? Number(row.item_count) : undefined,
+      durationMs: row.duration_ms !== null && row.duration_ms !== undefined ? Number(row.duration_ms) : undefined,
       startedAt: String(row.started_at),
       finishedAt: row.finished_at ? String(row.finished_at) : undefined,
       logs,
+      metadata,
     };
   }
 

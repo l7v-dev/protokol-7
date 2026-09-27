@@ -7,6 +7,19 @@ import { type RegistryDatabase, getDefaultRegistryDatabase } from "./registry-da
 
 export type RunStatus = "pending" | "running" | "succeeded" | "failed" | "vetoed";
 
+export interface RunMetadata {
+  actorVersion?: string;
+  actorCategory?: string;
+  executionTarget?: string;
+  sourceUrl?: string;
+  sourceDomain?: string;
+  contentLanguage?: string;
+  httpStatusCode?: number;
+  retryCount?: number;
+  byteSizeOutput?: number;
+  pipelineRunId?: string;
+}
+
 export interface RunRecord {
   runId: string;
   actorName: string;
@@ -23,6 +36,7 @@ export interface RunRecord {
   finishedAt?: string;
   durationMs?: number;
   itemCount?: number;
+  metadata?: RunMetadata;
 }
 
 export interface RunRegistryOptions {
@@ -39,7 +53,11 @@ export class RunRegistry extends EventEmitter {
     this.db = options?.db ?? getDefaultRegistryDatabase();
   }
 
-  createRun(actorName: string, input: Record<string, unknown>): RunRecord {
+  createRun(
+    actorName: string,
+    input: Record<string, unknown>,
+    metadata?: Partial<RunMetadata>
+  ): RunRecord {
     // Evict oldest run if maximum capacity reached to prevent memory leaks
     if (this.runs.size >= RunRegistry.MAX_RUNS) {
       const oldestKey = this.runs.keys().next().value;
@@ -56,6 +74,7 @@ export class RunRegistry extends EventEmitter {
       input,
       logs: [],
       startedAt: new Date().toISOString(),
+      metadata: metadata ? { ...metadata } : undefined,
     };
     this.runs.set(runId, record);
     if (this.db) {
@@ -133,7 +152,12 @@ export class RunRegistry extends EventEmitter {
     this.emit(`log:${runId}`, logEntry);
   }
 
-  completeRun(runId: string, output: unknown, itemCount = 0): void {
+  completeRun(
+    runId: string,
+    output: unknown,
+    itemCount = 0,
+    metadataUpdate?: Partial<RunMetadata>
+  ): void {
     const run = this.runs.get(runId);
     if (!run) return;
     run.status = "succeeded";
@@ -141,9 +165,19 @@ export class RunRegistry extends EventEmitter {
     run.itemCount = itemCount;
     run.finishedAt = new Date().toISOString();
     run.durationMs = new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime();
+    if (metadataUpdate) {
+      run.metadata = { ...(run.metadata || {}), ...metadataUpdate };
+    }
     if (this.db) {
       try {
-        this.db.completeRun(runId, output, itemCount, run.finishedAt, run.durationMs);
+        this.db.completeRun(
+          runId,
+          output,
+          itemCount,
+          run.finishedAt,
+          run.durationMs,
+          run.metadata
+        );
       } catch (err) {
         console.error(`[DB_ERROR] Failed to complete run ${runId}:`, err);
       }
@@ -153,16 +187,29 @@ export class RunRegistry extends EventEmitter {
     this.emit(`done:${runId}`, run);
   }
 
-  failRun(runId: string, errorMessage: string): void {
+  failRun(
+    runId: string,
+    errorMessage: string,
+    metadataUpdate?: Partial<RunMetadata>
+  ): void {
     const run = this.runs.get(runId);
     if (!run) return;
     run.status = "failed";
     run.errorMessage = errorMessage;
     run.finishedAt = new Date().toISOString();
     run.durationMs = new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime();
+    if (metadataUpdate) {
+      run.metadata = { ...(run.metadata || {}), ...metadataUpdate };
+    }
     if (this.db) {
       try {
-        this.db.failRun(runId, errorMessage, run.finishedAt, run.durationMs);
+        this.db.failRun(
+          runId,
+          errorMessage,
+          run.finishedAt,
+          run.durationMs,
+          run.metadata
+        );
       } catch (err) {
         console.error(`[DB_ERROR] Failed to fail run ${runId}:`, err);
       }

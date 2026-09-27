@@ -77,7 +77,29 @@ export class StoreRouter {
       }
     }
 
-    const run = globalRunRegistry.createRun(name, body);
+    const targetUrl = String(body.targetUrl || body.url || "");
+    let sourceDomain: string | undefined;
+    if (targetUrl) {
+      try {
+        sourceDomain = new URL(targetUrl).hostname;
+      } catch {
+        sourceDomain = undefined;
+      }
+    }
+
+    const rawOpts = (body.options as Record<string, unknown>) || {};
+    const contentLanguage = body.language || rawOpts.language
+      ? String(body.language || rawOpts.language)
+      : undefined;
+
+    const run = globalRunRegistry.createRun(name, body, {
+      actorVersion: manifest.version,
+      actorCategory: manifest.category,
+      executionTarget: "local",
+      sourceUrl: targetUrl || undefined,
+      sourceDomain,
+      contentLanguage,
+    });
     globalRunRegistry.startRun(run.runId);
 
     // Özel Sağlık E-Kütüphane çalıştırması
@@ -123,7 +145,6 @@ export class StoreRouter {
       return;
     }
 
-    const targetUrl = String(body.targetUrl || "");
     const rawOptions = (body.options as Record<string, unknown>) || {};
     const task: ActorTask = {
       taskId: run.runId,
@@ -458,16 +479,25 @@ export class StoreRouter {
           else if (Array.isArray(d.results)) count = d.results.length;
           else if (Array.isArray(d.studies)) count = d.studies.length;
         }
-        globalRunRegistry.completeRun(run.runId, result.data, count);
+        const outputJson = JSON.stringify(result.data || {});
+        const byteSize = Buffer.byteLength(outputJson, "utf8");
+        globalRunRegistry.completeRun(run.runId, result.data, count, {
+          httpStatusCode: result.statusCode || 200,
+          byteSizeOutput: byteSize,
+        });
         sendJson(res, 200, { runId: run.runId, status: "succeeded", result });
       } else {
         const err = result.errorMessage || "Aktör çalıştırma hatası.";
-        globalRunRegistry.failRun(run.runId, err);
+        globalRunRegistry.failRun(run.runId, err, {
+          httpStatusCode: result.statusCode || 500,
+        });
         sendJson(res, 500, { runId: run.runId, status: "failed", error: err });
       }
     } catch (e) {
       const err = e instanceof Error ? e.message : String(e);
-      globalRunRegistry.failRun(run.runId, err);
+      globalRunRegistry.failRun(run.runId, err, {
+        httpStatusCode: 500,
+      });
       sendJson(res, 500, { runId: run.runId, status: "failed", error: err });
     }
   }
