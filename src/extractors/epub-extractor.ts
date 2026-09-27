@@ -147,7 +147,8 @@ export class EpubExtractor {
       // Strip dangerous and noisy elements
       $chap("script, style, iframe, object, embed").remove();
       $chap("*").each((_, el) => {
-        const attribs = (el as cheerio.Element).attribs || {};
+        const attribs =
+          "attribs" in el ? (el as { attribs?: Record<string, string> }).attribs || {} : {};
         for (const attr of Object.keys(attribs)) {
           if (attr.startsWith("on")) {
             $chap(el).removeAttr(attr);
@@ -244,7 +245,7 @@ export class EpubExtractor {
     const getField = (name: string): string | undefined => {
       let val: string | undefined;
       $opf("metadata *").each((_, el) => {
-        const tag = (el as cheerio.Element).name || "";
+        const tag = "name" in el ? (el as { name?: string }).name || "" : "";
         if (tag === name || tag === `dc:${name}` || tag.endsWith(`:${name}`)) {
           const text = $opf(el).text().trim();
           if (text && !val) {
@@ -258,7 +259,7 @@ export class EpubExtractor {
     const getFields = (name: string): string[] => {
       const results: string[] = [];
       $opf("metadata *").each((_, el) => {
-        const tag = (el as cheerio.Element).name || "";
+        const tag = "name" in el ? (el as { name?: string }).name || "" : "";
         if (tag === name || tag === `dc:${name}` || tag.endsWith(`:${name}`)) {
           const text = $opf(el).text().trim();
           if (text) results.push(text);
@@ -433,10 +434,7 @@ export class EpubExtractor {
     const rootList = navElem.children("ol, ul").first();
     if (rootList.length === 0) return [];
 
-    const parseList = (
-      listEl: cheerio.Cheerio<cheerio.Element>,
-      level: number
-    ): TableOfContentsItem[] => {
+    const parseList = (listEl: ReturnType<typeof $>, level: number): TableOfContentsItem[] => {
       const items: TableOfContentsItem[] = [];
 
       listEl.children("li").each((_, li) => {
@@ -474,10 +472,7 @@ export class EpubExtractor {
     const navMap = $("navMap");
     if (navMap.length === 0) return [];
 
-    const parsePoints = (
-      parentEl: cheerio.Cheerio<cheerio.Element>,
-      level: number
-    ): TableOfContentsItem[] => {
+    const parsePoints = (parentEl: ReturnType<typeof $>, level: number): TableOfContentsItem[] => {
       const items: TableOfContentsItem[] = [];
 
       parentEl.children("navPoint").each((_, el) => {

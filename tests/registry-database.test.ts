@@ -4,8 +4,9 @@
  */
 
 import assert from "node:assert/strict";
-import { describe, it, before } from "node:test";
+import { before, describe, it } from "node:test";
 import { RegistryDatabase } from "../src/core/registry-database";
+import { RunRegistry } from "../src/core/run-registry";
 
 describe("RegistryDatabase - Actor Runs", () => {
   let db: RegistryDatabase;
@@ -54,7 +55,13 @@ describe("RegistryDatabase - Actor Runs", () => {
   });
 
   it("completeRun sets status to succeeded with output and metrics", () => {
-    db.completeRun("run-1", { papers: [{ title: "Attention Is All You Need" }] }, 1, "2026-01-01T00:00:05.000Z", 5000);
+    db.completeRun(
+      "run-1",
+      { papers: [{ title: "Attention Is All You Need" }] },
+      1,
+      "2026-01-01T00:00:05.000Z",
+      5000
+    );
     const run = db.getRun("run-1");
     assert.equal(run?.status, "succeeded");
     assert.equal(run?.itemCount, 1);
@@ -219,7 +226,6 @@ describe("RegistryDatabase - Scheduled Jobs", () => {
 
 describe("RegistryDatabase - RunRegistry integration", () => {
   it("RunRegistry persists and retrieves runs through RegistryDatabase", async () => {
-    const { RunRegistry } = await import("../src/core/run-registry");
     const db = new RegistryDatabase({ inMemory: true });
     const registry = new RunRegistry({ db });
 
@@ -238,7 +244,6 @@ describe("RegistryDatabase - RunRegistry integration", () => {
   });
 
   it("persists and reads rich metadata (version, domain, status code, byte size)", async () => {
-    const { RunRegistry } = await import("../src/core/run-registry");
     const db = new RegistryDatabase({ inMemory: true });
     const registry = new RunRegistry({ db });
 
@@ -280,7 +285,6 @@ describe("RegistryDatabase - RunRegistry integration", () => {
   });
 
   it("persists failure metadata with status code and retry count", async () => {
-    const { RunRegistry } = await import("../src/core/run-registry");
     const db = new RegistryDatabase({ inMemory: true });
     const registry = new RunRegistry({ db });
 
@@ -307,5 +311,59 @@ describe("RegistryDatabase - RunRegistry integration", () => {
     assert.equal(retrieved.metadata.httpStatusCode, 404);
     assert.equal(retrieved.metadata.retryCount, 2);
     assert.equal(retrieved.metadata.sourceDomain, "arxiv.org");
+  });
+});
+
+describe("RegistryDatabase - Dataset Shards", () => {
+  it("records and queries dataset shards with full cryptographic metadata", () => {
+    const db = new RegistryDatabase({ inMemory: true });
+
+    db.recordDatasetShard({
+      shardId: "shard-wiki-001",
+      pipelineRunId: "run-pipeline-1",
+      datasetName: "trwiki-articles",
+      fileName: "trwiki-part-0001.parquet",
+      storageUri: "s3://protokol-cold-vault/trwiki/trwiki-part-0001.parquet",
+      storageBackend: "s3",
+      recordCount: 50000,
+      sizeBytes: 524288000,
+      sha256Hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      compressionCodec: "zstd",
+      createdAt: "2026-01-01T12:00:00.000Z",
+    });
+
+    db.recordDatasetShard({
+      shardId: "shard-wiki-002",
+      pipelineRunId: "run-pipeline-1",
+      datasetName: "trwiki-articles",
+      fileName: "trwiki-part-0002.parquet",
+      storageUri: "s3://protokol-cold-vault/trwiki/trwiki-part-0002.parquet",
+      storageBackend: "s3",
+      recordCount: 48500,
+      sizeBytes: 512000000,
+      sha256Hash: "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+      compressionCodec: "zstd",
+      createdAt: "2026-01-01T12:30:00.000Z",
+    });
+
+    const shards = db.listDatasetShards("trwiki-articles");
+    assert.equal(shards.length, 2);
+    assert.equal(shards[0].shardId, "shard-wiki-002"); // order by created_at desc
+    assert.equal(shards[1].shardId, "shard-wiki-001");
+
+    const singleShard = db.getDatasetShard("shard-wiki-001");
+    assert.ok(singleShard);
+    assert.equal(singleShard.datasetName, "trwiki-articles");
+    assert.equal(singleShard.recordCount, 50000);
+    assert.equal(singleShard.sizeBytes, 524288000);
+    assert.equal(singleShard.compressionCodec, "zstd");
+    assert.equal(singleShard.storageBackend, "s3");
+    assert.equal(
+      singleShard.sha256Hash,
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    );
+
+    const nonExistent = db.getDatasetShard("non-existent");
+    assert.equal(nonExistent, undefined);
   });
 });

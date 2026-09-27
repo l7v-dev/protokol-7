@@ -47,7 +47,9 @@ export class PdfRasterizer {
     const uint8Data = this.toPureUint8Array(pdfBuffer);
     try {
       const rawImages = await extractImages(uint8Data, pageNumber);
-      return rawImages.map((img) => Buffer.from(img));
+      return rawImages.map((img) =>
+        Buffer.from(img.data.buffer, img.data.byteOffset, img.data.byteLength)
+      );
     } catch {
       return [];
     }

@@ -11,6 +11,20 @@ import type { PipelineRunResult } from "../pipeline/pipeline-runner";
 import type { ScheduledJobInfo } from "../pipeline/schedule-broker";
 import type { RunMetadata, RunRecord, RunStatus } from "./run-registry";
 
+export interface DatasetShardRecord {
+  shardId: string;
+  pipelineRunId?: string;
+  datasetName: string;
+  fileName: string;
+  storageUri: string;
+  storageBackend: string;
+  recordCount: number;
+  sizeBytes: number;
+  sha256Hash: string;
+  compressionCodec?: string;
+  createdAt: string;
+}
+
 export interface RegistryDatabaseOptions {
   dbPath?: string;
   inMemory?: boolean;
@@ -39,9 +53,15 @@ export class RegistryDatabase {
   private stmtSetJobRunning!: StatementSync;
   private stmtListJobs!: StatementSync;
 
+  private stmtInsertShard!: StatementSync;
+  private stmtListShardsByDataset!: StatementSync;
+  private stmtListShardsAll!: StatementSync;
+  private stmtGetShard!: StatementSync;
+
   constructor(options?: RegistryDatabaseOptions) {
     const isTest = process.env.NODE_ENV === "test";
-    this.isMemory = options?.inMemory ?? (options?.dbPath === ":memory:" || (isTest && !options?.dbPath));
+    this.isMemory =
+      options?.inMemory ?? (options?.dbPath === ":memory:" || (isTest && !options?.dbPath));
     this.dbPath = this.isMemory
       ? ":memory:"
       : options?.dbPath || process.env.PROTOKOL_DB_PATH || "data/protokol_registry.sqlite";
@@ -96,7 +116,9 @@ export class RegistryDatabase {
     // Migration for existing tables created before metadata columns
     try {
       const existingCols = new Set(
-        (this.db.prepare("PRAGMA table_info(actor_runs);").all() as Array<{ name: string }>).map((c) => c.name)
+        (this.db.prepare("PRAGMA table_info(actor_runs);").all() as Array<{ name: string }>).map(
+          (c) => c.name
+        )
       );
       const newCols: Array<{ name: string; type: string }> = [
         { name: "actor_version", type: "TEXT" },
@@ -159,6 +181,23 @@ export class RegistryDatabase {
       );
     `);
 
+    // 5. Dataset Shards (Big Data Shard Inventory & Verification Ledger)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS dataset_shards (
+        shard_id TEXT PRIMARY KEY,
+        pipeline_run_id TEXT,
+        dataset_name TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        storage_uri TEXT NOT NULL,
+        storage_backend TEXT NOT NULL,
+        record_count INTEGER NOT NULL DEFAULT 0,
+        size_bytes INTEGER NOT NULL DEFAULT 0,
+        sha256_hash TEXT NOT NULL,
+        compression_codec TEXT NOT NULL DEFAULT 'zstd',
+        created_at TEXT NOT NULL
+      );
+    `);
+
     // Indexes
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_actor_runs_status ON actor_runs(status);
@@ -168,6 +207,8 @@ export class RegistryDatabase {
       CREATE INDEX IF NOT EXISTS idx_actor_run_logs_run_id ON actor_run_logs(run_id);
       CREATE INDEX IF NOT EXISTS idx_pipeline_exec_started ON pipeline_executions(started_at DESC);
       CREATE INDEX IF NOT EXISTS idx_scheduled_jobs_running ON scheduled_jobs(running);
+      CREATE INDEX IF NOT EXISTS idx_dataset_shards_dataset ON dataset_shards(dataset_name);
+      CREATE INDEX IF NOT EXISTS idx_dataset_shards_pipeline ON dataset_shards(pipeline_run_id);
     `);
   }
 
@@ -275,6 +316,31 @@ export class RegistryDatabase {
     this.stmtListJobs = this.db.prepare(`
       SELECT job_id, cron_expression, running, last_run_at, run_count
       FROM scheduled_jobs ORDER BY job_id ASC
+    `);
+
+    this.stmtInsertShard = this.db.prepare(`
+      INSERT OR REPLACE INTO dataset_shards (
+        shard_id, pipeline_run_id, dataset_name, file_name, storage_uri,
+        storage_backend, record_count, size_bytes, sha256_hash, compression_codec, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    this.stmtListShardsByDataset = this.db.prepare(`
+      SELECT shard_id, pipeline_run_id, dataset_name, file_name, storage_uri,
+             storage_backend, record_count, size_bytes, sha256_hash, compression_codec, created_at
+      FROM dataset_shards WHERE dataset_name = ? ORDER BY created_at DESC LIMIT ?
+    `);
+
+    this.stmtListShardsAll = this.db.prepare(`
+      SELECT shard_id, pipeline_run_id, dataset_name, file_name, storage_uri,
+             storage_backend, record_count, size_bytes, sha256_hash, compression_codec, created_at
+      FROM dataset_shards ORDER BY created_at DESC LIMIT ?
+    `);
+
+    this.stmtGetShard = this.db.prepare(`
+      SELECT shard_id, pipeline_run_id, dataset_name, file_name, storage_uri,
+             storage_backend, record_count, size_bytes, sha256_hash, compression_codec, created_at
+      FROM dataset_shards WHERE shard_id = ?
     `);
   }
 
@@ -397,7 +463,7 @@ export class RegistryDatabase {
       input = {};
     }
 
-    let output: unknown = undefined;
+    let output: unknown;
     if (row.output_json) {
       try {
         output = JSON.parse(String(row.output_json));
@@ -449,8 +515,14 @@ export class RegistryDatabase {
       input,
       output,
       errorMessage: row.error_message ? String(row.error_message) : undefined,
-      itemCount: row.item_count !== null && row.item_count !== undefined ? Number(row.item_count) : undefined,
-      durationMs: row.duration_ms !== null && row.duration_ms !== undefined ? Number(row.duration_ms) : undefined,
+      itemCount:
+        row.item_count !== null && row.item_count !== undefined
+          ? Number(row.item_count)
+          : undefined,
+      durationMs:
+        row.duration_ms !== null && row.duration_ms !== undefined
+          ? Number(row.duration_ms)
+          : undefined,
       startedAt: String(row.started_at),
       finishedAt: row.finished_at ? String(row.finished_at) : undefined,
       logs,
@@ -525,6 +597,66 @@ export class RegistryDatabase {
       lastRunAt: row.last_run_at ? String(row.last_run_at) : undefined,
       runCount: Number(row.run_count),
     }));
+  }
+
+  // --- Dataset Shards API ---
+
+  recordDatasetShard(shard: DatasetShardRecord): void {
+    this.stmtInsertShard.run(
+      shard.shardId,
+      shard.pipelineRunId || null,
+      shard.datasetName,
+      shard.fileName,
+      shard.storageUri,
+      shard.storageBackend,
+      shard.recordCount,
+      shard.sizeBytes,
+      shard.sha256Hash,
+      shard.compressionCodec || "zstd",
+      shard.createdAt
+    );
+  }
+
+  listDatasetShards(datasetName?: string, limit = 50): DatasetShardRecord[] {
+    const rows = (
+      datasetName
+        ? this.stmtListShardsByDataset.all(datasetName, limit)
+        : this.stmtListShardsAll.all(limit)
+    ) as Record<string, unknown>[];
+
+    return rows.map((row) => ({
+      shardId: String(row.shard_id),
+      pipelineRunId: row.pipeline_run_id ? String(row.pipeline_run_id) : undefined,
+      datasetName: String(row.dataset_name),
+      fileName: String(row.file_name),
+      storageUri: String(row.storage_uri),
+      storageBackend: String(row.storage_backend),
+      recordCount: Number(row.record_count),
+      sizeBytes: Number(row.size_bytes),
+      sha256Hash: String(row.sha256_hash),
+      compressionCodec: row.compression_codec ? String(row.compression_codec) : undefined,
+      createdAt: String(row.created_at),
+    }));
+  }
+
+  getDatasetShard(shardId: string): DatasetShardRecord | undefined {
+    const row = this.stmtGetShard.get(shardId) as Record<string, unknown> | undefined;
+    if (!row) {
+      return undefined;
+    }
+    return {
+      shardId: String(row.shard_id),
+      pipelineRunId: row.pipeline_run_id ? String(row.pipeline_run_id) : undefined,
+      datasetName: String(row.dataset_name),
+      fileName: String(row.file_name),
+      storageUri: String(row.storage_uri),
+      storageBackend: String(row.storage_backend),
+      recordCount: Number(row.record_count),
+      sizeBytes: Number(row.size_bytes),
+      sha256Hash: String(row.sha256_hash),
+      compressionCodec: row.compression_codec ? String(row.compression_codec) : undefined,
+      createdAt: String(row.created_at),
+    };
   }
 
   close(): void {

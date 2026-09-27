@@ -3,7 +3,7 @@
  * Standard 5-field cron parser and scheduler using native node:timers with zero external dependencies.
  */
 
-import { type RegistryDatabase, getDefaultRegistryDatabase } from "../core/registry-database";
+import { getDefaultRegistryDatabase, type RegistryDatabase } from "../core/registry-database";
 import { PipelineError } from "./schema";
 
 export interface ScheduledJobInfo {
@@ -252,5 +252,3 @@ export class ScheduleBroker {
     }));
   }
 }
-
-

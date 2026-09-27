@@ -69,7 +69,7 @@ test("SecEdgarActor queries corporate filings by CIK directly", async () => {
         },
       },
       {
-        task: { taskId: "test-sec-1", actorType: "sec-edgar" },
+        task: { taskId: "test-sec-1", actorType: "sec-edgar", targetUrl },
         startTime: Date.now(),
       }
     );
@@ -81,9 +81,9 @@ test("SecEdgarActor queries corporate filings by CIK directly", async () => {
     assert.equal(result.data.sic, "3571");
     assert.equal(result.data.filings.length, 3);
     assert.equal(result.data.filings[0].form, "10-K");
-    assert.ok(result.data.markdown.includes("# SEC EDGAR Filings: Apple Inc. (CIK: 0000320193)"));
-    assert.ok(result.data.markdown.includes("10-K"));
-    assert.ok(userAgentHeader?.includes("protokol-7"));
+    assert.ok(result.data.markdown?.includes("# SEC EDGAR Filings: Apple Inc. (CIK: 0000320193)"));
+    assert.ok(result.data.markdown?.includes("10-K"));
+    assert.ok(String(userAgentHeader).includes("protokol-7"));
   } finally {
     server.close();
   }
@@ -115,7 +115,7 @@ test("SecEdgarActor filters filings by formType and limit", async () => {
         },
       },
       {
-        task: { taskId: "test-sec-2", actorType: "sec-edgar" },
+        task: { taskId: "test-sec-2", actorType: "sec-edgar", targetUrl },
         startTime: Date.now(),
       }
     );
@@ -160,7 +160,7 @@ test("SecEdgarActor resolves ticker symbol to CIK via ticker endpoint", async ()
         },
       },
       {
-        task: { taskId: "test-sec-3", actorType: "sec-edgar" },
+        task: { taskId: "test-sec-3", actorType: "sec-edgar", targetUrl },
         startTime: Date.now(),
       }
     );
@@ -179,12 +179,13 @@ test("SecEdgarActor fails when neither ticker nor CIK is provided", async () => 
     {
       taskId: "test-sec-4",
       actorType: "sec-edgar",
+      targetUrl: "https://data.sec.gov",
       options: {
         secEdgarOptions: {},
       },
     },
     {
-      task: { taskId: "test-sec-4", actorType: "sec-edgar" },
+      task: { taskId: "test-sec-4", actorType: "sec-edgar", targetUrl: "https://data.sec.gov" },
       startTime: Date.now(),
     }
   );

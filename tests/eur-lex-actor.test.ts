@@ -75,7 +75,7 @@ test("EurLexActor fetches and normalizes EU regulation by CELEX number", async (
         },
       },
       {
-        task: { taskId: "test-eur-1", actorType: "eur-lex" },
+        task: { taskId: "test-eur-1", actorType: "eur-lex", targetUrl },
         startTime: Date.now(),
       }
     );
@@ -117,7 +117,7 @@ test("EurLexActor queries CELLAR SPARQL endpoint for legal acts", async () => {
         },
       },
       {
-        task: { taskId: "test-eur-2", actorType: "eur-lex" },
+        task: { taskId: "test-eur-2", actorType: "eur-lex", targetUrl },
         startTime: Date.now(),
       }
     );
@@ -140,12 +140,13 @@ test("EurLexActor fails when neither CELEX nor query is provided", async () => {
     {
       taskId: "test-eur-3",
       actorType: "eur-lex",
+      targetUrl: "https://eur-lex.europa.eu",
       options: {
         eurLexOptions: {},
       },
     },
     {
-      task: { taskId: "test-eur-3", actorType: "eur-lex" },
+      task: { taskId: "test-eur-3", actorType: "eur-lex", targetUrl: "https://eur-lex.europa.eu" },
       startTime: Date.now(),
     }
   );

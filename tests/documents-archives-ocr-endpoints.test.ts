@@ -151,7 +151,7 @@ describe("REST Endpoints - Documents, Archives, and OCR", () => {
         data?: {
           format: string;
           totalFiles: number;
-          entries?: Array<{ name: string; textPreview?: string }>;
+          entries?: Array<{ path?: string; name?: string; textPreview?: string }>;
         };
       };
 

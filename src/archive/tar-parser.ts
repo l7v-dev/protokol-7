@@ -49,7 +49,7 @@ export class TarParser {
       if (!isDirectory && validSize > 0) {
         const dataEnd = offset + validSize;
         if (dataEnd <= buffer.length) {
-          fileData = buffer.subarray(offset, dataEnd);
+          fileData = Buffer.from(buffer.subarray(offset, dataEnd));
         }
       }
 

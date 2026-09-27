@@ -3,7 +3,7 @@
  */
 
 import { EventEmitter } from "node:events";
-import { type RegistryDatabase, getDefaultRegistryDatabase } from "./registry-database";
+import { getDefaultRegistryDatabase, type RegistryDatabase } from "./registry-database";
 
 export type RunStatus = "pending" | "running" | "succeeded" | "failed" | "vetoed";
 
@@ -170,14 +170,7 @@ export class RunRegistry extends EventEmitter {
     }
     if (this.db) {
       try {
-        this.db.completeRun(
-          runId,
-          output,
-          itemCount,
-          run.finishedAt,
-          run.durationMs,
-          run.metadata
-        );
+        this.db.completeRun(runId, output, itemCount, run.finishedAt, run.durationMs, run.metadata);
       } catch (err) {
         console.error(`[DB_ERROR] Failed to complete run ${runId}:`, err);
       }
@@ -187,11 +180,7 @@ export class RunRegistry extends EventEmitter {
     this.emit(`done:${runId}`, run);
   }
 
-  failRun(
-    runId: string,
-    errorMessage: string,
-    metadataUpdate?: Partial<RunMetadata>
-  ): void {
+  failRun(runId: string, errorMessage: string, metadataUpdate?: Partial<RunMetadata>): void {
     const run = this.runs.get(runId);
     if (!run) return;
     run.status = "failed";
@@ -203,13 +192,7 @@ export class RunRegistry extends EventEmitter {
     }
     if (this.db) {
       try {
-        this.db.failRun(
-          runId,
-          errorMessage,
-          run.finishedAt,
-          run.durationMs,
-          run.metadata
-        );
+        this.db.failRun(runId, errorMessage, run.finishedAt, run.durationMs, run.metadata);
       } catch (err) {
         console.error(`[DB_ERROR] Failed to fail run ${runId}:`, err);
       }

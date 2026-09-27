@@ -12,7 +12,7 @@ import type { ProxyConfig } from "../network/proxy-manager";
 import { globalRunRegistry } from "./run-registry";
 import type { ActorTask, ApiExtractorTaskOptions } from "./types";
 
-const POOL_ROOT = process.env.PROTOKOL_POOL_ROOT || "/home/l7v/protokol-data-pool";
+const POOL_ROOT = process.env.PROTOKOL_POOL_ROOT || join(process.cwd(), "protokol-data-pool");
 
 function sendJson(res: http.ServerResponse, statusCode: number, data: unknown): void {
   res.writeHead(statusCode, {
@@ -88,9 +88,8 @@ export class StoreRouter {
     }
 
     const rawOpts = (body.options as Record<string, unknown>) || {};
-    const contentLanguage = body.language || rawOpts.language
-      ? String(body.language || rawOpts.language)
-      : undefined;
+    const contentLanguage =
+      body.language || rawOpts.language ? String(body.language || rawOpts.language) : undefined;
 
     const run = globalRunRegistry.createRun(name, body, {
       actorVersion: manifest.version,
@@ -101,40 +100,6 @@ export class StoreRouter {
       contentLanguage,
     });
     globalRunRegistry.startRun(run.runId);
-
-    // Özel Sağlık E-Kütüphane çalıştırması
-    if (name === "saglik-ekutuphane") {
-      const checkpointPath = join(
-        POOL_ROOT,
-        "out/saglik-ekutuphane/00_map_index_pool/checkpoint.json"
-      );
-      if (existsSync(checkpointPath)) {
-        try {
-          const cp = JSON.parse(readFileSync(checkpointPath, "utf8"));
-          globalRunRegistry.appendLog(
-            run.runId,
-            "INFO",
-            `Havuz durumu okundu: ${cp.stats.extracted_texts} damıtılmış yayın mevcut.`
-          );
-          globalRunRegistry.completeRun(
-            run.runId,
-            {
-              stats: cp.stats,
-              categories: cp.categories,
-              poolRoot: POOL_ROOT,
-            },
-            cp.stats.extracted_texts || 0
-          );
-          sendJson(res, 200, { runId: run.runId, status: "succeeded", run });
-          return;
-        } catch (e) {
-          const err = e instanceof Error ? e.message : String(e);
-          globalRunRegistry.failRun(run.runId, err);
-          sendJson(res, 500, { runId: run.runId, status: "failed", error: err });
-          return;
-        }
-      }
-    }
 
     // Çekirdek aktör çalıştırıcısı
     const actor = this.registry.get(manifest.actorType);

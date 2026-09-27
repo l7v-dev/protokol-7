@@ -24,7 +24,6 @@
     "doctor": "node scripts/doctor.mjs",
     "checkpoint": "node scripts/checkpoint.mjs create",
     "rollback": "node scripts/checkpoint.mjs rollback",
-    "harvest:ekutuphane": "node scripts/harvest-ekutuphane.mjs",
     "pipedream": "node scripts/pipedream-cli.mjs",
     "wiki:download": "scripts/wikipedia_pipeline/.venv/bin/python scripts/wikipedia_pipeline/downloader.py",
     "trwiki:pipeline": "scripts/wikipedia_pipeline/.venv/bin/python scripts/wikipedia_pipeline/run_pipeline.py",

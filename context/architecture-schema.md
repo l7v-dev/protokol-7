@@ -11,7 +11,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/core/types.ts` | `ScrapedPageResult`, `ActorTask`, `BrowserActionResult`, `CrawlerResult` | Core TypeScript interfaces and shared contract definitions. |
-| `src/core/registry-database.ts` | `RegistryDatabase`, `getDefaultRegistryDatabase` | ACID SQLite persistence layer for actor runs, event logs, pipeline executions, and scheduled jobs using native `node:sqlite` with zero external dependencies. WAL mode for concurrent access; in-memory for test isolation. |
+| `src/core/registry-database.ts` | `RegistryDatabase`, `getDefaultRegistryDatabase`, `DatasetShardRecord` | ACID SQLite persistence layer for actor runs, event logs, pipeline executions, scheduled jobs, and dataset shards using native `node:sqlite` with zero external dependencies. Tracks rich execution metadata, shard inventories, cryptographic SHA-256 hashes, and storage receipts. WAL mode for concurrent access; in-memory for test isolation. |
 | `src/core/run-registry.ts` | `RunRegistry`, `RunRecord`, `globalRunRegistry` | Tracks execution runs with dual-layer storage: in-memory Map for SSE event delivery and `RegistryDatabase` for cross-restart ACID persistence. Emits live log events per run. |
 | `src/core/store-router.ts` | `StoreRouter` | Actor Store API router, live log SSE streaming, quarantine inspector, and headless service information endpoint. |
 | `src/core/openapi-spec.ts` | `OPENAPI_SPECIFICATION`, `renderDocsHtml` | OpenAPI 3.1.0 schema specification and zero-dependency interactive documentation HTML generator. |
@@ -244,7 +244,10 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `docs/protokol-cold-vault-mimari-sartnamesi.md` | Architecture Spec | Specification for the upcoming protokol-cold-vault offline storage repository. |
 | `.env.example` | Config Template | Environment template with `PIPEDREAM_PROJECT_ID=proj_zNsBAEe` and `PIPEDREAM_ENVIRONMENT=production`. |
 | `scripts/pipedream-cli.mjs` | CLI Runner | Pipedream Connect status verification, user token generation, account listing, and MCP endpoint inspector. |
-| `scripts/harvest-ekutuphane.mjs` | Pipeline Runner | Resumable data extraction pipeline for ekutuphane.saglik.gov.tr with 8-character naming and gzip compression. |
+| `examples/pipelines/saglik-ekutuphane-sample.yaml` | Pipeline Config | Sample pipeline configuration for Turkish Ministry of Health e-library scraping actor. |
+| `examples/pipelines/ktb-ekitap-sample.yaml` | Pipeline Config | Sample pipeline configuration for Turkish Ministry of Culture e-book scraping actor. |
+| `examples/pipelines/bigdata-parquet-sample.yaml` | Pipeline Config | Sample pipeline configuration for big data LLM datasets with zstd-compressed Parquet sharding. |
+| `examples/pipelines/wikimedia-sample.yaml` | Pipeline Config | Sample pipeline configuration for Wikimedia encyclopedic article extraction. |
 | `notebooks/tr_wikipedia_pipeline.ipynb` | Colab Notebook | End-to-end pipeline: trwiki dump download, Wikitext parsing, ZSTD Parquet chunking, and Drive packaging. |
 | `docs/plans/tr-wikipedia-colab-drive-plani.md` | Architecture Plan | Complete plan specification for Turkish Wikipedia dump processing and Google Drive delivery. |
 | `docs/plans/pipedream-connect-entegrasyon-plani.md` | Architecture Plan | Plan specification for Pipedream Connect SDK, REST/MCP routes, and CLI tooling. |

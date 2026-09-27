@@ -3,6 +3,7 @@
  * Coordinates validation, actor resolution, execution target dispatch, output processing, and storage routing.
  */
 
+import { getDefaultRegistryDatabase, type RegistryDatabase } from "../core/registry-database";
 import { ActorResolver } from "./actor-resolver";
 import { ConnectorRegistry } from "./connectors/connector-registry";
 import { resolveEnvString } from "./connectors/env-resolver";
@@ -30,7 +31,6 @@ import { GoogleDriveStorage } from "./storage/google-drive-storage";
 import { LocalStorage } from "./storage/local-storage";
 import { R2Storage } from "./storage/r2-storage";
 import { S3Storage } from "./storage/s3-storage";
-import { type RegistryDatabase, getDefaultRegistryDatabase } from "../core/registry-database";
 
 export interface PipelineRunResult {
   runId: string;
@@ -273,6 +273,23 @@ export class PipelineRunner {
       if (this.registryDb) {
         try {
           this.registryDb.recordPipelineExecution(completedResult);
+          if (completedResult.receipt) {
+            this.registryDb.recordDatasetShard({
+              shardId: `shard_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+              pipelineRunId: completedResult.runId,
+              datasetName: config.name,
+              fileName: processedOutput.fileName,
+              storageUri: completedResult.receipt.uri,
+              storageBackend: completedResult.receipt.backend,
+              recordCount: completedResult.itemCount,
+              sizeBytes: completedResult.receipt.bytesWritten,
+              sha256Hash: completedResult.receipt.checksumSha256,
+              compressionCodec:
+                config.output?.compression ||
+                (config.output?.format === "parquet" ? "zstd" : "none"),
+              createdAt: completedResult.completedAt,
+            });
+          }
         } catch (err) {
           console.error("[DB_ERROR] Failed to persist pipeline execution:", err);
         }
@@ -306,9 +323,9 @@ export class PipelineRunner {
   }
 
   getRunHistory(limit?: number): PipelineRunResult[] {
-    if (this.registryDb) {
+    if (limit !== undefined && this.registryDb) {
       try {
-        return this.registryDb.listPipelineExecutions(limit ?? 50);
+        return this.registryDb.listPipelineExecutions(limit);
       } catch (err) {
         console.error("[DB_ERROR] Failed to list pipeline executions:", err);
       }
@@ -463,13 +480,5 @@ export class PipelineRunner {
       `Unsupported storage backend '${backendType}'. Registered backends: ${Array.from(this.storageBackends.keys()).join(", ")}`,
       "UNSUPPORTED_STORAGE_BACKEND"
     );
-  }
-
-  getRunHistory(): PipelineRunResult[] {
-    return [...this.runHistory];
-  }
-
-  getFailedRuns(): PipelineRunResult[] {
-    return [...this.failedRuns];
   }
 }

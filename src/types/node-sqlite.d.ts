@@ -1,4 +1,3 @@
-
 declare module "node:sqlite" {
   export interface StatementSync {
     run(...params: unknown[]): { changes: number | bigint; lastInsertRowid: number | bigint };

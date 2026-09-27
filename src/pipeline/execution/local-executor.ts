@@ -66,10 +66,16 @@ export class LocalExecutor implements ExecutionTarget {
     }
 
     const taskId = `pipeline-run-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const rawOptions = (config.options as Record<string, unknown>) || {};
     const task: ActorTask = {
       taskId,
       actorType: manifest.actorType,
-      targetUrl: typeof config.targetUrl === "string" ? config.targetUrl : "",
+      targetUrl:
+        typeof config.targetUrl === "string"
+          ? config.targetUrl
+          : typeof config.url === "string"
+            ? config.url
+            : "",
       selectors: config.selectors as Record<string, string> | undefined,
       options: {
         timeoutMs: typeof config.timeoutMs === "number" ? config.timeoutMs : 30000,
@@ -79,31 +85,83 @@ export class LocalExecutor implements ExecutionTarget {
         blockAssets: config.blockAssets !== false,
         extractTables: config.extractTables !== false,
         extractJsonLd: config.extractJsonLd !== false,
-        crawlerOptions: config.crawlerOptions as object | undefined,
-        pdfOptions: config.pdfOptions as object | undefined,
+        crawlerOptions: (config.crawlerOptions || rawOptions.crawlerOptions) as object | undefined,
+        pdfOptions: (config.pdfOptions || rawOptions.pdfOptions) as object | undefined,
         serpOptions: (config.serpOptions ||
+          rawOptions.serpOptions ||
           (config.query ? { query: config.query, maxResults: config.maxResults } : undefined)) as
           | object
           | undefined,
         arxivOptions: (config.arxivOptions ||
+          rawOptions.arxivOptions ||
           (config.searchQuery || config.idList ? config : undefined)) as object | undefined,
         wikimediaOptions: (config.wikimediaOptions ||
+          rawOptions.wikimediaOptions ||
           (config.title || config.lang || config.action || config.query ? config : undefined)) as
           | object
           | undefined,
         openalexOptions: (config.openalexOptions ||
+          rawOptions.openalexOptions ||
           (config.searchQuery || config.doi ? config : undefined)) as object | undefined,
         stackExchangeOptions: (config.stackExchangeOptions ||
+          rawOptions.stackExchangeOptions ||
           (config.query || config.site ? config : undefined)) as object | undefined,
         gutenbergOptions: (config.gutenbergOptions ||
+          rawOptions.gutenbergOptions ||
           (config.searchQuery || config.bookId ? config : undefined)) as object | undefined,
-        europePmcOptions: (config.europePmcOptions || (config.query ? config : undefined)) as
-          | object
-          | undefined,
+        europePmcOptions: (config.europePmcOptions ||
+          rawOptions.europePmcOptions ||
+          (config.query ? config : undefined)) as object | undefined,
         ietfRfcOptions: (config.ietfRfcOptions ||
+          rawOptions.ietfRfcOptions ||
           (config.rfcNumber || config.query ? config : undefined)) as object | undefined,
-        saglikEkutuphaneOptions: config.saglikEkutuphaneOptions as object | undefined,
-        ktbEkitapOptions: config.ktbEkitapOptions as object | undefined,
+        saglikEkutuphaneOptions: (config.saglikEkutuphaneOptions ||
+          rawOptions.saglikEkutuphaneOptions ||
+          (manifest.actorType === "saglik-ekutuphane" ? config : undefined)) as object | undefined,
+        ktbEkitapOptions: (config.ktbEkitapOptions ||
+          rawOptions.ktbEkitapOptions ||
+          (manifest.actorType === "ktb-ekitap" ? config : undefined)) as object | undefined,
+        clinicalTrialsOptions: (config.clinicalTrialsOptions ||
+          rawOptions.clinicalTrialsOptions ||
+          (manifest.actorType === "clinical-trials" ? config : undefined)) as object | undefined,
+        openFdaOptions: (config.openFdaOptions ||
+          rawOptions.openFdaOptions ||
+          (manifest.actorType === "open-fda" ? config : undefined)) as object | undefined,
+        secEdgarOptions: (config.secEdgarOptions ||
+          rawOptions.secEdgarOptions ||
+          (manifest.actorType === "sec-edgar" ? config : undefined)) as object | undefined,
+        courtListenerOptions: (config.courtListenerOptions ||
+          rawOptions.courtListenerOptions ||
+          (manifest.actorType === "court-listener" ? config : undefined)) as object | undefined,
+        softwareHeritageOptions: (config.softwareHeritageOptions ||
+          rawOptions.softwareHeritageOptions ||
+          (manifest.actorType === "software-heritage" ? config : undefined)) as object | undefined,
+        eurLexOptions: (config.eurLexOptions ||
+          rawOptions.eurLexOptions ||
+          (manifest.actorType === "eur-lex" ? config : undefined)) as object | undefined,
+        openstaxOptions: (config.openstaxOptions ||
+          config.openStaxOptions ||
+          rawOptions.openstaxOptions ||
+          (manifest.actorType === "openstax" ? config : undefined)) as object | undefined,
+        mitOcwOptions: (config.mitOcwOptions ||
+          rawOptions.mitOcwOptions ||
+          (manifest.actorType === "mit-ocw" ? config : undefined)) as object | undefined,
+        dergiParkOptions: (config.dergiParkOptions ||
+          rawOptions.dergiParkOptions ||
+          (manifest.actorType === "dergipark" ? config : undefined)) as object | undefined,
+        internetArchiveOptions: (config.internetArchiveOptions ||
+          rawOptions.internetArchiveOptions ||
+          (manifest.actorType === "internet-archive" ? config : undefined)) as object | undefined,
+        archiveOptions: (config.archiveOptions ||
+          rawOptions.archiveOptions ||
+          (manifest.actorType === "archive-extractor" ? config : undefined)) as object | undefined,
+        documentOptions: (config.documentOptions ||
+          rawOptions.documentOptions ||
+          (manifest.actorType === "document-extractor" ? config : undefined)) as object | undefined,
+        epubOptions: (config.epubOptions ||
+          rawOptions.epubOptions ||
+          (manifest.actorType === "epub-extractor" ? config : undefined)) as object | undefined,
+        ...rawOptions,
       },
     };
 

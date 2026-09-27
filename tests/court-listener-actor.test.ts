@@ -82,7 +82,7 @@ test("CourtListenerActor searches case law opinions with query and court filter"
         },
       },
       {
-        task: { taskId: "test-cl-1", actorType: "court-listener" },
+        task: { taskId: "test-cl-1", actorType: "court-listener", targetUrl },
         startTime: Date.now(),
       }
     );
@@ -93,8 +93,8 @@ test("CourtListenerActor searches case law opinions with query and court filter"
     assert.equal(result.data.results.length, 2);
     assert.equal(result.data.results[0].caseName, "Oracle America, Inc. v. Google LLC");
     assert.equal(result.data.results[0].judge, "Breyer");
-    assert.ok(result.data.markdown.includes("# CourtListener Case Law Search: fair use api"));
-    assert.ok(result.data.markdown.includes("Oracle America, Inc. v. Google LLC"));
+    assert.ok(result.data.markdown?.includes("# CourtListener Case Law Search: fair use api"));
+    assert.ok(result.data.markdown?.includes("Oracle America, Inc. v. Google LLC"));
     assert.equal(interceptedQuery, "fair use api");
     assert.equal(interceptedCourt, "scotus");
   } finally {
@@ -126,7 +126,7 @@ test("CourtListenerActor fetches single opinion by opinionId", async () => {
         },
       },
       {
-        task: { taskId: "test-cl-2", actorType: "court-listener" },
+        task: { taskId: "test-cl-2", actorType: "court-listener", targetUrl },
         startTime: Date.now(),
       }
     );
@@ -135,8 +135,8 @@ test("CourtListenerActor fetches single opinion by opinionId", async () => {
     assert.ok(result.data);
     assert.equal(result.data.results.length, 1);
     assert.equal(result.data.results[0].id, 4862590);
-    assert.ok(result.data.markdown.includes("# CourtListener Opinion #4862590"));
-    assert.ok(result.data.markdown.includes("Justice Breyer delivered the opinion"));
+    assert.ok(result.data.markdown?.includes("# CourtListener Opinion #4862590"));
+    assert.ok(result.data.markdown?.includes("Justice Breyer delivered the opinion"));
   } finally {
     server.close();
   }
@@ -148,12 +148,17 @@ test("CourtListenerActor fails when no search parameters are given", async () =>
     {
       taskId: "test-cl-3",
       actorType: "court-listener",
+      targetUrl: "https://www.courtlistener.com/api/rest/v4/search/",
       options: {
         courtListenerOptions: {},
       },
     },
     {
-      task: { taskId: "test-cl-3", actorType: "court-listener" },
+      task: {
+        taskId: "test-cl-3",
+        actorType: "court-listener",
+        targetUrl: "https://www.courtlistener.com/api/rest/v4/search/",
+      },
       startTime: Date.now(),
     }
   );

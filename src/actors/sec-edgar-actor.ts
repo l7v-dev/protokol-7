@@ -109,7 +109,7 @@ export class SecEdgarActor implements IActor<SecEdgarActorResult> {
       }
 
       const cik = this.resolveCik(task, options);
-      if (!cik && !task.targetUrl) {
+      if (!cik) {
         return {
           taskId: task.taskId,
           actorType: this.actorType,

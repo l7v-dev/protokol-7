@@ -101,7 +101,7 @@ test("OpenFdaActor queries drug label dataset and normalizes results", async () 
     assert.ok(result.data.markdown?.includes("# openFDA Dataset Results (drug/label)"));
     assert.ok(result.data.markdown?.includes("Brand Name**: Advil"));
     assert.ok(result.data.markdown?.includes("Generic Name**: Ibuprofen"));
-    assert.ok(Boolean(interceptedSearch?.includes("ibuprofen")));
+    assert.ok(String(interceptedSearch).includes("ibuprofen"));
     assert.equal(interceptedLimit, "5");
   } finally {
     server.close();

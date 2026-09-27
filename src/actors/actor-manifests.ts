@@ -23,6 +23,7 @@ export interface ActorInputField {
   prefill?: unknown;
   enum?: string[];
   editor?: "textfield" | "textarea" | "select" | "json" | "checkbox" | "number";
+  properties?: Record<string, unknown>;
 }
 
 export interface ActorInputSchema {

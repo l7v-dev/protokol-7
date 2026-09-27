@@ -56,6 +56,7 @@ describe("PdfDocumentActor with OCR Fallback Pipeline", () => {
     const task: ActorTask = {
       taskId: "task-no-ocr",
       actorType: "pdf-document",
+      targetUrl: "file://scanned.pdf",
       options: {
         pdfOptions: {
           pdfBase64: scannedPdf.toString("base64"),
@@ -65,7 +66,7 @@ describe("PdfDocumentActor with OCR Fallback Pipeline", () => {
       },
     };
 
-    const result = await actor.run(task, { taskId: task.taskId });
+    const result = await actor.run(task, { task, startTime: Date.now() });
 
     assert.strictEqual(result.status, "completed");
     assert.strictEqual(result.statusCode, 200);
@@ -80,6 +81,7 @@ describe("PdfDocumentActor with OCR Fallback Pipeline", () => {
     const task: ActorTask = {
       taskId: "task-with-ocr",
       actorType: "pdf-document",
+      targetUrl: "file://scanned.pdf",
       options: {
         pdfOptions: {
           pdfBase64: scannedPdf.toString("base64"),
@@ -90,7 +92,7 @@ describe("PdfDocumentActor with OCR Fallback Pipeline", () => {
       },
     };
 
-    const result = await actor.run(task, { taskId: task.taskId });
+    const result = await actor.run(task, { task, startTime: Date.now() });
 
     assert.strictEqual(result.status, "completed");
     assert.strictEqual(result.statusCode, 200);

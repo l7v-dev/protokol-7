@@ -88,7 +88,7 @@ export class EurLexActor implements IActor<EurLexActorResult> {
       const celex = this.resolveCelex(task, options);
       const query = options.query?.trim();
 
-      if (!celex && !query && !task.targetUrl) {
+      if (!celex && !query) {
         return {
           taskId: task.taskId,
           actorType: this.actorType,

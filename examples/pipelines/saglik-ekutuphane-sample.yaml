@@ -1,0 +1,23 @@
+name: saglik-ekutuphane-pipeline
+version: 1
+
+actor:
+  id: saglik-ekutuphane
+  config:
+    category: books
+    limit: 10
+    action: list
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: local
+  prefix: "datasets/saglik-ekutuphane"

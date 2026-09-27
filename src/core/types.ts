@@ -346,6 +346,7 @@ export interface ArchiveEntryResult {
 export interface ArchiveExtractorTaskOptions {
   archiveBase64?: string;
   format?: ArchiveFormat;
+  pattern?: string;
   maxFiles?: number;
   maxTotalBytes?: number;
   extractTextPreviews?: boolean;
@@ -923,6 +924,7 @@ export interface SecEdgarActorTaskOptions {
   cik?: string | number;
   ticker?: string;
   form?: string;
+  formType?: string;
   limit?: number;
   format?: "markdown" | "json";
   timeoutMs?: number;
@@ -963,6 +965,7 @@ export interface CourtListenerActorTaskOptions {
   statPrecedential?: string;
   page?: number;
   pageSize?: number;
+  limit?: number;
   opinionId?: number | string;
   format?: "markdown" | "json";
   timeoutMs?: number;
@@ -1161,8 +1164,9 @@ export interface ActorResult<T = unknown> {
 }
 
 export interface ActorRunContext {
-  task: ActorTask;
-  startTime: number;
+  task?: ActorTask;
+  taskId?: EntityId;
+  startTime?: number;
 }
 
 export interface IActor<T = unknown> {

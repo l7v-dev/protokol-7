@@ -66,7 +66,7 @@ test("SoftwareHeritageActor extracts raw code blob for swh:1:cnt SWHID", async (
         },
       },
       {
-        task: { taskId: "test-swh-1", actorType: "software-heritage" },
+        task: { taskId: "test-swh-1", actorType: "software-heritage", targetUrl },
         startTime: Date.now(),
       }
     );
@@ -110,7 +110,7 @@ test("SoftwareHeritageActor traverses directory tree for swh:1:dir SWHID", async
         },
       },
       {
-        task: { taskId: "test-swh-2", actorType: "software-heritage" },
+        task: { taskId: "test-swh-2", actorType: "software-heritage", targetUrl },
         startTime: Date.now(),
       }
     );
@@ -150,7 +150,7 @@ test("SoftwareHeritageActor inspects repository origin visits", async () => {
         },
       },
       {
-        task: { taskId: "test-swh-3", actorType: "software-heritage" },
+        task: { taskId: "test-swh-3", actorType: "software-heritage", targetUrl },
         startTime: Date.now(),
       }
     );
@@ -171,12 +171,17 @@ test("SoftwareHeritageActor fails when no target is provided", async () => {
     {
       taskId: "test-swh-4",
       actorType: "software-heritage",
+      targetUrl: "https://archive.softwareheritage.org",
       options: {
         softwareHeritageOptions: {},
       },
     },
     {
-      task: { taskId: "test-swh-4", actorType: "software-heritage" },
+      task: {
+        taskId: "test-swh-4",
+        actorType: "software-heritage",
+        targetUrl: "https://archive.softwareheritage.org",
+      },
       startTime: Date.now(),
     }
   );

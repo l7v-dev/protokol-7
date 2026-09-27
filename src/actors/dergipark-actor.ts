@@ -246,7 +246,7 @@ export class DergiParkActor implements IActor<DergiParkActorResult> {
 
   private parseRecord(
     $: ReturnType<typeof cheerio.load>,
-    el: cheerio.Element
+    el: Parameters<ReturnType<typeof cheerio.load>>[0]
   ): DergiParkArticle | undefined {
     const $el = $(el);
     const header = $el.find("header").first();

@@ -57,7 +57,7 @@ export class ZipParser {
       if (!isDirectory && dataEnd <= buffer.length) {
         const rawSlice = buffer.subarray(dataStart, dataEnd);
         if (compressionMethod === 0) {
-          fileData = rawSlice;
+          fileData = Buffer.from(rawSlice);
         } else if (compressionMethod === 8) {
           try {
             fileData = inflateRawSync(rawSlice);
@@ -118,7 +118,7 @@ export class ZipParser {
             if (dataEnd <= buffer.length) {
               const rawSlice = buffer.subarray(dataStart, dataEnd);
               if (compressionMethod === 0) {
-                fileData = rawSlice;
+                fileData = Buffer.from(rawSlice);
               } else if (compressionMethod === 8) {
                 try {
                   fileData = inflateRawSync(rawSlice);
