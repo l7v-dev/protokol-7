@@ -45,6 +45,10 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
       description: "Dynamic actor store, execution registry, and quarantine inspectors",
     },
     { name: "Integrations", description: "Pipedream Connect OAuth and MCP endpoint bridges" },
+    {
+      name: "Pipelines",
+      description: "Declarative YAML extraction, quality filtering, and sharding pipelines",
+    },
     { name: "System", description: "Health checks, agent manifests, and OpenAPI metadata" },
   ],
   paths: {
@@ -1193,6 +1197,93 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
         responses: {
           "200": { description: "Run execution result with runId." },
+        },
+      },
+    },
+    "/api/v1/pipelines/run": {
+      post: {
+        tags: ["Pipelines"],
+        summary: "Execute Declarative YAML Pipeline",
+        description:
+          "Executes a declarative pipeline to acquire, normalize, quality filter, deduplicate, and shard LLM dataset items.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  yaml: { type: "string", description: "Raw YAML pipeline definition." },
+                  filePath: {
+                    type: "string",
+                    description: "Relative path to YAML pipeline file.",
+                  },
+                  config: { type: "object", description: "Parsed JSON pipeline configuration." },
+                  async: {
+                    type: "boolean",
+                    description: "If true, executes asynchronously in background and returns 202.",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Pipeline executed successfully." },
+          "202": { description: "Pipeline execution started in background." },
+          "400": { description: "Invalid pipeline payload or missing parameters." },
+          "422": { description: "Pipeline execution failed." },
+        },
+      },
+    },
+    "/api/v1/pipelines/runs": {
+      get: {
+        tags: ["Pipelines"],
+        summary: "List Pipeline Execution Runs",
+        description: "Returns recent pipeline execution records and statuses.",
+        parameters: [
+          {
+            name: "limit",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 50 },
+            description: "Maximum number of executions to return.",
+          },
+        ],
+        responses: {
+          "200": { description: "Pipeline executions array." },
+        },
+      },
+    },
+    "/api/v1/pipelines/runs/{id}": {
+      get: {
+        tags: ["Pipelines"],
+        summary: "Get Pipeline Execution Details",
+        description:
+          "Returns metadata, status, duration, item count, and storage receipt for a run.",
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+            description: "Pipeline execution ID.",
+          },
+        ],
+        responses: {
+          "200": { description: "Pipeline run details." },
+          "404": { description: "Run not found." },
+        },
+      },
+    },
+    "/api/v1/pipelines/templates": {
+      get: {
+        tags: ["Pipelines"],
+        summary: "List Available Pipeline Templates",
+        description:
+          "Returns pre-configured sample pipeline YAML templates from examples/pipelines/.",
+        responses: {
+          "200": { description: "Pipeline templates array." },
         },
       },
     },

@@ -11,11 +11,13 @@ import { globalPipedreamConnect } from "../integrations/pipedream-connect";
 import { HttpMcpTransport, ProtokolMcpServer } from "../mcp";
 import { globalOcrRegistry } from "../ocr";
 import { OPENAPI_SPECIFICATION, renderDocsHtml } from "./openapi-spec";
+import { PipelineRouter, type PipelineRunRequestBody } from "./pipeline-router";
 import { StoreRouter } from "./store-router";
 import type { ActorTask, ActorType, ArchiveFormat, SupportedDocumentFormat } from "./types";
 
 const registry = createDefaultActorRegistry();
 const storeRouter = new StoreRouter(registry);
+const pipelineRouter = new PipelineRouter();
 const mcpServer = new ProtokolMcpServer(registry);
 const httpMcpTransport = new HttpMcpTransport(mcpServer);
 const PORT = parseInt(process.env.PORT || "4000", 10);
@@ -2003,6 +2005,29 @@ export function createServer(): http.Server {
             details: msg,
           });
         }
+        return;
+      }
+
+      // 8. Declarative YAML Pipeline Execution & History Routes
+      if (method === "POST" && pathname === "/api/v1/pipelines/run") {
+        const body = await parseBody<PipelineRunRequestBody>(req);
+        await pipelineRouter.handleRunPipeline(res, body);
+        return;
+      }
+
+      if (method === "GET" && pathname === "/api/v1/pipelines/runs") {
+        pipelineRouter.handleListRuns(req, res);
+        return;
+      }
+
+      if (method === "GET" && pathname.startsWith("/api/v1/pipelines/runs/")) {
+        const runId = pathname.slice("/api/v1/pipelines/runs/".length);
+        pipelineRouter.handleGetRun(res, runId);
+        return;
+      }
+
+      if (method === "GET" && pathname === "/api/v1/pipelines/templates") {
+        pipelineRouter.handleListTemplates(res);
         return;
       }
 

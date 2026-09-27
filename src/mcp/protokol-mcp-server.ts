@@ -8,10 +8,11 @@
  */
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import readline from "node:readline";
 import { ACTOR_MANIFESTS, type ActorManifest } from "../actors/actor-manifests";
 import { ActorRegistry, createDefaultActorRegistry } from "../actors/actor-registry";
+import { getDefaultRegistryDatabase } from "../core/registry-database";
 import { globalRunRegistry } from "../core/run-registry";
 import type {
   ActorTask,
@@ -43,6 +44,8 @@ import type {
   StackExchangeActorTaskOptions,
   WikimediaActorTaskOptions,
 } from "../core/types";
+import { PipelineRunner, type PipelineRunResult } from "../pipeline/pipeline-runner";
+import type { PipelineConfig } from "../pipeline/schema";
 
 export interface JsonRpcRequest {
   jsonrpc: "2.0";
@@ -79,11 +82,53 @@ export class ProtokolMcpServer {
   }
 
   getTools() {
-    return Array.from(this.toolToManifestMap.values()).map((m) => ({
+    const actorTools = Array.from(this.toolToManifestMap.values()).map((m) => ({
       name: m.mcpTool.name,
       description: m.mcpTool.description,
       inputSchema: m.mcpTool.inputSchema,
     }));
+
+    const pipelineTools = [
+      {
+        name: "run_pipeline",
+        description:
+          "Executes a declarative YAML pipeline to acquire, normalize, quality filter, deduplicate, and shard LLM dataset items to local or cloud storage.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            yaml: {
+              type: "string",
+              description: "Raw YAML pipeline definition string.",
+            },
+            filePath: {
+              type: "string",
+              description:
+                "Relative path to a YAML pipeline template, e.g. 'examples/pipelines/corpus-parquet-sample.yaml'.",
+            },
+            config: {
+              type: "object",
+              description: "Parsed JSON pipeline configuration object.",
+            },
+          },
+        },
+      },
+      {
+        name: "list_pipelines",
+        description:
+          "Lists available pre-configured YAML pipeline templates in examples/pipelines/ and recent pipeline execution records.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            limit: {
+              type: "number",
+              description: "Maximum number of recent runs to return (default: 20).",
+            },
+          },
+        },
+      },
+    ];
+
+    return [...actorTools, ...pipelineTools];
   }
 
   async processRequest(request: JsonRpcRequest): Promise<JsonRpcResponse | null> {
@@ -136,6 +181,95 @@ export class ProtokolMcpServer {
       case "tools/call": {
         const toolName = params?.name as string;
         const toolArgs = (params?.arguments as Record<string, unknown>) || {};
+
+        if (toolName === "run_pipeline") {
+          const yaml = toolArgs.yaml as string | undefined;
+          const filePath = toolArgs.filePath as string | undefined;
+          const config = toolArgs.config as PipelineConfig | undefined;
+
+          if (!yaml && !filePath && !config) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: "[ERROR] At least one of 'yaml', 'filePath', or 'config' must be provided to run_pipeline.",
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+
+          try {
+            const runner = new PipelineRunner();
+            let result: PipelineRunResult;
+            if (filePath) {
+              const rootDir = process.cwd();
+              const resolved = resolve(rootDir, filePath);
+              if (!resolved.startsWith(rootDir) || resolved.includes("..")) {
+                throw new Error("Access outside workspace directory is forbidden.");
+              }
+              result = await runner.runFile(resolved);
+            } else if (yaml) {
+              result = await runner.runYaml(yaml);
+            } else {
+              result = await runner.runConfig(config!);
+            }
+
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: JSON.stringify(result, null, 2),
+                  },
+                ],
+                isError: result.status === "failed",
+              },
+            };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [{ type: "text", text: `[ERROR] Pipeline execution failed: ${msg}` }],
+                isError: true,
+              },
+            };
+          }
+        }
+
+        if (toolName === "list_pipelines") {
+          const pipelinesDir = join(process.cwd(), "examples", "pipelines");
+          const templates: string[] = [];
+          if (existsSync(pipelinesDir)) {
+            templates.push(
+              ...readdirSync(pipelinesDir).filter((f) => f.endsWith(".yaml") || f.endsWith(".yml"))
+            );
+          }
+          const db = getDefaultRegistryDatabase();
+          const runs = db ? db.listPipelineExecutions(Number(toolArgs.limit) || 20) : [];
+
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({ templates, recentRuns: runs }, null, 2),
+                },
+              ],
+            },
+          };
+        }
+
         const manifest = this.toolToManifestMap.get(toolName);
 
         if (!manifest) {

@@ -13,9 +13,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/ocr/types.ts` | 60 | 5 | Yardımcı Modül |
 | `src/network/safe-redirect-fetcher.ts` | 29 | 2 | Yardımcı Modül |
 | `src/network/ssrf-guard.ts` | 26 | 3 | Yardımcı Modül |
-| `src/core/server.ts` | 13 | 1 | Giriş Noktası (Server) |
-| `src/server.ts` | 13 | 0 | Giriş Noktası (Server) |
-| `src/pipeline/schema.ts` | 11 | 19 | Yardımcı Modül |
+| `src/core/server.ts` | 14 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 14 | 0 | Giriş Noktası (Server) |
+| `src/pipeline/schema.ts` | 13 | 19 | Yardımcı Modül |
 | `src/core/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/mcp/index.ts` | 10 | 0 | Yardımcı Modül |
@@ -25,24 +25,24 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/processors/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/index.ts` | 10 | 2 | Yardımcı Modül |
+| `src/pipeline/pipeline-runner.ts` | 8 | 3 | Yardımcı Modül |
 | `src/browser/browser-pool.ts` | 7 | 4 | Kaynak Yöneticisi (BrowserPool) |
+| `src/core/registry-database.ts` | 7 | 7 | Bileşen Tescili (Registry) |
 | `src/core/context-guard.ts` | 6 | 4 | Yardımcı Modül |
 | `src/core/run-registry.ts` | 6 | 6 | Bileşen Tescili (Registry) |
-| `src/pipeline/pipeline-runner.ts` | 6 | 3 | Yardımcı Modül |
 | `src/actors/actor-registry.ts` | 5 | 2 | Bileşen Tescili (Registry) |
-| `src/core/registry-database.ts` | 5 | 7 | Bileşen Tescili (Registry) |
 | `src/extractors/structured-extractor.ts` | 5 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
 | `src/pipeline/storage/s3-storage.ts` | 5 | 4 | Yardımcı Modül |
 | `src/actors/actor-manifests.ts` | 4 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
+| `src/mcp/protokol-mcp-server.ts` | 4 | 3 | Giriş Noktası (Server) |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
 | `src/actors/pdf-document-actor.ts` | 3 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/integrations/pipedream-connect.ts` | 3 | 6 | Yardımcı Modül |
-| `src/mcp/protokol-mcp-server.ts` | 3 | 3 | Giriş Noktası (Server) |
 | `src/network/retry-handler.ts` | 3 | 4 | Yardımcı Modül |
 | `src/pipeline/connectors/env-resolver.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/execution/local-executor.ts` | 3 | 2 | Yardımcı Modül |
@@ -105,6 +105,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/dom-indexer.ts` | 1 | 3 | Yardımcı Modül |
 | `src/browser/interactive-browser-controller.ts` | 1 | 5 | Yardımcı Modül |
 | `src/core/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
+| `src/core/pipeline-router.ts` | 1 | 2 | Yardımcı Modül |
 | `src/core/store-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/extractors/robots-parser.ts` | 1 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/mcp/http-transport.ts` | 1 | 2 | Yardımcı Modül |
@@ -169,6 +170,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/pdf-ocr-pipeline.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pdf-rasterizer.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipedream-connect.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/pipeline-api-and-mcp.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipeline-quality-and-dedup.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipeline-runner.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipeline-schema.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -297,6 +299,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `/api/pipedream/mcp/config` | GET | — |
 | `/api/v1/pipedream/mcp/token` | POST | — |
 | `/api/pipedream/mcp/token` | POST | — |
+| `/api/v1/pipelines/run` | POST | — |
+| `/api/v1/pipelines/runs` | GET | — |
+| `/api/v1/pipelines/runs/:id` | GET | — |
+| `/api/v1/pipelines/templates` | GET | — |
 
 ## Kayıtlı Aktörler & Bileşenler
 
@@ -797,6 +803,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 **Fonksiyonlar (Functions):**
 - `renderDocsHtml(): string`
+
+### `src/core/pipeline-router.ts`
+
+**Sınıflar (Classes):**
+- `class PipelineRouter`
+  - `getRunner(): PipelineRunner`
+  - `handleRunPipeline(res: http.ServerResponse, body: PipelineRunRequestBody): Promise<void>`
+  - `handleListRuns(req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleGetRun(res: http.ServerResponse, runId: string): void`
+  - `handleListTemplates(res: http.ServerResponse): void`
+**Arayüzler (Interfaces):**
+- `interface PipelineRunRequestBody` (4 üye)
 
 ### `src/core/registry-database.ts`
 
@@ -1459,6 +1477,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `registerConnector(name: string, config: ConnectorConfig): void`
   - `scheduleConfig(config: PipelineConfig, checkIntervalMs: number): { stop: () => void }`
   - `getScheduleBroker(): ScheduleBroker`
+  - `getRegistryDatabase(): RegistryDatabase | undefined`
   - `runFile(filePath: string): Promise<PipelineRunResult>`
   - `runYaml(yamlString: string): Promise<PipelineRunResult>`
   - `runConfig(config: PipelineConfig): Promise<PipelineRunResult>`
@@ -1676,5 +1695,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/session-vault.ts` |
 | `src/browser/stealth-manager.ts` |
 | `src/core/context-guard.ts` |
-| *... ve 138 dosya daha* |
+| *... ve 140 dosya daha* |
 

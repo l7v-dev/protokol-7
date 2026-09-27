@@ -150,6 +150,10 @@ export class PipelineRunner {
     return this.scheduleBroker;
   }
 
+  getRegistryDatabase(): RegistryDatabase | undefined {
+    return this.registryDb;
+  }
+
   /**
    * Executes a pipeline configuration loaded from a YAML file.
    */
