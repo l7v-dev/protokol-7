@@ -9,7 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- [ ] **GitHub Actions Uzak Wikipedia LLM Parquet ETL Boru Hatti** — `Tier: 1` — Durum: GitHub Secrets ve `.github/workflows/wikipedia-etl.yml` tanimlandi, depoya gonderilip tetiklenmeye hazir.
+- [ ] **GitHub Actions Uzak Wikipedia LLM Parquet ETL Boru Hatti** — `Tier: 1` — Durum: Uc paralel uzak sunucuda calisiyor: [1] arc,tk,lzh,la orkestrasyonu (Run 36306201283), [2] dewiki tam döküm (Run 36305934705), [3] enwiki in-flight akış (Run 36306339969). Sifir yerel donanim yuku.
 
 ## Bekleyen (Blok var)
 
