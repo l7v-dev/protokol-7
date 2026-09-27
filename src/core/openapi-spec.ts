@@ -49,6 +49,11 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
       name: "Pipelines",
       description: "Declarative YAML extraction, quality filtering, and sharding pipelines",
     },
+    {
+      name: "Datasets",
+      description:
+        "Training dataset catalog, snapshots, split partitioning, and verified manifest publisher",
+    },
     { name: "System", description: "Health checks, agent manifests, and OpenAPI metadata" },
   ],
   paths: {
@@ -1284,6 +1289,159 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
           "Returns pre-configured sample pipeline YAML templates from examples/pipelines/.",
         responses: {
           "200": { description: "Pipeline templates array." },
+        },
+      },
+    },
+    "/api/v1/datasets/publish": {
+      post: {
+        tags: ["Datasets"],
+        summary: "Publish Training Dataset Snapshot",
+        description:
+          "Seals corpus shards into a versioned training dataset snapshot with cryptographic SHA-256 checksums, train/val/test splits, and verified manifest.json.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["datasetName"],
+                properties: {
+                  datasetName: { type: "string", example: "arxiv_math" },
+                  version: { type: "string", example: "2026.09.27.1" },
+                  filePaths: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Local shard file paths to register and package.",
+                  },
+                  shardIds: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Pre-registered shard IDs.",
+                  },
+                  splitRatios: {
+                    type: "object",
+                    properties: {
+                      train: { type: "number", example: 0.8 },
+                      validation: { type: "number", example: 0.1 },
+                      test: { type: "number", example: 0.1 },
+                    },
+                  },
+                  outputDir: { type: "string", example: "data/snapshots/arxiv_math_v1" },
+                  connectorName: { type: "string", example: "s3_archive" },
+                  licenseGroup: {
+                    type: "string",
+                    enum: [
+                      "permissive_commercial",
+                      "non_commercial_research",
+                      "public_domain",
+                      "restricted",
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Dataset snapshot created and manifest sealed." },
+          "400": { description: "Missing required parameters." },
+          "403": { description: "Path traversal rejected." },
+        },
+      },
+    },
+    "/api/v1/datasets": {
+      get: {
+        tags: ["Datasets"],
+        summary: "List Datasets in Catalog",
+        description:
+          "Returns all cataloged datasets with shard counts, total records, byte size, and latest snapshot summary.",
+        responses: {
+          "200": { description: "Array of datasets with snapshot metadata." },
+        },
+      },
+    },
+    "/api/v1/datasets/{name}": {
+      get: {
+        tags: ["Datasets"],
+        summary: "Get Dataset Details",
+        description:
+          "Returns metadata, registered shard inventory, and snapshot history for the specified dataset.",
+        parameters: [
+          {
+            name: "name",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": { description: "Dataset detail record." },
+          "404": { description: "Dataset not found." },
+        },
+      },
+    },
+    "/api/v1/datasets/{name}/manifest": {
+      get: {
+        tags: ["Datasets"],
+        summary: "Get Latest Training Dataset Manifest",
+        description:
+          "Returns the raw, verified Training Dataset Manifest (manifest.json) for the dataset's latest snapshot.",
+        parameters: [
+          {
+            name: "name",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": { description: "Full Training Dataset Manifest JSON." },
+          "404": { description: "No snapshot or manifest found." },
+        },
+      },
+    },
+    "/api/v1/datasets/{name}/snapshots": {
+      get: {
+        tags: ["Datasets"],
+        summary: "List Dataset Snapshots",
+        description:
+          "Returns list of all published snapshots and versions for the specified dataset.",
+        parameters: [
+          {
+            name: "name",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": { description: "List of snapshot records." },
+        },
+      },
+    },
+    "/api/v1/datasets/{name}/snapshots/{snapshotId}": {
+      get: {
+        tags: ["Datasets"],
+        summary: "Get Specific Dataset Snapshot",
+        description:
+          "Returns snapshot metadata, split mappings, and full manifest for the given snapshot ID.",
+        parameters: [
+          {
+            name: "name",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "snapshotId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": { description: "Snapshot record and parsed manifest." },
+          "404": { description: "Snapshot not found." },
         },
       },
     },

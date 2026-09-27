@@ -7,9 +7,11 @@ import http from "node:http";
 import { createDefaultActorRegistry } from "../actors/actor-registry";
 import { BrowserPool } from "../browser/browser-pool";
 import { InteractiveBrowserController } from "../browser/interactive-browser-controller";
+import type { PublishDatasetOptions } from "../dataset/types";
 import { globalPipedreamConnect } from "../integrations/pipedream-connect";
 import { HttpMcpTransport, ProtokolMcpServer } from "../mcp";
 import { globalOcrRegistry } from "../ocr";
+import { DatasetRouter } from "./dataset-router";
 import { OPENAPI_SPECIFICATION, renderDocsHtml } from "./openapi-spec";
 import { PipelineRouter, type PipelineRunRequestBody } from "./pipeline-router";
 import { StoreRouter } from "./store-router";
@@ -18,6 +20,7 @@ import type { ActorTask, ActorType, ArchiveFormat, SupportedDocumentFormat } fro
 const registry = createDefaultActorRegistry();
 const storeRouter = new StoreRouter(registry);
 const pipelineRouter = new PipelineRouter();
+const datasetRouter = new DatasetRouter();
 const mcpServer = new ProtokolMcpServer(registry);
 const httpMcpTransport = new HttpMcpTransport(mcpServer);
 const PORT = parseInt(process.env.PORT || "4000", 10);
@@ -2029,6 +2032,47 @@ export function createServer(): http.Server {
       if (method === "GET" && pathname === "/api/v1/pipelines/templates") {
         pipelineRouter.handleListTemplates(res);
         return;
+      }
+
+      // 9. Training Dataset Snapshot & Manifest Routes
+      if (method === "POST" && pathname === "/api/v1/datasets/publish") {
+        const body = await parseBody<PublishDatasetOptions>(req);
+        await datasetRouter.handlePublishDataset(res, body);
+        return;
+      }
+
+      if (method === "GET" && pathname === "/api/v1/datasets") {
+        datasetRouter.handleListDatasets(res);
+        return;
+      }
+
+      if (method === "GET" && pathname.startsWith("/api/v1/datasets/")) {
+        const subPath = pathname.slice("/api/v1/datasets/".length);
+        const parts = subPath.split("/").filter(Boolean);
+
+        // /api/v1/datasets/:name
+        if (parts.length === 1) {
+          datasetRouter.handleGetDataset(res, parts[0]);
+          return;
+        }
+
+        // /api/v1/datasets/:name/manifest
+        if (parts.length === 2 && parts[1] === "manifest") {
+          datasetRouter.handleGetLatestManifest(res, parts[0]);
+          return;
+        }
+
+        // /api/v1/datasets/:name/snapshots
+        if (parts.length === 2 && parts[1] === "snapshots") {
+          datasetRouter.handleListSnapshots(res, parts[0]);
+          return;
+        }
+
+        // /api/v1/datasets/:name/snapshots/:snapshotId
+        if (parts.length === 3 && parts[1] === "snapshots") {
+          datasetRouter.handleGetSnapshot(res, parts[0], parts[2]);
+          return;
+        }
       }
 
       // 404 Catch-all

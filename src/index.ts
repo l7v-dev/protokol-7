@@ -50,6 +50,8 @@ export * from "./browser/stealth-manager";
 export * from "./core/server";
 // Core
 export * from "./core/types";
+// Dataset
+export * from "./dataset";
 // Extractors
 export * from "./extractors/epub-extractor";
 export * from "./extractors/office-extractor";

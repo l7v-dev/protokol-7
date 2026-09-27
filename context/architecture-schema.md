@@ -15,6 +15,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/core/run-registry.ts` | `RunRegistry`, `RunRecord`, `globalRunRegistry` | Tracks execution runs with dual-layer storage: in-memory Map for SSE event delivery and `RegistryDatabase` for cross-restart ACID persistence. Emits live log events per run. |
 | `src/core/store-router.ts` | `StoreRouter` | Actor Store API router, live log SSE streaming, quarantine inspector, and headless service information endpoint. |
 | `src/core/pipeline-router.ts` | `PipelineRouter`, `PipelineRouterOptions` | Declarative YAML pipeline execution HTTP router (`/api/v1/pipelines/*`), template catalog provider, run history viewer, and path traversal guard. |
+| `src/core/dataset-router.ts` | `DatasetRouter` | Dataset catalog router (`/api/v1/datasets/*`), training manifest publisher, snapshot viewer, and shard inventory inspector. |
 | `src/core/openapi-spec.ts` | `OPENAPI_SPECIFICATION`, `renderDocsHtml` | OpenAPI 3.1.0 schema specification and zero-dependency interactive documentation HTML generator. |
 | `src/core/context-guard.ts` | `ContextGuard` | LLM token estimation, context window budgeting, and hierarchical semantic boundary truncation. |
 | `src/core/server.ts` | `startServer`, `handleRequest` | Standalone Node.js HTTP REST server and API endpoint routing. |
@@ -170,6 +171,14 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/pipeline/cli.ts` | Pipeline CLI Runner | Command-line entrypoint for executing YAML pipeline configurations (`npm run pipeline`). |
 | `src/pipeline/index.ts` | Pipeline Barrel | Re-exports all pipeline contracts, runner, schema, processors, and storage backends. |
 
+### 1.10 Dataset Subsystem (`src/dataset/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/dataset/types.ts` | `TrainingDatasetManifest`, `PublishDatasetOptions`, `PublishDatasetResult`, `SplitDefinition` | Type contracts and schema definitions for dataset snapshots and training manifests. |
+| `src/dataset/dataset-publisher.ts` | `DatasetPublisher`, `DatasetPublisherOptions` | Training dataset snapshot engine, train/val/test split partitioning, SHA-256 manifest.json sealer, and remote storage uploader. |
+| `src/dataset/index.ts` | Dataset Barrel | Re-exports dataset contracts and publisher class. |
+
 ---
 
 ## 2. Test Suite Inventory (`tests/`)
@@ -228,6 +237,8 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/software-heritage-actor.test.ts` | `SoftwareHeritageActor`, `src/core/server.ts` | SWHID code blob extraction, directory traversal, origin snapshot lookup, SSRF guard, and REST route. |
 | `tests/eur-lex-actor.test.ts` | `EurLexActor`, `src/core/server.ts` | CELEX EU regulation retrieval, CELLAR SPARQL query, document type classification, SSRF guard, and REST route. |
 | `tests/pipeline-quality-and-dedup.test.ts` | `TextNormalizer`, `QualityFilter`, `DedupFilter`, `PipelineRunner` | Normalization (NFKC, control chars, whitespace), FineWeb/Gopher quality gates, exact SHA-256 and SimHash near-dedup, and SQLite audit ledger integration. |
+| `tests/pipeline-api-and-mcp.test.ts` | `PipelineRouter`, `ProtokolMcpServer` | Integration tests for YAML pipeline execution REST endpoints and run_pipeline/list_pipelines MCP tools. |
+| `tests/dataset-publisher-and-api.test.ts` | `DatasetPublisher`, `DatasetRouter`, `ProtokolMcpServer` | Integration tests for dataset snapshot creation, manifest.json sealing, split partitioning, REST endpoints, and MCP tools. |
 
 ---
 

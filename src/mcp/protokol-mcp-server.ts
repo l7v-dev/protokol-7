@@ -44,6 +44,8 @@ import type {
   StackExchangeActorTaskOptions,
   WikimediaActorTaskOptions,
 } from "../core/types";
+import { DatasetPublisher } from "../dataset/dataset-publisher";
+import type { PublishDatasetOptions, SplitRatios } from "../dataset/types";
 import { PipelineRunner, type PipelineRunResult } from "../pipeline/pipeline-runner";
 import type { PipelineConfig } from "../pipeline/schema";
 
@@ -128,7 +130,109 @@ export class ProtokolMcpServer {
       },
     ];
 
-    return [...actorTools, ...pipelineTools];
+    const datasetTools = [
+      {
+        name: "publish_dataset",
+        description:
+          "Seals filtered corpus shards into a versioned training dataset snapshot with cryptographic SHA-256 checksums, train/val/test splits, and a verified manifest.json.",
+        inputSchema: {
+          type: "object",
+          required: ["datasetName"],
+          properties: {
+            datasetName: {
+              type: "string",
+              description:
+                "Technical name of the dataset to publish (e.g. 'arxiv_math', 'tr_corpus').",
+            },
+            version: {
+              type: "string",
+              description:
+                "Optional semantic version or snapshot tag. Defaults to current date (e.g. '2026.09.27.1').",
+            },
+            filePaths: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "Optional list of local shard files to register and include in the snapshot.",
+            },
+            shardIds: {
+              type: "array",
+              items: { type: "string" },
+              description: "Optional list of pre-registered shard IDs to include in the snapshot.",
+            },
+            splitRatios: {
+              type: "object",
+              properties: {
+                train: {
+                  type: "number",
+                  description: "Proportion for training split (default: 0.8).",
+                },
+                validation: {
+                  type: "number",
+                  description: "Proportion for validation split (default: 0.1).",
+                },
+                test: {
+                  type: "number",
+                  description: "Proportion for testing split (default: 0.1).",
+                },
+              },
+              description: "Split proportions for deterministic partitioning.",
+            },
+            outputDir: {
+              type: "string",
+              description:
+                "Optional relative output directory to write manifest.json and checksums.sha256.",
+            },
+            connectorName: {
+              type: "string",
+              description: "Optional storage connector name (S3/R2/B2) for uploading the manifest.",
+            },
+            licenseGroup: {
+              type: "string",
+              enum: [
+                "permissive_commercial",
+                "non_commercial_research",
+                "public_domain",
+                "restricted",
+              ],
+              description: "License category for the training dataset.",
+            },
+          },
+        },
+      },
+      {
+        name: "list_datasets",
+        description:
+          "Lists all datasets in the catalog, including registered shard counts, total records, byte size, and latest snapshot status.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            limit: {
+              type: "number",
+              description: "Maximum number of dataset entries to return (default: 50).",
+            },
+          },
+        },
+      },
+      {
+        name: "get_dataset_manifest",
+        description:
+          "Retrieves the full, verified training dataset manifest (manifest.json) with split distributions, file checksums, and token metrics for a dataset or snapshot ID.",
+        inputSchema: {
+          type: "object",
+          required: ["identifier"],
+          properties: {
+            identifier: {
+              type: "string",
+              description:
+                "Dataset technical name or snapshot ID (e.g. 'arxiv_math' or 'dss_...').",
+            },
+          },
+        },
+      },
+    ];
+
+    return [...actorTools, ...pipelineTools, ...datasetTools];
   }
 
   async processRequest(request: JsonRpcRequest): Promise<JsonRpcResponse | null> {
@@ -266,6 +370,136 @@ export class ProtokolMcpServer {
                   text: JSON.stringify({ templates, recentRuns: runs }, null, 2),
                 },
               ],
+            },
+          };
+        }
+
+        if (toolName === "publish_dataset") {
+          const datasetName = toolArgs.datasetName as string;
+          if (!datasetName) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: "[ERROR] 'datasetName' is required to publish a dataset.",
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+          try {
+            const publisher = new DatasetPublisher();
+            const result = await publisher.publishSnapshot({
+              datasetName,
+              version: toolArgs.version as string | undefined,
+              filePaths: toolArgs.filePaths as string[] | undefined,
+              shardIds: toolArgs.shardIds as string[] | undefined,
+              splitRatios: toolArgs.splitRatios as SplitRatios | undefined,
+              outputDir: toolArgs.outputDir as string | undefined,
+              connectorName: toolArgs.connectorName as string | undefined,
+              licenseGroup: toolArgs.licenseGroup as PublishDatasetOptions["licenseGroup"],
+            });
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+              },
+            };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [{ type: "text", text: `[ERROR] Failed to publish dataset: ${msg}` }],
+                isError: true,
+              },
+            };
+          }
+        }
+
+        if (toolName === "list_datasets") {
+          const db = getDefaultRegistryDatabase();
+          const datasets = db ? db.listDatasets() : [];
+          const enriched = datasets.map((ds) => {
+            const shards = db ? db.listDatasetShards(ds.name, 500) : [];
+            const latestSnapshot = db ? db.getLatestDatasetSnapshot(ds.name) : undefined;
+            return {
+              ...ds,
+              shardCount: shards.length,
+              totalSizeBytes: shards.reduce((sum, s) => sum + s.sizeBytes, 0),
+              totalRecordCount: shards.reduce((sum, s) => sum + s.recordCount, 0),
+              latestSnapshot: latestSnapshot
+                ? {
+                    snapshotId: latestSnapshot.snapshotId,
+                    version: latestSnapshot.version,
+                    totalRecords: latestSnapshot.totalRecordCount,
+                    totalBytes: latestSnapshot.totalSizeBytes,
+                    manifestUri: latestSnapshot.manifestUri,
+                    createdAt: latestSnapshot.createdAt,
+                  }
+                : null,
+            };
+          });
+
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({ count: enriched.length, datasets: enriched }, null, 2),
+                },
+              ],
+            },
+          };
+        }
+
+        if (toolName === "get_dataset_manifest") {
+          const identifier = toolArgs.identifier as string;
+          if (!identifier) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: "[ERROR] 'identifier' (dataset name or snapshot ID) is required.",
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+          const publisher = new DatasetPublisher();
+          const manifest = publisher.getManifest(identifier);
+          if (!manifest) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: `[ERROR] Manifest not found for identifier: '${identifier}'.`,
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [{ type: "text", text: JSON.stringify(manifest, null, 2) }],
             },
           };
         }

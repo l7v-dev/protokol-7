@@ -9,14 +9,16 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/core/types.ts` | 60 | 113 | Yardımcı Modül |
-| `src/ocr/types.ts` | 60 | 5 | Yardımcı Modül |
+| `src/core/types.ts` | 64 | 113 | Yardımcı Modül |
+| `src/dataset/types.ts` | 64 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 64 | 5 | Yardımcı Modül |
 | `src/network/safe-redirect-fetcher.ts` | 29 | 2 | Yardımcı Modül |
 | `src/network/ssrf-guard.ts` | 26 | 3 | Yardımcı Modül |
-| `src/core/server.ts` | 14 | 1 | Giriş Noktası (Server) |
-| `src/server.ts` | 14 | 0 | Giriş Noktası (Server) |
+| `src/core/server.ts` | 15 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 15 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 13 | 19 | Yardımcı Modül |
 | `src/core/index.ts` | 10 | 0 | Yardımcı Modül |
+| `src/dataset/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/mcp/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/ocr/index.ts` | 10 | 0 | Yardımcı Modül |
@@ -25,29 +27,34 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/processors/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/index.ts` | 10 | 2 | Yardımcı Modül |
+| `src/core/registry-database.ts` | 9 | 8 | Bileşen Tescili (Registry) |
 | `src/pipeline/pipeline-runner.ts` | 8 | 3 | Yardımcı Modül |
 | `src/browser/browser-pool.ts` | 7 | 4 | Kaynak Yöneticisi (BrowserPool) |
-| `src/core/registry-database.ts` | 7 | 7 | Bileşen Tescili (Registry) |
 | `src/core/context-guard.ts` | 6 | 4 | Yardımcı Modül |
 | `src/core/run-registry.ts` | 6 | 6 | Bileşen Tescili (Registry) |
+| `src/pipeline/storage/s3-storage.ts` | 6 | 4 | Yardımcı Modül |
 | `src/actors/actor-registry.ts` | 5 | 2 | Bileşen Tescili (Registry) |
 | `src/extractors/structured-extractor.ts` | 5 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/mcp/protokol-mcp-server.ts` | 5 | 3 | Giriş Noktası (Server) |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
-| `src/pipeline/storage/s3-storage.ts` | 5 | 4 | Yardımcı Modül |
 | `src/actors/actor-manifests.ts` | 4 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
-| `src/mcp/protokol-mcp-server.ts` | 4 | 3 | Giriş Noktası (Server) |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
 | `src/actors/pdf-document-actor.ts` | 3 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/dataset/dataset-publisher.ts` | 3 | 2 | Yardımcı Modül |
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/integrations/pipedream-connect.ts` | 3 | 6 | Yardımcı Modül |
 | `src/network/retry-handler.ts` | 3 | 4 | Yardımcı Modül |
+| `src/pipeline/connectors/connector-registry.ts` | 3 | 1 | Bileşen Tescili (Registry) |
 | `src/pipeline/connectors/env-resolver.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/execution/local-executor.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/processors/jsonl-writer.ts` | 3 | 1 | Yardımcı Modül |
 | `src/pipeline/schedule-broker.ts` | 3 | 5 | Yardımcı Modül |
+| `src/pipeline/storage/b2-storage.ts` | 3 | 2 | Yardımcı Modül |
+| `src/pipeline/storage/local-storage.ts` | 3 | 1 | Yardımcı Modül |
+| `src/pipeline/storage/r2-storage.ts` | 3 | 2 | Yardımcı Modül |
 | `src/actors/archive-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -81,7 +88,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/mcp/auth-guard.ts` | 2 | 1 | Yardımcı Modül |
 | `src/network/crawl-frontier.ts` | 2 | 4 | Yardımcı Modül |
 | `src/pipeline/actor-resolver.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
-| `src/pipeline/connectors/connector-registry.ts` | 2 | 1 | Bileşen Tescili (Registry) |
 | `src/pipeline/execution/pipedream-executor.ts` | 2 | 2 | Yardımcı Modül |
 | `src/pipeline/execution/remote-http-executor.ts` | 2 | 2 | Yardımcı Modül |
 | `src/pipeline/output-sink.ts` | 2 | 3 | Yardımcı Modül |
@@ -91,10 +97,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/processors/passthrough-writer.ts` | 2 | 1 | Yardımcı Modül |
 | `src/pipeline/processors/quality-filter.ts` | 2 | 4 | Yardımcı Modül |
 | `src/pipeline/processors/text-normalizer.ts` | 2 | 3 | Yardımcı Modül |
-| `src/pipeline/storage/b2-storage.ts` | 2 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/google-drive-storage.ts` | 2 | 3 | Yardımcı Modül |
-| `src/pipeline/storage/local-storage.ts` | 2 | 1 | Yardımcı Modül |
-| `src/pipeline/storage/r2-storage.ts` | 2 | 2 | Yardımcı Modül |
 | `src/actors/api-extractor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/crawler-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/markdown-reader-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
@@ -104,6 +107,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/browser-session-manager.ts` | 1 | 3 | Oturum Denetleyicisi |
 | `src/browser/dom-indexer.ts` | 1 | 3 | Yardımcı Modül |
 | `src/browser/interactive-browser-controller.ts` | 1 | 5 | Yardımcı Modül |
+| `src/core/dataset-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/core/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
 | `src/core/pipeline-router.ts` | 1 | 2 | Yardımcı Modül |
 | `src/core/store-router.ts` | 1 | 1 | Yardımcı Modül |
@@ -142,6 +146,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/court-listener-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/crawl-frontier.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/crawler-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/dataset-publisher-and-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/dergipark-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/document-extractor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/documents-archives-ocr-endpoints.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -303,6 +308,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `/api/v1/pipelines/runs` | GET | — |
 | `/api/v1/pipelines/runs/:id` | GET | — |
 | `/api/v1/pipelines/templates` | GET | — |
+| `/api/v1/datasets/publish` | POST | — |
+| `/api/v1/datasets` | GET | — |
+| `/api/v1/datasets/:id` | GET | — |
 
 ## Kayıtlı Aktörler & Bileşenler
 
@@ -799,6 +807,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface GuardedContentResult` (6 üye)
 - `interface InvisibleCharacterSanitizeResult` (3 üye)
 
+### `src/core/dataset-router.ts`
+
+**Sınıflar (Classes):**
+- `class DatasetRouter`
+  - `getPublisher(): DatasetPublisher`
+  - `handlePublishDataset(res: http.ServerResponse, body: PublishDatasetOptions): Promise<void>`
+  - `handleListDatasets(res: http.ServerResponse): void`
+  - `handleGetDataset(res: http.ServerResponse, datasetName: string): void`
+  - `handleListSnapshots(res: http.ServerResponse, datasetName: string): void`
+  - `handleGetSnapshot(res: http.ServerResponse, _datasetName: string, snapshotId: string): void`
+  - `handleGetLatestManifest(res: http.ServerResponse, datasetName: string): void`
+
 ### `src/core/openapi-spec.ts`
 
 **Fonksiyonlar (Functions):**
@@ -852,6 +872,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `upsertDataset(dataset: DatasetRecord): void`
   - `getDataset(datasetId: string): DatasetRecord | undefined`
   - `listDatasets(): DatasetRecord[]`
+  - `recordDatasetSnapshot(snapshot: DatasetSnapshotRecord): void`
+  - `listDatasetSnapshots(datasetName: string, limit): DatasetSnapshotRecord[]`
+  - `getDatasetSnapshot(snapshotId: string): DatasetSnapshotRecord | undefined`
+  - `getLatestDatasetSnapshot(datasetName: string): DatasetSnapshotRecord | undefined`
   - `recordStorageReplica(replica: StorageReplicaRecord): void`
   - `listStorageReplicas(shardId: string): StorageReplicaRecord[]`
   - `recordVerificationAudit(audit: VerificationAuditRecord): void`
@@ -861,6 +885,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `getDefaultRegistryDatabase(): RegistryDatabase`
 **Arayüzler (Interfaces):**
 - `interface DatasetShardRecord` (11 üye)
+- `interface DatasetSnapshotRecord` (11 üye)
 - `interface DatasetRecord` (7 üye)
 - `interface StorageReplicaRecord` (9 üye)
 - `interface VerificationAuditRecord` (14 üye)
@@ -1021,6 +1046,34 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `type SaglikEkutuphaneAction`
 - `type KtbEkitapCategory`
 - `type KtbEkitapAction`
+
+### `src/dataset/dataset-publisher.ts`
+
+**Sınıflar (Classes):**
+- `class DatasetPublisher`
+  - `publishSnapshot(options: PublishDatasetOptions): Promise<PublishDatasetResult>`
+  - `getSnapshot(snapshotId: string): DatasetSnapshotRecord | undefined`
+  - `getLatestSnapshot(datasetName: string): DatasetSnapshotRecord | undefined`
+  - `listSnapshots(datasetName: string, limit): DatasetSnapshotRecord[]`
+  - `getManifest(snapshotIdOrName: string): TrainingDatasetManifest | undefined`
+  - `resolveShards(datasetName: string, options: PublishDatasetOptions): Promise<DatasetShardRecord[]>`
+  - `verifyShardChecksumOnDisk(shard: DatasetShardRecord): void`
+  - `computeSplits(shards: DatasetShardRecord[], options: PublishDatasetOptions): Record<string, SplitDefinition>`
+  - `estimateTokens(totalRecords: number, totalSizeBytes: number, metadata: Record<string, unknown>): number`
+  - `resolveSafeOutputDir(outputDir: string | undefined, datasetName: string, version: string): string`
+  - `uploadManifestToRemote(connectorName: string, prefix: string, data: Buffer): Promise<{ backend: string; uri: string; bytesWritten: number }>`
+**Arayüzler (Interfaces):**
+- `interface DatasetPublisherOptions` (3 üye)
+
+### `src/dataset/types.ts`
+
+**Arayüzler (Interfaces):**
+- `interface ShardManifestEntry` (7 üye)
+- `interface SplitDefinition` (4 üye)
+- `interface TrainingDatasetManifest` (12 üye)
+- `interface SplitRatios` (3 üye)
+- `interface PublishDatasetOptions` (15 üye)
+- `interface PublishDatasetResult` (7 üye)
 
 ### `src/extractors/epub-extractor.ts`
 
@@ -1695,5 +1748,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/session-vault.ts` |
 | `src/browser/stealth-manager.ts` |
 | `src/core/context-guard.ts` |
-| *... ve 140 dosya daha* |
+| *... ve 145 dosya daha* |
 

@@ -25,6 +25,20 @@ export interface DatasetShardRecord {
   createdAt: string;
 }
 
+export interface DatasetSnapshotRecord {
+  snapshotId: string;
+  datasetName: string;
+  version: string;
+  splitsJson: string;
+  shardCount: number;
+  totalRecordCount: number;
+  totalSizeBytes: number;
+  totalTokensEstimated: number;
+  manifestUri: string;
+  manifestJson: string;
+  createdAt: string;
+}
+
 export interface DatasetRecord {
   datasetId: string;
   name: string;
@@ -104,6 +118,12 @@ export class RegistryDatabase {
   private stmtUpsertDataset!: StatementSync;
   private stmtGetDataset!: StatementSync;
   private stmtListDatasets!: StatementSync;
+
+  private stmtInsertSnapshot!: StatementSync;
+  private stmtListSnapshotsByName!: StatementSync;
+  private stmtListSnapshotsAll!: StatementSync;
+  private stmtGetSnapshot!: StatementSync;
+  private stmtGetLatestSnapshotByName!: StatementSync;
 
   private stmtInsertReplica!: StatementSync;
   private stmtListReplicasByShard!: StatementSync;
@@ -301,6 +321,23 @@ export class RegistryDatabase {
       );
     `);
 
+    // 9. Dataset Snapshots & Training Manifests
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS dataset_snapshots (
+        snapshot_id TEXT PRIMARY KEY,
+        dataset_name TEXT NOT NULL,
+        version TEXT NOT NULL,
+        splits_json TEXT NOT NULL,
+        shard_count INTEGER NOT NULL DEFAULT 0,
+        total_record_count INTEGER NOT NULL DEFAULT 0,
+        total_size_bytes INTEGER NOT NULL DEFAULT 0,
+        total_tokens_estimated INTEGER NOT NULL DEFAULT 0,
+        manifest_uri TEXT NOT NULL,
+        manifest_json TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+    `);
+
     // Indexes
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_actor_runs_status ON actor_runs(status);
@@ -312,6 +349,8 @@ export class RegistryDatabase {
       CREATE INDEX IF NOT EXISTS idx_scheduled_jobs_running ON scheduled_jobs(running);
       CREATE INDEX IF NOT EXISTS idx_dataset_shards_dataset ON dataset_shards(dataset_name);
       CREATE INDEX IF NOT EXISTS idx_dataset_shards_pipeline ON dataset_shards(pipeline_run_id);
+      CREATE INDEX IF NOT EXISTS idx_dataset_snapshots_name ON dataset_snapshots(dataset_name);
+      CREATE INDEX IF NOT EXISTS idx_dataset_snapshots_created ON dataset_snapshots(created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_replicas_shard ON storage_replicas(shard_id);
       CREATE INDEX IF NOT EXISTS idx_replicas_status ON storage_replicas(sync_status);
       CREATE INDEX IF NOT EXISTS idx_audit_shard ON verification_audit_ledger(shard_id);
@@ -469,6 +508,42 @@ export class RegistryDatabase {
     this.stmtListDatasets = this.db.prepare(`
       SELECT dataset_id, name, source_platform, license_group, default_language, description, created_at
       FROM datasets ORDER BY created_at DESC
+    `);
+
+    this.stmtInsertSnapshot = this.db.prepare(`
+      INSERT OR REPLACE INTO dataset_snapshots (
+        snapshot_id, dataset_name, version, splits_json, shard_count,
+        total_record_count, total_size_bytes, total_tokens_estimated,
+        manifest_uri, manifest_json, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    this.stmtListSnapshotsByName = this.db.prepare(`
+      SELECT snapshot_id, dataset_name, version, splits_json, shard_count,
+             total_record_count, total_size_bytes, total_tokens_estimated,
+             manifest_uri, manifest_json, created_at
+      FROM dataset_snapshots WHERE dataset_name = ? ORDER BY created_at DESC LIMIT ?
+    `);
+
+    this.stmtListSnapshotsAll = this.db.prepare(`
+      SELECT snapshot_id, dataset_name, version, splits_json, shard_count,
+             total_record_count, total_size_bytes, total_tokens_estimated,
+             manifest_uri, manifest_json, created_at
+      FROM dataset_snapshots ORDER BY created_at DESC LIMIT ?
+    `);
+
+    this.stmtGetSnapshot = this.db.prepare(`
+      SELECT snapshot_id, dataset_name, version, splits_json, shard_count,
+             total_record_count, total_size_bytes, total_tokens_estimated,
+             manifest_uri, manifest_json, created_at
+      FROM dataset_snapshots WHERE snapshot_id = ?
+    `);
+
+    this.stmtGetLatestSnapshotByName = this.db.prepare(`
+      SELECT snapshot_id, dataset_name, version, splits_json, shard_count,
+             total_record_count, total_size_bytes, total_tokens_estimated,
+             manifest_uri, manifest_json, created_at
+      FROM dataset_snapshots WHERE dataset_name = ? ORDER BY created_at DESC LIMIT 1
     `);
 
     this.stmtInsertReplica = this.db.prepare(`
@@ -854,6 +929,84 @@ export class RegistryDatabase {
       description: row.description ? String(row.description) : undefined,
       createdAt: String(row.created_at),
     }));
+  }
+
+  // --- Dataset Snapshots API ---
+
+  recordDatasetSnapshot(snapshot: DatasetSnapshotRecord): void {
+    this.stmtInsertSnapshot.run(
+      snapshot.snapshotId,
+      snapshot.datasetName,
+      snapshot.version,
+      snapshot.splitsJson,
+      snapshot.shardCount,
+      snapshot.totalRecordCount,
+      snapshot.totalSizeBytes,
+      snapshot.totalTokensEstimated,
+      snapshot.manifestUri,
+      snapshot.manifestJson,
+      snapshot.createdAt
+    );
+  }
+
+  listDatasetSnapshots(datasetName?: string, limit = 50): DatasetSnapshotRecord[] {
+    const rows = (
+      datasetName
+        ? this.stmtListSnapshotsByName.all(datasetName, limit)
+        : this.stmtListSnapshotsAll.all(limit)
+    ) as Record<string, unknown>[];
+
+    return rows.map((row) => ({
+      snapshotId: String(row.snapshot_id),
+      datasetName: String(row.dataset_name),
+      version: String(row.version),
+      splitsJson: String(row.splits_json),
+      shardCount: Number(row.shard_count),
+      totalRecordCount: Number(row.total_record_count),
+      totalSizeBytes: Number(row.total_size_bytes),
+      totalTokensEstimated: Number(row.total_tokens_estimated),
+      manifestUri: String(row.manifest_uri),
+      manifestJson: String(row.manifest_json),
+      createdAt: String(row.created_at),
+    }));
+  }
+
+  getDatasetSnapshot(snapshotId: string): DatasetSnapshotRecord | undefined {
+    const row = this.stmtGetSnapshot.get(snapshotId) as Record<string, unknown> | undefined;
+    if (!row) return undefined;
+    return {
+      snapshotId: String(row.snapshot_id),
+      datasetName: String(row.dataset_name),
+      version: String(row.version),
+      splitsJson: String(row.splits_json),
+      shardCount: Number(row.shard_count),
+      totalRecordCount: Number(row.total_record_count),
+      totalSizeBytes: Number(row.total_size_bytes),
+      totalTokensEstimated: Number(row.total_tokens_estimated),
+      manifestUri: String(row.manifest_uri),
+      manifestJson: String(row.manifest_json),
+      createdAt: String(row.created_at),
+    };
+  }
+
+  getLatestDatasetSnapshot(datasetName: string): DatasetSnapshotRecord | undefined {
+    const row = this.stmtGetLatestSnapshotByName.get(datasetName) as
+      | Record<string, unknown>
+      | undefined;
+    if (!row) return undefined;
+    return {
+      snapshotId: String(row.snapshot_id),
+      datasetName: String(row.dataset_name),
+      version: String(row.version),
+      splitsJson: String(row.splits_json),
+      shardCount: Number(row.shard_count),
+      totalRecordCount: Number(row.total_record_count),
+      totalSizeBytes: Number(row.total_size_bytes),
+      totalTokensEstimated: Number(row.total_tokens_estimated),
+      manifestUri: String(row.manifest_uri),
+      manifestJson: String(row.manifest_json),
+      createdAt: String(row.created_at),
+    };
   }
 
   // --- Storage Replicas API ---
