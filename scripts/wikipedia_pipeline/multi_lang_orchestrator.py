@@ -192,6 +192,17 @@ def parse_args():
         default=None,
         help="Limit articles processed per language (useful for testing)",
     )
+    parser.add_argument(
+        "--fastest-mirror",
+        action="store_true",
+        default=True,
+        help="Probe and select fastest Wikimedia mirror before downloading/streaming",
+    )
+    parser.add_argument(
+        "--in-flight",
+        action="store_true",
+        help="Zero-Raw In-Flight Streaming: Stream and clean remote bz2 directly to Parquet without downloading dump to disk",
+    )
     return parser.parse_args()
 
 
@@ -257,6 +268,8 @@ def main():
                 folder_id=args.folder_id,
                 clean_dump=args.clean_dump,
                 dry_run=args.dry_run,
+                in_flight=args.in_flight,
+                fastest_mirror=args.fastest_mirror,
             )
             results.append(res)
             print(f"\n[OK] Completed language [{lang.upper()}] in {res['elapsed_min']:.2f} mins.")

@@ -139,6 +139,12 @@ jobs:
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             EXTRA_ARGS="$EXTRA_ARGS --dry-run"
           fi
+          if [ "${{ inputs.in_flight }}" = "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --in-flight"
+          fi
+          if [ "${{ inputs.fastest_mirror }}" = "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --fastest-mirror"
+          fi
           if [ "${{ inputs.clean_dump }}" = "true" ]; then
             EXTRA_ARGS="$EXTRA_ARGS --clean-dump"
           fi
