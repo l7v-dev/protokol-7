@@ -8,16 +8,17 @@ protokol-7 — Headless Web Scraping, Deep Crawling & Anti-Detection Browser Aut
 
 ## Current Phase
 
-**Faz 5: İkili Belge Aktörleri (`pdf-document-actor`) tamamlandı.** `src/actors/pdf-document-actor.ts` entegre edildi. `unpdf` motoru ile sayfa metinleri ve üstveri çıkarma, `%PDF-` magic-byte doğrulaması, SSRF koruması, 30MB boyut sınırı ve `POST /api/v1/pdf` rotası uygulandı. **76/76 test %100 yeşil, 5 adımlı deterministik doğrulama hattı (`npm run verify`) hatasız geçmektedir.**
+**Faz: Bildirimsel Boru Hatti REST API ve MCP Tetikleme Uclari tamamlandi.** `src/core/pipeline-router.ts` entegre edildi. `POST /api/v1/pipelines/run`, `GET /api/v1/pipelines/runs`, `GET /api/v1/pipelines/runs/:id`, `GET /api/v1/pipelines/templates` REST rotalari ve `run_pipeline`, `list_pipelines` MCP araclari uygulandi. Path traversal savunmasi ve OpenAPI 3.1.0 semalari eklendi. **459/459 test %100 yesil, 6 asamali deterministik dogrulama hatti (`npm run verify`) hatasiz gecmektedir.**
 
 ---
 
-## Completed (Faz 5: İkili Belge Aktörleri - `pdf-document-actor`)
+## Completed (Bildirimsel Boru Hatti REST API ve MCP Tetikleme)
 
-- [x] **`PdfDocumentActor` (`src/actors/pdf-document-actor.ts`):** Mozilla PDF.js tabanlı `unpdf` kütüphanesiyle sayfa bazlı metin akışı, kelime/karakter sayıları ve üstveri (başlık, yazar, oluşturma tarihi) çıkarma motoru geliştirildi.
-- [x] **Güvenlik ve Çeper Doğrulaması:** `SSRFGuard.validateUrl()` denetimi, `%PDF-` (`0x25, 0x50, 0x44, 0x46, 0x2d`) magic-byte doğrulaması ve 30MB azami boyut koruması uygulandı.
-- [x] **HTTP API Uç Noktası:** `POST /api/v1/pdf` ve `POST /pdf` rotaları eklendi; `targetUrl` ve `pdfBase64` girişleri desteklendi.
-- [x] **Birim Testleri:** `tests/pdf-document-actor.test.ts` (6 test) ve `tests/server.test.ts` (2 test) eklenerek test sayısı 68'den 76'ya çıkarıldı.
+- [x] **`PipelineRouter` (`src/core/pipeline-router.ts`):** `yaml`, `filePath` (ornek sablonlar) ve `config` nesnesi uzerinden bildirimsel boru hatti calistirma, `async: true` destegi, path traversal korumasi (`..` ve calisma alani disi erisim engeli), calistirma gecmisi ve sablon listeleme.
+- [x] **HTTP API Uç Noktalari (`src/core/server.ts`):** `POST /api/v1/pipelines/run`, `GET /api/v1/pipelines/runs`, `GET /api/v1/pipelines/runs/:id`, `GET /api/v1/pipelines/templates`.
+- [x] **MCP Araclari (`src/mcp/protokol-mcp-server.ts`):** Toplam 33 MCP araci; `run_pipeline` ve `list_pipelines` ile AI ajanlarinin otonom boru hatti calistirmasi saglandi.
+- [x] **OpenAPI 3.1.0 Spesifikasyonu (`src/core/openapi-spec.ts`):** Yeni uc noktalar eksiksiz sema ve yanit formatlariyla belgelendi.
+- [x] **Entegrasyon Testleri (`tests/pipeline-api-and-mcp.test.ts`):** 10 entegrasyon testi ile YAML calistirma, hata reddi, guvenlik denetimleri ve MCP JSON-RPC cagrilari dogrulandi.
 
 ---
 
