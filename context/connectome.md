@@ -27,16 +27,17 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/storage/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/browser/browser-pool.ts` | 7 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/core/context-guard.ts` | 6 | 4 | Yardımcı Modül |
+| `src/core/run-registry.ts` | 6 | 6 | Bileşen Tescili (Registry) |
 | `src/actors/actor-registry.ts` | 5 | 2 | Bileşen Tescili (Registry) |
 | `src/extractors/structured-extractor.ts` | 5 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
+| `src/pipeline/pipeline-runner.ts` | 5 | 3 | Yardımcı Modül |
 | `src/pipeline/storage/s3-storage.ts` | 5 | 4 | Yardımcı Modül |
 | `src/actors/actor-manifests.ts` | 4 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
-| `src/core/run-registry.ts` | 4 | 4 | Bileşen Tescili (Registry) |
+| `src/core/registry-database.ts` | 4 | 7 | Bileşen Tescili (Registry) |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
-| `src/pipeline/pipeline-runner.ts` | 4 | 3 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
 | `src/actors/pdf-document-actor.ts` | 3 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
@@ -46,6 +47,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/connectors/env-resolver.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/execution/local-executor.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/processors/jsonl-writer.ts` | 3 | 1 | Yardımcı Modül |
+| `src/pipeline/schedule-broker.ts` | 3 | 5 | Yardımcı Modül |
 | `src/actors/archive-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -86,7 +88,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/processors/csv-writer.ts` | 2 | 1 | Yardımcı Modül |
 | `src/pipeline/processors/parquet-packer.ts` | 2 | 1 | Yardımcı Modül |
 | `src/pipeline/processors/passthrough-writer.ts` | 2 | 1 | Yardımcı Modül |
-| `src/pipeline/schedule-broker.ts` | 2 | 4 | Yardımcı Modül |
 | `src/pipeline/storage/b2-storage.ts` | 2 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/google-drive-storage.ts` | 2 | 3 | Yardımcı Modül |
 | `src/pipeline/storage/local-storage.ts` | 2 | 1 | Yardımcı Modül |
@@ -116,8 +117,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/consolidate-memory.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/doctor.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/generate-connectome.mjs` | 0 | 4 | Sistem Haritacısı |
-| `scripts/harvest-ekutuphane.mjs` | 0 | 0 | Yardımcı Modül |
-| `scripts/harvest-ktb-ekitap.mjs` | 0 | 1 | Yardımcı Modül |
 | `scripts/omega-mcp-server.mjs` | 0 | 0 | Giriş Noktası (Server) |
 | `scripts/omega-memory.mjs` | 0 | 0 | Semantik Bellek |
 | `scripts/pipedream-cli.mjs` | 0 | 0 | Yardımcı Modül |
@@ -125,6 +124,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/verify-pipeline.mjs` | 0 | 0 | Doğrulama Hattı |
 | `src/ocr/ocr-connector-registry.ts` | 0 | 3 | Bileşen Tescili (Registry) |
 | `src/pipeline/cli.ts` | 0 | 0 | Yardımcı Modül |
+| `src/types/node-sqlite.d.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/actor-resolver.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/api-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/archive-extractor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -172,6 +172,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/protokol-mcp-server.test.ts` | 0 | 0 | Giriş Noktası (Server) |
 | `tests/proxy-manager.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/readability-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/registry-database.test.ts` | 0 | 0 | Bileşen Tescili (Registry) |
 | `tests/retry-handler.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/robots-parser.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/safe-redirect-fetcher.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -355,11 +356,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `buildDependencyGraph(fileMap): void`
 - `generateConnectome(target): void`
 
-### `scripts/harvest-ktb-ekitap.mjs`
-
-**Fonksiyonlar (Functions):**
-- `sanitizeTextForLlm(pages): void`
-
 ### `scripts/telemetry-logger.mjs`
 
 **Fonksiyonlar (Functions):**
@@ -369,7 +365,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 ### `src/actors/actor-manifests.ts`
 
 **Arayüzler (Interfaces):**
-- `interface ActorInputField` (9 üye)
+- `interface ActorInputField` (10 üye)
 - `interface ActorInputSchema` (5 üye)
 - `interface ActorManifest` (13 üye)
 **Tipler (Types):**
@@ -454,7 +450,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `handleListSets(task: ActorTask, timeoutMs: number, allowLocalNetwork: boolean, startTime: number): Promise<ActorResult<DergiParkActorResult>>`
   - `handleGetRecord(task: ActorTask, opts: DergiParkActorTaskOptions, timeoutMs: number, allowLocalNetwork: boolean, startTime: number): Promise<ActorResult<DergiParkActorResult>>`
   - `handleListRecords(task: ActorTask, opts: DergiParkActorTaskOptions, timeoutMs: number, allowLocalNetwork: boolean, startTime: number): Promise<ActorResult<DergiParkActorResult>>`
-  - `parseRecord($: ReturnType<typeof cheerio.load>, el: cheerio.Element): DergiParkArticle | undefined`
+  - `parseRecord($: ReturnType<typeof cheerio.load>, el: Parameters<ReturnType<typeof cheerio.load>>[0]): DergiParkArticle | undefined`
   - `httpError(task: ActorTask, status: number, message: string, startTime: number): ActorResult<DergiParkActorResult>`
 
 ### `src/actors/document-extractor-actor.ts`
@@ -798,19 +794,71 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Fonksiyonlar (Functions):**
 - `renderDocsHtml(): string`
 
+### `src/core/registry-database.ts`
+
+**Sınıflar (Classes):**
+- `class RegistryDatabase`
+  - `initDatabase(): void`
+  - `prepareStatements(): void`
+  - `createRun(record: {
+    runId: string;
+    actorName: string;
+    input: Record<string, unknown>;
+    startedAt: string;
+    metadata?: RunMetadata;
+  }): void`
+  - `startRun(runId: string): void`
+  - `appendLog(runId: string, log: { timestamp: string; level: "INFO" | "WARN" | "ERROR" | "PASS" | "VETO"; message: string }): void`
+  - `completeRun(runId: string, output: unknown, itemCount: number, finishedAt: string, durationMs: number, metadata: RunMetadata): void`
+  - `failRun(runId: string, errorMessage: string, finishedAt: string, durationMs: number, metadata: RunMetadata): void`
+  - `getRun(runId: string): RunRecord | undefined`
+  - `listRuns(limit): RunRecord[]`
+  - `mapRunRow(row: Record<string, unknown>, logs: Array<{
+      timestamp: string;
+      level: "INFO" | "WARN" | "ERROR" | "PASS" | "VETO";
+      message: string;
+    }>): RunRecord`
+  - `recordPipelineExecution(result: PipelineRunResult): void`
+  - `listPipelineExecutions(limit): PipelineRunResult[]`
+  - `upsertScheduledJob(job: ScheduledJobInfo): void`
+  - `updateScheduledJobRun(id: string, lastRunAt: string, runCount: number): void`
+  - `setScheduledJobRunning(id: string, running: boolean): void`
+  - `listScheduledJobs(): ScheduledJobInfo[]`
+  - `recordDatasetShard(shard: DatasetShardRecord): void`
+  - `listDatasetShards(datasetName: string, limit): DatasetShardRecord[]`
+  - `getDatasetShard(shardId: string): DatasetShardRecord | undefined`
+  - `upsertDataset(dataset: DatasetRecord): void`
+  - `getDataset(datasetId: string): DatasetRecord | undefined`
+  - `listDatasets(): DatasetRecord[]`
+  - `recordStorageReplica(replica: StorageReplicaRecord): void`
+  - `listStorageReplicas(shardId: string): StorageReplicaRecord[]`
+  - `recordVerificationAudit(audit: VerificationAuditRecord): void`
+  - `listVerificationAudits(runId: string): VerificationAuditRecord[]`
+  - `close(): void`
+**Fonksiyonlar (Functions):**
+- `getDefaultRegistryDatabase(): RegistryDatabase`
+**Arayüzler (Interfaces):**
+- `interface DatasetShardRecord` (11 üye)
+- `interface DatasetRecord` (7 üye)
+- `interface StorageReplicaRecord` (9 üye)
+- `interface VerificationAuditRecord` (14 üye)
+- `interface RegistryDatabaseOptions` (2 üye)
+
 ### `src/core/run-registry.ts`
 
 **Sınıflar (Classes):**
 - `class RunRegistry`
-  - `createRun(actorName: string, input: Record<string, unknown>): RunRecord`
+  - `createRun(actorName: string, input: Record<string, unknown>, metadata: Partial<RunMetadata>): RunRecord`
   - `getRun(runId: string): RunRecord | undefined`
   - `listRuns(limit): RunRecord[]`
   - `startRun(runId: string): void`
   - `appendLog(runId: string, level: "INFO" | "WARN" | "ERROR" | "PASS" | "VETO", message: string): void`
-  - `completeRun(runId: string, output: unknown, itemCount): void`
-  - `failRun(runId: string, errorMessage: string): void`
+  - `completeRun(runId: string, output: unknown, itemCount, metadataUpdate: Partial<RunMetadata>): void`
+  - `failRun(runId: string, errorMessage: string, metadataUpdate: Partial<RunMetadata>): void`
 **Arayüzler (Interfaces):**
-- `interface RunRecord` (11 üye)
+- `interface RunMetadata` (10 üye)
+- `interface RunRecord` (12 üye)
+- `interface RunRegistryOptions` (1 üye)
 **Tipler (Types):**
 - `type RunStatus`
 
@@ -866,7 +914,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface DocumentSpreadsheetSheet` (5 üye)
 - `interface DocumentExtractorResult` (9 üye)
 - `interface ArchiveEntryResult` (6 üye)
-- `interface ArchiveExtractorTaskOptions` (7 üye)
+- `interface ArchiveExtractorTaskOptions` (8 üye)
 - `interface ArchiveExtractorResult` (6 üye)
 - `interface PublicationIssueMetadata` (11 üye)
 - `interface TableOfContentsItem` (6 üye)
@@ -916,10 +964,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface OpenFdaActorTaskOptions` (6 üye)
 - `interface OpenFdaActorResult` (5 üye)
 - `interface SecFilingItem` (15 üye)
-- `interface SecEdgarActorTaskOptions` (6 üye)
+- `interface SecEdgarActorTaskOptions` (7 üye)
 - `interface SecEdgarActorResult` (10 üye)
 - `interface CourtListenerDocumentItem` (11 üye)
-- `interface CourtListenerActorTaskOptions` (10 üye)
+- `interface CourtListenerActorTaskOptions` (11 üye)
 - `interface CourtListenerActorResult` (5 üye)
 - `interface SoftwareHeritageDirectoryEntry` (5 üye)
 - `interface SoftwareHeritageActorTaskOptions` (6 üye)
@@ -935,7 +983,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface MitOcwActorResult` (8 üye)
 - `interface ActorTask` (5 üye)
 - `interface ActorResult` (7 üye)
-- `interface ActorRunContext` (2 üye)
+- `interface ActorRunContext` (3 üye)
 - `interface IActor` (3 üye)
 - `interface SelfHealingError` (6 üye)
 - `interface SelfHealingErrorResponse` (7 üye)
@@ -1410,13 +1458,13 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `runFile(filePath: string): Promise<PipelineRunResult>`
   - `runYaml(yamlString: string): Promise<PipelineRunResult>`
   - `runConfig(config: PipelineConfig): Promise<PipelineRunResult>`
+  - `getRunHistory(limit: number): PipelineRunResult[]`
+  - `getFailedRuns(): PipelineRunResult[]`
   - `resolveExecutor(config: PipelineConfig): ExecutionTarget`
   - `resolveStorageBackend(config: PipelineConfig): StorageBackend`
-  - `getRunHistory(): PipelineRunResult[]`
-  - `getFailedRuns(): PipelineRunResult[]`
 **Arayüzler (Interfaces):**
 - `interface PipelineRunResult` (10 üye)
-- `interface PipelineRunnerOptions` (8 üye)
+- `interface PipelineRunnerOptions` (9 üye)
 
 ### `src/pipeline/processors/csv-writer.ts`
 
@@ -1463,6 +1511,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `isCronMatch(cronExpression: string, date: Date): boolean`
 **Arayüzler (Interfaces):**
 - `interface ScheduledJobInfo` (5 üye)
+- `interface ScheduleBrokerOptions` (1 üye)
 
 ### `src/pipeline/schema.ts`
 
@@ -1532,8 +1581,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/consolidate-memory.mjs` |
 | `scripts/doctor.mjs` |
 | `scripts/generate-connectome.mjs` |
-| `scripts/harvest-ekutuphane.mjs` |
-| `scripts/harvest-ktb-ekitap.mjs` |
 | `scripts/omega-mcp-server.mjs` |
 | `scripts/omega-memory.mjs` |
 | `scripts/pipedream-cli.mjs` |
@@ -1578,5 +1625,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/dom-indexer.ts` |
 | `src/browser/interactive-browser-controller.ts` |
 | `src/browser/session-vault.ts` |
-| *... ve 133 dosya daha* |
+| `src/browser/stealth-manager.ts` |
+| `src/core/context-guard.ts` |
+| *... ve 134 dosya daha* |
 

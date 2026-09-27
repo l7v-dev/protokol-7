@@ -9,7 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- [x] **Production Hazirlik ve Aktor Mimarisi Guclendirme Denetimi** — `Tier: 2` — Tum katmanlar denetlendi, betik ile kazima kaldirildi (`scripts/harvest-*.mjs`), `SaglikEkutuphaneActor` ve `KtbEkitapActor` ornek pipeline YAML dosyalari eklendi. `store-router.ts` hardcoded bypass temizlendi. `RegistryDatabase` icine `dataset_shards` (500 TB veri envanteri ve kriptografik SHA-256 hash defteri) eklendi; 435/435 test ve deterministik dogrulama hatti gecti.
+- [x] **Proje Konsolidasyonu, Adlandirma Disiplini, Atil Dosya Temizligi ve Tasinabilirlik** — `Tier: 2` — `trash/` klasoru olusturuldu; bagimsiz `wikipedia_pipeline/`, artik loglar ve gecici XML dumplar tasindi. `bigdata_pipeline` pazarlama adlandirmasi `corpus_pipeline` ile degistirildi. 31 aktor `src/actors/README.md` ve `examples/actors/` altinda ornek JSON konfigurasyonlari ile belgelendi. `Dockerfile`, `docker-compose.yml` ve `.github/workflows/ci.yml` uretildi; 435/435 test ve 6 asamali dogrulama basariyla gecti.
 - [ ] **GitHub Actions Uzak Wikipedia LLM Parquet ETL Boru Hatti** — `Tier: 1` — Durum: [1] arc, tk, lzh, la tamamlandi ve Google Drive'a muhurlendi (Drive'da 22 dil tamam). [2] dewiki (Run 36305934705) ve [3] enwiki (Run 36306339969) uzak sunucularda aktif calisiyor. Sifir yerel donanim yuku.
 
 ## Bekleyen (Blok var)

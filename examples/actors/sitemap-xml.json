@@ -1,0 +1,5 @@
+{
+  "targetUrl": "https://apify.com/sitemap.xml",
+  "maxUrls": 1000,
+  "recursive": true
+}

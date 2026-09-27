@@ -25,6 +25,49 @@ export interface DatasetShardRecord {
   createdAt: string;
 }
 
+export interface DatasetRecord {
+  datasetId: string;
+  name: string;
+  sourcePlatform: string;
+  licenseGroup:
+    | "permissive_commercial"
+    | "non_commercial_research"
+    | "public_domain"
+    | "restricted";
+  defaultLanguage?: string;
+  description?: string;
+  createdAt: string;
+}
+
+export interface StorageReplicaRecord {
+  replicaId: string;
+  shardId: string;
+  storageProvider: string;
+  remoteUri: string;
+  remoteSha256Hash: string;
+  remoteSizeBytes: number;
+  syncStatus: "PENDING" | "UPLOADING" | "VERIFIED" | "FAILED";
+  verifiedAt?: string;
+  lastError?: string;
+}
+
+export interface VerificationAuditRecord {
+  auditId: string;
+  shardId: string;
+  runId: string;
+  recordCountMatches: boolean;
+  parquetReadable: boolean;
+  checksumMatches: boolean;
+  verificationPassed: boolean;
+  rawSourcePath: string;
+  rawSourceSha256?: string;
+  rawPurged: boolean;
+  purgedAt?: string;
+  verifierIdentity: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface RegistryDatabaseOptions {
   dbPath?: string;
   inMemory?: boolean;
@@ -58,13 +101,23 @@ export class RegistryDatabase {
   private stmtListShardsAll!: StatementSync;
   private stmtGetShard!: StatementSync;
 
+  private stmtUpsertDataset!: StatementSync;
+  private stmtGetDataset!: StatementSync;
+  private stmtListDatasets!: StatementSync;
+
+  private stmtInsertReplica!: StatementSync;
+  private stmtListReplicasByShard!: StatementSync;
+
+  private stmtInsertAudit!: StatementSync;
+  private stmtListAuditByRun!: StatementSync;
+
   constructor(options?: RegistryDatabaseOptions) {
     const isTest = process.env.NODE_ENV === "test";
     this.isMemory =
       options?.inMemory ?? (options?.dbPath === ":memory:" || (isTest && !options?.dbPath));
     this.dbPath = this.isMemory
       ? ":memory:"
-      : options?.dbPath || process.env.PROTOKOL_DB_PATH || "data/protokol_registry.sqlite";
+      : options?.dbPath || process.env.PROTOKOL_DB_PATH || "data/catalog.sqlite";
 
     if (!this.isMemory) {
       const dir = dirname(this.dbPath);
@@ -181,7 +234,20 @@ export class RegistryDatabase {
       );
     `);
 
-    // 5. Dataset Shards (Big Data Shard Inventory & Verification Ledger)
+    // 5. Datasets Catalog
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS datasets (
+        dataset_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        source_platform TEXT NOT NULL,
+        license_group TEXT NOT NULL CHECK(license_group IN ('permissive_commercial', 'non_commercial_research', 'public_domain', 'restricted')),
+        default_language TEXT NOT NULL DEFAULT 'und',
+        description TEXT,
+        created_at TEXT NOT NULL
+      );
+    `);
+
+    // 6. Dataset Shards
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS dataset_shards (
         shard_id TEXT PRIMARY KEY,
@@ -198,6 +264,43 @@ export class RegistryDatabase {
       );
     `);
 
+    // 7. Storage Replicas
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS storage_replicas (
+        replica_id TEXT PRIMARY KEY,
+        shard_id TEXT NOT NULL,
+        storage_provider TEXT NOT NULL,
+        remote_uri TEXT NOT NULL,
+        remote_sha256_hash TEXT NOT NULL,
+        remote_size_bytes INTEGER NOT NULL,
+        sync_status TEXT NOT NULL CHECK(sync_status IN ('PENDING', 'UPLOADING', 'VERIFIED', 'FAILED')),
+        verified_at TEXT,
+        last_error TEXT,
+        FOREIGN KEY (shard_id) REFERENCES dataset_shards(shard_id) ON DELETE CASCADE
+      );
+    `);
+
+    // 8. Verification Audit Ledger
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS verification_audit_ledger (
+        audit_id TEXT PRIMARY KEY,
+        shard_id TEXT NOT NULL,
+        run_id TEXT NOT NULL,
+        record_count_matches INTEGER NOT NULL CHECK(record_count_matches IN (0, 1)),
+        parquet_readable INTEGER NOT NULL CHECK(parquet_readable IN (0, 1)),
+        checksum_matches INTEGER NOT NULL CHECK(checksum_matches IN (0, 1)),
+        verification_passed INTEGER NOT NULL CHECK(verification_passed IN (0, 1)),
+        raw_source_path TEXT NOT NULL,
+        raw_source_sha256 TEXT,
+        raw_purged INTEGER NOT NULL DEFAULT 0 CHECK(raw_purged IN (0, 1)),
+        purged_at TEXT,
+        verifier_identity TEXT NOT NULL,
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (shard_id) REFERENCES dataset_shards(shard_id) ON DELETE CASCADE
+      );
+    `);
+
     // Indexes
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_actor_runs_status ON actor_runs(status);
@@ -209,6 +312,10 @@ export class RegistryDatabase {
       CREATE INDEX IF NOT EXISTS idx_scheduled_jobs_running ON scheduled_jobs(running);
       CREATE INDEX IF NOT EXISTS idx_dataset_shards_dataset ON dataset_shards(dataset_name);
       CREATE INDEX IF NOT EXISTS idx_dataset_shards_pipeline ON dataset_shards(pipeline_run_id);
+      CREATE INDEX IF NOT EXISTS idx_replicas_shard ON storage_replicas(shard_id);
+      CREATE INDEX IF NOT EXISTS idx_replicas_status ON storage_replicas(sync_status);
+      CREATE INDEX IF NOT EXISTS idx_audit_shard ON verification_audit_ledger(shard_id);
+      CREATE INDEX IF NOT EXISTS idx_audit_run ON verification_audit_ledger(run_id);
     `);
   }
 
@@ -341,6 +448,55 @@ export class RegistryDatabase {
       SELECT shard_id, pipeline_run_id, dataset_name, file_name, storage_uri,
              storage_backend, record_count, size_bytes, sha256_hash, compression_codec, created_at
       FROM dataset_shards WHERE shard_id = ?
+    `);
+
+    this.stmtUpsertDataset = this.db.prepare(`
+      INSERT INTO datasets (dataset_id, name, source_platform, license_group, default_language, description, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(dataset_id) DO UPDATE SET
+        name = excluded.name,
+        source_platform = excluded.source_platform,
+        license_group = excluded.license_group,
+        default_language = excluded.default_language,
+        description = excluded.description
+    `);
+
+    this.stmtGetDataset = this.db.prepare(`
+      SELECT dataset_id, name, source_platform, license_group, default_language, description, created_at
+      FROM datasets WHERE dataset_id = ?
+    `);
+
+    this.stmtListDatasets = this.db.prepare(`
+      SELECT dataset_id, name, source_platform, license_group, default_language, description, created_at
+      FROM datasets ORDER BY created_at DESC
+    `);
+
+    this.stmtInsertReplica = this.db.prepare(`
+      INSERT OR REPLACE INTO storage_replicas (
+        replica_id, shard_id, storage_provider, remote_uri, remote_sha256_hash,
+        remote_size_bytes, sync_status, verified_at, last_error
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    this.stmtListReplicasByShard = this.db.prepare(`
+      SELECT replica_id, shard_id, storage_provider, remote_uri, remote_sha256_hash,
+             remote_size_bytes, sync_status, verified_at, last_error
+      FROM storage_replicas WHERE shard_id = ? ORDER BY verified_at DESC
+    `);
+
+    this.stmtInsertAudit = this.db.prepare(`
+      INSERT OR REPLACE INTO verification_audit_ledger (
+        audit_id, shard_id, run_id, record_count_matches, parquet_readable,
+        checksum_matches, verification_passed, raw_source_path, raw_source_sha256,
+        raw_purged, purged_at, verifier_identity, notes, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    this.stmtListAuditByRun = this.db.prepare(`
+      SELECT audit_id, shard_id, run_id, record_count_matches, parquet_readable,
+             checksum_matches, verification_passed, raw_source_path, raw_source_sha256,
+             raw_purged, purged_at, verifier_identity, notes, created_at
+      FROM verification_audit_ledger WHERE run_id = ? ORDER BY created_at DESC
     `);
   }
 
@@ -657,6 +813,119 @@ export class RegistryDatabase {
       compressionCodec: row.compression_codec ? String(row.compression_codec) : undefined,
       createdAt: String(row.created_at),
     };
+  }
+
+  // --- Datasets Catalog API ---
+
+  upsertDataset(dataset: DatasetRecord): void {
+    this.stmtUpsertDataset.run(
+      dataset.datasetId,
+      dataset.name,
+      dataset.sourcePlatform,
+      dataset.licenseGroup,
+      dataset.defaultLanguage || "und",
+      dataset.description || null,
+      dataset.createdAt
+    );
+  }
+
+  getDataset(datasetId: string): DatasetRecord | undefined {
+    const row = this.stmtGetDataset.get(datasetId) as Record<string, unknown> | undefined;
+    if (!row) return undefined;
+    return {
+      datasetId: String(row.dataset_id),
+      name: String(row.name),
+      sourcePlatform: String(row.source_platform),
+      licenseGroup: row.license_group as DatasetRecord["licenseGroup"],
+      defaultLanguage: row.default_language ? String(row.default_language) : undefined,
+      description: row.description ? String(row.description) : undefined,
+      createdAt: String(row.created_at),
+    };
+  }
+
+  listDatasets(): DatasetRecord[] {
+    const rows = this.stmtListDatasets.all() as Record<string, unknown>[];
+    return rows.map((row) => ({
+      datasetId: String(row.dataset_id),
+      name: String(row.name),
+      sourcePlatform: String(row.source_platform),
+      licenseGroup: row.license_group as DatasetRecord["licenseGroup"],
+      defaultLanguage: row.default_language ? String(row.default_language) : undefined,
+      description: row.description ? String(row.description) : undefined,
+      createdAt: String(row.created_at),
+    }));
+  }
+
+  // --- Storage Replicas API ---
+
+  recordStorageReplica(replica: StorageReplicaRecord): void {
+    this.stmtInsertReplica.run(
+      replica.replicaId,
+      replica.shardId,
+      replica.storageProvider,
+      replica.remoteUri,
+      replica.remoteSha256Hash,
+      replica.remoteSizeBytes,
+      replica.syncStatus,
+      replica.verifiedAt || null,
+      replica.lastError || null
+    );
+  }
+
+  listStorageReplicas(shardId: string): StorageReplicaRecord[] {
+    const rows = this.stmtListReplicasByShard.all(shardId) as Record<string, unknown>[];
+    return rows.map((row) => ({
+      replicaId: String(row.replica_id),
+      shardId: String(row.shard_id),
+      storageProvider: String(row.storage_provider),
+      remoteUri: String(row.remote_uri),
+      remoteSha256Hash: String(row.remote_sha256_hash),
+      remoteSizeBytes: Number(row.remote_size_bytes),
+      syncStatus: row.sync_status as StorageReplicaRecord["syncStatus"],
+      verifiedAt: row.verified_at ? String(row.verified_at) : undefined,
+      lastError: row.last_error ? String(row.last_error) : undefined,
+    }));
+  }
+
+  // --- Verification Audit Ledger API ---
+
+  recordVerificationAudit(audit: VerificationAuditRecord): void {
+    this.stmtInsertAudit.run(
+      audit.auditId,
+      audit.shardId,
+      audit.runId,
+      audit.recordCountMatches ? 1 : 0,
+      audit.parquetReadable ? 1 : 0,
+      audit.checksumMatches ? 1 : 0,
+      audit.verificationPassed ? 1 : 0,
+      audit.rawSourcePath,
+      audit.rawSourceSha256 || null,
+      audit.rawPurged ? 1 : 0,
+      audit.purgedAt || null,
+      audit.verifierIdentity,
+      audit.notes || null,
+      audit.createdAt
+    );
+  }
+
+  listVerificationAudits(runId: string): VerificationAuditRecord[] {
+    const rows = this.stmtListAuditByRun.all(runId) as Record<string, unknown>[];
+    return rows.map((row) => ({
+      auditId: String(row.audit_id),
+      shardId: String(row.shard_id),
+      runId: String(row.run_id),
+      recordCountMatches: Number(row.record_count_matches) === 1,
+      parquetReadable: Number(row.parquet_readable) === 1,
+      checksumMatches: Number(row.checksum_matches) === 1,
+      verificationPassed: Number(row.verification_passed) === 1,
+      rawSourcePath: String(row.raw_source_path),
+      rawSourceSha256: row.raw_source_sha256 ? String(row.raw_source_sha256) : undefined,
+      rawPurged: Number(row.raw_purged) === 1,
+      purgedAt: row.purged_at ? String(row.purged_at) : undefined,
+      verifierIdentity: String(row.verifier_identity),
+      notes: row.notes ? String(row.notes) : undefined,
+      createdAt: String(row.created_at),
+    }));
   }
 
   close(): void {

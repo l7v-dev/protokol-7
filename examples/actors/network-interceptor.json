@@ -1,0 +1,7 @@
+{
+  "targetUrl": "https://example.com",
+  "urlPatterns": [
+    "*/api/*"
+  ],
+  "maxCapturedRequests": 10
+}

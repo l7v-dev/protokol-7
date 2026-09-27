@@ -1,0 +1,8 @@
+{
+  "targetUrl": "https://example.com",
+  "selectors": {
+    "title": "h1",
+    "paragraph": "p"
+  },
+  "extractTables": true
+}

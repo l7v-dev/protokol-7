@@ -21,11 +21,7 @@ export class ParquetPacker implements OutputProcessor {
   ) {}
 
   async process(items: unknown[], baseName: string): Promise<ProcessedOutput> {
-    const pythonPath =
-      this.options?.pythonPath ||
-      (existsSync("scripts/wikipedia_pipeline/.venv/bin/python")
-        ? "scripts/wikipedia_pipeline/.venv/bin/python"
-        : "python3");
+    const pythonPath = this.options?.pythonPath || process.env.PYTHON_PATH || "python3";
 
     // Write items to a temporary JSONL file and run duckdb/pyarrow conversion script
     const tempDir = mkdtempSync(join(tmpdir(), "protokol-parquet-"));

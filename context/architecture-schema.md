@@ -246,36 +246,24 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `scripts/pipedream-cli.mjs` | CLI Runner | Pipedream Connect status verification, user token generation, account listing, and MCP endpoint inspector. |
 | `examples/pipelines/saglik-ekutuphane-sample.yaml` | Pipeline Config | Sample pipeline configuration for Turkish Ministry of Health e-library scraping actor. |
 | `examples/pipelines/ktb-ekitap-sample.yaml` | Pipeline Config | Sample pipeline configuration for Turkish Ministry of Culture e-book scraping actor. |
-| `examples/pipelines/bigdata-parquet-sample.yaml` | Pipeline Config | Sample pipeline configuration for big data LLM datasets with zstd-compressed Parquet sharding. |
+| `examples/pipelines/corpus-parquet-sample.yaml` | Pipeline Config | Sample pipeline configuration for corpus text datasets with zstd-compressed Parquet sharding. |
 | `examples/pipelines/wikimedia-sample.yaml` | Pipeline Config | Sample pipeline configuration for Wikimedia encyclopedic article extraction. |
-| `notebooks/tr_wikipedia_pipeline.ipynb` | Colab Notebook | End-to-end pipeline: trwiki dump download, Wikitext parsing, ZSTD Parquet chunking, and Drive packaging. |
-| `docs/plans/tr-wikipedia-colab-drive-plani.md` | Architecture Plan | Complete plan specification for Turkish Wikipedia dump processing and Google Drive delivery. |
-| `docs/plans/pipedream-connect-entegrasyon-plani.md` | Architecture Plan | Plan specification for Pipedream Connect SDK, REST/MCP routes, and CLI tooling. |
-| `docs/plans/tr-wikipedia-yerel-pipeline-plani.md` | Architecture Plan | Local Wikipedia dump streaming, Wikitext cleaner, 10GB Parquet sharder, and sequential Drive sync queue plan. |
-| `docs/plans/cok-dilli-wikipedia-pipeline-plani.md` | Architecture Plan | Multi-language Wikipedia pipeline plan with size-ordered (ascending article count) queue strategy. |
-| `scripts/wikipedia_pipeline/downloader.py` | Pipeline Module | Unified Wikimedia XML bz2 dump downloader with in-flight MD5 verification, 4MB chunks, and CLI entrypoint. |
-| `scripts/wikipedia_pipeline/cleaner.py` | Pipeline Module | Streaming SAX XML parser, Namespace 0 filtering, redirect stripping, and clean text extractor for LLM pre-training. |
-| `scripts/wikipedia_pipeline/packer.py` | Pipeline Module | StreamingParquetSharder with PyArrow, Zstandard (zstd-6) compression, and 10GB part rolling. |
-| `scripts/wikipedia_pipeline/drive_queue.py` | Pipeline Module | Sequential (concurrency=1) Google Drive sync queue, md5Checksum verification, and local file unlinking. |
-| `scripts/wikipedia_pipeline/run_pipeline.py` | CLI Entrypoint | Master orchestrator CLI for local Wikipedia dump streaming, Parquet packaging, and Google Drive delivery. |
-| `scripts/wikipedia_pipeline/multi_lang_orchestrator.py` | CLI Orchestrator | Multi-language queue runner ordering languages from smallest to largest with per-language disk cleanup. |
-| `scripts/wikipedia_pipeline/schema.sql` | Database Schema | ANSI/SQLite relational DDL for pipeline runs, cryptographic shard ledger, and article provenance index. |
-| `scripts/wikipedia_pipeline/metadata_db.py` | Pipeline Module | SQLite-backed dataset metadata manager, audit trail, provenance tracker, and manifest.json exporter. |
-| `scripts/wikipedia_pipeline/test_pipeline.py` | Test Suite | Unit tests for wikitext cleaner, streaming XML parser, Parquet writer, and Drive hash verification. |
-| `scripts/wikipedia_pipeline/test_metadata_db.py` | Test Suite | Unit tests for MetadataDB lifecycle, cryptographic hash ledger, and manifest export. |
-| `scripts/wikipedia_pipeline/test_multi_lang.py` | Test Suite | Unit tests for size-based ascending language queue ordering. |
-| `scripts/bigdata_pipeline/schema.sql` | Database Schema | ANSI/SQLite relational DDL for enterprise datasets, shards, replicas, and audit ledger. |
-| `scripts/bigdata_pipeline/metadata_catalog.py` | Catalog Manager | Enterprise metadata manager, shard ledger, replica tracking, and manifest exporter. |
-| `scripts/bigdata_pipeline/storage/base.py` | Storage Interface | Abstract StorageProvider interface and StorageReceipt data contract. |
-| `scripts/bigdata_pipeline/storage/local_cold_vault.py` | Storage Provider | Offline/removable HDD/SSD cold storage provider with Btrfs SHA256SUMS ledger. |
-| `scripts/bigdata_pipeline/storage/cloudflare_r2.py` | Storage Provider | Cloudflare R2 / S3 zero-egress object storage provider with checksum verification. |
-| `scripts/bigdata_pipeline/storage/__init__.py` | Storage Factory | Registry and factory resolver for pluggable storage providers. |
-| `scripts/bigdata_pipeline/cleaner.py` | Cleaner & Filter | TextNormalizer (Unicode NFKC) and QualityFilter (Gopher/FineWeb heuristics). |
-| `scripts/bigdata_pipeline/packer.py` | Parquet Packer | StreamingParquetPacker with ZSTD-6 compression, RowGroups, and chunk rolling. |
-| `scripts/bigdata_pipeline/verifier.py` | Verification Gate | 4-point verification gatekeeper and zero-raw purge engine with audit logging. |
-| `scripts/bigdata_pipeline/orchestrator.py` | CLI Orchestrator | Master orchestrator CLI for big data processing, storage replication, and zero-raw purge. |
-| `scripts/bigdata_pipeline/test_bigdata_pipeline.py` | Test Suite | Unit and integration tests for catalog, storage, cleaner, packer, gatekeeper, and purge. |
-| `scripts/bigdata_pipeline/requirements.txt` | Package Dependencies | Production dependencies for big data pipeline (blake3, tiktoken, duckdb, lingua, boto3). |
-| `docs/plans/kurumsal-big-data-pipeline-plani.md` | Architecture Plan | Architecture plan specification for 500 TB multi-tier big data LLM pipeline. |
-| `docs/walkthroughs/kurumsal-big-data-pipeline-walkthrough.md` | Walkthrough | Execution and validation walkthrough for big data pipeline and verification gate. |
-| `.github/workflows/wikipedia-etl.yml` | CI/CD Workflow | GitHub Actions workflow for remote Wikipedia LLM Parquet ETL extraction and Google Drive sync. |
+| `examples/actors/` | Example Configs | 31 standalone, runnable JSON configuration templates for all extraction actors. |
+| `src/actors/README.md` | Actor Catalog | Categorized 6-domain documentation of 31 actors with REST, MCP, and input/output contracts. |
+| `context/schema.sql` | Database Schema | Canonical single source of truth ANSI/SQLite schema for datasets, shards, replicas, and audit ledger. |
+| `scripts/corpus_pipeline/schema.sql` | Database Schema | Mirrored ANSI/SQLite relational DDL for corpus pipeline components. |
+| `scripts/corpus_pipeline/metadata_catalog.py` | Catalog Manager | Corpus metadata manager, shard ledger, replica tracking, and manifest exporter. |
+| `scripts/corpus_pipeline/storage/base.py` | Storage Interface | Abstract StorageProvider interface and StorageReceipt data contract. |
+| `scripts/corpus_pipeline/storage/local_cold_vault.py` | Storage Provider | Offline/removable HDD/SSD cold storage provider with Btrfs SHA256SUMS ledger. |
+| `scripts/corpus_pipeline/storage/cloudflare_r2.py` | Storage Provider | Cloudflare R2 / S3 zero-egress object storage provider with checksum verification. |
+| `scripts/corpus_pipeline/storage/__init__.py` | Storage Factory | Registry and factory resolver for pluggable storage providers. |
+| `scripts/corpus_pipeline/cleaner.py` | Cleaner & Filter | TextNormalizer (Unicode NFKC) and QualityFilter (Gopher/FineWeb heuristics). |
+| `scripts/corpus_pipeline/packer.py` | Parquet Packer | StreamingParquetPacker with ZSTD-6 compression, RowGroups, and chunk rolling. |
+| `scripts/corpus_pipeline/verifier.py` | Verification Gate | 4-point verification gatekeeper and zero-raw purge engine with audit logging. |
+| `scripts/corpus_pipeline/orchestrator.py` | CLI Orchestrator | Master orchestrator CLI for corpus processing, storage replication, and zero-raw purge. |
+| `scripts/corpus_pipeline/test_corpus_pipeline.py` | Test Suite | Unit and integration tests for catalog, storage, cleaner, packer, gatekeeper, and purge. |
+| `scripts/corpus_pipeline/requirements.txt` | Package Dependencies | Production dependencies for corpus pipeline (blake3, tiktoken, duckdb, lingua, boto3). |
+| `Dockerfile` | Container Build | Multi-stage production container build with Node 22, Playwright Chromium libraries, and Python 3. |
+| `docker-compose.yml` | Container Orchestration | Docker compose deployment mapping port 4000, data volume, and healthcheck. |
+| `.github/workflows/ci.yml` | CI/CD Workflow | Continuous integration pipeline executing Biome lint, naming check, TypeScript build, test suite, and SCA audit. |
+| `trash/` | Quarantine & Deprecated | Local holding directory for standalone, deprecated, or temporary raw dump artifacts (.gitignored). |

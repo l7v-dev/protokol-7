@@ -1,0 +1,22 @@
+name: corpus-parquet-pipeline
+version: 1
+
+actor:
+  id: wikimedia
+  config:
+    title: "Yapay zekâ"
+    action: article
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: parquet
+  compression: zstd
+
+storage:
+  backend: local
+  prefix: "datasets/shards/wikimedia"

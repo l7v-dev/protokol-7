@@ -1,0 +1,5 @@
+{
+  "endpoint": "drug/label",
+  "search": "ibuprofen",
+  "limit": 10
+}

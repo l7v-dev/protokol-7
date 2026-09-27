@@ -1,0 +1,386 @@
+# Protokol-7 Aktörler Rehberi (Actor Catalog)
+
+Bu rehber, **protokol-7** bünyesindeki 31 veri çıkarma aktörünün ne işe yaradığını, nasıl çalıştığını ve nasıl çağrılacağını en sade biçimde açıklar.
+
+Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
+1. **HTTP REST API:** `http://localhost:4000/api/v1/<aktor-adi>` (veya `/api/v1/actors`)
+2. **Model Context Protocol (MCP):** AI ajanları için JSON-RPC 2.0 veya SSE araçları (`tools/call`)
+
+---
+
+## 1. Hızlı Referans Tablosu
+
+| # | Aktör Adı | Kategori | REST Endpoint | MCP Tool Adı | Ne İşe Yarar? (En Sade Anlatım) |
+|---|---|---|---|---|---|
+| 1 | `cheerio-scraper` | Web & Tarama | `POST /api/v1/scrape` | `scrape_static_html` | Hızlıca bir web sayfasını indirir ve içindeki yazıları toplar. |
+| 2 | `playwright-browser` | Web & Tarama | `POST /api/v1/scrape` | `scrape_dynamic_page` | Gerçek bir Chrome tarayıcı açarak JavaScript ile yüklenen sayfaları okur. |
+| 3 | `crawler` | Web & Tarama | `POST /api/v1/crawl` | `crawl_website` | Bir sitedeki tüm linkleri adım adım gezerek sitenin haritasını çıkarır. |
+| 4 | `sitemap-xml` | Web & Tarama | `POST /api/v1/sitemap` | `parse_sitemap_xml` | Sitenin `sitemap.xml` dosyasını okuyup tüm sayfa adreslerini listeler. |
+| 5 | `markdown-reader` | Web & Tarama | `POST /api/v1/markdown` | `read_page_markdown` | Web sayfasındaki reklamları ve menüleri atıp sadece ana makaleyi Markdown yapar. |
+| 6 | `network-interceptor` | Web & Tarama | `POST /api/v1/intercept` | `intercept_api_responses` | Tarayıcının arkasında dönen gizli API ve JSON veri akışlarını yakalar. |
+| 7 | `serp-search` | Web & Tarama | `POST /api/v1/serp` | `search_engine_results` | Arama motoruna soru sorup çıkan ilk sayfa linklerini ve özetlerini getirir. |
+| 8 | `api-extractor` | Web & Tarama | `POST /api/v1/api-extractor` | `extract_rest_api` | Sayfalanmış (sayfa 1, sayfa 2...) JSON API verilerini otomatik toplar. |
+| 9 | `arxiv` | Bilim & Akademi | `POST /api/v1/arxiv` | `query_arxiv` | Fizik, matematik ve yapay zeka ön-baskı makalelerini ve özetlerini çeker. |
+| 10 | `europe-pmc` | Bilim & Akademi | `POST /api/v1/europe-pmc` | `query_europe_pmc` | Biyoloji ve tıp alanındaki milyonlarca bilimsel makaleyi arar ve getirir. |
+| 11 | `openalex` | Bilim & Akademi | `POST /api/v1/openalex` | `query_openalex` | Dünyadaki tüm üniversite ve yazarların bilimsel makale ve atıf ağını çeker. |
+| 12 | `dergipark` | Bilim & Akademi | `POST /api/v1/dergipark` | `query_dergipark` | Türkiye'deki hakemli akademik dergilerin makale ve PDF linklerini toplar. |
+| 13 | `openstax` | Bilim & Akademi | `POST /api/v1/openstax` | `query_openstax` | Açık lisanslı üniversite ders kitaplarını bölüm bölüm temiz metin olarak çeker. |
+| 14 | `mit-ocw` | Bilim & Akademi | `POST /api/v1/mit-ocw` | `query_mit_ocw` | MIT üniversitesinin açık ders notlarını, ders planlarını ve kaynaklarını getirir. |
+| 15 | `sec-edgar` | Kamu & Hukuk | `POST /api/v1/sec-edgar` | `query_sec_edgar` | ABD borsasındaki şirketlerin yıllık ve çeyreklik resmi finans raporlarını çeker. |
+| 16 | `court-listener` | Kamu & Hukuk | `POST /api/v1/court-listener` | `query_court_listener` | Amerikan mahkeme kararlarını ve emsal hukuki dava metinlerini arar. |
+| 17 | `eur-lex` | Kamu & Hukuk | `POST /api/v1/eur-lex` | `query_eur_lex` | Avrupa Birliği kanunlarını, direktiflerini ve mahkeme kararlarını getirir. |
+| 18 | `open-fda` | Kamu & Hukuk | `POST /api/v1/open-fda` | `query_open_fda` | İlaç etiketlerini, yan etkilerini ve tıbbi cihaz onaylarını resmi devletten çeker. |
+| 19 | `clinical-trials` | Kamu & Hukuk | `POST /api/v1/clinical-trials` | `query_clinical_trials` | Dünyadaki tıp ve ilaç deneme testlerinin protokollerini ve sonuçlarını listeler. |
+| 20 | `gutenberg` | Kitap & Kültür | `POST /api/v1/gutenberg` | `query_gutenberg` | Telif hakkı bitmiş binlerce dünya klasiği kitabı temiz metin olarak indirir. |
+| 21 | `internet-archive` | Kitap & Kültür | `POST /api/v1/internet-archive` | `query_internet_archive` | Dünyanın en büyük dijital kütüphanesinden taranmış kitap ve metinleri çeker. |
+| 22 | `ktb-ekitap` | Kitap & Kültür | `POST /api/v1/ktb-ekitap` | `query_ktb_ekitap` | Kültür Bakanlığı'nın e-kitap portalındaki tarihi ve edebi eserleri toplar. |
+| 23 | `saglik-ekutuphane` | Kitap & Kültür | `POST /api/v1/saglik-ekutuphane` | `query_saglik_ekutuphane` | Sağlık Bakanlığı'nın tıp, aşı ve halk sağlığı rehberlerini ve kitaplarını çeker. |
+| 24 | `epub-extractor` | Kitap & Kültür | `POST /api/v1/epub` | `extract_epub` | EPUB uzantılı dijital kitapları içindekiler tablosuyla Markdown metnine çevirir. |
+| 25 | `software-heritage`| Kod & Standartlar | `POST /api/v1/software-heritage` | `query_software_heritage` | Dünya açık kaynak yazılım arşivinden kod dosyalarını ve dizinleri çeker. |
+| 26 | `stack-exchange` | Kod & Standartlar | `POST /api/v1/stack-exchange` | `query_stack_exchange` | Yazılımcıların StackOverflow soru ve kabul edilmiş cevaplarını LLM çifti yapar. |
+| 27 | `ietf-rfc` | Kod & Standartlar | `POST /api/v1/ietf-rfc` | `query_ietf_rfc` | İnternetin resmi teknik kurallarını (TCP/IP, HTTP) temiz metin olarak getirir. |
+| 28 | `wikimedia` | Kod & Standartlar | `POST /api/v1/wikimedia` | `query_wikimedia` | Vikipedi maddelerini özet veya tam Markdown metni olarak anında getirir. |
+| 29 | `pdf-document` | Belge & Arşiv | `POST /api/v1/pdf` | `extract_pdf` | PDF dosyalarındaki yazıları 2-3 sütunlu olsa bile doğru sırada okur ve çıkarır. |
+| 30 | `document-extractor` | Belge & Arşiv | `POST /api/v1/document` | `extract_document` | Word (.docx), Excel (.xlsx) ve CSV dosyalarını yapılandırılmış Markdown yapar. |
+| 31 | `archive-extractor` | Belge & Arşiv | `POST /api/v1/archive` | `extract_archive` | ZIP ve TAR arşivlerini güvenlik kontrolleriyle (Zip-Slip koruması) açar. |
+
+---
+
+## 2. Kategori Bazlı Detaylı Kullanım ve Örnekler
+
+---
+
+### Kategori 1: Genel Web & Tarama Aktörleri
+
+#### 1. Cheerio Scraper (`cheerio-scraper`)
+* **Ne Yapar?** Bir internet sayfasını saniyeler içinde indirir ve içindeki yazıları, başlıkları ve linkleri çıkarır.
+* **REST:** `POST /api/v1/scrape`
+```json
+{
+  "targetUrl": "https://example.com",
+  "renderJavaScript": false
+}
+```
+* **Yanıt:**
+```json
+{
+  "url": "https://example.com",
+  "title": "Example Domain",
+  "content": "# Example Domain\n\nThis domain is for use in illustrative examples...",
+  "links": ["https://www.iana.org/domains/example"]
+}
+```
+
+#### 2. Playwright Browser (`playwright-browser`)
+* **Ne Yapar?** JavaScript kullanan, butonlara basılarak açılan veya dinamik yüklenen siteleri gerçek bir Chromium tarayıcı ile açıp okur.
+* **REST:** `POST /api/v1/scrape`
+```json
+{
+  "targetUrl": "https://news.ycombinator.com",
+  "renderJavaScript": true,
+  "waitForSelector": ".athing"
+}
+```
+
+#### 3. Deep Crawler (`crawler`)
+* **Ne Yapar?** Verilen bir adresten başlayarak sitenin içindeki diğer sayfalara tıklar, derinlemesine tüm siteyi dolaşır.
+* **REST:** `POST /api/v1/crawl`
+```json
+{
+  "targetUrl": "https://example.com",
+  "maxDepth": 2,
+  "maxPages": 10
+}
+```
+
+---
+
+### Kategori 2: Akademik ve Bilimsel Araştırma Aktörleri
+
+#### 4. arXiv Aktörü (`arxiv`)
+* **Ne Yapar?** arXiv üzerindeki bilimsel makaleleri arar; başlık, yazar, özet ve istenirse tam PDF metnini getirir.
+* **REST:** `POST /api/v1/arxiv`
+* **MCP:** `query_arxiv`
+```json
+{
+  "searchQuery": "quantum computing",
+  "maxResults": 5,
+  "downloadPdf": false
+}
+```
+* **Yanıt:**
+```json
+{
+  "totalResults": 5,
+  "papers": [
+    {
+      "id": "2301.00001",
+      "title": "Quantum Error Mitigation",
+      "summary": "We present a comprehensive framework...",
+      "authors": ["John Doe", "Jane Smith"],
+      "published": "2023-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+#### 5. Europe PMC Aktörü (`europe-pmc`)
+* **Ne Yapar?** Tıp, genetik ve biyoloji alanındaki makaleleri Europe PMC veri tabanından arar.
+* **REST:** `POST /api/v1/europe-pmc`
+* **MCP:** `query_europe_pmc`
+```json
+{
+  "query": "CRISPR Cas9",
+  "pageSize": 5,
+  "openAccessOnly": true
+}
+```
+
+#### 6. OpenAlex Aktörü (`openalex`)
+* **Ne Yapar?** Bilimsel araştırmaları ve akademik yayınları OpenAlex API'sinden arar, ters dizinlenmiş özetleri metne dönüştürür.
+* **REST:** `POST /api/v1/openalex`
+* **MCP:** `query_openalex`
+```json
+{
+  "search": "artificial intelligence safety",
+  "perPage": 5
+}
+```
+
+#### 7. DergiPark Aktörü (`dergipark`)
+* **Ne Yapar?** Türkiye'deki hakemli akademik dergileri OAI-PMH protokolü üzerinden tarar, makale ve PDF linklerini listeler.
+* **REST:** `POST /api/v1/dergipark`
+* **MCP:** `query_dergipark`
+```json
+{
+  "keyword": "yapay zeka",
+  "maxRecords": 10
+}
+```
+
+#### 8. OpenStax Aktörü (`openstax`)
+* **Ne Yapar?** Üniversite ve lise seviyesindeki açık lisanslı ders kitaplarını ve bölümlerini çeker.
+* **REST:** `POST /api/v1/openstax`
+* **MCP:** `query_openstax`
+```json
+{
+  "subject": "Math",
+  "maxBooks": 5
+}
+```
+
+#### 9. MIT OpenCourseWare Aktörü (`mit-ocw`)
+* **Ne Yapar?** MIT üniversitesinin açık ders malzemelerini ve müfredat kaynaklarını çeker.
+* **REST:** `POST /api/v1/mit-ocw`
+* **MCP:** `query_mit_ocw`
+```json
+{
+  "query": "Algorithms",
+  "maxCourses": 5
+}
+```
+
+---
+
+### Kategori 3: Kamu, Hukuk ve Regülasyon Aktörleri
+
+#### 10. SEC EDGAR Aktörü (`sec-edgar`)
+* **Ne Yapar?** Amerikan Sermaye Piyasası Kurulu'ndaki (SEC) şirketlerin yıllık (10-K) ve çeyreklik (10-Q) raporlarını çeker.
+* **REST:** `POST /api/v1/sec-edgar`
+* **MCP:** `query_sec_edgar`
+```json
+{
+  "ticker": "AAPL",
+  "formType": "10-K",
+  "maxFilings": 2
+}
+```
+
+#### 11. CourtListener Aktörü (`court-listener`)
+* **Ne Yapar?** ABD mahkeme kararlarını, yargıç görüşlerini ve hukuki emsal metinleri arar.
+* **REST:** `POST /api/v1/court-listener`
+* **MCP:** `query_court_listener`
+```json
+{
+  "query": "copyright fair use",
+  "maxOpinions": 5
+}
+```
+
+#### 12. EUR-Lex Aktörü (`eur-lex`)
+* **Ne Yapar?** Avrupa Birliği regülasyonlarını, direktiflerini ve Adalet Divanı kararlarını CELLAR üzerinden sorgular.
+* **REST:** `POST /api/v1/eur-lex`
+* **MCP:** `query_eur_lex`
+```json
+{
+  "celex": "32016R0679"
+}
+```
+
+#### 13. openFDA Aktörü (`open-fda`)
+* **Ne Yapar?** Amerikan İlaç Dairesi'nin (FDA) onaylı ilaç etiketlerini ve tıbbi cihaz kayıtlarını çeker.
+* **REST:** `POST /api/v1/open-fda`
+* **MCP:** `query_open_fda`
+```json
+{
+  "endpoint": "drug_label",
+  "search": "openfda.brand_name:aspirin",
+  "limit": 3
+}
+```
+
+#### 14. ClinicalTrials Aktörü (`clinical-trials`)
+* **Ne Yapar?** Dünyadaki klinik ilaç deneylerini, hasta kriterlerini ve test sonuçlarını sorgular.
+* **REST:** `POST /api/v1/clinical-trials`
+* **MCP:** `query_clinical_trials`
+```json
+{
+  "condition": "diabetes",
+  "pageSize": 5
+}
+```
+
+---
+
+### Kategori 4: Kütüphane, Kitap ve Kültür Aktörleri
+
+#### 15. Project Gutenberg Aktörü (`gutenberg`)
+* **Ne Yapar?** Telifsiz dünya edebiyatı klasiklerini arar ve lisans yazılarından arındırılmış temiz metin olarak indirir.
+* **REST:** `POST /api/v1/gutenberg`
+* **MCP:** `query_gutenberg`
+```json
+{
+  "search": "Dostoevsky",
+  "language": "en",
+  "maxBooks": 2
+}
+```
+
+#### 16. Internet Archive Aktörü (`internet-archive`)
+* **Ne Yapar?** archive.org koleksiyonlarındaki kamuya açık kitapların OCR metinlerini indirir.
+* **REST:** `POST /api/v1/internet-archive`
+* **MCP:** `query_internet_archive`
+```json
+{
+  "query": "history of science",
+  "maxItems": 3
+}
+```
+
+#### 17. KTB e-Kitap Aktörü (`ktb-ekitap`)
+* **Ne Yapar?** Kültür ve Turizm Bakanlığı e-kitap portalındaki eserleri ve katalog kayıtlarını toplar.
+* **REST:** `POST /api/v1/ktb-ekitap`
+* **MCP:** `query_ktb_ekitap`
+```json
+{
+  "category": "Edebiyat",
+  "maxPages": 2
+}
+```
+
+#### 18. Sağlık e-Kütüphane Aktörü (`saglik-ekutuphane`)
+* **Ne Yapar?** Sağlık Bakanlığı'nın halk sağlığı rehberlerini ve tıbbi yayınlarını çeker.
+* **REST:** `POST /api/v1/saglik-ekutuphane`
+* **MCP:** `query_saglik_ekutuphane`
+```json
+{
+  "category": "kitaplar",
+  "maxItems": 5
+}
+```
+
+#### 19. EPUB Extractor Aktörü (`epub-extractor`)
+* **Ne Yapar?** Bir `.epub` dosyasını açar, içindekiler tablosunu ve tüm bölümleri sırayla Markdown yapar.
+* **REST:** `POST /api/v1/epub`
+* **MCP:** `extract_epub`
+```json
+{
+  "fileUrl": "https://example.com/sample.epub",
+  "maxChapters": 20
+}
+```
+
+---
+
+### Kategori 5: Açık Kod ve Teknik Standart Aktörleri
+
+#### 20. Software Heritage Aktörü (`software-heritage`)
+* **Ne Yapar?** Dünya yazılım mirasındaki kalıcı kod parçalarını (SWHID) veya dizin ağaçlarını çeker.
+* **REST:** `POST /api/v1/software-heritage`
+* **MCP:** `query_software_heritage`
+```json
+{
+  "swhid": "swh:1:cnt:94a9ed024d3859793618152ea559a168bbcbb5e2"
+}
+```
+
+#### 21. Stack Exchange Aktörü (`stack-exchange`)
+* **Ne Yapar?** StackOverflow veya diğer teknik ağlardaki yüksek puanlı soruları ve kabul edilmiş cevapları çeker.
+* **REST:** `POST /api/v1/stack-exchange`
+* **MCP:** `query_stack_exchange`
+```json
+{
+  "query": "typescript async await",
+  "site": "stackoverflow",
+  "minScore": 5,
+  "maxResults": 5
+}
+```
+
+#### 22. IETF RFC Aktörü (`ietf-rfc`)
+* **Ne Yapar?** İnternet standartlarını (HTTP, DNS, TLS vb.) temizlenmiş düz metin olarak getirir.
+* **REST:** `POST /api/v1/ietf-rfc`
+* **MCP:** `query_ietf_rfc`
+```json
+{
+  "rfcNumber": 9110
+}
+```
+
+#### 23. Wikimedia Aktörü (`wikimedia`)
+* **Ne Yapar?** Vikipedi sayfalarını özet veya HTML'den temizlenmiş tam Markdown olarak çeker.
+* **REST:** `POST /api/v1/wikimedia`
+* **MCP:** `query_wikimedia`
+```json
+{
+  "title": "Yapay zekâ",
+  "language": "tr",
+  "action": "article"
+}
+```
+
+---
+
+### Kategori 6: Belge, Ofis ve Arşiv Aktörleri
+
+#### 24. PDF Document Aktörü (`pdf-document`)
+* **Ne Yapar?** İki veya üç sütunlu zorlu PDF belgelerini okuma sırasına göre düzgün metne dönüştürür.
+* **REST:** `POST /api/v1/pdf`
+* **MCP:** `extract_pdf`
+```json
+{
+  "targetUrl": "https://example.com/document.pdf",
+  "maxPages": 10
+}
+```
+
+#### 25. Document Extractor Aktörü (`document-extractor`)
+* **Ne Yapar?** Word (`.docx`), Excel (`.xlsx`) ve CSV tablolarını okur ve Markdown tablolarına çevirir.
+* **REST:** `POST /api/v1/document`
+* **MCP:** `extract_document`
+```json
+{
+  "fileUrl": "https://example.com/data.xlsx",
+  "format": "xlsx"
+}
+```
+
+#### 26. Archive Extractor Aktörü (`archive-extractor`)
+* **Ne Yapar?** ZIP ve TAR arşivlerini açar, içindeki dosyaları listeler ve çıkarır (Zip Bomb korumalıdır).
+* **REST:** `POST /api/v1/archive`
+* **MCP:** `extract_archive`
+```json
+{
+  "fileUrl": "https://example.com/dataset.zip"
+}
+```

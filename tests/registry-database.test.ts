@@ -367,3 +367,109 @@ describe("RegistryDatabase - Dataset Shards", () => {
     assert.equal(nonExistent, undefined);
   });
 });
+
+describe("RegistryDatabase - Unified Datasets, Storage Replicas & Verification Audit Ledger", () => {
+  it("upserts, gets, and lists datasets", () => {
+    const db = new RegistryDatabase({ inMemory: true });
+
+    db.upsertDataset({
+      datasetId: "wikipedia-tr",
+      name: "Turkish Wikipedia LLM Corpus",
+      sourcePlatform: "wikimedia",
+      licenseGroup: "permissive_commercial",
+      defaultLanguage: "tr",
+      description: "Clean encyclopedic articles in GFM markdown",
+      createdAt: new Date().toISOString(),
+    });
+
+    const dataset = db.getDataset("wikipedia-tr");
+    assert.ok(dataset);
+    assert.equal(dataset.name, "Turkish Wikipedia LLM Corpus");
+    assert.equal(dataset.licenseGroup, "permissive_commercial");
+    assert.equal(dataset.defaultLanguage, "tr");
+
+    const all = db.listDatasets();
+    assert.equal(all.length, 1);
+    assert.equal(all[0].datasetId, "wikipedia-tr");
+
+    db.close();
+  });
+
+  it("records and lists storage replicas for a shard", () => {
+    const db = new RegistryDatabase({ inMemory: true });
+    const shardId = "shard-tr-0001";
+
+    db.recordDatasetShard({
+      shardId,
+      datasetName: "wikipedia-tr",
+      fileName: "wikipedia-tr-part0001.parquet",
+      storageUri: "file:///data/shards/wikipedia-tr-part0001.parquet",
+      storageBackend: "local",
+      recordCount: 15000,
+      sizeBytes: 524288000,
+      sha256Hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      createdAt: new Date().toISOString(),
+    });
+
+    db.recordStorageReplica({
+      replicaId: "rep-r2-0001",
+      shardId,
+      storageProvider: "cloudflare_r2",
+      remoteUri: "r2://bucket/shards/wikipedia-tr-part0001.parquet",
+      remoteSha256Hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      remoteSizeBytes: 524288000,
+      syncStatus: "VERIFIED",
+      verifiedAt: new Date().toISOString(),
+    });
+
+    const replicas = db.listStorageReplicas(shardId);
+    assert.equal(replicas.length, 1);
+    assert.equal(replicas[0].storageProvider, "cloudflare_r2");
+    assert.equal(replicas[0].syncStatus, "VERIFIED");
+
+    db.close();
+  });
+
+  it("records and queries verification audit ledger records", () => {
+    const db = new RegistryDatabase({ inMemory: true });
+    const runId = "run-ingest-tr-01";
+    const shardId = "shard-tr-0001";
+
+    db.recordDatasetShard({
+      shardId,
+      datasetName: "wikipedia-tr",
+      fileName: "wikipedia-tr-part0001.parquet",
+      storageUri: "file:///data/shards/wikipedia-tr-part0001.parquet",
+      storageBackend: "local",
+      recordCount: 15000,
+      sizeBytes: 524288000,
+      sha256Hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      createdAt: new Date().toISOString(),
+    });
+
+    db.recordVerificationAudit({
+      auditId: "audit-001",
+      shardId,
+      runId,
+      recordCountMatches: true,
+      parquetReadable: true,
+      checksumMatches: true,
+      verificationPassed: true,
+      rawSourcePath: "/scratch/trwiki-dump.xml.bz2",
+      rawSourceSha256: "abc123hash",
+      rawPurged: true,
+      purgedAt: new Date().toISOString(),
+      verifierIdentity: "VerificationGatekeeper-v1.0",
+      notes: "All 4 gatekeeper checks passed; raw scratch purged safely",
+      createdAt: new Date().toISOString(),
+    });
+
+    const audits = db.listVerificationAudits(runId);
+    assert.equal(audits.length, 1);
+    assert.equal(audits[0].verificationPassed, true);
+    assert.equal(audits[0].rawPurged, true);
+    assert.equal(audits[0].verifierIdentity, "VerificationGatekeeper-v1.0");
+
+    db.close();
+  });
+});

@@ -1,0 +1,6 @@
+{
+  "targetUrl": "https://example.com",
+  "maxPages": 5,
+  "maxDepth": 1,
+  "sameDomainOnly": true
+}

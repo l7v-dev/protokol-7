@@ -1,0 +1,59 @@
+name: Continuous Integration & Verification
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feature/**"
+      - "fix/**"
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Setup Python Runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium Dependencies
+        run: npx playwright install-deps chromium
+
+      - name: Static Analysis & Code Formatting (Biome)
+        run: npm run lint
+
+      - name: Technical Naming Discipline Audit
+        run: npm run lint:naming
+
+      - name: TypeScript Compilation Check
+        run: npm run build
+
+      - name: Pure Node.js Test Suite Execution (tsx --test)
+        run: npm test
+
+      - name: Supply Chain & Package Security Audit
+        run: npm run sca
