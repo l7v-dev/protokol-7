@@ -34,6 +34,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 |---|---|---|
 | `src/actors/actor-registry.ts` | `ActorRegistry` | Central registry for discovering, registering, and instantiating all actors across all categories. |
 | `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 31 actors. |
+| `src/actors/actor.template.ts` | `TemplateActor`, `TemplateActorResult` | Canonical reference implementation blueprint, contract template, and security scaffold for new actors. |
 
 #### Web Actors (`src/actors/web/`) — general-purpose HTTP and browser extraction
 
@@ -270,6 +271,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/dataset-publisher-and-api.test.ts` | `DatasetPublisher`, `DatasetRouter`, `ProtokolMcpServer` | Integration tests for dataset snapshot creation, manifest.json sealing, split partitioning, REST endpoints, and MCP tools. |
 | `tests/job-scheduler-and-api.test.ts` | `JobRouter`, `ScheduleBroker`, `ProtokolMcpServer` | Integration tests for scheduled jobs, cron validation, path traversal guard, REST endpoints, and MCP tools. |
 | `tests/cold-vault-exporter-and-api.test.ts` | `ColdVaultExporter`, `VaultRouter`, `ProtokolMcpServer` | Integration tests for cold vault volume initialization, dataset packaging, SHA256SUMS generation, replica ledger tracking, file corruption detection, REST endpoints, and MCP tools. |
+| `tests/scaffold-actor.test.ts` | `scripts/scaffold-actor.mjs` | Validation tests for actor scaffolding CLI, argument parsing, category verification, name validation, and template invariants. |
 
 ---
 
@@ -285,6 +287,8 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `.agents/skills/` | Skill Library | 38 technical skill definitions (naming discipline, code review, tdd, etc.). |
 | `docs/git-commit-convention.md` | Engineering Standard | Git Commit Convention v1.0 specification and agent attribution rules. |
 | `docs/developer-onboarding.md` | Documentation | Getting started guide, environment variables, command references. |
+| `docs/actor-contract.md` | Engineering Standard | Actor contract specification, security invariants, lifecycle, and 8-step registration checklist. |
+| `scripts/scaffold-actor.mjs` | Automation CLI | Actor scaffolding generator CLI (`npm run make:actor`) producing actor class, test, JSON example, and barrel export. |
 | `biome.json` | Linter / Formatter Config | Biome static analysis and formatting rules for src, tests, and scripts. |
 | `context/connectome.md` | System Map | Deterministically generated routing and actor dependency map. |
 | `docs/adr/` | Architectural Records | Architecture Decision Records (ADR 0001 - 0009). |

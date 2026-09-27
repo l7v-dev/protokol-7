@@ -17,6 +17,7 @@ Python scripts require `python3` with dependencies listed in `scripts/corpus_pip
 | `sca-check.mjs` | `npm run sca` | Software Composition Analysis — audits `node_modules` for known CVEs via `npm audit`. |
 | `telemetry-logger.mjs` | _(internal)_ | Append-only telemetry sink writing structured JSON lines to `archive/telemetry.jsonl`. |
 | `pipedream-cli.mjs` | `npm run pipedream` | Pipedream Connect CLI: verify token, list accounts, generate MCP endpoint config. |
+| `scaffold-actor.mjs` | `npm run make:actor` | Actor scaffolding generator: creates actor class, test, JSON example, and barrel export. |
 
 ## Python Scripts (`scripts/corpus_pipeline/`)
 
