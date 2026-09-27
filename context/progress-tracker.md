@@ -8,17 +8,17 @@ protokol-7 — Headless Web Scraping, Deep Crawling & Anti-Detection Browser Aut
 
 ## Current Phase
 
-**Faz: Bildirimsel Boru Hatti REST API ve MCP Tetikleme Uclari tamamlandi.** `src/core/pipeline-router.ts` entegre edildi. `POST /api/v1/pipelines/run`, `GET /api/v1/pipelines/runs`, `GET /api/v1/pipelines/runs/:id`, `GET /api/v1/pipelines/templates` REST rotalari ve `run_pipeline`, `list_pipelines` MCP araclari uygulandi. Path traversal savunmasi ve OpenAPI 3.1.0 semalari eklendi. **459/459 test %100 yesil, 6 asamali deterministik dogrulama hatti (`npm run verify`) hatasiz gecmektedir.**
+**Faz: Veri Kumesi Envanteri ve Egitim Manifestosu Yayincisi (Dataset Snapshot & Training Manifest) tamamlandi.** `DatasetPublisher` motoru (`src/dataset/dataset-publisher.ts`), `dataset_snapshots` SQLite ACID tablosu; `POST /api/v1/datasets/publish`, `GET /api/v1/datasets`, `GET /api/v1/datasets/:name`, `GET /api/v1/datasets/:name/manifest` REST rotalari; `publish_dataset`, `list_datasets`, `get_dataset_manifest` MCP araclari uygulandi. **470/470 test %100 yesil, 6 asamali deterministik dogrulama hatti (`npm run verify`) hatasiz gecmektedir.**
 
 ---
 
-## Completed (Bildirimsel Boru Hatti REST API ve MCP Tetikleme)
+## Completed (Veri Kumesi Envanteri ve Egitim Manifestosu Yayincisi)
 
-- [x] **`PipelineRouter` (`src/core/pipeline-router.ts`):** `yaml`, `filePath` (ornek sablonlar) ve `config` nesnesi uzerinden bildirimsel boru hatti calistirma, `async: true` destegi, path traversal korumasi (`..` ve calisma alani disi erisim engeli), calistirma gecmisi ve sablon listeleme.
-- [x] **HTTP API Uç Noktalari (`src/core/server.ts`):** `POST /api/v1/pipelines/run`, `GET /api/v1/pipelines/runs`, `GET /api/v1/pipelines/runs/:id`, `GET /api/v1/pipelines/templates`.
-- [x] **MCP Araclari (`src/mcp/protokol-mcp-server.ts`):** Toplam 33 MCP araci; `run_pipeline` ve `list_pipelines` ile AI ajanlarinin otonom boru hatti calistirmasi saglandi.
-- [x] **OpenAPI 3.1.0 Spesifikasyonu (`src/core/openapi-spec.ts`):** Yeni uc noktalar eksiksiz sema ve yanit formatlariyla belgelendi.
-- [x] **Entegrasyon Testleri (`tests/pipeline-api-and-mcp.test.ts`):** 10 entegrasyon testi ile YAML calistirma, hata reddi, guvenlik denetimleri ve MCP JSON-RPC cagrilari dogrulandi.
+- [x] **`DatasetPublisher` (`src/dataset/dataset-publisher.ts`):** Şard envanteri çözümleme, deterministik train/val/test bölme, SHA-256 sağlama toplamı denetimi, `manifest.json` ve `checksums.sha256` üretimi, uzak depolama bağlayıcılarına (S3/R2/B2) yükleme ve `RegistryDatabase` ACID kaydı.
+- [x] **HTTP API Uç Noktalari (`src/core/dataset-router.ts` & `src/core/server.ts`):** `POST /api/v1/datasets/publish`, `GET /api/v1/datasets`, `GET /api/v1/datasets/:name`, `GET /api/v1/datasets/:name/manifest`, `GET /api/v1/datasets/:name/snapshots`, `GET /api/v1/datasets/:name/snapshots/:snapshotId`.
+- [x] **MCP Araclari (`src/mcp/protokol-mcp-server.ts`):** Toplam 36 MCP aracı; `publish_dataset`, `list_datasets`, `get_dataset_manifest` ile AI ajanlarının otonom eğitim veri kümesi mühürlemesi sağlandı.
+- [x] **OpenAPI 3.1.0 Spesifikasyonu (`src/core/openapi-spec.ts`):** `Datasets` etiketi altında tüm şemalar, istek gövdeleri ve yanıt formatları belgelendi.
+- [x] **Entegrasyon Testleri (`tests/dataset-publisher-and-api.test.ts`):** 11 entegrasyon testi ile şard bölme, token tahmini, hata reddi, REST rotaları ve MCP JSON-RPC araç çağrıları doğrulandı.
 
 ---
 
