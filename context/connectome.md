@@ -15,7 +15,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/network/ssrf-guard.ts` | 26 | 3 | Yardımcı Modül |
 | `src/core/server.ts` | 13 | 1 | Giriş Noktası (Server) |
 | `src/server.ts` | 13 | 0 | Giriş Noktası (Server) |
-| `src/pipeline/schema.ts` | 11 | 13 | Yardımcı Modül |
+| `src/pipeline/schema.ts` | 11 | 19 | Yardımcı Modül |
 | `src/core/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/mcp/index.ts` | 10 | 0 | Yardımcı Modül |
@@ -28,14 +28,14 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/browser-pool.ts` | 7 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/core/context-guard.ts` | 6 | 4 | Yardımcı Modül |
 | `src/core/run-registry.ts` | 6 | 6 | Bileşen Tescili (Registry) |
+| `src/pipeline/pipeline-runner.ts` | 6 | 3 | Yardımcı Modül |
 | `src/actors/actor-registry.ts` | 5 | 2 | Bileşen Tescili (Registry) |
+| `src/core/registry-database.ts` | 5 | 7 | Bileşen Tescili (Registry) |
 | `src/extractors/structured-extractor.ts` | 5 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
-| `src/pipeline/pipeline-runner.ts` | 5 | 3 | Yardımcı Modül |
 | `src/pipeline/storage/s3-storage.ts` | 5 | 4 | Yardımcı Modül |
 | `src/actors/actor-manifests.ts` | 4 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
-| `src/core/registry-database.ts` | 4 | 7 | Bileşen Tescili (Registry) |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
@@ -86,8 +86,11 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/execution/remote-http-executor.ts` | 2 | 2 | Yardımcı Modül |
 | `src/pipeline/output-sink.ts` | 2 | 3 | Yardımcı Modül |
 | `src/pipeline/processors/csv-writer.ts` | 2 | 1 | Yardımcı Modül |
+| `src/pipeline/processors/dedup-filter.ts` | 2 | 3 | Yardımcı Modül |
 | `src/pipeline/processors/parquet-packer.ts` | 2 | 1 | Yardımcı Modül |
 | `src/pipeline/processors/passthrough-writer.ts` | 2 | 1 | Yardımcı Modül |
+| `src/pipeline/processors/quality-filter.ts` | 2 | 4 | Yardımcı Modül |
+| `src/pipeline/processors/text-normalizer.ts` | 2 | 3 | Yardımcı Modül |
 | `src/pipeline/storage/b2-storage.ts` | 2 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/google-drive-storage.ts` | 2 | 3 | Yardımcı Modül |
 | `src/pipeline/storage/local-storage.ts` | 2 | 1 | Yardımcı Modül |
@@ -166,6 +169,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/pdf-ocr-pipeline.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pdf-rasterizer.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipedream-connect.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/pipeline-quality-and-dedup.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipeline-runner.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipeline-schema.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/politeness-limiter.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -1473,6 +1477,24 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `process(items: unknown[], baseName: string): Promise<ProcessedOutput>`
   - `escapeCsvValue(val: unknown): string`
 
+### `src/pipeline/processors/dedup-filter.ts`
+
+**Sınıflar (Classes):**
+- `class DedupFilter`
+  - `reset(): void`
+  - `fnv1a64(str: string): bigint`
+  - `computeSimHash(text: string): bigint`
+  - `hammingDistance(a: bigint, b: bigint): number`
+  - `extractFingerprints(item: Record<string, unknown>): {
+    exactHash: string;
+    text: string;
+  }`
+  - `evaluate(item: Record<string, unknown>, itemId): DedupResult`
+  - `filterBatch(items: T[]): T[]`
+**Arayüzler (Interfaces):**
+- `interface DedupConfig` (5 üye)
+- `interface DedupResult` (5 üye)
+
 ### `src/pipeline/processors/index.ts`
 
 **Arayüzler (Interfaces):**
@@ -1496,6 +1518,30 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Sınıflar (Classes):**
 - `class PassthroughWriter`
   - `process(items: unknown[], baseName: string): Promise<ProcessedOutput>`
+
+### `src/pipeline/processors/quality-filter.ts`
+
+**Sınıflar (Classes):**
+- `class QualityFilter`
+  - `calculateMetrics(text: string): QualityMetrics`
+  - `evaluate(text: string): QualityEvaluationResult`
+  - `processItem(item: T): T | null`
+  - `filterBatch(items: T[]): T[]`
+**Arayüzler (Interfaces):**
+- `interface QualityMetrics` (8 üye)
+- `interface QualityGateConfig` (9 üye)
+- `interface QualityEvaluationResult` (3 üye)
+
+### `src/pipeline/processors/text-normalizer.ts`
+
+**Sınıflar (Classes):**
+- `class TextNormalizer`
+  - `normalize(text: string): string`
+  - `processItem(item: T): NormalizedItemResult<T>`
+  - `processBatch(items: T[]): T[]`
+**Arayüzler (Interfaces):**
+- `interface NormalizerOptions` (6 üye)
+- `interface NormalizedItemResult` (5 üye)
 
 ### `src/pipeline/schedule-broker.ts`
 
@@ -1522,6 +1568,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `loadPipelineConfigFile(filePath: string): PipelineConfig`
 **Tipler (Types):**
 - `type PipelineConfig`
+- `type PipelineNormalizationConfig`
+- `type PipelineQualityGateConfig`
+- `type PipelineDedupConfig`
 - `type ConnectorConfig`
 
 ### `src/pipeline/storage/b2-storage.ts`
@@ -1627,5 +1676,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/session-vault.ts` |
 | `src/browser/stealth-manager.ts` |
 | `src/core/context-guard.ts` |
-| *... ve 134 dosya daha* |
+| *... ve 138 dosya daha* |
 

@@ -16,6 +16,9 @@ export interface OutputProcessor {
 }
 
 export * from "./csv-writer";
+export * from "./dedup-filter";
 export * from "./jsonl-writer";
 export * from "./parquet-packer";
 export * from "./passthrough-writer";
+export * from "./quality-filter";
+export * from "./text-normalizer";

@@ -75,6 +75,35 @@ export const PipelineStorageConfigSchema = z.object({
   destination_path: z.string().optional(),
 });
 
+export const PipelineNormalizationConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  nfkc: z.boolean().default(true),
+  strip_control_chars: z.boolean().default(true),
+  strip_zero_width: z.boolean().default(true),
+  collapse_whitespace: z.boolean().default(true),
+  max_consecutive_newlines: z.number().int().min(0).default(2),
+});
+
+export const PipelineQualityGateConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  min_words: z.number().int().nonnegative().default(30),
+  max_words: z.number().int().positive().optional(),
+  min_chars: z.number().int().nonnegative().default(100),
+  max_symbol_ratio: z.number().min(0).max(1).default(0.2),
+  min_alpha_ratio: z.number().min(0).max(1).default(0.6),
+  max_duplicate_line_fraction: z.number().min(0).max(1).default(0.35),
+  max_ellipsis_line_fraction: z.number().min(0).max(1).default(0.3),
+  action: z.enum(["drop", "flag"]).default("drop"),
+});
+
+export const PipelineDedupConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  exact: z.boolean().default(true),
+  near_duplicate: z.boolean().default(false),
+  max_hamming_distance: z.number().int().min(0).max(64).default(3),
+  action: z.enum(["drop", "flag"]).default("drop"),
+});
+
 export const PipelineConfigSchema = z.object({
   name: z
     .string()
@@ -89,10 +118,16 @@ export const PipelineConfigSchema = z.object({
   execution: PipelineExecutionConfigSchema.default({ target: "local" }),
   output: PipelineOutputConfigSchema.default({ format: "jsonl", compression: "none" }),
   storage: PipelineStorageConfigSchema.default({ backend: "local" }),
+  normalization: PipelineNormalizationConfigSchema.optional(),
+  quality_gate: PipelineQualityGateConfigSchema.optional(),
+  dedup: PipelineDedupConfigSchema.optional(),
   connectors: z.record(ConnectorConfigSchema).optional(),
 });
 
 export type PipelineConfig = z.infer<typeof PipelineConfigSchema>;
+export type PipelineNormalizationConfig = z.infer<typeof PipelineNormalizationConfigSchema>;
+export type PipelineQualityGateConfig = z.infer<typeof PipelineQualityGateConfigSchema>;
+export type PipelineDedupConfig = z.infer<typeof PipelineDedupConfigSchema>;
 export type ConnectorConfig = z.infer<typeof ConnectorConfigSchema>;
 
 /**

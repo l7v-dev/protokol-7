@@ -148,6 +148,9 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/pipeline/execution/remote-http-executor.ts` | `RemoteHttpExecutor` | Dispatches actor execution tasks to remote Protokol-7 instances via REST. |
 | `src/pipeline/execution/pipedream-executor.ts` | `PipedreamExecutor` | Dispatches extraction payloads to Pipedream webhook workflows. |
 | `src/pipeline/processors/index.ts` | `OutputProcessor`, `ProcessedOutput` | Output processor interfaces and format transformation contracts. |
+| `src/pipeline/processors/text-normalizer.ts` | `TextNormalizer` | Unicode NFKC normalization, control character stripping, whitespace canonicalization, and cryptographic SHA-256 lineage tracking. |
+| `src/pipeline/processors/quality-filter.ts` | `QualityFilter` | FineWeb and Gopher heuristic metrics evaluation (word count, symbol ratio, alpha ratio, duplicate line fraction) and quality gate enforcement. |
+| `src/pipeline/processors/dedup-filter.ts` | `DedupFilter` | Exact SHA-256 fingerprinting and 64-bit SimHash near-duplicate detection with Hamming distance thresholding. |
 | `src/pipeline/processors/jsonl-writer.ts` | `JsonlWriter` | Formats extracted records into newline-delimited JSON (JSONL). |
 | `src/pipeline/processors/passthrough-writer.ts` | `PassthroughWriter` | Formats extracted records into structured JSON without altering layout. |
 | `src/pipeline/processors/csv-writer.ts` | `CsvWriter` | Formats extracted records into RFC 4180 CSV tables. |
@@ -223,6 +226,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/court-listener-actor.test.ts` | `CourtListenerActor`, `src/core/server.ts` | Opinions search, court/judge filters, direct opinion ID retrieval, SSRF guard, and REST route. |
 | `tests/software-heritage-actor.test.ts` | `SoftwareHeritageActor`, `src/core/server.ts` | SWHID code blob extraction, directory traversal, origin snapshot lookup, SSRF guard, and REST route. |
 | `tests/eur-lex-actor.test.ts` | `EurLexActor`, `src/core/server.ts` | CELEX EU regulation retrieval, CELLAR SPARQL query, document type classification, SSRF guard, and REST route. |
+| `tests/pipeline-quality-and-dedup.test.ts` | `TextNormalizer`, `QualityFilter`, `DedupFilter`, `PipelineRunner` | Normalization (NFKC, control chars, whitespace), FineWeb/Gopher quality gates, exact SHA-256 and SimHash near-dedup, and SQLite audit ledger integration. |
 
 ---
 

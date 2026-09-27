@@ -9,8 +9,9 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- [x] **Proje Konsolidasyonu, Adlandirma Disiplini, Atil Dosya Temizligi ve Tasinabilirlik** — `Tier: 2` — `trash/` klasoru olusturuldu; bagimsiz `wikipedia_pipeline/`, artik loglar ve gecici XML dumplar tasindi. `bigdata_pipeline` pazarlama adlandirmasi `corpus_pipeline` ile degistirildi. 31 aktor `src/actors/README.md` ve `examples/actors/` altinda ornek JSON konfigurasyonlari ile belgelendi. `Dockerfile`, `docker-compose.yml` ve `.github/workflows/ci.yml` uretildi; 435/435 test ve 6 asamali dogrulama basariyla gecti.
-- [ ] **GitHub Actions Uzak Wikipedia LLM Parquet ETL Boru Hatti** — `Tier: 1` — Durum: [1] arc, tk, lzh, la tamamlandi ve Google Drive'a muhurlendi (Drive'da 22 dil tamam). [2] dewiki (Run 36305934705) ve [3] enwiki (Run 36306339969) uzak sunucularda aktif calisiyor. Sifir yerel donanim yuku.
+- [x] **Proje Konsolidasyonu, Adlandirma Disiplini, Atil Dosya Temizligi ve Tasinabilirlik** — `Tier: 2` — `trash/` klasoru olusturuldu; bagimsiz `wikipedia_pipeline/`, artik loglar ve gecici XML dumplar tasindi. `bigdata_pipeline` pazarlama adlandirmasi `corpus_pipeline` ile degistirildi. 31 aktor `src/actors/README.md` ve `examples/actors/` altinda ornek JSON konfigurasyonlari ile belgelendi. `Dockerfile`, `docker-compose.yml` ve `.github/workflows/ci.yml` uretildi; 438/438 test ve 6 asamali dogrulama basariyla gecti.
+- [x] **GitHub Actions Uzak Wikipedia LLM Parquet ETL Boru Hatti** — `Tier: 1` — Durum: enwiki (6.581.817 makale) ve dewiki uzak sunucularda basariyla tamamlandi; zstd Parquet sardlari ve manifestler Google Drive'a MD5 dogrulamasiyla yuklendi. 24 dil uzak bulut altyapisinda sifir yerel yukle muhurlendi.
+- [ ] **LLM Veri Fabrikasi Boru Hatti Damitma Katmani (Normalizasyon, Kalite Kapisi, Tekillesme ve Denetim Defteri)** — `Tier: 2` — Durum: `src/pipeline/processors/` altina `TextNormalizerProcessor` (NFKC, bosluk kanonizasyonu), `QualityFilterProcessor` (FineWeb/Gopher sezgisel filtreleri), `DedupFilterProcessor` (SHA-256 ve SimHash parmak izi) ve `PipelineRunner` denetim defteri kayit zinciri eklenecek.
 
 ## Bekleyen (Blok var)
 
