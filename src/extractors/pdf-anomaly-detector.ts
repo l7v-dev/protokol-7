@@ -1,4 +1,4 @@
-import type { PdfDocumentAnomalyInfo } from "../core/types";
+import type { PdfDocumentAnomalyInfo } from "../api/types";
 
 export interface PdfAnalysisInput {
   uint8Data: Uint8Array;

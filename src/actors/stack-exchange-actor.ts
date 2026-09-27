@@ -14,7 +14,7 @@ import type {
   StackExchangeActorTaskOptions,
   StackExchangeAnswerItem,
   StackExchangeQuestionItem,
-} from "../core/types";
+} from "../api/types";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../network/ssrf-guard";
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createServer } from "../src/core/server";
+import { createServer } from "../src/api/server";
 
 test("Store API - Catalog, Manifests, Runs, and Web MVP Dashboard", async (t) => {
   const server = createServer();

@@ -20,7 +20,7 @@ import type {
   DergiParkActorTaskOptions,
   DergiParkArticle,
   IActor,
-} from "../core/types";
+} from "../api/types";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 
 const OAI_BASE = "https://dergipark.org.tr/api/public/oai";

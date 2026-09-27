@@ -1,5 +1,5 @@
 import { inflateRawSync } from "node:zlib";
-import type { DocumentSpreadsheetSheet } from "../core/types";
+import type { DocumentSpreadsheetSheet } from "../api/types";
 
 export interface ZipEntry {
   path: string;

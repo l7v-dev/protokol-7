@@ -5,7 +5,7 @@
 
 import { ACTOR_MANIFESTS } from "../../actors/actor-manifests";
 import { type ActorRegistry, createDefaultActorRegistry } from "../../actors/actor-registry";
-import type { ActorRunContext, ActorTask } from "../../core/types";
+import type { ActorRunContext, ActorTask } from "../../api/types";
 import { PipelineError } from "../schema";
 import type { ExecutionResult, ExecutionTarget } from "./index";
 

@@ -7,7 +7,7 @@ import assert from "node:assert";
 import type { Server } from "node:http";
 import { after, before, describe, it } from "node:test";
 import { deflateRawSync } from "node:zlib";
-import { createServer } from "../src/core/server";
+import { createServer } from "../src/api/server";
 import { globalOcrRegistry, type IOcrConnector } from "../src/ocr";
 
 function createMockZip(files: Record<string, string>): Buffer {

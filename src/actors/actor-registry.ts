@@ -2,7 +2,7 @@
  * Registry for scraping actors.
  */
 
-import type { ActorType, IActor } from "../core/types";
+import type { ActorType, IActor } from "../api/types";
 import { ApiExtractorActor } from "./api-extractor-actor";
 import { ArchiveExtractorActor } from "./archive-extractor-actor";
 import { ArxivActor } from "./arxiv-actor";

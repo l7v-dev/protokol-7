@@ -12,7 +12,7 @@ import type {
   ActorTask,
   EpubExtractorResult,
   IActor,
-} from "../core/types";
+} from "../api/types";
 import { EpubExtractor } from "../extractors/epub-extractor";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 

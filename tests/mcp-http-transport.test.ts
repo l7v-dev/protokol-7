@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import type http from "node:http";
 import { describe, it } from "node:test";
-import { globalRunRegistry } from "../src/core/run-registry";
+import { globalRunRegistry } from "../src/api/run-registry";
 import { verifyMcpToken } from "../src/mcp/auth-guard";
 import { HttpMcpTransport } from "../src/mcp/http-transport";
 import { ProtokolMcpServer } from "../src/mcp/protokol-mcp-server";

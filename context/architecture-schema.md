@@ -6,23 +6,26 @@ Single source of truth component inventory and file map for `protokol-7`.
 
 ## 1. Core Source Inventory (`src/`)
 
-### 1.1 Core Runtime (`src/core/`)
+### 1.1 API Layer (`src/api/`)
+
+HTTP server, request routing, ACID persistence, and shared type contracts.
+Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer.
 
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
-| `src/core/types.ts` | `ScrapedPageResult`, `ActorTask`, `BrowserActionResult`, `CrawlerResult` | Core TypeScript interfaces and shared contract definitions. |
-| `src/core/registry-database.ts` | `RegistryDatabase`, `getDefaultRegistryDatabase`, `DatasetShardRecord` | ACID SQLite persistence layer for actor runs, event logs, pipeline executions, scheduled jobs, and dataset shards using native `node:sqlite` with zero external dependencies. Tracks rich execution metadata, shard inventories, cryptographic SHA-256 hashes, and storage receipts. WAL mode for concurrent access; in-memory for test isolation. |
-| `src/core/run-registry.ts` | `RunRegistry`, `RunRecord`, `globalRunRegistry` | Tracks execution runs with dual-layer storage: in-memory Map for SSE event delivery and `RegistryDatabase` for cross-restart ACID persistence. Emits live log events per run. |
-| `src/core/store-router.ts` | `StoreRouter` | Actor Store API router, live log SSE streaming, quarantine inspector, and headless service information endpoint. |
-| `src/core/pipeline-router.ts` | `PipelineRouter`, `PipelineRouterOptions` | Declarative YAML pipeline execution HTTP router (`/api/v1/pipelines/*`), template catalog provider, run history viewer, and path traversal guard. |
-| `src/core/dataset-router.ts` | `DatasetRouter` | Dataset catalog router (`/api/v1/datasets/*`), training manifest publisher, snapshot viewer, and shard inventory inspector. |
-| `src/core/job-router.ts` | `JobRouter`, `ScheduleJobRequestBody` | Scheduled job and cron engine HTTP router (`/api/v1/jobs/*`), recurring pipeline/actor scheduler, and cron parser. |
-| `src/core/vault-router.ts` | `VaultRouter` | Cold vault HTTP router (`/api/v1/vault/*`), dataset packaging, volume integrity auditing, and path traversal guard. |
-| `src/core/openapi-spec.ts` | `OPENAPI_SPECIFICATION`, `renderDocsHtml` | OpenAPI 3.1.0 schema specification and zero-dependency interactive documentation HTML generator. |
-| `src/core/context-guard.ts` | `ContextGuard` | LLM token estimation, context window budgeting, and hierarchical semantic boundary truncation. |
-| `src/core/server.ts` | `startServer`, `handleRequest` | Standalone Node.js HTTP REST server and API endpoint routing. |
-| `src/core/index.ts` | Core Barrel | Re-exports runtime contracts and HTTP server entrypoint. |
-| `src/server.ts` | Server Trampoline | Root-level entrypoint re-exporting `src/core/server.ts`. |
+| `src/api/types.ts` | `ScrapedPageResult`, `ActorTask`, `BrowserActionResult`, `CrawlerResult` | Shared TypeScript interfaces and contract definitions for all modules. |
+| `src/api/registry-database.ts` | `RegistryDatabase`, `getDefaultRegistryDatabase`, `DatasetShardRecord` | ACID SQLite persistence layer for actor runs, event logs, pipeline executions, scheduled jobs, and dataset shards using native `node:sqlite` with zero external dependencies. WAL mode for concurrent access; in-memory for test isolation. |
+| `src/api/run-registry.ts` | `RunRegistry`, `RunRecord`, `globalRunRegistry` | Tracks execution runs with dual-layer storage: in-memory Map for SSE event delivery and `RegistryDatabase` for cross-restart ACID persistence. Emits live log events per run. |
+| `src/api/openapi-spec.ts` | `OPENAPI_SPECIFICATION`, `renderDocsHtml` | OpenAPI 3.1.0 schema specification and zero-dependency interactive documentation HTML generator. |
+| `src/api/context-guard.ts` | `ContextGuard` | LLM token estimation, context window budgeting, and hierarchical semantic boundary truncation. |
+| `src/api/server.ts` | `startServer`, `handleRequest` | Standalone Node.js HTTP REST server and API endpoint routing. Imports from `src/api/routers/`. |
+| `src/api/index.ts` | API Barrel | Re-exports all API layer contracts, server, routers, registry, and types. |
+| `src/api/routers/store-router.ts` | `StoreRouter` | Actor Store API router, live log SSE streaming, quarantine inspector, and headless service information endpoint. |
+| `src/api/routers/pipeline-router.ts` | `PipelineRouter`, `PipelineRouterOptions` | Declarative YAML pipeline execution HTTP router (`/api/v1/pipelines/*`), template catalog provider, run history viewer, and path traversal guard. |
+| `src/api/routers/dataset-router.ts` | `DatasetRouter` | Dataset catalog router (`/api/v1/datasets/*`), training manifest publisher, snapshot viewer, and shard inventory inspector. |
+| `src/api/routers/job-router.ts` | `JobRouter`, `ScheduleJobRequestBody` | Scheduled job and cron engine HTTP router (`/api/v1/jobs/*`), recurring pipeline/actor scheduler, and cron parser. |
+| `src/api/routers/vault-router.ts` | `VaultRouter` | Cold vault HTTP router (`/api/v1/vault/*`), dataset packaging, volume integrity auditing, and path traversal guard. |
+| `src/server.ts` | Server Trampoline | Root-level entrypoint re-exporting `src/api/server.ts`. |
 | `src/index.ts` | Unified Barrel | Aggregates all domain actors, browser utilities, extractors, and network tools. |
 
 ### 1.2 Actors Layer (`src/actors/`)

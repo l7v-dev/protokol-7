@@ -4,7 +4,7 @@
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { RegistryDatabase } from "../src/core/registry-database";
+import { RegistryDatabase } from "../src/api/registry-database";
 import type { ExecutionResult, ExecutionTarget } from "../src/pipeline/execution";
 import { PipelineRunner } from "../src/pipeline/pipeline-runner";
 import { DedupFilter } from "../src/pipeline/processors/dedup-filter";

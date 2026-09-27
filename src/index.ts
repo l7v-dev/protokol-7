@@ -47,9 +47,9 @@ export * from "./browser/dom-indexer";
 export * from "./browser/interactive-browser-controller";
 export * from "./browser/session-vault";
 export * from "./browser/stealth-manager";
-export * from "./core/server";
+export * from "./api/server";
 // Core
-export * from "./core/types";
+export * from "./api/types";
 // Dataset
 export * from "./dataset";
 // Extractors

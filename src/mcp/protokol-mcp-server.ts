@@ -13,8 +13,8 @@ import { join, resolve } from "node:path";
 import readline from "node:readline";
 import { ACTOR_MANIFESTS, type ActorManifest } from "../actors/actor-manifests";
 import { ActorRegistry, createDefaultActorRegistry } from "../actors/actor-registry";
-import { getDefaultRegistryDatabase } from "../core/registry-database";
-import { globalRunRegistry } from "../core/run-registry";
+import { getDefaultRegistryDatabase } from "../api/registry-database";
+import { globalRunRegistry } from "../api/run-registry";
 import type {
   ActorTask,
   ActorType,
@@ -44,7 +44,7 @@ import type {
   SoftwareHeritageActorTaskOptions,
   StackExchangeActorTaskOptions,
   WikimediaActorTaskOptions,
-} from "../core/types";
+} from "../api/types";
 import { DatasetPublisher } from "../dataset/dataset-publisher";
 import type { PublishDatasetOptions, SplitRatios } from "../dataset/types";
 import { PipelineRunner, type PipelineRunResult } from "../pipeline/pipeline-runner";

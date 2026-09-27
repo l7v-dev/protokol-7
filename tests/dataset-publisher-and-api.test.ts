@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import http from "node:http";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
-import { createServer } from "../src/core/server";
+import { createServer } from "../src/api/server";
 import { DatasetPublisher } from "../src/dataset/dataset-publisher";
 import { ProtokolMcpServer } from "../src/mcp/protokol-mcp-server";
 

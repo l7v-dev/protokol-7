@@ -15,7 +15,7 @@ import type {
   OpenStaxActorResult,
   OpenStaxActorTaskOptions,
   OpenStaxBookItem,
-} from "../core/types";
+} from "../api/types";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../network/ssrf-guard";
 

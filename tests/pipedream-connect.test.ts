@@ -6,7 +6,7 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createServer } from "../src/core/server";
+import { createServer } from "../src/api/server";
 import { PipedreamConnectService } from "../src/integrations/pipedream-connect";
 
 test("PipedreamConnectService - Configuration and Defaults", () => {

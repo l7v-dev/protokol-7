@@ -13,7 +13,7 @@ import type {
   WikimediaActorResult,
   WikimediaActorTaskOptions,
   WikimediaArticleItem,
-} from "../core/types";
+} from "../api/types";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../network/ssrf-guard";
 

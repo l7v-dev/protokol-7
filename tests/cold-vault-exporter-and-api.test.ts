@@ -8,8 +8,8 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import http from "node:http";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
-import { getDefaultRegistryDatabase } from "../src/core/registry-database";
-import { createServer } from "../src/core/server";
+import { getDefaultRegistryDatabase } from "../src/api/registry-database";
+import { createServer } from "../src/api/server";
 import { ProtokolMcpServer } from "../src/mcp/protokol-mcp-server";
 import { ColdVaultExporter } from "../src/vault/cold-vault-exporter";
 

@@ -14,7 +14,7 @@ import {
   type DatasetSnapshotRecord,
   getDefaultRegistryDatabase,
   RegistryDatabase,
-} from "../core/registry-database";
+} from "../api/registry-database";
 import { ConnectorRegistry } from "../pipeline/connectors/connector-registry";
 import { B2Storage } from "../pipeline/storage/b2-storage";
 import { LocalStorage } from "../pipeline/storage/local-storage";

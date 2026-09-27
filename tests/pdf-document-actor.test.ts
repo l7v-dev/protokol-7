@@ -3,7 +3,7 @@ import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { after, before, describe, it } from "node:test";
 import { PdfDocumentActor } from "../src/actors/pdf-document-actor";
-import type { ActorTask } from "../src/core/types";
+import type { ActorTask } from "../src/api/types";
 
 const MINIMAL_PDF_RAW = `%PDF-1.4
 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj

@@ -1,5 +1,5 @@
 import { extractText, extractTextItems, getDocumentProxy, getMeta } from "unpdf";
-import { ContextGuard } from "../core/context-guard";
+import { ContextGuard } from "../api/context-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -9,7 +9,7 @@ import type {
   PdfDocumentMetadata,
   PdfDocumentResult,
   PdfPageEntry,
-} from "../core/types";
+} from "../api/types";
 import {
   HeaderFooterStripper,
   MultiColumnLayoutResolver,

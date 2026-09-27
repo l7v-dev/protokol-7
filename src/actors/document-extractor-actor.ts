@@ -1,4 +1,4 @@
-import { ContextGuard } from "../core/context-guard";
+import { ContextGuard } from "../api/context-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -6,7 +6,7 @@ import type {
   DocumentExtractorResult,
   IActor,
   SupportedDocumentFormat,
-} from "../core/types";
+} from "../api/types";
 import { OfficeExtractor } from "../extractors/office-extractor";
 import { TabularExtractor } from "../extractors/tabular-extractor";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";

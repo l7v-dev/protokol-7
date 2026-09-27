@@ -7,7 +7,7 @@ import type {
   InterceptedApiResponse,
   NetworkInterceptorResult,
   NetworkInterceptorTaskOptions,
-} from "../core/types";
+} from "../api/types";
 import { SSRFGuard } from "../network/ssrf-guard";
 import { matchUrlPattern } from "../network/url-pattern-matcher";
 

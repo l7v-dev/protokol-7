@@ -13,7 +13,7 @@
     "paths": {
       "@/*": [
         "./src/*",
-        "./src/core/*",
+        "./src/api/*",
         "./src/actors/*",
         "./src/browser/*",
         "./src/extractors/*",

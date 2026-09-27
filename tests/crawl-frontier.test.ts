@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
-import type { CrawledPageData } from "../src/core/types";
+import type { CrawledPageData } from "../src/api/types";
 import { CrawlFrontier } from "../src/network/crawl-frontier";
 
 describe("CrawlFrontier - Disk-Backed Queue & Streaming Sink", () => {

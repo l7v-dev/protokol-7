@@ -3,4 +3,4 @@
  * Re-exports from src/core/server.ts for backward compatibility.
  */
 
-export * from "./core/server";
+export * from "./api/server";

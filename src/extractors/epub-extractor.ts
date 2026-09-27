@@ -15,7 +15,7 @@ import type {
   EpubExtractorTaskOptions,
   PublicationIssueMetadata,
   TableOfContentsItem,
-} from "../core/types";
+} from "../api/types";
 import { StructuredExtractor } from "./structured-extractor";
 
 interface ManifestEntry {

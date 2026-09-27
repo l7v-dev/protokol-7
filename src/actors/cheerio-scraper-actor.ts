@@ -10,7 +10,7 @@ import type {
   ActorTask,
   IActor,
   ScrapedPageResult,
-} from "../core/types";
+} from "../api/types";
 import { ReadabilityExtractor } from "../extractors/readability-extractor";
 import { StructuredExtractor } from "../extractors/structured-extractor";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";

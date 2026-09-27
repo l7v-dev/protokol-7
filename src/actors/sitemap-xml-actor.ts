@@ -7,7 +7,7 @@ import type {
   IActor,
   SitemapResult,
   SitemapUrlEntry,
-} from "../core/types";
+} from "../api/types";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../network/ssrf-guard";
 import { matchUrlPattern } from "../network/url-pattern-matcher";

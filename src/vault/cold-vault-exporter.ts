@@ -20,7 +20,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { basename, dirname, isAbsolute, join, normalize, resolve } from "node:path";
-import { getDefaultRegistryDatabase, type RegistryDatabase } from "../core/registry-database";
+import { getDefaultRegistryDatabase, type RegistryDatabase } from "../api/registry-database";
 import type {
   ColdVaultExportOptions,
   ColdVaultExportReceipt,

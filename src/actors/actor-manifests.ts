@@ -2,7 +2,7 @@
  * Actor manifests, schemas, and metadata definitions for Protokol-7 Store.
  */
 
-import type { ActorType } from "../core/types";
+import type { ActorType } from "../api/types";
 
 export type ActorCategory =
   | "SCRAPING"

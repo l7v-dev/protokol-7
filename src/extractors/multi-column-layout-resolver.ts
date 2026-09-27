@@ -1,5 +1,5 @@
 import type { StructuredTextItem } from "unpdf";
-import type { MultiColumnLayoutOptions } from "../core/types";
+import type { MultiColumnLayoutOptions } from "../api/types";
 
 // ---------------------------------------------------------------------------
 // Constants

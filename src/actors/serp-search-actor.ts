@@ -7,7 +7,7 @@ import type {
   SerpResultItem,
   SerpSearchResult,
   SerpSearchTaskOptions,
-} from "../core/types";
+} from "../api/types";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 
 const DEFAULT_TIMEOUT_MS = 20000;

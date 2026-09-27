@@ -1,12 +1,12 @@
 import crypto from "node:crypto";
 import { gunzipSync } from "node:zlib";
-import { ContextGuard } from "../core/context-guard";
+import { ContextGuard } from "../api/context-guard";
 import type {
   ArchiveEntryResult,
   ArchiveExtractorResult,
   ArchiveExtractorTaskOptions,
   ArchiveFormat,
-} from "../core/types";
+} from "../api/types";
 import { ArchiveGuard } from "./archive-guard";
 import { TarParser } from "./tar-parser";
 import { ZipParser } from "./zip-parser";

@@ -6,7 +6,7 @@ import type {
   ActorTask,
   ArchiveExtractorResult,
   IActor,
-} from "../core/types";
+} from "../api/types";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 
 const MAX_ARCHIVE_DOWNLOAD_BYTES = 100 * 1024 * 1024; // 100 MB

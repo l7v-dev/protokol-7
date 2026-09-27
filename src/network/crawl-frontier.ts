@@ -13,7 +13,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
-import type { CrawledPageData } from "../core/types";
+import type { CrawledPageData } from "../api/types";
 
 export interface FrontierItem {
   url: string;

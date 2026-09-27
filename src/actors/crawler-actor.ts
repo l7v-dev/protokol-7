@@ -12,7 +12,7 @@ import type {
   CrawlerResult,
   IActor,
   ScrapedPageResult,
-} from "../core/types";
+} from "../api/types";
 import { RobotsParser } from "../extractors/robots-parser";
 import { CrawlFrontier } from "../network/crawl-frontier";
 import { CrawlUrlAccumulator } from "../network/crawl-url-accumulator";

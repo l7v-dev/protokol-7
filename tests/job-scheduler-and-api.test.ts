@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import { after, before, describe, it } from "node:test";
-import { createServer } from "../src/core/server";
+import { createServer } from "../src/api/server";
 import { ProtokolMcpServer } from "../src/mcp/protokol-mcp-server";
 
 describe("Scheduled Jobs REST API & MCP Integration", () => {

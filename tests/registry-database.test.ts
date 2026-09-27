@@ -5,8 +5,8 @@
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
-import { RegistryDatabase } from "../src/core/registry-database";
-import { RunRegistry } from "../src/core/run-registry";
+import { RegistryDatabase } from "../src/api/registry-database";
+import { RunRegistry } from "../src/api/run-registry";
 
 describe("RegistryDatabase - Actor Runs", () => {
   let db: RegistryDatabase;

@@ -3,7 +3,7 @@ import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { describe, it } from "node:test";
 import { DergiParkActor } from "../src/actors/dergipark-actor";
-import type { ActorRunContext, ActorTask } from "../src/core/types";
+import type { ActorRunContext, ActorTask } from "../src/api/types";
 
 // ---------------------------------------------------------------------------
 // OAI-PMH XML fixtures

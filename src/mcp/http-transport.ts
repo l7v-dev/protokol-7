@@ -6,7 +6,7 @@
  */
 
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { globalRunRegistry } from "../core/run-registry";
+import { globalRunRegistry } from "../api/run-registry";
 import { verifyMcpToken } from "./auth-guard";
 import type { JsonRpcRequest, JsonRpcResponse, ProtokolMcpServer } from "./protokol-mcp-server";
 

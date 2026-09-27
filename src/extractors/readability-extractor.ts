@@ -8,7 +8,7 @@ import { Readability } from "@mozilla/readability";
 import * as cheerio from "cheerio";
 import { JSDOM } from "jsdom";
 import TurndownService from "turndown";
-import { ContextGuard } from "../core/context-guard";
+import { ContextGuard } from "../api/context-guard";
 import { StructuredExtractor } from "./structured-extractor";
 
 export interface ReadabilityExtractOptions {

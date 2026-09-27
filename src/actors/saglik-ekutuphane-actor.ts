@@ -6,7 +6,7 @@
 
 import * as cheerio from "cheerio";
 import { extractText } from "unpdf";
-import { ContextGuard } from "../core/context-guard";
+import { ContextGuard } from "../api/context-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -17,7 +17,7 @@ import type {
   SaglikEkutuphaneCategory,
   SaglikEkutuphaneItem,
   SaglikEkutuphaneTaskOptions,
-} from "../core/types";
+} from "../api/types";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../network/ssrf-guard";
 

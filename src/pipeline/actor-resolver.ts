@@ -4,7 +4,7 @@
  */
 
 import { ACTOR_MANIFESTS, type ActorManifest } from "../actors/actor-manifests";
-import type { ActorType } from "../core/types";
+import type { ActorType } from "../api/types";
 import { PipelineError } from "./schema";
 
 export interface ResolvedActor {

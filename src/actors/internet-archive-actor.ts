@@ -23,7 +23,7 @@ import type {
   InternetArchiveActorTaskOptions,
   InternetArchiveFile,
   InternetArchiveItem,
-} from "../core/types";
+} from "../api/types";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";
 
 const IA_BASE = "https://archive.org";

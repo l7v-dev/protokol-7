@@ -4,7 +4,7 @@ import type { AddressInfo } from "node:net";
 import { describe, it } from "node:test";
 import { deflateRawSync } from "node:zlib";
 import { EpubExtractorActor } from "../src/actors/epub-extractor-actor";
-import type { ActorRunContext, ActorTask } from "../src/core/types";
+import type { ActorRunContext, ActorTask } from "../src/api/types";
 
 function createMockEpubZip(files: Record<string, string>): Buffer {
   const parts: Buffer[] = [];

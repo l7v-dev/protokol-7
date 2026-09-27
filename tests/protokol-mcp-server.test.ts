@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { PassThrough } from "node:stream";
 import { describe, it } from "node:test";
 import { ActorRegistry } from "../src/actors/actor-registry";
-import type { IActor } from "../src/core/types";
+import type { IActor } from "../src/api/types";
 import { ProtokolMcpServer } from "../src/mcp/protokol-mcp-server";
 
 describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () => {

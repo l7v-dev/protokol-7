@@ -1,4 +1,4 @@
-import { ContextGuard } from "../core/context-guard";
+import { ContextGuard } from "../api/context-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -8,7 +8,7 @@ import type {
   MarkdownHeadingItem,
   MarkdownReaderResult,
   MarkdownReaderTaskOptions,
-} from "../core/types";
+} from "../api/types";
 import { ReadabilityExtractor } from "../extractors/readability-extractor";
 import { StructuredExtractor } from "../extractors/structured-extractor";
 import { safeRedirectFetch } from "../network/safe-redirect-fetcher";

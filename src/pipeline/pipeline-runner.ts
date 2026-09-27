@@ -3,7 +3,7 @@
  * Coordinates validation, actor resolution, execution target dispatch, output processing, and storage routing.
  */
 
-import { getDefaultRegistryDatabase, type RegistryDatabase } from "../core/registry-database";
+import { getDefaultRegistryDatabase, type RegistryDatabase } from "../api/registry-database";
 import { ActorResolver } from "./actor-resolver";
 import { ConnectorRegistry } from "./connectors/connector-registry";
 import { resolveEnvString } from "./connectors/env-resolver";
