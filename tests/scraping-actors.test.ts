@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { CheerioScraperActor } from "@/cheerio-scraper-actor";
+import { CheerioScraperActor } from "@/actors/web/cheerio-scraper-actor";
 import { CrawlUrlAccumulator } from "@/crawl-url-accumulator";
 import { normalizeUrl } from "@/url-normalizer";
 import { matchUrlPattern } from "@/url-pattern-matcher";

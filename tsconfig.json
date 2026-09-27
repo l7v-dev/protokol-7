@@ -15,6 +15,9 @@
         "./src/*",
         "./src/api/*",
         "./src/actors/*",
+        "./src/actors/web/*",
+        "./src/actors/corpus/*",
+        "./src/actors/documents/*",
         "./src/browser/*",
         "./src/extractors/*",
         "./src/network/*"

@@ -3,37 +3,40 @@
  */
 
 import type { ActorType, IActor } from "../api/types";
-import { ApiExtractorActor } from "./api-extractor-actor";
-import { ArchiveExtractorActor } from "./archive-extractor-actor";
-import { ArxivActor } from "./arxiv-actor";
-import { CheerioScraperActor } from "./cheerio-scraper-actor";
-import { ClinicalTrialsActor } from "./clinical-trials-actor";
-import { CourtListenerActor } from "./court-listener-actor";
-import { CrawlerActor } from "./crawler-actor";
-import { DergiParkActor } from "./dergipark-actor";
-import { DocumentExtractorActor } from "./document-extractor-actor";
-import { EpubExtractorActor } from "./epub-extractor-actor";
-import { EurLexActor } from "./eur-lex-actor";
-import { EuropePmcActor } from "./europe-pmc-actor";
-import { GutenbergActor } from "./gutenberg-actor";
-import { IetfRfcActor } from "./ietf-rfc-actor";
-import { InternetArchiveActor } from "./internet-archive-actor";
-import { KtbEkitapActor } from "./ktb-ekitap-actor";
-import { MarkdownReaderActor } from "./markdown-reader-actor";
-import { MitOcwActor } from "./mit-ocw-actor";
-import { NetworkInterceptorActor } from "./network-interceptor-actor";
-import { OpenFdaActor } from "./open-fda-actor";
-import { OpenAlexActor } from "./openalex-actor";
-import { OpenStaxActor } from "./openstax-actor";
-import { PdfDocumentActor } from "./pdf-document-actor";
-import { PlaywrightBrowserActor } from "./playwright-browser-actor";
-import { SaglikEkutuphaneActor } from "./saglik-ekutuphane-actor";
-import { SecEdgarActor } from "./sec-edgar-actor";
-import { SerpSearchActor } from "./serp-search-actor";
-import { SitemapXmlActor } from "./sitemap-xml-actor";
-import { SoftwareHeritageActor } from "./software-heritage-actor";
-import { StackExchangeActor } from "./stack-exchange-actor";
-import { WikimediaActor } from "./wikimedia-actor";
+// web: general-purpose web extraction actors
+import { ApiExtractorActor } from "./web/api-extractor-actor";
+import { CheerioScraperActor } from "./web/cheerio-scraper-actor";
+import { CrawlerActor } from "./web/crawler-actor";
+import { MarkdownReaderActor } from "./web/markdown-reader-actor";
+import { NetworkInterceptorActor } from "./web/network-interceptor-actor";
+import { PlaywrightBrowserActor } from "./web/playwright-browser-actor";
+import { SerpSearchActor } from "./web/serp-search-actor";
+import { SitemapXmlActor } from "./web/sitemap-xml-actor";
+// corpus: LLM training data source actors
+import { ArxivActor } from "./corpus/arxiv-actor";
+import { ClinicalTrialsActor } from "./corpus/clinical-trials-actor";
+import { CourtListenerActor } from "./corpus/court-listener-actor";
+import { DergiParkActor } from "./corpus/dergipark-actor";
+import { EurLexActor } from "./corpus/eur-lex-actor";
+import { EuropePmcActor } from "./corpus/europe-pmc-actor";
+import { GutenbergActor } from "./corpus/gutenberg-actor";
+import { IetfRfcActor } from "./corpus/ietf-rfc-actor";
+import { InternetArchiveActor } from "./corpus/internet-archive-actor";
+import { KtbEkitapActor } from "./corpus/ktb-ekitap-actor";
+import { MitOcwActor } from "./corpus/mit-ocw-actor";
+import { OpenFdaActor } from "./corpus/open-fda-actor";
+import { OpenAlexActor } from "./corpus/openalex-actor";
+import { OpenStaxActor } from "./corpus/openstax-actor";
+import { SaglikEkutuphaneActor } from "./corpus/saglik-ekutuphane-actor";
+import { SecEdgarActor } from "./corpus/sec-edgar-actor";
+import { SoftwareHeritageActor } from "./corpus/software-heritage-actor";
+import { StackExchangeActor } from "./corpus/stack-exchange-actor";
+import { WikimediaActor } from "./corpus/wikimedia-actor";
+// documents: local file and archive extraction actors
+import { ArchiveExtractorActor } from "./documents/archive-extractor-actor";
+import { DocumentExtractorActor } from "./documents/document-extractor-actor";
+import { EpubExtractorActor } from "./documents/epub-extractor-actor";
+import { PdfDocumentActor } from "./documents/pdf-document-actor";
 
 export class ActorRegistry {
   private readonly actors = new Map<ActorType, IActor<unknown>>();

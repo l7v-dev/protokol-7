@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CheerioScraperActor } from "@/cheerio-scraper-actor";
+import { CheerioScraperActor } from "@/actors/web/cheerio-scraper-actor";
 import { ReadabilityExtractor } from "@/readability-extractor";
 
 test("ReadabilityExtractor returns empty result for empty HTML or non-string input", () => {

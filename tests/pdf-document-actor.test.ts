@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { after, before, describe, it } from "node:test";
-import { PdfDocumentActor } from "../src/actors/pdf-document-actor";
+import { PdfDocumentActor } from "../src/actors/documents/pdf-document-actor";
 import type { ActorTask } from "../src/api/types";
 
 const MINIMAL_PDF_RAW = `%PDF-1.4

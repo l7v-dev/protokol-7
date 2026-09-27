@@ -32,39 +32,55 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
-| `src/actors/actor-registry.ts` | `ActorRegistry` | Central registry for discovering, registering, and instantiating extraction actors. |
-| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations. |
-| `src/actors/cheerio-scraper-actor.ts` | `CheerioScraperActor` | Static HTML scraping using Cheerio for low-latency DOM extraction. |
-| `src/actors/playwright-browser-actor.ts` | `PlaywrightBrowserActor` | Dynamic web scraping using headless Chromium with resource blocking. |
-| `src/actors/api-extractor-actor.ts` | `ApiExtractorActor` | REST API extraction actor supporting pagination and projection filtering. |
-| `src/actors/crawler-actor.ts` | `CrawlerActor` | BFS web graph crawler with depth limits and concurrency management. |
-| `src/actors/sitemap-xml-actor.ts` | `SitemapXmlActor` | XML sitemap, sitemap index traversal, and RSS/Atom feed URL extractor with gzip support. |
-| `src/actors/markdown-reader-actor.ts` | `MarkdownReaderActor` | LLM-ready document distiller with YAML frontmatter, heading hierarchy, and token estimation. |
-| `src/actors/network-interceptor-actor.ts` | `NetworkInterceptorActor` | Headless browser actor intercepting and extracting background XHR/Fetch JSON API responses. |
-| `src/actors/serp-search-actor.ts` | `SerpSearchActor` | Organic search engine result page parser extracting rankings, URLs, snippets, and domains. |
-| `src/actors/pdf-document-actor.ts` | `PdfDocumentActor` | Extracts text streams, page boundaries, metrics, and document metadata from PDF files via unpdf. |
-| `src/actors/arxiv-actor.ts` | `ArxivActor` | Queries arXiv Export API (Atom 1.0) for preprints, extracts metadata, abstracts, and optional PDF text. |
-| `src/actors/wikimedia-actor.ts` | `WikimediaActor` | Queries official Wikimedia REST API v1 for clean encyclopedic summaries, articles as markdown, and search. |
-| `src/actors/openalex-actor.ts` | `OpenAlexActor` | Queries OpenAlex API for scholarly works, reconstructs abstracts from inverted index, and extracts citations. |
-| `src/actors/stack-exchange-actor.ts` | `StackExchangeActor` | Queries Stack Exchange API v2.3 for verified algorithmic Q&A pairs and instruction-tuning pairs. |
-| `src/actors/gutenberg-actor.ts` | `GutenbergActor` | Queries Gutendex API for public domain books, extracts metadata, and downloads book text stripped of license blocks. |
-| `src/actors/europe-pmc-actor.ts` | `EuropePmcActor` | Queries Europe PMC REST API for biomedical literature, abstracts, and open-access full-text links. |
-| `src/actors/ietf-rfc-actor.ts` | `IetfRfcActor` | Queries IETF RFC Editor and Datatracker for official Internet standards, extracts metadata, and cleans plain text RFC streams. |
-| `src/actors/saglik-ekutuphane-actor.ts` | `SaglikEkutuphaneActor` | Scrapes Turkish Ministry of Health e-library (ekutuphane.saglik.gov.tr) for medical publications, books, journals, and articles with PDF distillation. |
-| `src/actors/ktb-ekitap-actor.ts` | `KtbEkitapActor` | Scrapes Turkish Ministry of Culture and Tourism e-book portal (ekitap.ktb.gov.tr) with anti-hotlink referral and LLM text sanitization. |
-| `src/actors/document-extractor-actor.ts` | `DocumentExtractorActor` | Extracts textual streams, structured records, tables, and document metadata from office files (DOCX, XLSX), tabular files (CSV, TSV), and plain text formats. |
-| `src/actors/archive-extractor-actor.ts` | `ArchiveExtractorActor` | Extracts and inspects compressed archives (ZIP, TAR, GZ, RAR) with strict Zip Slip path traversal and Zip Bomb volumetric guards. |
-| `src/actors/epub-extractor-actor.ts` | `EpubExtractorActor` | Extracts e-books and periodicals from EPUB 2/3 containers with Dublin Core metadata, hierarchical TOC, and spine-ordered GFM Markdown. |
-| `src/actors/dergipark-actor.ts` | `DergiParkActor` | Harvests article metadata and PDF links from DergiPark academic journals via OAI-PMH 2.0 Dublin Core with keyword filtering. |
-| `src/actors/internet-archive-actor.ts` | `InternetArchiveActor` | Fetches item metadata, search results, and OCR text streams (DjVuTXT, Abbyy GZ) from archive.org public collections. |
-| `src/actors/clinical-trials-actor.ts` | `ClinicalTrialsActor` | Queries ClinicalTrials.gov API v2 for trial protocols, eligibility criteria, interventions, and primary outcomes. |
-| `src/actors/open-fda-actor.ts` | `OpenFdaActor` | Queries official openFDA REST API for FDA drug labels, adverse events, and medical device clearances. |
-| `src/actors/sec-edgar-actor.ts` | `SecEdgarActor` | Queries SEC EDGAR Submissions API for corporate CIK, company filings (10-K, 10-Q, 8-K), and accession documents. |
-| `src/actors/court-listener-actor.ts` | `CourtListenerActor` | Queries CourtListener Free Law Project v4 API for US federal and state case law, court opinions, and legal precedents. |
-| `src/actors/software-heritage-actor.ts` | `SoftwareHeritageActor` | Queries Software Heritage Universal Source Code Archive for persistent SWHIDs, code blobs, directory trees, and origin visits. |
-| `src/actors/eur-lex-actor.ts` | `EurLexActor` | Queries EUR-Lex and European Publications Office CELLAR for EU directives, regulations, decisions, and CJEU case law. |
-| `src/actors/openstax-actor.ts` | `OpenStaxActor` | Queries OpenStax for openly licensed peer-reviewed college and AP textbooks, curriculums, and chapter content. |
-| `src/actors/mit-ocw-actor.ts` | `MitOcwActor` | Queries MIT OpenCourseWare for university curriculum materials, syllabi, lecture metadata, and course resources. |
+| `src/actors/actor-registry.ts` | `ActorRegistry` | Central registry for discovering, registering, and instantiating all actors across all categories. |
+| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 31 actors. |
+
+#### Web Actors (`src/actors/web/`) — general-purpose HTTP and browser extraction
+
+| File Path | Class | Mechanism |
+|---|---|---|
+| `src/actors/web/cheerio-scraper-actor.ts` | `CheerioScraperActor` | Static HTML scraping using Cheerio for low-latency DOM extraction. |
+| `src/actors/web/playwright-browser-actor.ts` | `PlaywrightBrowserActor` | Dynamic web scraping using headless Chromium with resource blocking. |
+| `src/actors/web/api-extractor-actor.ts` | `ApiExtractorActor` | REST API extraction actor supporting pagination and projection filtering. |
+| `src/actors/web/crawler-actor.ts` | `CrawlerActor` | BFS web graph crawler with depth limits and concurrency management. |
+| `src/actors/web/sitemap-xml-actor.ts` | `SitemapXmlActor` | XML sitemap, sitemap index traversal, and RSS/Atom feed URL extractor with gzip support. |
+| `src/actors/web/markdown-reader-actor.ts` | `MarkdownReaderActor` | LLM-ready document distiller with YAML frontmatter, heading hierarchy, and token estimation. |
+| `src/actors/web/network-interceptor-actor.ts` | `NetworkInterceptorActor` | Headless browser actor intercepting and extracting background XHR/Fetch JSON API responses. |
+| `src/actors/web/serp-search-actor.ts` | `SerpSearchActor` | Organic search engine result page parser extracting rankings, URLs, snippets, and domains. |
+
+#### Corpus Actors (`src/actors/corpus/`) — LLM training data source extraction
+
+| File Path | Class | Source |
+|---|---|---|
+| `src/actors/corpus/arxiv-actor.ts` | `ArxivActor` | arXiv Export API (Atom 1.0) — preprints, metadata, abstracts, optional PDF text. |
+| `src/actors/corpus/wikimedia-actor.ts` | `WikimediaActor` | Wikimedia REST API v1 — encyclopedic summaries and articles as markdown. |
+| `src/actors/corpus/openalex-actor.ts` | `OpenAlexActor` | OpenAlex API — scholarly works, inverted-index abstract reconstruction, citations. |
+| `src/actors/corpus/stack-exchange-actor.ts` | `StackExchangeActor` | Stack Exchange API v2.3 — verified algorithmic Q&A and instruction-tuning pairs. |
+| `src/actors/corpus/gutenberg-actor.ts` | `GutenbergActor` | Gutendex API — public domain books with license block stripping. |
+| `src/actors/corpus/europe-pmc-actor.ts` | `EuropePmcActor` | Europe PMC REST API — biomedical literature and open-access full-text links. |
+| `src/actors/corpus/ietf-rfc-actor.ts` | `IetfRfcActor` | IETF RFC Editor + Datatracker — Internet standards with plain-text cleaning. |
+| `src/actors/corpus/openstax-actor.ts` | `OpenStaxActor` | OpenStax CMS API — CC-licensed peer-reviewed textbooks and chapter content. |
+| `src/actors/corpus/mit-ocw-actor.ts` | `MitOcwActor` | MIT OCW OpenSearch DSL — university curricula, syllabi, and course resources. |
+| `src/actors/corpus/software-heritage-actor.ts` | `SoftwareHeritageActor` | Software Heritage Archive — persistent SWHIDs, code blobs, directory trees. |
+| `src/actors/corpus/dergipark-actor.ts` | `DergiParkActor` | DergiPark OAI-PMH 2.0 — academic journal metadata and PDF links. |
+| `src/actors/corpus/internet-archive-actor.ts` | `InternetArchiveActor` | archive.org — item metadata, search results, OCR text (DjVuTXT, Abbyy GZ). |
+| `src/actors/corpus/clinical-trials-actor.ts` | `ClinicalTrialsActor` | ClinicalTrials.gov API v2 — trial protocols, eligibility, interventions. |
+| `src/actors/corpus/open-fda-actor.ts` | `OpenFdaActor` | openFDA REST API — drug labels, adverse events, device clearances. |
+| `src/actors/corpus/sec-edgar-actor.ts` | `SecEdgarActor` | SEC EDGAR Submissions API — corporate filings (10-K, 10-Q, 8-K). |
+| `src/actors/corpus/court-listener-actor.ts` | `CourtListenerActor` | CourtListener Free Law v4 — US federal and state case law, court opinions. |
+| `src/actors/corpus/eur-lex-actor.ts` | `EurLexActor` | EUR-Lex CELLAR SPARQL — EU directives, regulations, and CJEU case law. |
+| `src/actors/corpus/saglik-ekutuphane-actor.ts` | `SaglikEkutuphaneActor` | TR Health Ministry e-library — medical publications with PDF distillation. |
+| `src/actors/corpus/ktb-ekitap-actor.ts` | `KtbEkitapActor` | TR Culture Ministry e-book portal — public domain books with LLM sanitization. |
+
+#### Document Actors (`src/actors/documents/`) — local file and archive extraction
+
+| File Path | Class | Input Formats |
+|---|---|---|
+| `src/actors/documents/pdf-document-actor.ts` | `PdfDocumentActor` | PDF — text streams, page boundaries, metadata; OCR fallback via `src/ocr/`. |
+| `src/actors/documents/epub-extractor-actor.ts` | `EpubExtractorActor` | EPUB 2/3 — Dublin Core metadata, hierarchical TOC, spine-ordered GFM markdown. |
+| `src/actors/documents/document-extractor-actor.ts` | `DocumentExtractorActor` | DOCX, XLSX, CSV, TSV, TXT — OpenXML parsing with zero external dependencies. |
+| `src/actors/documents/archive-extractor-actor.ts` | `ArchiveExtractorActor` | ZIP, TAR, GZ, RAR — Zip Slip and Zip Bomb guards via `src/archive/`. |
+
 
 ### 1.3 Archive Subsystem (`src/archive/`)
 

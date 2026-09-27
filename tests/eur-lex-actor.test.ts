@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { EurLexActor } from "../src/actors/eur-lex-actor";
+import { EurLexActor } from "../src/actors/corpus/eur-lex-actor";
 
 (process.env as Record<string, string | undefined>).NODE_ENV = "test";
 

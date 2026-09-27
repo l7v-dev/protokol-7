@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { SaglikEkutuphaneActor } from "../src/actors/saglik-ekutuphane-actor";
+import { SaglikEkutuphaneActor } from "../src/actors/corpus/saglik-ekutuphane-actor";
 import { createServer } from "../src/server";
 
 (process.env as Record<string, string | undefined>).NODE_ENV = "test";

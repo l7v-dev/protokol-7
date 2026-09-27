@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { CourtListenerActor } from "../src/actors/court-listener-actor";
+import { CourtListenerActor } from "../src/actors/corpus/court-listener-actor";
 
 (process.env as Record<string, string | undefined>).NODE_ENV = "test";
 

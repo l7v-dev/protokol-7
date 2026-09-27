@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { MarkdownReaderActor } from "@/markdown-reader-actor";
+import { MarkdownReaderActor } from "@/actors/web/markdown-reader-actor";
 
 (process.env as Record<string, string | undefined>).NODE_ENV = "test";
 

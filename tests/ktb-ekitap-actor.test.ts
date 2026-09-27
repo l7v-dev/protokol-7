@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { KtbEkitapActor } from "../src/actors/ktb-ekitap-actor";
+import { KtbEkitapActor } from "../src/actors/corpus/ktb-ekitap-actor";
 import { createServer } from "../src/server";
 
 (process.env as Record<string, string | undefined>).NODE_ENV = "test";

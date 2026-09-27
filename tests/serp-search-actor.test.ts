@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { SerpSearchActor } from "@/serp-search-actor";
+import { SerpSearchActor } from "@/actors/web/serp-search-actor";
 
 (process.env as Record<string, string | undefined>).NODE_ENV = "test";
 

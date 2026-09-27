@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
 import { gzipSync } from "node:zlib";
-import { SitemapXmlActor } from "@/sitemap-xml-actor";
+import { SitemapXmlActor } from "@/actors/web/sitemap-xml-actor";
 
 (process.env as Record<string, string | undefined>).NODE_ENV = "test";
 

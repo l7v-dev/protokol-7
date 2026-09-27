@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MarkdownReaderActor } from "@/actors/markdown-reader-actor";
+import { MarkdownReaderActor } from "@/actors/web/markdown-reader-actor";
 import { ContextGuard } from "@/api/context-guard";
 
 test("ContextGuard.estimateTokens returns expected token counts", () => {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { IetfRfcActor } from "../src/actors/ietf-rfc-actor";
+import { IetfRfcActor } from "../src/actors/corpus/ietf-rfc-actor";
 import { createServer } from "../src/server";
 
 (process.env as Record<string, string | undefined>).NODE_ENV = "test";

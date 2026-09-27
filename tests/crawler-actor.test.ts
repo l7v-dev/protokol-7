@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { CrawlerActor } from "@/crawler-actor";
+import { CrawlerActor } from "@/actors/web/crawler-actor";
 
 test("CrawlerActor crawls connected pages respecting maxPages and robots.txt", async () => {
   const server = http.createServer((req, res) => {

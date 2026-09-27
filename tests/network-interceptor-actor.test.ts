@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
 import { BrowserPool } from "@/browser-pool";
-import { NetworkInterceptorActor } from "@/network-interceptor-actor";
+import { NetworkInterceptorActor } from "@/actors/web/network-interceptor-actor";
 
 (process.env as Record<string, string | undefined>).NODE_ENV = "test";
 

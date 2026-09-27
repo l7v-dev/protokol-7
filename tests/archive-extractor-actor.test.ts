@@ -3,7 +3,7 @@ import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { describe, it } from "node:test";
 import { deflateRawSync } from "node:zlib";
-import { ArchiveExtractorActor } from "../src/actors/archive-extractor-actor";
+import { ArchiveExtractorActor } from "../src/actors/documents/archive-extractor-actor";
 import type { ActorRunContext, ActorTask } from "../src/api/types";
 
 function createMockZip(files: Record<string, string>): Buffer {

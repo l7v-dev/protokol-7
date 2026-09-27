@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import { describe, it } from "node:test";
-import { ApiExtractorActor } from "@/api-extractor-actor";
+import { ApiExtractorActor } from "@/actors/web/api-extractor-actor";
 
 describe("ApiExtractorActor - REST API Extraction Engine", () => {
   it("executes basic GET request and parses JSON data", async () => {

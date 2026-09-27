@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { ArxivActor } from "../src/actors/arxiv-actor";
+import { ArxivActor } from "../src/actors/corpus/arxiv-actor";
 import { createServer } from "../src/server";
 
 (process.env as Record<string, string | undefined>).NODE_ENV = "test";
