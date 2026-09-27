@@ -7,6 +7,7 @@
  * using standard JSON-RPC 2.0 over standard I/O (stdio).
  */
 
+import { randomUUID } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import readline from "node:readline";
@@ -47,6 +48,7 @@ import type {
 import { DatasetPublisher } from "../dataset/dataset-publisher";
 import type { PublishDatasetOptions, SplitRatios } from "../dataset/types";
 import { PipelineRunner, type PipelineRunResult } from "../pipeline/pipeline-runner";
+import { ScheduleBroker } from "../pipeline/schedule-broker";
 import type { PipelineConfig } from "../pipeline/schema";
 
 export interface JsonRpcRequest {
@@ -72,10 +74,12 @@ const POOL_ROOT = process.env.PROTOKOL_POOL_ROOT || "/home/l7v/protokol-data-poo
 export class ProtokolMcpServer {
   private readonly registry: ActorRegistry;
   private readonly toolToManifestMap = new Map<string, ActorManifest>();
+  private readonly scheduleBroker: ScheduleBroker;
   private rl?: readline.Interface;
 
   constructor(registry?: ActorRegistry) {
     this.registry = registry || createDefaultActorRegistry();
+    this.scheduleBroker = new ScheduleBroker();
     for (const manifest of Object.values(ACTOR_MANIFESTS)) {
       if (manifest.mcpTool?.name) {
         this.toolToManifestMap.set(manifest.mcpTool.name, manifest);
@@ -232,7 +236,97 @@ export class ProtokolMcpServer {
       },
     ];
 
-    return [...actorTools, ...pipelineTools, ...datasetTools];
+    const jobTools = [
+      {
+        name: "schedule_job",
+        description:
+          "Schedules a recurring pipeline or actor task using a 5-part cron expression with SQLite ACID tracking.",
+        inputSchema: {
+          type: "object",
+          required: ["cronExpression"],
+          properties: {
+            jobId: {
+              type: "string",
+              description: "Optional custom unique identifier for the job.",
+            },
+            cronExpression: {
+              type: "string",
+              description:
+                "Standard 5-part cron expression (minute hour day-of-month month day-of-week), e.g. '0 0 * * *'.",
+            },
+            pipeline: {
+              type: "object",
+              description: "Pipeline configuration to run when cron triggers.",
+              properties: {
+                yaml: {
+                  type: "string",
+                  description: "Raw YAML pipeline definition string.",
+                },
+                filePath: {
+                  type: "string",
+                  description: "Workspace-relative path to a pipeline YAML file.",
+                },
+                config: {
+                  type: "object",
+                  description: "Direct pipeline configuration object.",
+                },
+              },
+            },
+            actor: {
+              type: "object",
+              description: "Direct actor extraction task to run when cron triggers.",
+              properties: {
+                actorName: {
+                  type: "string",
+                  description: "Name of the actor, e.g. 'arxiv', 'pubmed'.",
+                },
+                input: {
+                  type: "object",
+                  description: "Task input parameters for the actor.",
+                },
+              },
+            },
+            description: {
+              type: "string",
+              description: "Optional human-readable description for the job.",
+            },
+            checkIntervalMs: {
+              type: "number",
+              description: "Interval in milliseconds to check cron schedule (default: 60000).",
+            },
+          },
+        },
+      },
+      {
+        name: "list_jobs",
+        description:
+          "Lists all scheduled cron jobs from memory and persistent SQLite registry with run counts and last execution timestamps.",
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "cancel_job",
+        description: "Cancels and stops an active scheduled cron job by its identifier.",
+        inputSchema: {
+          type: "object",
+          required: ["jobId"],
+          properties: {
+            jobId: {
+              type: "string",
+              description: "Unique identifier of the scheduled job to cancel.",
+            },
+          },
+        },
+      },
+    ];
+
+    return [...actorTools, ...pipelineTools, ...datasetTools, ...jobTools];
+  }
+
+  getScheduleBroker(): ScheduleBroker {
+    return this.scheduleBroker;
   }
 
   async processRequest(request: JsonRpcRequest): Promise<JsonRpcResponse | null> {
@@ -500,6 +594,289 @@ export class ProtokolMcpServer {
             id,
             result: {
               content: [{ type: "text", text: JSON.stringify(manifest, null, 2) }],
+            },
+          };
+        }
+
+        if (toolName === "schedule_job") {
+          const cronExpression = toolArgs.cronExpression as string;
+          if (!cronExpression || typeof cronExpression !== "string") {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: "[ERROR] 'cronExpression' (string) is required to schedule a job.",
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+
+          const pipeline = toolArgs.pipeline as
+            | { yaml?: string; filePath?: string; config?: PipelineConfig }
+            | undefined;
+          const actor = toolArgs.actor as
+            | { actorName: string; input?: Record<string, unknown> }
+            | undefined;
+
+          if (!pipeline && !actor) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: "[ERROR] Scheduled job requires either a 'pipeline' or an 'actor' specification.",
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+
+          let resolvedFilePath: string | undefined;
+          if (pipeline?.filePath) {
+            const rootDir = process.cwd();
+            const targetPath = resolve(rootDir, pipeline.filePath);
+            if (!targetPath.startsWith(rootDir) || targetPath.includes("..")) {
+              return {
+                jsonrpc: "2.0",
+                id,
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: `[ERROR] Access to path '${pipeline.filePath}' outside workspace root is forbidden.`,
+                    },
+                  ],
+                  isError: true,
+                },
+              };
+            }
+            if (!existsSync(targetPath)) {
+              return {
+                jsonrpc: "2.0",
+                id,
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: `[ERROR] Pipeline template file '${pipeline.filePath}' not found.`,
+                    },
+                  ],
+                  isError: true,
+                },
+              };
+            }
+            resolvedFilePath = targetPath;
+          }
+
+          if (actor?.actorName && !this.registry.has(actor.actorName as ActorType)) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: `[ERROR] Actor '${actor.actorName}' is not registered in the system registry.`,
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+
+          const jobId =
+            (toolArgs.jobId as string | undefined)?.trim() ||
+            `job_${randomUUID().replace(/-/g, "").slice(0, 12)}`;
+
+          const handler = async () => {
+            if (pipeline) {
+              const runner = new PipelineRunner();
+              if (resolvedFilePath) {
+                await runner.runFile(resolvedFilePath);
+              } else if (pipeline.yaml) {
+                await runner.runYaml(pipeline.yaml);
+              } else if (pipeline.config) {
+                await runner.runConfig(pipeline.config);
+              }
+            } else if (actor) {
+              const actorInstance = this.registry.get(actor.actorName as ActorType);
+              if (actorInstance) {
+                const input = actor.input || {};
+                const targetUrl =
+                  typeof input.targetUrl === "string"
+                    ? input.targetUrl
+                    : typeof input.query === "string"
+                      ? input.query
+                      : typeof input.searchQuery === "string"
+                        ? input.searchQuery
+                        : "";
+                const task: ActorTask = {
+                  taskId: `task_${randomUUID().replace(/-/g, "").slice(0, 12)}`,
+                  actorType: actor.actorName as ActorType,
+                  targetUrl,
+                  options: input,
+                };
+                await actorInstance.run(task, { task, startTime: Date.now() });
+              }
+            }
+          };
+
+          try {
+            this.scheduleBroker.scheduleJob(
+              jobId,
+              cronExpression,
+              handler,
+              (toolArgs.checkIntervalMs as number) || 60000
+            );
+
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: JSON.stringify(
+                      {
+                        success: true,
+                        jobId,
+                        cronExpression,
+                        running: true,
+                        targetType: pipeline ? "pipeline" : "actor",
+                        description: toolArgs.description,
+                      },
+                      null,
+                      2
+                    ),
+                  },
+                ],
+              },
+            };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [{ type: "text", text: `[ERROR] Failed to schedule job: ${msg}` }],
+                isError: true,
+              },
+            };
+          }
+        }
+
+        if (toolName === "list_jobs") {
+          const activeJobs = this.scheduleBroker.getActiveJobs();
+          const activeMap = new Map<string, unknown>();
+          for (const j of activeJobs) {
+            activeMap.set(j.id, j);
+          }
+
+          const db = getDefaultRegistryDatabase();
+          const dbJobs = db ? db.listScheduledJobs() : [];
+          const combined: unknown[] = [];
+          const seenIds = new Set<string>();
+
+          for (const dj of dbJobs) {
+            seenIds.add(dj.id);
+            const isActive = activeMap.has(dj.id);
+            combined.push({
+              ...dj,
+              running: isActive ? true : dj.running,
+              activeInMemory: isActive,
+            });
+          }
+
+          for (const aj of activeJobs) {
+            if (!seenIds.has(aj.id)) {
+              combined.push({
+                ...aj,
+                activeInMemory: true,
+              });
+            }
+          }
+
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({ count: combined.length, jobs: combined }, null, 2),
+                },
+              ],
+            },
+          };
+        }
+
+        if (toolName === "cancel_job") {
+          const jobId = toolArgs.jobId as string;
+          if (!jobId) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: "[ERROR] 'jobId' is required to cancel a job.",
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+
+          const stopped = this.scheduleBroker.stopJob(jobId);
+          const db = getDefaultRegistryDatabase();
+          if (!stopped) {
+            const dbJob = db?.getScheduledJob(jobId);
+            if (!dbJob) {
+              return {
+                jsonrpc: "2.0",
+                id,
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: `[ERROR] Scheduled job '${jobId}' not found or already inactive.`,
+                    },
+                  ],
+                  isError: true,
+                },
+              };
+            }
+            db?.setScheduledJobRunning(jobId, false);
+          }
+
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify(
+                    {
+                      success: true,
+                      jobId,
+                      stopped: true,
+                      message: `Scheduled job '${jobId}' was stopped and deactivated.`,
+                    },
+                    null,
+                    2
+                  ),
+                },
+              ],
             },
           };
         }
@@ -938,6 +1315,7 @@ export class ProtokolMcpServer {
   }
 
   close() {
+    this.scheduleBroker.stopAll();
     if (this.rl) {
       this.rl.close();
       this.rl = undefined;

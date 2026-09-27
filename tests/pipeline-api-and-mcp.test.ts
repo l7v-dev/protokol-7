@@ -152,8 +152,9 @@ actor:
 
     assert.ok(runTool, "run_pipeline tool must be registered in MCP server");
     assert.ok(listTool, "list_pipelines tool must be registered in MCP server");
-    assert.ok(runTool.inputSchema.properties.yaml);
-    assert.ok(runTool.inputSchema.properties.filePath);
+    const schemaProps = (runTool.inputSchema as { properties: Record<string, unknown> }).properties;
+    assert.ok(schemaProps.yaml);
+    assert.ok(schemaProps.filePath);
   });
 
   it("MCP ProtokolMcpServer executes list_pipelines via tools/call", async () => {

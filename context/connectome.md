@@ -9,15 +9,16 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/core/types.ts` | 64 | 113 | Yardımcı Modül |
-| `src/dataset/types.ts` | 64 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 64 | 5 | Yardımcı Modül |
+| `src/core/types.ts` | 65 | 113 | Yardımcı Modül |
+| `src/dataset/types.ts` | 65 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 65 | 5 | Yardımcı Modül |
 | `src/network/safe-redirect-fetcher.ts` | 29 | 2 | Yardımcı Modül |
 | `src/network/ssrf-guard.ts` | 26 | 3 | Yardımcı Modül |
-| `src/core/server.ts` | 15 | 1 | Giriş Noktası (Server) |
-| `src/server.ts` | 15 | 0 | Giriş Noktası (Server) |
-| `src/pipeline/schema.ts` | 13 | 19 | Yardımcı Modül |
+| `src/core/server.ts` | 16 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 16 | 0 | Giriş Noktası (Server) |
+| `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
 | `src/core/index.ts` | 10 | 0 | Yardımcı Modül |
+| `src/core/registry-database.ts` | 10 | 8 | Bileşen Tescili (Registry) |
 | `src/dataset/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/mcp/index.ts` | 10 | 0 | Yardımcı Modül |
@@ -27,16 +28,16 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/processors/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/index.ts` | 10 | 2 | Yardımcı Modül |
-| `src/core/registry-database.ts` | 9 | 8 | Bileşen Tescili (Registry) |
-| `src/pipeline/pipeline-runner.ts` | 8 | 3 | Yardımcı Modül |
+| `src/pipeline/pipeline-runner.ts` | 9 | 3 | Yardımcı Modül |
 | `src/browser/browser-pool.ts` | 7 | 4 | Kaynak Yöneticisi (BrowserPool) |
+| `src/actors/actor-registry.ts` | 6 | 2 | Bileşen Tescili (Registry) |
 | `src/core/context-guard.ts` | 6 | 4 | Yardımcı Modül |
 | `src/core/run-registry.ts` | 6 | 6 | Bileşen Tescili (Registry) |
+| `src/mcp/protokol-mcp-server.ts` | 6 | 3 | Giriş Noktası (Server) |
 | `src/pipeline/storage/s3-storage.ts` | 6 | 4 | Yardımcı Modül |
-| `src/actors/actor-registry.ts` | 5 | 2 | Bileşen Tescili (Registry) |
 | `src/extractors/structured-extractor.ts` | 5 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/mcp/protokol-mcp-server.ts` | 5 | 3 | Giriş Noktası (Server) |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
+| `src/pipeline/schedule-broker.ts` | 5 | 5 | Yardımcı Modül |
 | `src/actors/actor-manifests.ts` | 4 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
@@ -51,7 +52,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/connectors/env-resolver.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/execution/local-executor.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/processors/jsonl-writer.ts` | 3 | 1 | Yardımcı Modül |
-| `src/pipeline/schedule-broker.ts` | 3 | 5 | Yardımcı Modül |
 | `src/pipeline/storage/b2-storage.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/local-storage.ts` | 3 | 1 | Yardımcı Modül |
 | `src/pipeline/storage/r2-storage.ts` | 3 | 2 | Yardımcı Modül |
@@ -108,6 +108,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/dom-indexer.ts` | 1 | 3 | Yardımcı Modül |
 | `src/browser/interactive-browser-controller.ts` | 1 | 5 | Yardımcı Modül |
 | `src/core/dataset-router.ts` | 1 | 1 | Yardımcı Modül |
+| `src/core/job-router.ts` | 1 | 2 | Yardımcı Modül |
 | `src/core/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
 | `src/core/pipeline-router.ts` | 1 | 2 | Yardımcı Modül |
 | `src/core/store-router.ts` | 1 | 1 | Yardımcı Modül |
@@ -159,6 +160,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/ietf-rfc-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/interactive-browser-controller.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/internet-archive-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/job-scheduler-and-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/ktb-ekitap-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/markdown-reader-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/mcp-http-transport.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -311,6 +313,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `/api/v1/datasets/publish` | POST | — |
 | `/api/v1/datasets` | GET | — |
 | `/api/v1/datasets/:id` | GET | — |
+| `/api/v1/jobs/schedule` | POST | — |
+| `/api/v1/jobs` | GET | — |
 
 ## Kayıtlı Aktörler & Bileşenler
 
@@ -819,6 +823,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `handleGetSnapshot(res: http.ServerResponse, _datasetName: string, snapshotId: string): void`
   - `handleGetLatestManifest(res: http.ServerResponse, datasetName: string): void`
 
+### `src/core/job-router.ts`
+
+**Sınıflar (Classes):**
+- `class JobRouter`
+  - `getBroker(): ScheduleBroker`
+  - `handleScheduleJob(res: http.ServerResponse, body: ScheduleJobRequestBody): Promise<void>`
+  - `handleListJobs(res: http.ServerResponse): void`
+  - `handleGetJob(res: http.ServerResponse, jobId: string): void`
+  - `handleCancelJob(res: http.ServerResponse, jobId: string): void`
+**Arayüzler (Interfaces):**
+- `interface ScheduleJobRequestBody` (6 üye)
+
 ### `src/core/openapi-spec.ts`
 
 **Fonksiyonlar (Functions):**
@@ -866,6 +882,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `updateScheduledJobRun(id: string, lastRunAt: string, runCount: number): void`
   - `setScheduledJobRunning(id: string, running: boolean): void`
   - `listScheduledJobs(): ScheduledJobInfo[]`
+  - `getScheduledJob(id: string): ScheduledJobInfo | undefined`
   - `recordDatasetShard(shard: DatasetShardRecord): void`
   - `listDatasetShards(datasetName: string, limit): DatasetShardRecord[]`
   - `getDatasetShard(shardId: string): DatasetShardRecord | undefined`
@@ -1229,6 +1246,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Sınıflar (Classes):**
 - `class ProtokolMcpServer`
   - `getTools(): void`
+  - `getScheduleBroker(): ScheduleBroker`
   - `processRequest(request: JsonRpcRequest): Promise<JsonRpcResponse | null>`
   - `start(input: NodeJS.ReadableStream, output: NodeJS.WritableStream): void`
   - `getQuarantineItems(): unknown[]`
@@ -1748,5 +1766,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/session-vault.ts` |
 | `src/browser/stealth-manager.ts` |
 | `src/core/context-guard.ts` |
-| *... ve 145 dosya daha* |
+| *... ve 147 dosya daha* |
 

@@ -16,6 +16,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/core/store-router.ts` | `StoreRouter` | Actor Store API router, live log SSE streaming, quarantine inspector, and headless service information endpoint. |
 | `src/core/pipeline-router.ts` | `PipelineRouter`, `PipelineRouterOptions` | Declarative YAML pipeline execution HTTP router (`/api/v1/pipelines/*`), template catalog provider, run history viewer, and path traversal guard. |
 | `src/core/dataset-router.ts` | `DatasetRouter` | Dataset catalog router (`/api/v1/datasets/*`), training manifest publisher, snapshot viewer, and shard inventory inspector. |
+| `src/core/job-router.ts` | `JobRouter`, `ScheduleJobRequestBody` | Scheduled job and cron engine HTTP router (`/api/v1/jobs/*`), recurring pipeline/actor scheduler, and cron parser. |
 | `src/core/openapi-spec.ts` | `OPENAPI_SPECIFICATION`, `renderDocsHtml` | OpenAPI 3.1.0 schema specification and zero-dependency interactive documentation HTML generator. |
 | `src/core/context-guard.ts` | `ContextGuard` | LLM token estimation, context window budgeting, and hierarchical semantic boundary truncation. |
 | `src/core/server.ts` | `startServer`, `handleRequest` | Standalone Node.js HTTP REST server and API endpoint routing. |
@@ -239,6 +240,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/pipeline-quality-and-dedup.test.ts` | `TextNormalizer`, `QualityFilter`, `DedupFilter`, `PipelineRunner` | Normalization (NFKC, control chars, whitespace), FineWeb/Gopher quality gates, exact SHA-256 and SimHash near-dedup, and SQLite audit ledger integration. |
 | `tests/pipeline-api-and-mcp.test.ts` | `PipelineRouter`, `ProtokolMcpServer` | Integration tests for YAML pipeline execution REST endpoints and run_pipeline/list_pipelines MCP tools. |
 | `tests/dataset-publisher-and-api.test.ts` | `DatasetPublisher`, `DatasetRouter`, `ProtokolMcpServer` | Integration tests for dataset snapshot creation, manifest.json sealing, split partitioning, REST endpoints, and MCP tools. |
+| `tests/job-scheduler-and-api.test.ts` | `JobRouter`, `ScheduleBroker`, `ProtokolMcpServer` | Integration tests for scheduled jobs, cron validation, path traversal guard, REST endpoints, and MCP tools. |
 
 ---
 

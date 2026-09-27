@@ -109,6 +109,7 @@ export class RegistryDatabase {
   private stmtUpdateJobRun!: StatementSync;
   private stmtSetJobRunning!: StatementSync;
   private stmtListJobs!: StatementSync;
+  private stmtGetJob!: StatementSync;
 
   private stmtInsertShard!: StatementSync;
   private stmtListShardsByDataset!: StatementSync;
@@ -462,6 +463,11 @@ export class RegistryDatabase {
     this.stmtListJobs = this.db.prepare(`
       SELECT job_id, cron_expression, running, last_run_at, run_count
       FROM scheduled_jobs ORDER BY job_id ASC
+    `);
+
+    this.stmtGetJob = this.db.prepare(`
+      SELECT job_id, cron_expression, running, last_run_at, run_count
+      FROM scheduled_jobs WHERE job_id = ?
     `);
 
     this.stmtInsertShard = this.db.prepare(`
@@ -828,6 +834,18 @@ export class RegistryDatabase {
       lastRunAt: row.last_run_at ? String(row.last_run_at) : undefined,
       runCount: Number(row.run_count),
     }));
+  }
+
+  getScheduledJob(id: string): ScheduledJobInfo | undefined {
+    const row = this.stmtGetJob.get(id) as Record<string, unknown> | undefined;
+    if (!row) return undefined;
+    return {
+      id: String(row.job_id),
+      cronExpression: String(row.cron_expression),
+      running: Number(row.running) === 1,
+      lastRunAt: row.last_run_at ? String(row.last_run_at) : undefined,
+      runCount: Number(row.run_count),
+    };
   }
 
   // --- Dataset Shards API ---

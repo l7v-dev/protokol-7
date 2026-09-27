@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { RegistryDatabase } from "../src/core/registry-database";
-import type { ExecutionTarget, ExecutionTargetResult } from "../src/pipeline/execution";
+import type { ExecutionResult, ExecutionTarget } from "../src/pipeline/execution";
 import { PipelineRunner } from "../src/pipeline/pipeline-runner";
 import { DedupFilter } from "../src/pipeline/processors/dedup-filter";
 import { QualityFilter } from "../src/pipeline/processors/quality-filter";
@@ -41,8 +41,9 @@ describe("LLM Pipeline - TextNormalizer", () => {
     assert.ok(processed.rawSha256);
     assert.ok(processed.normalizedSha256);
     assert.notEqual(processed.rawSha256, processed.normalizedSha256);
-    assert.equal(processed.item.raw_sha256, processed.rawSha256);
-    assert.equal(processed.item.normalized_sha256, processed.normalizedSha256);
+    const itemRecord = processed.item as Record<string, unknown>;
+    assert.equal(itemRecord.raw_sha256, processed.rawSha256);
+    assert.equal(itemRecord.normalized_sha256, processed.normalizedSha256);
   });
 });
 
@@ -124,8 +125,8 @@ describe("LLM Pipeline - QualityFilter (FineWeb/Gopher Heuristics)", () => {
 
     const flagged = flagFilter.filterBatch(items);
     assert.equal(flagged.length, 2);
-    assert.equal(flagged[0].quality_passed, false);
-    assert.equal(flagged[1].quality_passed, true);
+    assert.equal((flagged[0] as Record<string, unknown>).quality_passed, false);
+    assert.equal((flagged[1] as Record<string, unknown>).quality_passed, true);
   });
 });
 
@@ -182,7 +183,7 @@ describe("LLM Pipeline - PipelineRunner Integration with Quality, Dedup & Regist
   class MockQualityExecutor implements ExecutionTarget {
     readonly name = "mock-quality";
 
-    async run(): Promise<ExecutionTargetResult> {
+    async run(): Promise<ExecutionResult> {
       return {
         success: true,
         items: [
@@ -213,6 +214,8 @@ describe("LLM Pipeline - PipelineRunner Integration with Quality, Dedup & Regist
               "Matrix multiplication and tensor decompositions are fundamental computational primitives.",
           },
         ],
+        itemCount: 4,
+        durationMs: 10,
       };
     }
   }

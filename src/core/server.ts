@@ -12,6 +12,7 @@ import { globalPipedreamConnect } from "../integrations/pipedream-connect";
 import { HttpMcpTransport, ProtokolMcpServer } from "../mcp";
 import { globalOcrRegistry } from "../ocr";
 import { DatasetRouter } from "./dataset-router";
+import { JobRouter, type ScheduleJobRequestBody } from "./job-router";
 import { OPENAPI_SPECIFICATION, renderDocsHtml } from "./openapi-spec";
 import { PipelineRouter, type PipelineRunRequestBody } from "./pipeline-router";
 import { StoreRouter } from "./store-router";
@@ -21,6 +22,7 @@ const registry = createDefaultActorRegistry();
 const storeRouter = new StoreRouter(registry);
 const pipelineRouter = new PipelineRouter();
 const datasetRouter = new DatasetRouter();
+const jobRouter = new JobRouter(undefined, pipelineRouter.getRunner(), undefined, registry);
 const mcpServer = new ProtokolMcpServer(registry);
 const httpMcpTransport = new HttpMcpTransport(mcpServer);
 const PORT = parseInt(process.env.PORT || "4000", 10);
@@ -2071,6 +2073,40 @@ export function createServer(): http.Server {
         // /api/v1/datasets/:name/snapshots/:snapshotId
         if (parts.length === 3 && parts[1] === "snapshots") {
           datasetRouter.handleGetSnapshot(res, parts[0], parts[2]);
+          return;
+        }
+      }
+
+      // 10. Scheduled Jobs & Cron Routes
+      if (method === "POST" && pathname === "/api/v1/jobs/schedule") {
+        const body = await parseBody<ScheduleJobRequestBody>(req);
+        await jobRouter.handleScheduleJob(res, body);
+        return;
+      }
+
+      if (method === "GET" && pathname === "/api/v1/jobs") {
+        jobRouter.handleListJobs(res);
+        return;
+      }
+
+      if (pathname.startsWith("/api/v1/jobs/")) {
+        const subPath = pathname.slice("/api/v1/jobs/".length);
+        const parts = subPath.split("/").filter(Boolean);
+
+        if (parts.length === 1) {
+          const jobId = parts[0];
+          if (method === "GET") {
+            jobRouter.handleGetJob(res, jobId);
+            return;
+          }
+          if (method === "DELETE") {
+            jobRouter.handleCancelJob(res, jobId);
+            return;
+          }
+        }
+
+        if (parts.length === 2 && parts[1] === "stop" && method === "POST") {
+          jobRouter.handleCancelJob(res, parts[0]);
           return;
         }
       }

@@ -207,7 +207,7 @@ export class PipelineRouter {
     if (this.registryDb) {
       try {
         const executions = this.registryDb.listPipelineExecutions(200);
-        run = executions.find((e) => e.executionId === runId);
+        run = executions.find((e) => e.runId === runId);
       } catch (_err) {
         // Ignore and fallback
       }

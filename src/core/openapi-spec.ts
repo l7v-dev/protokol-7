@@ -54,6 +54,10 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
       description:
         "Training dataset catalog, snapshots, split partitioning, and verified manifest publisher",
     },
+    {
+      name: "Jobs",
+      description: "Scheduled recurring pipeline executions, cron engine, and job state management",
+    },
     { name: "System", description: "Health checks, agent manifests, and OpenAPI metadata" },
   ],
   paths: {
@@ -1442,6 +1446,123 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         responses: {
           "200": { description: "Snapshot record and parsed manifest." },
           "404": { description: "Snapshot not found." },
+        },
+      },
+    },
+    "/api/v1/jobs/schedule": {
+      post: {
+        tags: ["Jobs"],
+        summary: "Schedule Recurring Pipeline or Actor Task",
+        description:
+          "Schedules a recurring pipeline or actor task with a 5-part cron expression and SQLite ACID tracking.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["cronExpression"],
+                properties: {
+                  jobId: { type: "string", example: "job_daily_arxiv" },
+                  cronExpression: { type: "string", example: "0 2 * * *" },
+                  pipeline: {
+                    type: "object",
+                    properties: {
+                      yaml: { type: "string" },
+                      filePath: {
+                        type: "string",
+                        example: "examples/pipelines/corpus-parquet-sample.yaml",
+                      },
+                      config: { type: "object" },
+                    },
+                  },
+                  actor: {
+                    type: "object",
+                    properties: {
+                      actorName: { type: "string", example: "arxiv" },
+                      input: { type: "object" },
+                    },
+                  },
+                  description: { type: "string", example: "Daily arXiv ingestion" },
+                  checkIntervalMs: { type: "integer", example: 60000 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Job scheduled successfully." },
+          "400": { description: "Invalid cron expression or payload." },
+          "403": { description: "Path traversal attempt detected." },
+          "404": { description: "Pipeline file not found." },
+        },
+      },
+    },
+    "/api/v1/jobs": {
+      get: {
+        tags: ["Jobs"],
+        summary: "List Scheduled Jobs",
+        description:
+          "Lists all scheduled cron jobs from memory and persistent SQLite catalog with run counts and timestamps.",
+        responses: {
+          "200": { description: "List of scheduled jobs." },
+        },
+      },
+    },
+    "/api/v1/jobs/{id}": {
+      get: {
+        tags: ["Jobs"],
+        summary: "Get Scheduled Job Details",
+        description:
+          "Returns metadata, cron expression, execution status, and run counts for a specific job.",
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": { description: "Job details." },
+          "404": { description: "Job not found." },
+        },
+      },
+      delete: {
+        tags: ["Jobs"],
+        summary: "Cancel and Stop Scheduled Job",
+        description:
+          "Cancels the recurring timer and deactivates the job in persistent SQLite catalog.",
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": { description: "Job cancelled successfully." },
+          "404": { description: "Job not found." },
+        },
+      },
+    },
+    "/api/v1/jobs/{id}/stop": {
+      post: {
+        tags: ["Jobs"],
+        summary: "Stop Scheduled Job (POST Alias)",
+        description: "Cancels and deactivates the scheduled job via POST request.",
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": { description: "Job stopped successfully." },
+          "404": { description: "Job not found." },
         },
       },
     },
