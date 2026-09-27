@@ -10,7 +10,7 @@ import os
 import shutil
 from typing import Optional
 
-from scripts.bigdata_pipeline.storage.base import StorageProvider, StorageReceipt
+from scripts.corpus_pipeline.storage.base import StorageProvider, StorageReceipt
 
 
 class LocalColdVaultProvider(StorageProvider):

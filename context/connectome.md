@@ -9,16 +9,17 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/core/types.ts` | 65 | 113 | Yardımcı Modül |
-| `src/dataset/types.ts` | 65 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 65 | 5 | Yardımcı Modül |
+| `src/core/types.ts` | 68 | 113 | Yardımcı Modül |
+| `src/dataset/types.ts` | 68 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 68 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 68 | 6 | Yardımcı Modül |
 | `src/network/safe-redirect-fetcher.ts` | 29 | 2 | Yardımcı Modül |
 | `src/network/ssrf-guard.ts` | 26 | 3 | Yardımcı Modül |
-| `src/core/server.ts` | 16 | 1 | Giriş Noktası (Server) |
-| `src/server.ts` | 16 | 0 | Giriş Noktası (Server) |
+| `src/core/server.ts` | 17 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 17 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
+| `src/core/registry-database.ts` | 13 | 8 | Bileşen Tescili (Registry) |
 | `src/core/index.ts` | 10 | 0 | Yardımcı Modül |
-| `src/core/registry-database.ts` | 10 | 8 | Bileşen Tescili (Registry) |
 | `src/dataset/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/mcp/index.ts` | 10 | 0 | Yardımcı Modül |
@@ -28,12 +29,13 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/processors/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/index.ts` | 10 | 2 | Yardımcı Modül |
+| `src/vault/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/pipeline-runner.ts` | 9 | 3 | Yardımcı Modül |
 | `src/browser/browser-pool.ts` | 7 | 4 | Kaynak Yöneticisi (BrowserPool) |
+| `src/mcp/protokol-mcp-server.ts` | 7 | 3 | Giriş Noktası (Server) |
 | `src/actors/actor-registry.ts` | 6 | 2 | Bileşen Tescili (Registry) |
 | `src/core/context-guard.ts` | 6 | 4 | Yardımcı Modül |
 | `src/core/run-registry.ts` | 6 | 6 | Bileşen Tescili (Registry) |
-| `src/mcp/protokol-mcp-server.ts` | 6 | 3 | Giriş Noktası (Server) |
 | `src/pipeline/storage/s3-storage.ts` | 6 | 4 | Yardımcı Modül |
 | `src/extractors/structured-extractor.ts` | 5 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
@@ -55,6 +57,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/storage/b2-storage.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/local-storage.ts` | 3 | 1 | Yardımcı Modül |
 | `src/pipeline/storage/r2-storage.ts` | 3 | 2 | Yardımcı Modül |
+| `src/vault/cold-vault-exporter.ts` | 3 | 1 | Yardımcı Modül |
 | `src/actors/archive-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -112,6 +115,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/core/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
 | `src/core/pipeline-router.ts` | 1 | 2 | Yardımcı Modül |
 | `src/core/store-router.ts` | 1 | 1 | Yardımcı Modül |
+| `src/core/vault-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/extractors/robots-parser.ts` | 1 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/mcp/http-transport.ts` | 1 | 2 | Yardımcı Modül |
 | `src/network/crawl-url-accumulator.ts` | 1 | 3 | Yardımcı Modül |
@@ -143,6 +147,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/browser-pool.test.ts` | 0 | 0 | Kaynak Yöneticisi (BrowserPool) |
 | `tests/browser-session-manager.test.ts` | 0 | 0 | Oturum Denetleyicisi |
 | `tests/clinical-trials-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/cold-vault-exporter-and-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/context-guard.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/court-listener-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/crawl-frontier.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -315,6 +320,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `/api/v1/datasets/:id` | GET | — |
 | `/api/v1/jobs/schedule` | POST | — |
 | `/api/v1/jobs` | GET | — |
+| `/api/v1/vault/export` | POST | — |
+| `/api/v1/vault/verify` | POST | — |
+| `/api/v1/vault/inspect` | GET | — |
 
 ## Kayıtlı Aktörler & Bileşenler
 
@@ -1064,6 +1072,16 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `type KtbEkitapCategory`
 - `type KtbEkitapAction`
 
+### `src/core/vault-router.ts`
+
+**Sınıflar (Classes):**
+- `class VaultRouter`
+  - `getExporter(): ColdVaultExporter`
+  - `validateVolumePath(pathInput: string): { valid: boolean; resolvedPath: string; error?: string }`
+  - `handleExport(res: http.ServerResponse, body: ColdVaultExportOptions): Promise<void>`
+  - `handleVerify(res: http.ServerResponse, body: { volumeRoot: string }): Promise<void>`
+  - `handleInspect(res: http.ServerResponse, volumeRoot: string): void`
+
 ### `src/dataset/dataset-publisher.ts`
 
 **Sınıflar (Classes):**
@@ -1712,6 +1730,26 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface S3ClientLike` (1 üye)
 - `interface S3StorageOptions` (5 üye)
 
+### `src/vault/cold-vault-exporter.ts`
+
+**Sınıflar (Classes):**
+- `class ColdVaultExporter`
+  - `computeSha256(filePath: string): string`
+  - `initVolume(volumeRoot: string, volumeLabel: string, filesystem: "btrfs" | "ext4" | "other"): VolumeInfo`
+  - `inspectVolume(volumeRoot: string): VolumeInfo | undefined`
+  - `exportDataset(options: ColdVaultExportOptions): Promise<ColdVaultExportReceipt>`
+  - `verifyVolume(volumeRoot: string): Promise<VolumeVerificationResult>`
+
+### `src/vault/types.ts`
+
+**Arayüzler (Interfaces):**
+- `interface VolumeInfo` (8 üye)
+- `interface ColdVaultExportOptions` (8 üye)
+- `interface ExportedShardReceipt` (7 üye)
+- `interface ColdVaultExportReceipt` (12 üye)
+- `interface VolumeVerificationItem` (6 üye)
+- `interface VolumeVerificationResult` (9 üye)
+
 ## Modül ve Dosya Envanteri
 
 | Dosya Yolu |
@@ -1766,5 +1804,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/browser/session-vault.ts` |
 | `src/browser/stealth-manager.ts` |
 | `src/core/context-guard.ts` |
-| *... ve 147 dosya daha* |
+| *... ve 152 dosya daha* |
 

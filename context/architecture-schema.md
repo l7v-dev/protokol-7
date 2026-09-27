@@ -17,6 +17,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/core/pipeline-router.ts` | `PipelineRouter`, `PipelineRouterOptions` | Declarative YAML pipeline execution HTTP router (`/api/v1/pipelines/*`), template catalog provider, run history viewer, and path traversal guard. |
 | `src/core/dataset-router.ts` | `DatasetRouter` | Dataset catalog router (`/api/v1/datasets/*`), training manifest publisher, snapshot viewer, and shard inventory inspector. |
 | `src/core/job-router.ts` | `JobRouter`, `ScheduleJobRequestBody` | Scheduled job and cron engine HTTP router (`/api/v1/jobs/*`), recurring pipeline/actor scheduler, and cron parser. |
+| `src/core/vault-router.ts` | `VaultRouter` | Cold vault HTTP router (`/api/v1/vault/*`), dataset packaging, volume integrity auditing, and path traversal guard. |
 | `src/core/openapi-spec.ts` | `OPENAPI_SPECIFICATION`, `renderDocsHtml` | OpenAPI 3.1.0 schema specification and zero-dependency interactive documentation HTML generator. |
 | `src/core/context-guard.ts` | `ContextGuard` | LLM token estimation, context window budgeting, and hierarchical semantic boundary truncation. |
 | `src/core/server.ts` | `startServer`, `handleRequest` | Standalone Node.js HTTP REST server and API endpoint routing. |
@@ -180,6 +181,14 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/dataset/dataset-publisher.ts` | `DatasetPublisher`, `DatasetPublisherOptions` | Training dataset snapshot engine, train/val/test split partitioning, SHA-256 manifest.json sealer, and remote storage uploader. |
 | `src/dataset/index.ts` | Dataset Barrel | Re-exports dataset contracts and publisher class. |
 
+### 1.11 Cold Vault Subsystem (`src/vault/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/vault/types.ts` | `VolumeInfo`, `ColdVaultExportOptions`, `ColdVaultExportReceipt`, `VolumeVerificationResult` | Type definitions and schema contracts for cold storage volumes, export receipts, and verification results. |
+| `src/vault/cold-vault-exporter.ts` | `ColdVaultExporter` | Offline packaging engine, self-describing directory layout manager, streaming SHA-256 validator, SHA256SUMS ledger builder, and SQLite storage_replicas recorder. |
+| `src/vault/index.ts` | Vault Barrel | Re-exports cold vault engine and types. |
+
 ---
 
 ## 2. Test Suite Inventory (`tests/`)
@@ -241,6 +250,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/pipeline-api-and-mcp.test.ts` | `PipelineRouter`, `ProtokolMcpServer` | Integration tests for YAML pipeline execution REST endpoints and run_pipeline/list_pipelines MCP tools. |
 | `tests/dataset-publisher-and-api.test.ts` | `DatasetPublisher`, `DatasetRouter`, `ProtokolMcpServer` | Integration tests for dataset snapshot creation, manifest.json sealing, split partitioning, REST endpoints, and MCP tools. |
 | `tests/job-scheduler-and-api.test.ts` | `JobRouter`, `ScheduleBroker`, `ProtokolMcpServer` | Integration tests for scheduled jobs, cron validation, path traversal guard, REST endpoints, and MCP tools. |
+| `tests/cold-vault-exporter-and-api.test.ts` | `ColdVaultExporter`, `VaultRouter`, `ProtokolMcpServer` | Integration tests for cold vault volume initialization, dataset packaging, SHA256SUMS generation, replica ledger tracking, file corruption detection, REST endpoints, and MCP tools. |
 
 ---
 

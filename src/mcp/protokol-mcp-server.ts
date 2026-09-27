@@ -50,6 +50,7 @@ import type { PublishDatasetOptions, SplitRatios } from "../dataset/types";
 import { PipelineRunner, type PipelineRunResult } from "../pipeline/pipeline-runner";
 import { ScheduleBroker } from "../pipeline/schedule-broker";
 import type { PipelineConfig } from "../pipeline/schema";
+import { ColdVaultExporter } from "../vault/cold-vault-exporter";
 
 export interface JsonRpcRequest {
   jsonrpc: "2.0";
@@ -322,7 +323,68 @@ export class ProtokolMcpServer {
       },
     ];
 
-    return [...actorTools, ...pipelineTools, ...datasetTools, ...jobTools];
+    const vaultTools = [
+      {
+        name: "export_cold_vault",
+        description:
+          "Exports sealed dataset shards and verified manifest to a cold vault volume adhering to Btrfs/SHA256SUMS standard.",
+        inputSchema: {
+          type: "object",
+          required: ["datasetName", "volumeRoot"],
+          properties: {
+            datasetName: {
+              type: "string",
+              description: "Technical name of the dataset to export (e.g. 'arxiv_math').",
+            },
+            volumeRoot: {
+              type: "string",
+              description:
+                "Target cold vault volume filesystem root directory (e.g. 'data/cold_vault/VOL-001' or '/mnt/coldvault/VOL-2026-001').",
+            },
+            version: {
+              type: "string",
+              description: "Optional snapshot version. Defaults to latest snapshot.",
+            },
+            volumeLabel: {
+              type: "string",
+              description: "Optional label for the cold storage volume.",
+            },
+            filesystem: {
+              type: "string",
+              enum: ["btrfs", "ext4", "other"],
+              description: "Filesystem type of the volume (default: 'btrfs').",
+            },
+            copyMode: {
+              type: "string",
+              enum: ["copy", "hardlink"],
+              description: "Transfer mode (default: 'copy').",
+            },
+            verifyChecksums: {
+              type: "boolean",
+              description:
+                "Whether to verify cryptographic SHA-256 hashes during copy (default: true).",
+            },
+          },
+        },
+      },
+      {
+        name: "verify_cold_vault",
+        description:
+          "Cryptographically verifies all files on a cold vault storage volume against its checksums/SHA256SUMS ledger.",
+        inputSchema: {
+          type: "object",
+          required: ["volumeRoot"],
+          properties: {
+            volumeRoot: {
+              type: "string",
+              description: "Directory path of the cold vault volume to verify.",
+            },
+          },
+        },
+      },
+    ];
+
+    return [...actorTools, ...pipelineTools, ...datasetTools, ...jobTools, ...vaultTools];
   }
 
   getScheduleBroker(): ScheduleBroker {
@@ -879,6 +941,130 @@ export class ProtokolMcpServer {
               ],
             },
           };
+        }
+
+        if (toolName === "export_cold_vault") {
+          const datasetName = toolArgs.datasetName as string;
+          const volumeRoot = toolArgs.volumeRoot as string;
+          if (!datasetName || !volumeRoot) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: "[ERROR] 'datasetName' and 'volumeRoot' are required to export to cold vault.",
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+
+          if (volumeRoot.includes("..")) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: "[ERROR] Path traversal pattern '..' is forbidden in volumeRoot.",
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+
+          try {
+            const exporter = new ColdVaultExporter();
+            const receipt = await exporter.exportDataset({
+              datasetName,
+              volumeRoot,
+              version: toolArgs.version as string | undefined,
+              volumeLabel: toolArgs.volumeLabel as string | undefined,
+              filesystem: toolArgs.filesystem as "btrfs" | "ext4" | "other" | undefined,
+              copyMode: toolArgs.copyMode as "copy" | "hardlink" | undefined,
+              verifyChecksums: toolArgs.verifyChecksums !== false,
+            });
+
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [{ type: "text", text: JSON.stringify(receipt, null, 2) }],
+              },
+            };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [{ type: "text", text: `[ERROR] Failed to export to cold vault: ${msg}` }],
+                isError: true,
+              },
+            };
+          }
+        }
+
+        if (toolName === "verify_cold_vault") {
+          const volumeRoot = toolArgs.volumeRoot as string;
+          if (!volumeRoot) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: "[ERROR] 'volumeRoot' is required to verify cold vault volume.",
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+
+          if (volumeRoot.includes("..")) {
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: "[ERROR] Path traversal pattern '..' is forbidden in volumeRoot.",
+                  },
+                ],
+                isError: true,
+              },
+            };
+          }
+
+          try {
+            const exporter = new ColdVaultExporter();
+            const verification = await exporter.verifyVolume(volumeRoot);
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [{ type: "text", text: JSON.stringify(verification, null, 2) }],
+              },
+            };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return {
+              jsonrpc: "2.0",
+              id,
+              result: {
+                content: [{ type: "text", text: `[ERROR] Failed to verify cold vault: ${msg}` }],
+                isError: true,
+              },
+            };
+          }
         }
 
         const manifest = this.toolToManifestMap.get(toolName);

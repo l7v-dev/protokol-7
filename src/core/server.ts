@@ -11,18 +11,21 @@ import type { PublishDatasetOptions } from "../dataset/types";
 import { globalPipedreamConnect } from "../integrations/pipedream-connect";
 import { HttpMcpTransport, ProtokolMcpServer } from "../mcp";
 import { globalOcrRegistry } from "../ocr";
+import type { ColdVaultExportOptions } from "../vault/types";
 import { DatasetRouter } from "./dataset-router";
 import { JobRouter, type ScheduleJobRequestBody } from "./job-router";
 import { OPENAPI_SPECIFICATION, renderDocsHtml } from "./openapi-spec";
 import { PipelineRouter, type PipelineRunRequestBody } from "./pipeline-router";
 import { StoreRouter } from "./store-router";
 import type { ActorTask, ActorType, ArchiveFormat, SupportedDocumentFormat } from "./types";
+import { VaultRouter } from "./vault-router";
 
 const registry = createDefaultActorRegistry();
 const storeRouter = new StoreRouter(registry);
 const pipelineRouter = new PipelineRouter();
 const datasetRouter = new DatasetRouter();
 const jobRouter = new JobRouter(undefined, pipelineRouter.getRunner(), undefined, registry);
+const vaultRouter = new VaultRouter();
 const mcpServer = new ProtokolMcpServer(registry);
 const httpMcpTransport = new HttpMcpTransport(mcpServer);
 const PORT = parseInt(process.env.PORT || "4000", 10);
@@ -2109,6 +2112,25 @@ export function createServer(): http.Server {
           jobRouter.handleCancelJob(res, parts[0]);
           return;
         }
+      }
+
+      // 11. Cold Vault Physical Storage Routes
+      if (method === "POST" && pathname === "/api/v1/vault/export") {
+        const body = await parseBody<ColdVaultExportOptions>(req);
+        await vaultRouter.handleExport(res, body);
+        return;
+      }
+
+      if (method === "POST" && pathname === "/api/v1/vault/verify") {
+        const body = await parseBody<{ volumeRoot: string }>(req);
+        await vaultRouter.handleVerify(res, body);
+        return;
+      }
+
+      if (method === "GET" && pathname === "/api/v1/vault/inspect") {
+        const volumeRoot = parsedUrl.searchParams.get("volumeRoot") || "";
+        vaultRouter.handleInspect(res, volumeRoot);
+        return;
       }
 
       // 404 Catch-all

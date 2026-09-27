@@ -58,6 +58,11 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
       name: "Jobs",
       description: "Scheduled recurring pipeline executions, cron engine, and job state management",
     },
+    {
+      name: "Cold Vault",
+      description:
+        "Offline storage packaging, removable HDD/SSD volume management, and Btrfs SHA256SUMS ledger verification",
+    },
     { name: "System", description: "Health checks, agent manifests, and OpenAPI metadata" },
   ],
   paths: {
@@ -1563,6 +1568,102 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         responses: {
           "200": { description: "Job stopped successfully." },
           "404": { description: "Job not found." },
+        },
+      },
+    },
+    "/api/v1/vault/export": {
+      post: {
+        tags: ["Cold Vault"],
+        summary: "Export Dataset to Cold Vault Volume",
+        description:
+          "Copies sealed dataset shards and verified manifest to an offline/removable cold storage volume with atomic integrity verification and SHA256SUMS ledger recording.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["datasetName", "volumeRoot"],
+                properties: {
+                  datasetName: { type: "string", example: "arxiv_math" },
+                  volumeRoot: {
+                    type: "string",
+                    example: "data/cold_vault/VOL-001",
+                  },
+                  version: { type: "string", example: "2026.09.27.1" },
+                  volumeLabel: { type: "string", example: "VOL-2026-001" },
+                  filesystem: {
+                    type: "string",
+                    enum: ["btrfs", "ext4", "other"],
+                    example: "btrfs",
+                  },
+                  copyMode: {
+                    type: "string",
+                    enum: ["copy", "hardlink"],
+                    example: "copy",
+                  },
+                  verifyChecksums: { type: "boolean", example: true },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Dataset exported to volume successfully." },
+          "400": { description: "Invalid export payload." },
+          "403": { description: "Path traversal attempt detected." },
+          "404": { description: "Dataset or snapshot not found." },
+          "500": { description: "Cryptographic checksum mismatch or transfer failure." },
+        },
+      },
+    },
+    "/api/v1/vault/verify": {
+      post: {
+        tags: ["Cold Vault"],
+        summary: "Verify Cold Vault Volume Integrity",
+        description:
+          "Cryptographically audits all files on a cold vault volume against its checksums/SHA256SUMS ledger.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["volumeRoot"],
+                properties: {
+                  volumeRoot: {
+                    type: "string",
+                    example: "data/cold_vault/VOL-001",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Volume verification report." },
+          "403": { description: "Forbidden volume path." },
+        },
+      },
+    },
+    "/api/v1/vault/inspect": {
+      get: {
+        tags: ["Cold Vault"],
+        summary: "Inspect Cold Vault Volume Metadata",
+        description:
+          "Reads volume.json from the specified volume root and returns hardware label, UUID, and schema version.",
+        parameters: [
+          {
+            name: "volumeRoot",
+            in: "query",
+            required: true,
+            schema: { type: "string" },
+            example: "data/cold_vault/VOL-001",
+          },
+        ],
+        responses: {
+          "200": { description: "Volume metadata." },
+          "404": { description: "Volume metadata not found." },
         },
       },
     },
