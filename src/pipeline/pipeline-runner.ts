@@ -30,6 +30,7 @@ import { GoogleDriveStorage } from "./storage/google-drive-storage";
 import { LocalStorage } from "./storage/local-storage";
 import { R2Storage } from "./storage/r2-storage";
 import { S3Storage } from "./storage/s3-storage";
+import { type RegistryDatabase, getDefaultRegistryDatabase } from "../core/registry-database";
 
 export interface PipelineRunResult {
   runId: string;
@@ -53,6 +54,7 @@ export interface PipelineRunnerOptions {
   processors?: Record<string, OutputProcessor>;
   storageBackends?: Record<string, StorageBackend>;
   scheduleBroker?: ScheduleBroker;
+  registryDb?: RegistryDatabase;
 }
 
 export class PipelineRunner {
@@ -65,6 +67,7 @@ export class PipelineRunner {
   private readonly storageBackends: Map<string, StorageBackend> = new Map();
   private readonly runHistory: PipelineRunResult[] = [];
   private readonly failedRuns: PipelineRunResult[] = [];
+  private readonly registryDb?: RegistryDatabase;
 
   constructor(options?: PipelineRunnerOptions) {
     this.actorResolver = options?.actorResolver || new ActorResolver();
@@ -72,6 +75,7 @@ export class PipelineRunner {
     this.connectorRegistry =
       options?.connectorRegistry || new ConnectorRegistry(options?.connectors);
     this.scheduleBroker = options?.scheduleBroker || new ScheduleBroker();
+    this.registryDb = options?.registryDb ?? getDefaultRegistryDatabase();
 
     this.registerExecutor(this.defaultExecutor);
     if (options?.executors) {
@@ -266,6 +270,13 @@ export class PipelineRunner {
       };
 
       this.runHistory.push(completedResult);
+      if (this.registryDb) {
+        try {
+          this.registryDb.recordPipelineExecution(completedResult);
+        } catch (err) {
+          console.error("[DB_ERROR] Failed to persist pipeline execution:", err);
+        }
+      }
       return completedResult;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -283,8 +294,30 @@ export class PipelineRunner {
 
       this.failedRuns.push(failedResult);
       this.runHistory.push(failedResult);
+      if (this.registryDb) {
+        try {
+          this.registryDb.recordPipelineExecution(failedResult);
+        } catch (dbErr) {
+          console.error("[DB_ERROR] Failed to persist failed pipeline execution:", dbErr);
+        }
+      }
       return failedResult;
     }
+  }
+
+  getRunHistory(limit?: number): PipelineRunResult[] {
+    if (this.registryDb) {
+      try {
+        return this.registryDb.listPipelineExecutions(limit ?? 50);
+      } catch (err) {
+        console.error("[DB_ERROR] Failed to list pipeline executions:", err);
+      }
+    }
+    return [...this.runHistory];
+  }
+
+  getFailedRuns(): PipelineRunResult[] {
+    return [...this.failedRuns];
   }
 
   private resolveExecutor(config: PipelineConfig): ExecutionTarget {

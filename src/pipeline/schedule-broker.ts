@@ -3,6 +3,7 @@
  * Standard 5-field cron parser and scheduler using native node:timers with zero external dependencies.
  */
 
+import { type RegistryDatabase, getDefaultRegistryDatabase } from "../core/registry-database";
 import { PipelineError } from "./schema";
 
 export interface ScheduledJobInfo {
@@ -11,6 +12,10 @@ export interface ScheduledJobInfo {
   running: boolean;
   lastRunAt?: string;
   runCount: number;
+}
+
+export interface ScheduleBrokerOptions {
+  db?: RegistryDatabase;
 }
 
 /**
@@ -120,6 +125,11 @@ export class ScheduleBroker {
       runCount: number;
     }
   >();
+  private readonly db?: RegistryDatabase;
+
+  constructor(options?: ScheduleBrokerOptions) {
+    this.db = options?.db ?? getDefaultRegistryDatabase();
+  }
 
   /**
    * Registers and activates a scheduled job evaluated every checkIntervalMs (default: 60000ms / 1 min).
@@ -154,6 +164,13 @@ export class ScheduleBroker {
         if (job) {
           job.lastRunAt = now.toISOString();
           job.runCount++;
+          if (this.db) {
+            try {
+              this.db.updateScheduledJobRun(id, job.lastRunAt, job.runCount);
+            } catch (err) {
+              console.error(`[DB_ERROR] Failed to update scheduled job run ${id}:`, err);
+            }
+          }
         }
 
         try {
@@ -164,13 +181,22 @@ export class ScheduleBroker {
       }
     }, checkIntervalMs);
 
-    this.jobs.set(id, {
+    const jobRecord = {
       cronExpression,
       handler,
       timer,
       running: true,
       runCount: 0,
-    });
+    };
+    this.jobs.set(id, jobRecord);
+
+    if (this.db) {
+      try {
+        this.db.upsertScheduledJob({ id, cronExpression, running: true, runCount: 0 });
+      } catch (err) {
+        console.error(`[DB_ERROR] Failed to persist scheduled job ${id}:`, err);
+      }
+    }
 
     return {
       stop: () => this.stopJob(id),
@@ -186,13 +212,28 @@ export class ScheduleBroker {
     clearInterval(job.timer);
     job.running = false;
     this.jobs.delete(id);
+
+    if (this.db) {
+      try {
+        this.db.setScheduledJobRunning(id, false);
+      } catch (err) {
+        console.error(`[DB_ERROR] Failed to deactivate scheduled job ${id}:`, err);
+      }
+    }
     return true;
   }
 
   stopAll(): void {
-    for (const job of this.jobs.values()) {
+    for (const [id, job] of this.jobs.entries()) {
       clearInterval(job.timer);
       job.running = false;
+      if (this.db) {
+        try {
+          this.db.setScheduledJobRunning(id, false);
+        } catch (err) {
+          console.error(`[DB_ERROR] Failed to deactivate scheduled job ${id}:`, err);
+        }
+      }
     }
     this.jobs.clear();
   }
@@ -211,3 +252,5 @@ export class ScheduleBroker {
     }));
   }
 }
+
+

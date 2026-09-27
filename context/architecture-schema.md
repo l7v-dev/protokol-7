@@ -11,7 +11,8 @@ Single source of truth component inventory and file map for `protokol-7`.
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/core/types.ts` | `ScrapedPageResult`, `ActorTask`, `BrowserActionResult`, `CrawlerResult` | Core TypeScript interfaces and shared contract definitions. |
-| `src/core/run-registry.ts` | `RunRegistry`, `globalRunRegistry` | Tracks execution runs, in-memory run state, and emits live SSE events. |
+| `src/core/registry-database.ts` | `RegistryDatabase`, `getDefaultRegistryDatabase` | ACID SQLite persistence layer for actor runs, event logs, pipeline executions, and scheduled jobs using native `node:sqlite` with zero external dependencies. WAL mode for concurrent access; in-memory for test isolation. |
+| `src/core/run-registry.ts` | `RunRegistry`, `RunRecord`, `globalRunRegistry` | Tracks execution runs with dual-layer storage: in-memory Map for SSE event delivery and `RegistryDatabase` for cross-restart ACID persistence. Emits live log events per run. |
 | `src/core/store-router.ts` | `StoreRouter` | Actor Store API router, live log SSE streaming, quarantine inspector, and headless service information endpoint. |
 | `src/core/openapi-spec.ts` | `OPENAPI_SPECIFICATION`, `renderDocsHtml` | OpenAPI 3.1.0 schema specification and zero-dependency interactive documentation HTML generator. |
 | `src/core/context-guard.ts` | `ContextGuard` | LLM token estimation, context window budgeting, and hierarchical semantic boundary truncation. |
@@ -231,6 +232,7 @@ Single source of truth component inventory and file map for `protokol-7`.
 |---|---|---|
 | `package.json` | Project Config | Dependencies, npm scripts (`dev`, `build`, `start`, `test`, `lint`, `lint:naming`, `pipedream`). |
 | `tsconfig.json` | TypeScript Config | Compiler options: ES2022, NodeNext resolution, strict mode. |
+| `src/types/node-sqlite.d.ts` | Ambient Declaration | TypeScript type declaration for `node:sqlite` (DatabaseSync, StatementSync). Required because `@types/node@20` does not include Node 22 built-in SQLite types. |
 | `AGENTS.md` | Agent Context | Operational rules, naming discipline, neuro-ergonomic communication rules. |
 | `GEMINI.md` | Agent Context | Project rules and architectural integrity instructions. |
 | `.agents/skills/` | Skill Library | 38 technical skill definitions (naming discipline, code review, tdd, etc.). |
