@@ -7,8 +7,6 @@
 import path from "node:path";
 import * as cheerio from "cheerio";
 import TurndownService from "turndown";
-import { ArchiveGuard } from "../archive/archive-guard";
-import { ZipParser } from "../archive/zip-parser";
 import type {
   EpubChapterItem,
   EpubExtractorResult,
@@ -16,6 +14,8 @@ import type {
   PublicationIssueMetadata,
   TableOfContentsItem,
 } from "../api/types";
+import { ArchiveGuard } from "../archive/archive-guard";
+import { ZipParser } from "../archive/zip-parser";
 import { StructuredExtractor } from "./structured-extractor";
 
 interface ManifestEntry {

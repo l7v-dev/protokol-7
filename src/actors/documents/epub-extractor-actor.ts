@@ -5,7 +5,6 @@
  * and converts ordered chapters into clean GFM Markdown.
  */
 
-import { ArchiveSecurityError } from "../../archive/archive-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -13,6 +12,7 @@ import type {
   EpubExtractorResult,
   IActor,
 } from "../../api/types";
+import { ArchiveSecurityError } from "../../archive/archive-guard";
 import { EpubExtractor } from "../../extractors/epub-extractor";
 import { safeRedirectFetch } from "../../network/safe-redirect-fetcher";
 

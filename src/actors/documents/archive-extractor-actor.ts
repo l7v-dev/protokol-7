@@ -1,5 +1,3 @@
-import { ArchiveExtractor } from "../../archive/archive-extractor";
-import { ArchiveSecurityError } from "../../archive/archive-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -7,6 +5,8 @@ import type {
   ArchiveExtractorResult,
   IActor,
 } from "../../api/types";
+import { ArchiveExtractor } from "../../archive/archive-extractor";
+import { ArchiveSecurityError } from "../../archive/archive-guard";
 import { safeRedirectFetch } from "../../network/safe-redirect-fetcher";
 
 const MAX_ARCHIVE_DOWNLOAD_BYTES = 100 * 1024 * 1024; // 100 MB

@@ -1,4 +1,3 @@
-import { BrowserPool, type PooledBrowserSession } from "../../browser/browser-pool";
 import type {
   ActorResult,
   ActorRunContext,
@@ -8,6 +7,7 @@ import type {
   NetworkInterceptorResult,
   NetworkInterceptorTaskOptions,
 } from "../../api/types";
+import { BrowserPool, type PooledBrowserSession } from "../../browser/browser-pool";
 import { SSRFGuard } from "../../network/ssrf-guard";
 import { matchUrlPattern } from "../../network/url-pattern-matcher";
 

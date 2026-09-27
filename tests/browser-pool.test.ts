@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import * as http from "node:http";
 import test from "node:test";
-import { BrowserPool } from "@/browser-pool";
 import { PlaywrightBrowserActor } from "@/actors/web/playwright-browser-actor";
+import { BrowserPool } from "@/browser-pool";
 
 test("BrowserPool manages browser context lifecycle and resource blocking", async () => {
   // Spawn local test HTTP server

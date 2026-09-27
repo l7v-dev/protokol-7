@@ -5,8 +5,8 @@
 import assert from "node:assert";
 import { after, afterEach, beforeEach, describe, it } from "node:test";
 import { PdfDocumentActor } from "../src/actors/documents/pdf-document-actor";
-import { BrowserPool } from "../src/browser/browser-pool";
 import type { ActorTask } from "../src/api/types";
+import { BrowserPool } from "../src/browser/browser-pool";
 import { globalOcrRegistry, type IOcrConnector } from "../src/ocr";
 
 describe("PdfDocumentActor with OCR Fallback Pipeline", () => {

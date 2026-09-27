@@ -3,15 +3,6 @@
  */
 
 import type { ActorType, IActor } from "../api/types";
-// web: general-purpose web extraction actors
-import { ApiExtractorActor } from "./web/api-extractor-actor";
-import { CheerioScraperActor } from "./web/cheerio-scraper-actor";
-import { CrawlerActor } from "./web/crawler-actor";
-import { MarkdownReaderActor } from "./web/markdown-reader-actor";
-import { NetworkInterceptorActor } from "./web/network-interceptor-actor";
-import { PlaywrightBrowserActor } from "./web/playwright-browser-actor";
-import { SerpSearchActor } from "./web/serp-search-actor";
-import { SitemapXmlActor } from "./web/sitemap-xml-actor";
 // corpus: LLM training data source actors
 import { ArxivActor } from "./corpus/arxiv-actor";
 import { ClinicalTrialsActor } from "./corpus/clinical-trials-actor";
@@ -37,6 +28,15 @@ import { ArchiveExtractorActor } from "./documents/archive-extractor-actor";
 import { DocumentExtractorActor } from "./documents/document-extractor-actor";
 import { EpubExtractorActor } from "./documents/epub-extractor-actor";
 import { PdfDocumentActor } from "./documents/pdf-document-actor";
+// web: general-purpose web extraction actors
+import { ApiExtractorActor } from "./web/api-extractor-actor";
+import { CheerioScraperActor } from "./web/cheerio-scraper-actor";
+import { CrawlerActor } from "./web/crawler-actor";
+import { MarkdownReaderActor } from "./web/markdown-reader-actor";
+import { NetworkInterceptorActor } from "./web/network-interceptor-actor";
+import { PlaywrightBrowserActor } from "./web/playwright-browser-actor";
+import { SerpSearchActor } from "./web/serp-search-actor";
+import { SitemapXmlActor } from "./web/sitemap-xml-actor";
 
 export class ActorRegistry {
   private readonly actors = new Map<ActorType, IActor<unknown>>();

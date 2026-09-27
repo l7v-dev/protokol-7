@@ -4,8 +4,6 @@
  * and structured data extraction with pool reuse and asset blocking.
  */
 
-import { BrowserPool, type PooledBrowserSession } from "../../browser/browser-pool";
-import { StealthManager } from "../../browser/stealth-manager";
 import type {
   ActorResult,
   ActorRunContext,
@@ -13,6 +11,8 @@ import type {
   IActor,
   ScrapedPageResult,
 } from "../../api/types";
+import { BrowserPool, type PooledBrowserSession } from "../../browser/browser-pool";
+import { StealthManager } from "../../browser/stealth-manager";
 import { ReadabilityExtractor } from "../../extractors/readability-extractor";
 import { StructuredExtractor } from "../../extractors/structured-extractor";
 import { normalizeUrl } from "../../network/url-normalizer";
