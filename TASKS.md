@@ -9,7 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- [ ] **GitHub Actions Uzak Wikipedia LLM Parquet ETL Boru Hatti** — `Tier: 1` — Durum: Uc paralel uzak sunucuda calisiyor: [1] arc,tk,lzh,la orkestrasyonu (Run 36306201283), [2] dewiki tam döküm (Run 36305934705), [3] enwiki in-flight akış (Run 36306339969). Sifir yerel donanim yuku.
+- [ ] **GitHub Actions Uzak Wikipedia LLM Parquet ETL Boru Hatti** — `Tier: 1` — Durum: [1] arc, tk, lzh, la tamamlandi ve Google Drive'a muhurlendi (Drive'da 22 dil tamam). [2] dewiki (Run 36305934705) ve [3] enwiki (Run 36306339969) uzak sunucularda aktif calisiyor. Sifir yerel donanim yuku.
 
 ## Bekleyen (Blok var)
 
