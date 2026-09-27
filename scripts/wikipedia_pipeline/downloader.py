@@ -419,9 +419,15 @@ def download_file(
                 )
             except Exception as e:
                 print(
-                    f"[WARN] Parallel download failed ({e}). Falling back to sequential mode...",
+                    f"[WARN] Parallel download failed ({e}). Removing partial sparse file and falling back to sequential mode...",
                     file=sys.stderr,
                 )
+                temp_path = f"{output_path}.part"
+                if os.path.exists(temp_path):
+                    try:
+                        os.remove(temp_path)
+                    except OSError:
+                        pass
 
     # Fallback / Sequential
     return download_file_sequential(

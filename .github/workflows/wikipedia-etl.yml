@@ -51,6 +51,11 @@ on:
         required: false
         default: false
         type: boolean
+      fastest_mirror:
+        description: "Probe and select fastest Wikimedia mirror before downloading"
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   wikipedia-etl:
@@ -107,6 +112,9 @@ jobs:
           fi
           if [ "${{ inputs.clean_dump }}" = "true" ]; then
             EXTRA_ARGS="$EXTRA_ARGS --clean-dump"
+          fi
+          if [ "${{ inputs.fastest_mirror }}" = "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --fastest-mirror"
           fi
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             EXTRA_ARGS="$EXTRA_ARGS --dry-run"
