@@ -337,6 +337,345 @@ test("POST /api/v1/internet-archive routes correctly via server router", async (
   }
 });
 
+test("POST /api/v1/clinical-trials routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(
+      JSON.stringify({
+        totalCount: 1,
+        studies: [
+          {
+            protocolSection: {
+              identificationModule: {
+                nctId: "NCT00000001",
+                briefTitle: "Server Router Test Trial",
+              },
+            },
+          },
+        ],
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/clinical-trials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        targetUrl: `http://127.0.0.1:${mockPort}/api/v2/studies`,
+        query: "melanoma",
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as { success: boolean; data?: { totalCount: number } };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.totalCount, 1);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/open-fda routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(
+      JSON.stringify({
+        meta: { results: { total: 1, skip: 0, limit: 1 } },
+        results: [{ openfda: { brand_name: ["Aspirin"] } }],
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/open-fda`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        targetUrl: `http://127.0.0.1:${mockPort}/drug/label.json`,
+        search: "aspirin",
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as { success: boolean; data?: { total: number } };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.total, 1);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/sec-edgar queries SEC filings through HTTP endpoint", async () => {
+  const mockSubmissions = {
+    cik: "0000320193",
+    name: "Apple Inc.",
+    filings: {
+      recent: {
+        accessionNumber: ["0000320193-23-000106"],
+        filingDate: ["2023-11-03"],
+        reportDate: ["2023-09-30"],
+        form: ["10-K"],
+        primaryDocument: ["aapl-20230930.htm"],
+      },
+    },
+  };
+
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify(mockSubmissions));
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/sec-edgar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        targetUrl: `http://127.0.0.1:${mockPort}/submissions/CIK0000320193.json`,
+        cik: "0000320193",
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: { cik: string; entityName: string };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.cik, "0000320193");
+    assert.equal(json.data?.entityName, "Apple Inc.");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/court-listener queries legal opinions through HTTP endpoint", async () => {
+  const mockSearchResults = {
+    count: 1,
+    results: [
+      {
+        id: 12345,
+        caseName: "Test Case v. Respondent",
+        court: "Supreme Court",
+        snippet: "Fair use precedent.",
+      },
+    ],
+  };
+
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify(mockSearchResults));
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/court-listener`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        targetUrl: `http://127.0.0.1:${mockPort}/api/rest/v4/search/`,
+        query: "fair use",
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as { success: boolean; data?: { totalCount: number } };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.totalCount, 1);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/software-heritage fetches code through HTTP endpoint", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end('fn main() { println!("Test"); }');
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/software-heritage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        targetUrl: `http://127.0.0.1:${mockPort}/api/1/content/sha1_git:94a9ed024d3859793618152ea559a168bbcbb5e2/raw/`,
+        swhid: "swh:1:cnt:94a9ed024d3859793618152ea559a168bbcbb5e2",
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as { success: boolean; data?: { action: string } };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "content");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/eur-lex fetches regulation through HTTP endpoint", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end('<div id="title">Regulation 2016/679</div><p>Article 1</p>');
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/eur-lex`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        targetUrl: `http://127.0.0.1:${mockPort}/legal-content/en/TXT/HTML/?uri=CELEX:32016R0679`,
+        celex: "32016R0679",
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as { success: boolean; data?: { celex: string } };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.celex, "32016R0679");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/openstax returns textbook catalog", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        meta: { total_count: 1 },
+        items: [
+          {
+            id: 38,
+            title: "Algebra and Trigonometry",
+            slug: "algebra-and-trigonometry",
+            description: "Algebra text",
+          },
+        ],
+      })
+    );
+  });
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const serverPort = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${serverPort}/api/v1/openstax`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        targetUrl: `http://127.0.0.1:${mockPort}/apps/cms/api/v2/pages/?type=books.Book`,
+        action: "catalog",
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as { success: boolean; data?: { totalCount: number } };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.totalCount, 1);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/mit-ocw returns courses search results", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        hits: {
+          total: { value: 1 },
+          hits: [
+            {
+              _id: "test-course",
+              _source: {
+                id: 101,
+                title: "Linear Algebra",
+                coursenum: "18.06",
+              },
+            },
+          ],
+        },
+      })
+    );
+  });
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const serverPort = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${serverPort}/api/v1/mit-ocw`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        targetUrl: `http://127.0.0.1:${mockPort}/api/v0/search/`,
+        query: "linear algebra",
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as { success: boolean; data?: { totalCount: number } };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.totalCount, 1);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
 test("GET /docs returns interactive Swagger UI HTML", async () => {
   const server = createServer();
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));

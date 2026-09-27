@@ -728,6 +728,288 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/clinical-trials": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "ClinicalTrials.gov Protocol Harvester",
+        description:
+          "Queries ClinicalTrials.gov API v2 for trial protocols, eligibility criteria, interventions, and outcomes.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct API URL or study page URL" },
+                  query: { type: "string", description: "General keyword search term" },
+                  condition: { type: "string", description: "Medical condition/disease filter" },
+                  intervention: {
+                    type: "string",
+                    description: "Treatment or drug intervention filter",
+                  },
+                  status: { type: "string", description: "Recruitment status filter" },
+                  nctId: {
+                    type: "string",
+                    description: "Direct NCT identifier (e.g. NCT04567890)",
+                  },
+                  pageSize: { type: "integer", default: 10 },
+                  pageToken: { type: "string", description: "Pagination cursor token" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Clinical trial protocol records, eligibility criteria, and markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/open-fda": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "openFDA Public Datasets Harvester",
+        description:
+          "Queries official openFDA API for drug labels, indications, warnings, adverse events, and device clearances.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct API URL" },
+                  endpoint: {
+                    type: "string",
+                    enum: ["drug/label", "drug/event", "device/510k", "food/enforcement"],
+                    default: "drug/label",
+                  },
+                  search: { type: "string", description: "Search query or drug/device name" },
+                  limit: { type: "integer", default: 10 },
+                  skip: { type: "integer", default: 0 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "FDA records, regulatory metadata, and structured markdown." },
+        },
+      },
+    },
+    "/api/v1/sec-edgar": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "SEC EDGAR Financial Filings Harvester",
+        description:
+          "Queries SEC EDGAR Submissions API for corporate CIK, company filings (10-K, 10-Q, 8-K), and accession documents.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct API URL" },
+                  ticker: { type: "string", description: "Stock ticker symbol (e.g. AAPL, NVDA)" },
+                  cik: { type: "string", description: "SEC Central Index Key" },
+                  formType: {
+                    type: "string",
+                    description: "Filing form type filter (e.g. 10-K, 10-Q)",
+                  },
+                  limit: { type: "integer", default: 10 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Corporate filings, accession items, and structured markdown." },
+        },
+      },
+    },
+    "/api/v1/court-listener": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "CourtListener Legal Opinions Harvester",
+        description:
+          "Queries CourtListener Free Law Project v4 API for US federal and state case law, court opinions, and legal precedents.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct API URL" },
+                  query: { type: "string", description: "Legal search query or party names" },
+                  court: {
+                    type: "string",
+                    description: "Court jurisdiction code (e.g. scotus, ca9)",
+                  },
+                  judge: { type: "string", description: "Judge name" },
+                  opinionId: { type: "integer", description: "Direct opinion record ID" },
+                  limit: { type: "integer", default: 10 },
+                  page: { type: "integer", default: 1 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Court opinions, judicial decisions, and structured markdown." },
+        },
+      },
+    },
+    "/api/v1/software-heritage": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Software Heritage Universal Source Code Harvester",
+        description:
+          "Queries Software Heritage Universal Source Code Archive for persistent SWHIDs, code blobs, directory trees, and origin visits.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct API URL" },
+                  swhid: {
+                    type: "string",
+                    description: "SWHID identifier (e.g. swh:1:cnt:..., swh:1:dir:...)",
+                  },
+                  originUrl: {
+                    type: "string",
+                    description: "Repository origin URL (e.g. https://github.com/...)",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["content", "directory", "origin", "revision"],
+                    default: "content",
+                  },
+                  rawTextMaxChars: { type: "integer", default: 100000 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Source code blobs, directory entries, or snapshot origin metadata.",
+          },
+        },
+      },
+    },
+    "/api/v1/eur-lex": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "EUR-Lex European Union Law Harvester",
+        description:
+          "Queries EUR-Lex and EU CELLAR repository for EU directives, regulations, decisions, and Court of Justice case law.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct API URL" },
+                  celex: {
+                    type: "string",
+                    description: "CELEX identifier (e.g. 32016R0679 for GDPR)",
+                  },
+                  query: { type: "string", description: "Search query for EU legal acts" },
+                  language: { type: "string", default: "en" },
+                  limit: { type: "integer", default: 10 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "EU directives, regulations, court judgments, and structured markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/openstax": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "OpenStax Textbook & Curriculum Harvester",
+        description:
+          "Queries OpenStax for openly licensed peer-reviewed college textbooks, curriculums, and chapter content.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct API or chapter URL" },
+                  query: { type: "string", description: "Search query for textbooks" },
+                  bookId: { type: "string", description: "OpenStax CMS book ID" },
+                  slug: { type: "string", description: "Book slug identifier" },
+                  action: {
+                    type: "string",
+                    enum: ["catalog", "search", "detail", "chapter"],
+                    default: "catalog",
+                  },
+                  limit: { type: "integer", default: 20 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "OpenStax textbooks list, book details, or chapter markdown content.",
+          },
+        },
+      },
+    },
+    "/api/v1/mit-ocw": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "MIT OpenCourseWare Harvester",
+        description:
+          "Queries MIT OpenCourseWare for university curriculum materials, syllabi, lecture metadata, and course resources.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct course API URL" },
+                  query: { type: "string", description: "Course keyword or topic search" },
+                  courseSlug: {
+                    type: "string",
+                    description: "Course slug for syllabus detail",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["search", "course"],
+                    default: "search",
+                  },
+                  limit: { type: "integer", default: 10 },
+                  offset: { type: "integer", default: 0 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "MIT OpenCourseWare courses, syllabi, lecture notes, and structured markdown.",
+          },
+        },
+      },
+    },
     "/api/v1/sitemap": {
       post: {
         tags: ["Crawling"],

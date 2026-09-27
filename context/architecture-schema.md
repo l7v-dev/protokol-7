@@ -49,6 +49,14 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `src/actors/epub-extractor-actor.ts` | `EpubExtractorActor` | Extracts e-books and periodicals from EPUB 2/3 containers with Dublin Core metadata, hierarchical TOC, and spine-ordered GFM Markdown. |
 | `src/actors/dergipark-actor.ts` | `DergiParkActor` | Harvests article metadata and PDF links from DergiPark academic journals via OAI-PMH 2.0 Dublin Core with keyword filtering. |
 | `src/actors/internet-archive-actor.ts` | `InternetArchiveActor` | Fetches item metadata, search results, and OCR text streams (DjVuTXT, Abbyy GZ) from archive.org public collections. |
+| `src/actors/clinical-trials-actor.ts` | `ClinicalTrialsActor` | Queries ClinicalTrials.gov API v2 for trial protocols, eligibility criteria, interventions, and primary outcomes. |
+| `src/actors/open-fda-actor.ts` | `OpenFdaActor` | Queries official openFDA REST API for FDA drug labels, adverse events, and medical device clearances. |
+| `src/actors/sec-edgar-actor.ts` | `SecEdgarActor` | Queries SEC EDGAR Submissions API for corporate CIK, company filings (10-K, 10-Q, 8-K), and accession documents. |
+| `src/actors/court-listener-actor.ts` | `CourtListenerActor` | Queries CourtListener Free Law Project v4 API for US federal and state case law, court opinions, and legal precedents. |
+| `src/actors/software-heritage-actor.ts` | `SoftwareHeritageActor` | Queries Software Heritage Universal Source Code Archive for persistent SWHIDs, code blobs, directory trees, and origin visits. |
+| `src/actors/eur-lex-actor.ts` | `EurLexActor` | Queries EUR-Lex and European Publications Office CELLAR for EU directives, regulations, decisions, and CJEU case law. |
+| `src/actors/openstax-actor.ts` | `OpenStaxActor` | Queries OpenStax for openly licensed peer-reviewed college and AP textbooks, curriculums, and chapter content. |
+| `src/actors/mit-ocw-actor.ts` | `MitOcwActor` | Queries MIT OpenCourseWare for university curriculum materials, syllabi, lecture metadata, and course resources. |
 
 ### 1.3 Archive Subsystem (`src/archive/`)
 
@@ -208,6 +216,12 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `tests/multi-column-layout-resolver.test.ts` | `MultiColumnLayoutResolver`, `HeaderFooterStripper` | Coordinate-based column gutter detection, column sorting, and recurring header/footer stripping. |
 | `tests/dergipark-actor.test.ts` | `DergiParkActor`, `src/core/server.ts` | OAI-PMH 2.0 harvesting, ListRecords, GetRecord, ListSets, keyword filters, and REST route. |
 | `tests/internet-archive-actor.test.ts` | `InternetArchiveActor`, `src/core/server.ts` | Archive.org metadata JSON, Scraping API search, DjVuTXT / Abbyy GZ OCR decompression, and REST route. |
+| `tests/clinical-trials-actor.test.ts` | `ClinicalTrialsActor`, `src/core/server.ts` | Studies search, NCT ID direct lookup, status/condition filters, SSRF protection, and REST route. |
+| `tests/open-fda-actor.test.ts` | `OpenFdaActor`, `src/core/server.ts` | Drug label search, device 510(k) clearances, 404 empty result handling, SSRF protection, and REST route. |
+| `tests/sec-edgar-actor.test.ts` | `SecEdgarActor`, `src/core/server.ts` | CIK resolution, ticker lookup, 10-K form filtering, custom SEC user-agent, SSRF guard, and REST route. |
+| `tests/court-listener-actor.test.ts` | `CourtListenerActor`, `src/core/server.ts` | Opinions search, court/judge filters, direct opinion ID retrieval, SSRF guard, and REST route. |
+| `tests/software-heritage-actor.test.ts` | `SoftwareHeritageActor`, `src/core/server.ts` | SWHID code blob extraction, directory traversal, origin snapshot lookup, SSRF guard, and REST route. |
+| `tests/eur-lex-actor.test.ts` | `EurLexActor`, `src/core/server.ts` | CELEX EU regulation retrieval, CELLAR SPARQL query, document type classification, SSRF guard, and REST route. |
 
 ---
 

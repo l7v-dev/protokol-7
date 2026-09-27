@@ -328,6 +328,112 @@ export class StoreRouter {
                 ...((rawOptions.networkInterceptorOptions as object) || {}),
               }
             : undefined,
+        clinicalTrialsOptions:
+          body.query ||
+          body.condition ||
+          body.intervention ||
+          body.status ||
+          body.nctId ||
+          rawOptions.clinicalTrialsOptions
+            ? {
+                query: body.query ? String(body.query) : undefined,
+                condition: body.condition ? String(body.condition) : undefined,
+                intervention: body.intervention ? String(body.intervention) : undefined,
+                status: (body.status as string | string[]) || undefined,
+                nctId: body.nctId ? String(body.nctId) : undefined,
+                pageSize: body.pageSize !== undefined ? Number(body.pageSize) : undefined,
+                pageToken: body.pageToken ? String(body.pageToken) : undefined,
+                ...((rawOptions.clinicalTrialsOptions as object) || {}),
+              }
+            : undefined,
+        openFdaOptions:
+          body.endpoint || body.search || rawOptions.openFdaOptions
+            ? {
+                endpoint: body.endpoint as
+                  | "drug/label"
+                  | "drug/event"
+                  | "device/510k"
+                  | "food/enforcement",
+                search: body.search ? String(body.search) : undefined,
+                limit: body.limit !== undefined ? Number(body.limit) : undefined,
+                skip: body.skip !== undefined ? Number(body.skip) : undefined,
+                ...((rawOptions.openFdaOptions as object) || {}),
+              }
+            : undefined,
+        secEdgarOptions:
+          body.ticker || body.cik || body.formType || rawOptions.secEdgarOptions
+            ? {
+                ticker: body.ticker ? String(body.ticker) : undefined,
+                cik: body.cik ? String(body.cik) : undefined,
+                formType: body.formType ? String(body.formType) : undefined,
+                limit: body.limit !== undefined ? Number(body.limit) : undefined,
+                ...((rawOptions.secEdgarOptions as object) || {}),
+              }
+            : undefined,
+        courtListenerOptions:
+          body.query ||
+          body.court ||
+          body.judge ||
+          body.opinionId !== undefined ||
+          rawOptions.courtListenerOptions
+            ? {
+                query: body.query ? String(body.query) : undefined,
+                court: body.court ? String(body.court) : undefined,
+                judge: body.judge ? String(body.judge) : undefined,
+                opinionId: body.opinionId !== undefined ? Number(body.opinionId) : undefined,
+                limit: body.limit !== undefined ? Number(body.limit) : undefined,
+                page: body.page !== undefined ? Number(body.page) : undefined,
+                ...((rawOptions.courtListenerOptions as object) || {}),
+              }
+            : undefined,
+        softwareHeritageOptions:
+          body.swhid || body.originUrl || body.action || rawOptions.softwareHeritageOptions
+            ? {
+                swhid: body.swhid ? String(body.swhid) : undefined,
+                originUrl: body.originUrl ? String(body.originUrl) : undefined,
+                action:
+                  (body.action as "content" | "directory" | "origin" | "revision") || undefined,
+                rawTextMaxChars:
+                  body.rawTextMaxChars !== undefined ? Number(body.rawTextMaxChars) : undefined,
+                ...((rawOptions.softwareHeritageOptions as object) || {}),
+              }
+            : undefined,
+        eurLexOptions:
+          body.celex || body.query || body.language || rawOptions.eurLexOptions
+            ? {
+                celex: body.celex ? String(body.celex) : undefined,
+                query: body.query ? String(body.query) : undefined,
+                language: body.language ? String(body.language) : undefined,
+                limit: body.limit !== undefined ? Number(body.limit) : undefined,
+                ...((rawOptions.eurLexOptions as object) || {}),
+              }
+            : undefined,
+        openstaxOptions:
+          body.query ||
+          body.bookId !== undefined ||
+          body.slug ||
+          body.action ||
+          rawOptions.openstaxOptions
+            ? {
+                query: body.query ? String(body.query) : undefined,
+                bookId: body.bookId !== undefined ? String(body.bookId) : undefined,
+                slug: body.slug ? String(body.slug) : undefined,
+                action: (body.action as "catalog" | "search" | "detail" | "chapter") || undefined,
+                limit: body.limit !== undefined ? Number(body.limit) : undefined,
+                ...((rawOptions.openstaxOptions as object) || {}),
+              }
+            : undefined,
+        mitOcwOptions:
+          body.query || body.courseSlug || body.action || rawOptions.mitOcwOptions
+            ? {
+                query: body.query ? String(body.query) : undefined,
+                courseSlug: body.courseSlug ? String(body.courseSlug) : undefined,
+                action: (body.action as "search" | "course") || undefined,
+                limit: body.limit !== undefined ? Number(body.limit) : undefined,
+                offset: body.offset !== undefined ? Number(body.offset) : undefined,
+                ...((rawOptions.mitOcwOptions as object) || {}),
+              }
+            : undefined,
         proxy: (rawOptions.proxy as ProxyConfig) || undefined,
         headers:
           (rawOptions.headers as Record<string, string>) ||
@@ -350,6 +456,7 @@ export class StoreRouter {
           else if (Array.isArray(d.pages)) count = d.pages.length;
           else if (Array.isArray(d.papers)) count = d.papers.length;
           else if (Array.isArray(d.results)) count = d.results.length;
+          else if (Array.isArray(d.studies)) count = d.studies.length;
         }
         globalRunRegistry.completeRun(run.runId, result.data, count);
         sendJson(res, 200, { runId: run.runId, status: "succeeded", result });

@@ -64,7 +64,7 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 23);
+    assert.equal(result.tools.length, 31);
 
     const toolNames = result.tools.map((t) => t.name);
     assert.ok(toolNames.includes("scrape_static_html"));
@@ -89,6 +89,14 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.ok(toolNames.includes("extract_epub"));
     assert.ok(toolNames.includes("query_dergipark"));
     assert.ok(toolNames.includes("query_internet_archive"));
+    assert.ok(toolNames.includes("query_clinical_trials"));
+    assert.ok(toolNames.includes("query_open_fda"));
+    assert.ok(toolNames.includes("query_sec_edgar"));
+    assert.ok(toolNames.includes("query_court_listener"));
+    assert.ok(toolNames.includes("query_software_heritage"));
+    assert.ok(toolNames.includes("query_eur_lex"));
+    assert.ok(toolNames.includes("query_openstax"));
+    assert.ok(toolNames.includes("query_mit_ocw"));
   });
 
   it("returns isError for unknown tool invocation in tools/call", async () => {

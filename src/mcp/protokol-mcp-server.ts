@@ -19,19 +19,27 @@ import type {
   ApiExtractorTaskOptions,
   ArchiveExtractorTaskOptions,
   ArxivActorTaskOptions,
+  ClinicalTrialsActorTaskOptions,
+  CourtListenerActorTaskOptions,
   DergiParkActorTaskOptions,
   DocumentExtractorTaskOptions,
   EpubExtractorTaskOptions,
+  EurLexActorTaskOptions,
   EuropePmcActorTaskOptions,
   GutenbergActorTaskOptions,
   IetfRfcActorTaskOptions,
   InternetArchiveActorTaskOptions,
   KtbEkitapTaskOptions,
+  MitOcwActorTaskOptions,
   NetworkInterceptorTaskOptions,
   OpenAlexActorTaskOptions,
+  OpenFdaActorTaskOptions,
+  OpenStaxActorTaskOptions,
   PdfDocumentTaskOptions,
   SaglikEkutuphaneTaskOptions,
+  SecEdgarActorTaskOptions,
   SerpSearchTaskOptions,
+  SoftwareHeritageActorTaskOptions,
   StackExchangeActorTaskOptions,
   WikimediaActorTaskOptions,
 } from "../core/types";
@@ -247,6 +255,38 @@ export class ProtokolMcpServer {
             internetArchiveOptions:
               manifest.actorType === "internet-archive"
                 ? (toolArgs as unknown as InternetArchiveActorTaskOptions)
+                : undefined,
+            clinicalTrialsOptions:
+              manifest.actorType === "clinical-trials"
+                ? (toolArgs as unknown as ClinicalTrialsActorTaskOptions)
+                : undefined,
+            openFdaOptions:
+              manifest.actorType === "open-fda"
+                ? (toolArgs as unknown as OpenFdaActorTaskOptions)
+                : undefined,
+            secEdgarOptions:
+              manifest.actorType === "sec-edgar"
+                ? (toolArgs as unknown as SecEdgarActorTaskOptions)
+                : undefined,
+            courtListenerOptions:
+              manifest.actorType === "court-listener"
+                ? (toolArgs as unknown as CourtListenerActorTaskOptions)
+                : undefined,
+            softwareHeritageOptions:
+              manifest.actorType === "software-heritage"
+                ? (toolArgs as unknown as SoftwareHeritageActorTaskOptions)
+                : undefined,
+            eurLexOptions:
+              manifest.actorType === "eur-lex"
+                ? (toolArgs as unknown as EurLexActorTaskOptions)
+                : undefined,
+            openstaxOptions:
+              manifest.actorType === "openstax"
+                ? (toolArgs as unknown as OpenStaxActorTaskOptions)
+                : undefined,
+            mitOcwOptions:
+              manifest.actorType === "mit-ocw"
+                ? (toolArgs as unknown as MitOcwActorTaskOptions)
                 : undefined,
           },
         };

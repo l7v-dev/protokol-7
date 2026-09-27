@@ -1352,6 +1352,405 @@ export function createServer(): http.Server {
         return;
       }
 
+      // ClinicalTrials.gov Protocol Harvester (/clinical-trials or /api/v1/clinical-trials)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/clinical-trials" || pathname === "/clinical-trials")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          query?: string;
+          condition?: string;
+          intervention?: string;
+          status?: string | string[];
+          nctId?: string;
+          pageSize?: number;
+          pageToken?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const ctActor = registry.get("clinical-trials");
+        if (!ctActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "ClinicalTrials actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `ct-${Date.now()}`,
+          actorType: "clinical-trials",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            clinicalTrialsOptions: {
+              query: body.query,
+              condition: body.condition,
+              intervention: body.intervention,
+              status: body.status,
+              nctId: body.nctId,
+              pageSize: body.pageSize,
+              pageToken: body.pageToken,
+              ...body.options?.clinicalTrialsOptions,
+            },
+          },
+        };
+
+        const result = await ctActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // openFDA Dataset Harvester (/open-fda or /api/v1/open-fda)
+      if (method === "POST" && (pathname === "/api/v1/open-fda" || pathname === "/open-fda")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          endpoint?: "drug/label" | "drug/event" | "device/510k" | "food/enforcement";
+          search?: string;
+          limit?: number;
+          skip?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const fdaActor = registry.get("open-fda");
+        if (!fdaActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "openFDA actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `fda-${Date.now()}`,
+          actorType: "open-fda",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            openFdaOptions: {
+              endpoint: body.endpoint,
+              search: body.search,
+              limit: body.limit,
+              skip: body.skip,
+              ...body.options?.openFdaOptions,
+            },
+          },
+        };
+
+        const result = await fdaActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // SEC EDGAR Financial Filings Harvester (/sec-edgar or /api/v1/sec-edgar)
+      if (method === "POST" && (pathname === "/api/v1/sec-edgar" || pathname === "/sec-edgar")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          ticker?: string;
+          cik?: string;
+          formType?: string;
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const secActor = registry.get("sec-edgar");
+        if (!secActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "SEC EDGAR actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `sec-${Date.now()}`,
+          actorType: "sec-edgar",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            secEdgarOptions: {
+              ticker: body.ticker,
+              cik: body.cik,
+              formType: body.formType,
+              limit: body.limit,
+              ...body.options?.secEdgarOptions,
+            },
+          },
+        };
+
+        const result = await secActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // CourtListener Legal Opinions Harvester (/court-listener or /api/v1/court-listener)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/court-listener" || pathname === "/court-listener")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          query?: string;
+          court?: string;
+          judge?: string;
+          opinionId?: number;
+          limit?: number;
+          page?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const clActor = registry.get("court-listener");
+        if (!clActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "CourtListener actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `cl-${Date.now()}`,
+          actorType: "court-listener",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            courtListenerOptions: {
+              query: body.query,
+              court: body.court,
+              judge: body.judge,
+              opinionId: body.opinionId,
+              limit: body.limit,
+              page: body.page,
+              ...body.options?.courtListenerOptions,
+            },
+          },
+        };
+
+        const result = await clActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Software Heritage Code Archive (/software-heritage or /api/v1/software-heritage)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/software-heritage" || pathname === "/software-heritage")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          swhid?: string;
+          originUrl?: string;
+          action?: "content" | "directory" | "origin" | "revision";
+          rawTextMaxChars?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const swhActor = registry.get("software-heritage");
+        if (!swhActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Software Heritage actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `swh-${Date.now()}`,
+          actorType: "software-heritage",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            softwareHeritageOptions: {
+              swhid: body.swhid,
+              originUrl: body.originUrl,
+              action: body.action,
+              rawTextMaxChars: body.rawTextMaxChars,
+              ...body.options?.softwareHeritageOptions,
+            },
+          },
+        };
+
+        const result = await swhActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // EUR-Lex European Union Law (/eur-lex or /api/v1/eur-lex)
+      if (method === "POST" && (pathname === "/api/v1/eur-lex" || pathname === "/eur-lex")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          celex?: string;
+          query?: string;
+          language?: string;
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const eurLexActor = registry.get("eur-lex");
+        if (!eurLexActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "EUR-Lex actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `eurlex-${Date.now()}`,
+          actorType: "eur-lex",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            eurLexOptions: {
+              celex: body.celex,
+              query: body.query,
+              language: body.language,
+              limit: body.limit,
+              ...body.options?.eurLexOptions,
+            },
+          },
+        };
+
+        const result = await eurLexActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // OpenStax Textbook Harvester (/openstax or /api/v1/openstax)
+      if (method === "POST" && (pathname === "/api/v1/openstax" || pathname === "/openstax")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          query?: string;
+          bookId?: number | string;
+          slug?: string;
+          action?: "catalog" | "search" | "detail" | "chapter";
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const openStaxActor = registry.get("openstax");
+        if (!openStaxActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "OpenStax actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `openstax-${Date.now()}`,
+          actorType: "openstax",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            openstaxOptions: {
+              query: body.query,
+              bookId: body.bookId,
+              slug: body.slug,
+              action: body.action,
+              limit: body.limit,
+              ...body.options?.openstaxOptions,
+            },
+          },
+        };
+
+        const result = await openStaxActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // MIT OpenCourseWare Harvester (/mit-ocw or /api/v1/mit-ocw)
+      if (method === "POST" && (pathname === "/api/v1/mit-ocw" || pathname === "/mit-ocw")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          query?: string;
+          courseSlug?: string;
+          action?: "search" | "course";
+          limit?: number;
+          offset?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const mitActor = registry.get("mit-ocw");
+        if (!mitActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "MIT OpenCourseWare actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `mitocw-${Date.now()}`,
+          actorType: "mit-ocw",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            mitOcwOptions: {
+              query: body.query,
+              courseSlug: body.courseSlug,
+              action: body.action,
+              limit: body.limit,
+              offset: body.offset,
+              ...body.options?.mitOcwOptions,
+            },
+          },
+        };
+
+        const result = await mitActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

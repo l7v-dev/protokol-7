@@ -31,7 +31,15 @@ export type ActorType =
   | "archive-extractor"
   | "epub-extractor"
   | "dergipark"
-  | "internet-archive";
+  | "internet-archive"
+  | "clinical-trials"
+  | "open-fda"
+  | "sec-edgar"
+  | "court-listener"
+  | "software-heritage"
+  | "eur-lex"
+  | "openstax"
+  | "mit-ocw";
 
 export interface ExtractedTable {
   id: string;
@@ -839,6 +847,259 @@ export interface KtbEkitapActorResult {
   queryUrl: string;
 }
 
+export interface ClinicalStudySummary {
+  nctId: string;
+  briefTitle: string;
+  officialTitle?: string;
+  leadSponsor?: string;
+  overallStatus?: string;
+  conditions?: string[];
+  interventions?: string[];
+  briefSummary?: string;
+  eligibilityCriteria?: string;
+  phases?: string[];
+  studyType?: string;
+  startDate?: string;
+  completionDate?: string;
+  studyUrl: string;
+}
+
+export interface ClinicalTrialsActorTaskOptions {
+  query?: string;
+  condition?: string;
+  intervention?: string;
+  status?: string | string[];
+  nctId?: string;
+  pageSize?: number;
+  pageToken?: string;
+  format?: "markdown" | "json";
+  timeoutMs?: number;
+}
+
+export interface ClinicalTrialsActorResult {
+  totalCount: number;
+  nextPageToken?: string;
+  studies: ClinicalStudySummary[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface OpenFdaActorTaskOptions {
+  endpoint?: "drug/label" | "drug/event" | "device/510k" | "food/enforcement";
+  search?: string;
+  limit?: number;
+  skip?: number;
+  format?: "markdown" | "json";
+  timeoutMs?: number;
+}
+
+export interface OpenFdaActorResult {
+  total: number;
+  endpoint: string;
+  results: Record<string, unknown>[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface SecFilingItem {
+  accessionNumber: string;
+  filingDate: string;
+  reportDate?: string;
+  acceptanceDateTime?: string;
+  act?: string;
+  form: string;
+  fileNumber?: string;
+  filmNumber?: string;
+  items?: string[];
+  size?: number;
+  isXBRL?: boolean;
+  isInlineXBRL?: boolean;
+  primaryDocument: string;
+  primaryDocDescription?: string;
+  documentUrl: string;
+}
+
+export interface SecEdgarActorTaskOptions {
+  cik?: string | number;
+  ticker?: string;
+  form?: string;
+  limit?: number;
+  format?: "markdown" | "json";
+  timeoutMs?: number;
+}
+
+export interface SecEdgarActorResult {
+  cik: string;
+  entityName: string;
+  sic?: string;
+  sicDescription?: string;
+  tickers?: string[];
+  exchanges?: string[];
+  totalFilings: number;
+  filings: SecFilingItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface CourtListenerDocumentItem {
+  id: number;
+  caseName: string;
+  citation?: string[];
+  court: string;
+  courtExact?: string;
+  dateFiled?: string;
+  judge?: string;
+  status?: string;
+  snippet?: string;
+  downloadUrl?: string;
+  absoluteUrl: string;
+}
+
+export interface CourtListenerActorTaskOptions {
+  query?: string;
+  court?: string;
+  judge?: string;
+  type?: "o" | "r" | "d";
+  statPrecedential?: string;
+  page?: number;
+  pageSize?: number;
+  opinionId?: number | string;
+  format?: "markdown" | "json";
+  timeoutMs?: number;
+}
+
+export interface CourtListenerActorResult {
+  totalCount: number;
+  page: number;
+  results: CourtListenerDocumentItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface SoftwareHeritageDirectoryEntry {
+  name: string;
+  type: "file" | "dir" | "rev";
+  target: string;
+  perms?: number;
+  length?: number;
+}
+
+export interface SoftwareHeritageActorTaskOptions {
+  swhid?: string;
+  originUrl?: string;
+  action?: "content" | "directory" | "origin" | "revision";
+  rawTextMaxChars?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface SoftwareHeritageActorResult {
+  swhid?: string;
+  action: string;
+  url: string;
+  data?: unknown;
+  markdown: string;
+}
+
+export interface EurLexDocumentItem {
+  celex: string;
+  title: string;
+  documentType?: string;
+  date?: string;
+  language: string;
+  ojReference?: string;
+  url: string;
+  contentSnippet?: string;
+}
+
+export interface EurLexActorTaskOptions {
+  celex?: string;
+  query?: string;
+  language?: string;
+  format?: "markdown" | "html" | "json";
+  limit?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface EurLexActorResult {
+  celex?: string;
+  query?: string;
+  language: string;
+  totalCount: number;
+  documents: EurLexDocumentItem[];
+  markdown: string;
+}
+
+export interface OpenStaxBookItem {
+  id: number | string;
+  title: string;
+  slug: string;
+  description?: string;
+  publishDate?: string;
+  licenseName?: string;
+  pdfUrl?: string;
+  coverUrl?: string;
+  htmlUrl?: string;
+  cnxId?: string;
+}
+
+export interface OpenStaxActorTaskOptions {
+  query?: string;
+  bookId?: number | string;
+  slug?: string;
+  action?: "catalog" | "search" | "detail" | "chapter";
+  limit?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface OpenStaxActorResult {
+  query?: string;
+  action: "catalog" | "search" | "detail" | "chapter";
+  totalCount: number;
+  books: OpenStaxBookItem[];
+  bookDetail?: Record<string, unknown>;
+  markdown: string;
+  queryUrl: string;
+}
+
+export interface MitOcwCourseItem {
+  id: string;
+  courseNumber?: string;
+  title: string;
+  description?: string;
+  level?: string[];
+  topics?: string[];
+  instructors?: string[];
+  department?: string;
+  year?: number | string;
+  semester?: string;
+  url: string;
+  platform?: string;
+}
+
+export interface MitOcwActorTaskOptions {
+  query?: string;
+  courseSlug?: string;
+  action?: "search" | "course";
+  limit?: number;
+  offset?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface MitOcwActorResult {
+  query?: string;
+  courseSlug?: string;
+  action: "search" | "course";
+  totalCount: number;
+  courses: MitOcwCourseItem[];
+  courseDetail?: Record<string, unknown>;
+  markdown: string;
+  queryUrl: string;
+}
+
 export interface ActorTask {
   taskId: EntityId;
   actorType: ActorType;
@@ -874,6 +1135,14 @@ export interface ActorTask {
     epubOptions?: EpubExtractorTaskOptions;
     dergiParkOptions?: DergiParkActorTaskOptions;
     internetArchiveOptions?: InternetArchiveActorTaskOptions;
+    clinicalTrialsOptions?: ClinicalTrialsActorTaskOptions;
+    openFdaOptions?: OpenFdaActorTaskOptions;
+    secEdgarOptions?: SecEdgarActorTaskOptions;
+    courtListenerOptions?: CourtListenerActorTaskOptions;
+    softwareHeritageOptions?: SoftwareHeritageActorTaskOptions;
+    eurLexOptions?: EurLexActorTaskOptions;
+    openstaxOptions?: OpenStaxActorTaskOptions;
+    mitOcwOptions?: MitOcwActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;
