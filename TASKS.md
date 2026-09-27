@@ -9,7 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- *(Tum planlanan kurumsal veri seti aktorleri basariyla tamamlandi)*
+- [ ] **GitHub Actions Uzak Wikipedia LLM Parquet ETL Boru Hatti** — `Tier: 1` — Durum: GitHub Secrets ve `.github/workflows/wikipedia-etl.yml` tanimlandi, depoya gonderilip tetiklenmeye hazir.
 
 ## Bekleyen (Blok var)
 

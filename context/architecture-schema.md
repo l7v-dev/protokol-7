@@ -273,3 +273,4 @@ Single source of truth component inventory and file map for `protokol-7`.
 | `scripts/bigdata_pipeline/requirements.txt` | Package Dependencies | Production dependencies for big data pipeline (blake3, tiktoken, duckdb, lingua, boto3). |
 | `docs/plans/kurumsal-big-data-pipeline-plani.md` | Architecture Plan | Architecture plan specification for 500 TB multi-tier big data LLM pipeline. |
 | `docs/walkthroughs/kurumsal-big-data-pipeline-walkthrough.md` | Walkthrough | Execution and validation walkthrough for big data pipeline and verification gate. |
+| `.github/workflows/wikipedia-etl.yml` | CI/CD Workflow | GitHub Actions workflow for remote Wikipedia LLM Parquet ETL extraction and Google Drive sync. |

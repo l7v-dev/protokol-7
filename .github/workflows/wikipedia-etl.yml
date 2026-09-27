@@ -1,0 +1,170 @@
+name: Wikipedia LLM Parquet ETL Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      lang:
+        description: "Wikipedia language code (e.g. de, en, tr, az, uz)"
+        required: true
+        default: "de"
+        type: string
+      mode:
+        description: "Execution mode"
+        required: true
+        default: "single"
+        type: choice
+        options:
+          - "single"
+          - "orchestrator"
+      folder_id:
+        description: "Google Drive Target Root Folder ID"
+        required: false
+        default: "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"
+        type: string
+      in_flight:
+        description: "Zero-Raw Streaming (no raw bz2 on disk; false downloads to SSD first for stability)"
+        required: false
+        default: false
+        type: boolean
+      clean_dump:
+        description: "Delete raw bz2 dump after processing to reclaim disk space"
+        required: false
+        default: true
+        type: boolean
+      max_part_gb:
+        description: "Maximum size per Parquet shard in GB"
+        required: false
+        default: "10.0"
+        type: string
+      batch_size:
+        description: "RAM buffering batch size before row group flush"
+        required: false
+        default: "10000"
+        type: string
+      limit:
+        description: "Limit total articles processed (useful for quick dry runs; leave blank for all)"
+        required: false
+        default: ""
+        type: string
+      dry_run:
+        description: "Simulate Google Drive sync and test hash validation locally"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  wikipedia-etl:
+    name: "Wikipedia ETL [${{ inputs.lang }}]"
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Maximize runner disk space
+        run: |
+          echo "Initial disk space:"
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost || true
+          echo "Disk space after cleanup:"
+          df -h /
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: "scripts/wikipedia_pipeline/requirements.txt"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/wikipedia_pipeline/requirements.txt
+
+      - name: Setup Google Drive credentials
+        env:
+          GDRIVE_TOKEN_JSON: ${{ secrets.GDRIVE_TOKEN_JSON }}
+          GDRIVE_CREDENTIALS_JSON: ${{ secrets.GDRIVE_CREDENTIALS_JSON }}
+        run: |
+          if [ -n "$GDRIVE_TOKEN_JSON" ]; then
+            echo "$GDRIVE_TOKEN_JSON" > scripts/wikipedia_pipeline/token.json
+            chmod 600 scripts/wikipedia_pipeline/token.json
+            echo "[OK] Injected scripts/wikipedia_pipeline/token.json"
+          fi
+          if [ -n "$GDRIVE_CREDENTIALS_JSON" ]; then
+            echo "$GDRIVE_CREDENTIALS_JSON" > scripts/wikipedia_pipeline/credentials.json
+            chmod 600 scripts/wikipedia_pipeline/credentials.json
+            echo "[OK] Injected scripts/wikipedia_pipeline/credentials.json"
+          fi
+
+      - name: Run Wikipedia Single-Language Pipeline
+        if: ${{ inputs.mode == 'single' }}
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ inputs.in_flight }}" = "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --in-flight"
+          fi
+          if [ "${{ inputs.clean_dump }}" = "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --clean-dump"
+          fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --dry-run"
+          fi
+          if [ -n "${{ inputs.limit }}" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --limit ${{ inputs.limit }}"
+          fi
+
+          python scripts/wikipedia_pipeline/run_pipeline.py \
+            --lang "${{ inputs.lang }}" \
+            --folder-id "${{ inputs.folder_id }}" \
+            --credentials scripts/wikipedia_pipeline/credentials.json \
+            --token scripts/wikipedia_pipeline/token.json \
+            --max-part-gb "${{ inputs.max_part_gb }}" \
+            --batch-size "${{ inputs.batch_size }}" \
+            $EXTRA_ARGS
+
+      - name: Run Multi-Language Orchestrator
+        if: ${{ inputs.mode == 'orchestrator' }}
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --dry-run"
+          fi
+          if [ "${{ inputs.clean_dump }}" = "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --clean-dump"
+          fi
+          if [ -n "${{ inputs.limit }}" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --limit-per-lang ${{ inputs.limit }}"
+          fi
+
+          python scripts/wikipedia_pipeline/multi_lang_orchestrator.py \
+            --langs "${{ inputs.lang }}" \
+            --folder-id "${{ inputs.folder_id }}" \
+            --credentials scripts/wikipedia_pipeline/credentials.json \
+            --max-part-gb "${{ inputs.max_part_gb }}" \
+            --batch-size "${{ inputs.batch_size }}" \
+            $EXTRA_ARGS
+
+      - name: Generate summary report
+        if: always()
+        run: |
+          echo "### Wikipedia ETL Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Language:** \`${{ inputs.lang }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Mode:** \`${{ inputs.mode }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **In-Flight:** \`${{ inputs.in_flight }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Google Drive Target Folder:** \`${{ inputs.folder_id }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          MANIFEST=$(find data/ -name "*_manifest.json" 2>/dev/null | head -n 1)
+          if [ -n "$MANIFEST" ] && [ -f "$MANIFEST" ]; then
+            echo "#### Manifest Details" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat "$MANIFEST" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Clean sensitive credentials
+        if: always()
+        run: |
+          rm -f scripts/wikipedia_pipeline/token.json scripts/wikipedia_pipeline/credentials.json || true

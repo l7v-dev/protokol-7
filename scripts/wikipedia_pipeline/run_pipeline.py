@@ -208,7 +208,15 @@ def execute_pipeline(
                 print(f"[INFO] Auto-detected Google credentials file: {candidate}")
                 break
 
-    has_credentials = (creds_path and os.path.exists(creds_path)) or os.path.exists(token)
+    token_path = token
+    if not os.path.exists(token_path):
+        for candidate in ["token.json", "scripts/wikipedia_pipeline/token.json"]:
+            if os.path.exists(candidate):
+                token_path = candidate
+                print(f"[INFO] Auto-detected Google token file: {candidate}")
+                break
+
+    has_credentials = (creds_path and os.path.exists(creds_path)) or os.path.exists(token_path)
     drive_sync_active = not dry_run and has_credentials
 
     if not has_credentials and not dry_run:
@@ -222,7 +230,7 @@ def execute_pipeline(
     print("\n[PHASE 3] Initializing Sequential Google Drive Sync Queue...")
     queue = GoogleDriveSequentialSyncQueue(
         credentials_path=creds_path,
-        token_path=token,
+        token_path=token_path,
         folder_id=folder_id,
         lang=lang,
         dry_run=(not drive_sync_active),
