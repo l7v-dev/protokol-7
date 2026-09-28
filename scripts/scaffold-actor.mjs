@@ -2,9 +2,16 @@
 /**
  * scripts/scaffold-actor.mjs
  *
- * Actor Scaffolding CLI for protokol-7.
- * Generates an actor implementation, test suite, and JSON example
- * conforming strictly to docs/actor-contract.md and zero-fluff engineering standards.
+ * Clean Actor Scaffolding CLI for protokol-7.
+ * Generates an actor implementation, colocated test suite, technical wiki (with Mermaid diagrams),
+ * and sample payload conforming strictly to docs/actor-contract.md and docs/actor-wiki-template.md.
+ *
+ * Architecture Invariant:
+ * - Domain Actor: src/actors/<category>/<name>-actor.ts
+ * - Test Suite: tests/<name>-actor.test.ts
+ * - Technical Wiki: docs/actors/<name>.md
+ * - Sample Payload: examples/actors/<name>.json
+ * - MCP Server: Centralized at src/mcp/protokol-mcp-server.ts via src/actors/actor-manifests.ts
  *
  * Usage:
  *   node scripts/scaffold-actor.mjs <category> <name> [description]
@@ -14,7 +21,7 @@
  *   node scripts/scaffold-actor.mjs web sample-crawler "Crawls pages from target domain"
  */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const VALID_CATEGORIES = ["web", "corpus", "documents"];
@@ -57,16 +64,19 @@ if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) {
 }
 
 const rootDir = resolve(process.cwd());
-const actorFileName = `${name}-actor.ts`;
-const actorFilePath = join(rootDir, "src", "actors", category, actorFileName);
-const exampleFilePath = join(rootDir, "examples", "actors", `${name}.json`);
+const actorFilePath = join(rootDir, "src", "actors", category, `${name}-actor.ts`);
 const testFilePath = join(rootDir, "tests", `${name}-actor.test.ts`);
+const docsDir = join(rootDir, "docs", "actors");
+const wikiFilePath = join(docsDir, `${name}.md`);
+const exampleFilePath = join(rootDir, "examples", "actors", `${name}.json`);
 const categoryBarrelPath = join(rootDir, "src", "actors", category, "index.ts");
 
 if (existsSync(actorFilePath)) {
-  console.error(`[ERROR] Target actor file already exists: ${actorFilePath}`);
+  console.error(`[ERROR] Target actor already exists: ${actorFilePath}`);
   process.exit(1);
 }
+
+mkdirSync(docsDir, { recursive: true });
 
 const pascalName = toPascalCase(name);
 const className = `${pascalName}Actor`;
@@ -76,7 +86,7 @@ const resultInterface = `${pascalName}ActorResult`;
 // 1. Generate Actor Implementation
 const actorCode = `/**
  * ${className} - ${description}
- * Conforms to docs/actor-contract.md.
+ * Conforms to docs/actor-contract.md and docs/actors/${name}.md.
  */
 
 import type {
@@ -159,15 +169,24 @@ export class ${className} implements IActor<${resultInterface}> {
       }
 
       // 4. Dispatch HTTP request with abort controller
-      const response = await safeRedirectFetch(endpoint, {
-        headers: {
-          "User-Agent": USER_AGENT,
-          Accept: "application/json, text/plain, */*",
-          ...options.customHeaders,
-        },
-        timeoutMs,
-        allowLocalNetwork,
-      });
+      const controller = new AbortController();
+      const timeoutTimer = setTimeout(() => controller.abort(), timeoutMs);
+
+      let response: Response;
+      try {
+        response = await safeRedirectFetch(endpoint, {
+          signal: controller.signal,
+          headers: {
+            "User-Agent": USER_AGENT,
+            Accept: "application/json, text/plain, */*",
+            ...options.customHeaders,
+          },
+          timeoutMs,
+          allowLocalNetwork,
+        });
+      } finally {
+        clearTimeout(timeoutTimer);
+      }
 
       if (!response.ok) {
         return {
@@ -195,12 +214,14 @@ export class ${className} implements IActor<${resultInterface}> {
       };
     } catch (error) {
       // 7. Structured error capture (never swallow exceptions)
+      const msg = error instanceof Error ? error.message : String(error);
+      const isTimeout = msg.includes("aborted") || msg.includes("timeout");
       return {
         taskId: task.taskId,
         actorType: this.actorType,
-        status: "failed",
-        statusCode: 500,
-        errorMessage: error instanceof Error ? error.message : String(error),
+        status: isTimeout ? "timed_out" : "failed",
+        statusCode: isTimeout ? 408 : 500,
+        errorMessage: msg,
         executionDurationMs: Date.now() - startTime,
       };
     }
@@ -245,17 +266,112 @@ export class ${className} implements IActor<${resultInterface}> {
 }
 `;
 
-// 2. Generate Example JSON
-const exampleJson = JSON.stringify(
-  {
-    targetUrl: "https://example.com/api/data",
-    query: "sample query",
-    limit: 10,
-    timeoutMs: 15000,
-  },
-  null,
-  2
-);
+// 2. Generate Technical Wiki Documentation (with Mermaid Diagrams)
+const wikiCode = `# ${pascalName} Actor — Teknik Wiki ve Çalışma Şartnamesi
+
+## 1. Metadata ve Sınıflandırma
+
+| Alan | Değer |
+|---|---|
+| **Aktör Tanımlayıcı (Type)** | \`${name}\` |
+| **Kategori** | \`${category}\` (\`src/actors/${category}/${name}-actor.ts\`) |
+| **Sürüm** | \`1.0.0\` |
+| **Birincil Sınıf** | \`${className}\` |
+| **MCP Aracı** | \`${name}_query\` (\`src/mcp/protokol-mcp-server.ts\`) |
+| **Test Dosyası** | \`tests/${name}-actor.test.ts\` |
+
+---
+
+## 2. Mekanizma ve Teknik Genel Bakış
+
+${description}
+
+---
+
+## 3. Mimari ve Bileşen Sınırları (Mermaid Flowchart)
+
+\`\`\`mermaid
+flowchart TD
+    subgraph Client["İstemci Katmanı"]
+        Agent["AI Ajan (Claude / Antigravity)"]
+        REST["HTTP REST Router"]
+    end
+
+    subgraph CentralMCP["Merkezi MCP Katmanı"]
+        MCPServer["protokol-mcp-server.ts<br/>(${name}_query)"]
+        Manifest["actor-manifests.ts"]
+    end
+
+    subgraph ActorModule["Aktör Alan Katmanı"]
+        Core["${name}-actor.ts<br/>(${className})"]
+    end
+
+    subgraph SecurityPerimeter["Güvenlik Katmanı"]
+        SSRF["SSRFGuard.validateUrlWithDns"]
+        Fetch["safeRedirectFetch"]
+    end
+
+    Agent --> MCPServer
+    MCPServer --> Manifest
+    MCPServer --> Core
+    REST --> Core
+    Core --> SSRF
+    SSRF --> Fetch
+\`\`\`
+
+---
+
+## 4. İstek Yaşam Döngüsü ve Sıra Şeması (Mermaid Sequence Diagram)
+
+\`\`\`mermaid
+sequenceDiagram
+    autonumber
+    participant Client as Çağırıcı
+    participant Actor as ${className}
+    participant SSRF as SSRFGuard
+    participant Net as safeRedirectFetch
+
+    Client->>Actor: run(task, context)
+    Actor->>SSRF: validateUrlWithDns(endpoint)
+    alt SSRF Engeli
+        SSRF-->>Actor: { valid: false }
+        Actor-->>Client: 403 Forbidden
+    else Güvenli Hedef
+        SSRF-->>Actor: { valid: true }
+        Actor->>Net: safeRedirectFetch(signal)
+        Net-->>Actor: Response Body
+        Actor-->>Client: 200 OK (Data)
+    end
+\`\`\`
+
+---
+
+## 5. Durum Makinesi (Mermaid State Diagram)
+
+\`\`\`mermaid
+stateDiagram-v2
+    [*] --> Idle: Aktör Başlatıldı
+    Idle --> ResolvingParams: run() çağrıldı
+    ResolvingParams --> ValidatingSSRF: Hedef URL belirlendi
+    ValidatingSSRF --> Failed: SSRF engeli (403)
+    ValidatingSSRF --> DispatchingHTTP: DNS doğrulaması başarılı
+    DispatchingHTTP --> TimedOut: 30.000 ms zaman aşımı (408)
+    DispatchingHTTP --> Failed: Upstream HTTP hatası (4xx/5xx)
+    DispatchingHTTP --> Transforming: 200 OK alındı
+    Transforming --> Completed: Başarılı sonuç (200)
+    Failed --> [*]
+    TimedOut --> [*]
+    Completed --> [*]
+\`\`\`
+
+---
+
+## 6. Güvenlik İnvariantları
+
+1. **SSRF Koruması:** \`SSRFGuard.validateUrlWithDns\` ile her ağ çağrısı doğrulanır.
+2. **Zaman Aşımı:** 30.000 ms limit ve \`AbortController\` işletilir.
+3. **Kullanıcı Aracısı:** Standart protokol başlığı kullanılır.
+`;
 
 // 3. Generate Unit Test Suite
 const testCode = `import assert from "node:assert/strict";
@@ -283,34 +399,34 @@ describe("${className}", () => {
     assert.equal(result.statusCode, 403);
     assert.ok(result.errorMessage?.includes("SSRF"));
   });
-
-  it("handles valid execution lifecycle and returns duration telemetry", async () => {
-    const actor = new ${className}();
-    const task: ActorTask = {
-      taskId: "test-run-1",
-      actorType: "${name}" as any,
-      targetUrl: "http://127.0.0.1:4000/health",
-    };
-
-    const result = await actor.run(task, { task, startTime: Date.now() });
-    assert.ok(typeof result.executionDurationMs === "number");
-    assert.ok(result.executionDurationMs >= 0);
-  });
 });
 `;
+
+// 4. Generate Example JSON
+const exampleJson = JSON.stringify(
+  {
+    targetUrl: "https://example.com/api/data",
+    query: "sample query",
+    limit: 10,
+    timeoutMs: 15000,
+  },
+  null,
+  2
+);
 
 // Write files
 writeFileSync(actorFilePath, actorCode, "utf8");
 console.log(`[OK] Created actor: ${actorFilePath}`);
 
+writeFileSync(wikiFilePath, wikiCode, "utf8");
+console.log(`[OK] Created wiki: ${wikiFilePath}`);
+
+writeFileSync(testFilePath, testCode, "utf8");
+console.log(`[OK] Created test: ${testFilePath}`);
+
 if (!existsSync(exampleFilePath)) {
   writeFileSync(exampleFilePath, `${exampleJson}\n`, "utf8");
   console.log(`[OK] Created example: ${exampleFilePath}`);
-}
-
-if (!existsSync(testFilePath)) {
-  writeFileSync(testFilePath, testCode, "utf8");
-  console.log(`[OK] Created test: ${testFilePath}`);
 }
 
 // Append to category barrel

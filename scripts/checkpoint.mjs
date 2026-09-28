@@ -14,7 +14,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { ERROR_CLASSES, logTrace, SPAN_TYPES } from "./telemetry-logger.mjs";
 
-const CHECKPOINT_DIR = "archive/checkpoints";
+const CHECKPOINT_DIR = "ledger/checkpoints";
 const CHECKPOINT_INDEX = `${CHECKPOINT_DIR}/index.jsonl`;
 
 function ensureDir(path) {

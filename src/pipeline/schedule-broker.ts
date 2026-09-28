@@ -147,19 +147,19 @@ export class ScheduleBroker {
     // Validate cron expression format on registration
     isCronMatch(cronExpression, new Date());
 
-    let lastCheckedMinute = -1;
+    let lastCheckedMinuteEpoch = -1;
 
     const timer = setInterval(async () => {
       const now = new Date();
-      const currentMinute = now.getMinutes();
+      const currentMinuteEpoch = Math.floor(now.getTime() / 60000);
 
       // Avoid double-execution within the same minute
-      if (currentMinute === lastCheckedMinute) {
+      if (currentMinuteEpoch === lastCheckedMinuteEpoch) {
         return;
       }
 
       if (isCronMatch(cronExpression, now)) {
-        lastCheckedMinute = currentMinute;
+        lastCheckedMinuteEpoch = currentMinuteEpoch;
         const job = this.jobs.get(id);
         if (job) {
           job.lastRunAt = now.toISOString();
@@ -180,6 +180,10 @@ export class ScheduleBroker {
         }
       }
     }, checkIntervalMs);
+
+    if (typeof timer.unref === "function") {
+      timer.unref();
+    }
 
     const jobRecord = {
       cronExpression,

@@ -154,4 +154,49 @@ describe("safeRedirectFetch - SSRF Guarded HTTP Fetcher", () => {
       retryServer.close();
     }
   });
+
+  it("strips authorization and cookie headers on cross-origin redirects", async () => {
+    let secondServerReceivedHeaders: http.IncomingHttpHeaders = {};
+    const secondServer = http.createServer((req, res) => {
+      secondServerReceivedHeaders = req.headers;
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true }));
+    });
+    await new Promise<void>((resolve) => secondServer.listen(0, "127.0.0.1", () => resolve()));
+    const secondPort = (secondServer.address() as { port: number }).port;
+
+    let firstServerReceivedHeaders: http.IncomingHttpHeaders = {};
+    const firstServer = http.createServer((req, res) => {
+      firstServerReceivedHeaders = req.headers;
+      res.writeHead(302, { Location: `http://127.0.0.1:${secondPort}/landing` });
+      res.end();
+    });
+    await new Promise<void>((resolve) => firstServer.listen(0, "127.0.0.1", () => resolve()));
+    const firstPort = (firstServer.address() as { port: number }).port;
+
+    try {
+      const res = await safeRedirectFetch(`http://127.0.0.1:${firstPort}/start`, {
+        allowLocalNetwork: true,
+        headers: {
+          Authorization: "Bearer secret-token-123",
+          Cookie: "session=xyz789",
+          "X-Custom-Header": "preserved-value",
+        },
+      });
+
+      assert.equal(res.status, 200);
+      // First server got credentials
+      assert.equal(firstServerReceivedHeaders.authorization, "Bearer secret-token-123");
+      assert.equal(firstServerReceivedHeaders.cookie, "session=xyz789");
+
+      // Cross-origin second server must NOT get credentials
+      assert.equal(secondServerReceivedHeaders.authorization, undefined);
+      assert.equal(secondServerReceivedHeaders.cookie, undefined);
+      // Non-sensitive header preserved
+      assert.equal(secondServerReceivedHeaders["x-custom-header"], "preserved-value");
+    } finally {
+      firstServer.close();
+      secondServer.close();
+    }
+  });
 });

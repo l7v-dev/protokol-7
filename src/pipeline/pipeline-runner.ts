@@ -48,6 +48,10 @@ export interface PipelineRunResult {
   completedAt: string;
 }
 
+export interface PipelineExecutionOptions {
+  runId?: string;
+}
+
 export interface PipelineRunnerOptions {
   actorResolver?: ActorResolver;
   executor?: ExecutionTarget;
@@ -157,14 +161,14 @@ export class PipelineRunner {
   /**
    * Executes a pipeline configuration loaded from a YAML file.
    */
-  async runFile(filePath: string): Promise<PipelineRunResult> {
+  async runFile(filePath: string, options?: PipelineExecutionOptions): Promise<PipelineRunResult> {
     try {
       const config = loadPipelineConfigFile(filePath);
-      return await this.runConfig(config);
+      return await this.runConfig(config, options);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const failedResult: PipelineRunResult = {
-        runId: `run_init_error_${Date.now()}`,
+        runId: options?.runId || `run_init_error_${Date.now()}`,
         pipelineName: "unresolved_pipeline",
         actorId: "unknown",
         status: "failed",
@@ -183,14 +187,17 @@ export class PipelineRunner {
   /**
    * Executes a pipeline configuration parsed from a YAML string.
    */
-  async runYaml(yamlString: string): Promise<PipelineRunResult> {
+  async runYaml(
+    yamlString: string,
+    options?: PipelineExecutionOptions
+  ): Promise<PipelineRunResult> {
     try {
       const config = parsePipelineYaml(yamlString);
-      return await this.runConfig(config);
+      return await this.runConfig(config, options);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const failedResult: PipelineRunResult = {
-        runId: `run_yaml_error_${Date.now()}`,
+        runId: options?.runId || `run_yaml_error_${Date.now()}`,
         pipelineName: "unresolved_pipeline",
         actorId: "unknown",
         status: "failed",
@@ -210,10 +217,14 @@ export class PipelineRunner {
    * Orchestrates the complete pipeline run loop.
    * Catches errors gracefully and records them into failedRuns without throwing unhandled exceptions.
    */
-  async runConfig(config: PipelineConfig): Promise<PipelineRunResult> {
+  async runConfig(
+    config: PipelineConfig,
+    options?: PipelineExecutionOptions
+  ): Promise<PipelineRunResult> {
     const startedAt = new Date().toISOString();
     const startTime = Date.now();
-    const runId = `run_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const runId =
+      options?.runId || `run_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
     try {
       // 0. Register any config-level connectors
@@ -394,7 +405,26 @@ export class PipelineRunner {
         console.error("[DB_ERROR] Failed to list pipeline executions:", err);
       }
     }
-    return [...this.runHistory];
+    const history = [...this.runHistory];
+    return limit !== undefined ? history.slice(0, limit) : history;
+  }
+
+  getRunById(runId: string): PipelineRunResult | undefined {
+    const inMemory = this.runHistory.find((r) => r.runId === runId);
+    if (inMemory) {
+      return inMemory;
+    }
+    if (this.registryDb) {
+      try {
+        const found = this.registryDb.listPipelineExecutions(500).find((e) => e.runId === runId);
+        if (found) {
+          return found;
+        }
+      } catch (err) {
+        console.error("[DB_ERROR] Failed to fetch pipeline execution by id:", err);
+      }
+    }
+    return undefined;
   }
 
   getFailedRuns(): PipelineRunResult[] {

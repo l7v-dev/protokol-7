@@ -24,7 +24,7 @@ if (!query) {
 }
 
 const SEARCH_DIRS = ["rules", "context", "docs/adr"];
-const INDEX_FILE = "archive/index.jsonl";
+const INDEX_FILE = existsSync("ledger/index.jsonl") ? "ledger/index.jsonl" : "archive/index.jsonl";
 
 const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
 
@@ -93,7 +93,7 @@ if (existsSync(INDEX_FILE)) {
       const str = `${entry.tarih} ${entry.faz} ${entry.konu}`.toLowerCase();
       if (terms.some((t) => str.includes(t))) {
         scoredResults.push({
-          file: `archive/index.jsonl (${entry.dosya})`,
+          file: `${INDEX_FILE} (${entry.dosya})`,
           score: 5,
           snippet: `[Geçmiş Oturum] Tarih: ${entry.tarih} | Faz: ${entry.faz} | Konu: ${entry.konu}`,
         });

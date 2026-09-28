@@ -4,6 +4,7 @@
  */
 
 import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import { Readable } from "node:stream";
 import { google } from "googleapis";
 import type { StorageBackend, StorageReceipt } from "./index";
@@ -50,14 +51,54 @@ export class GoogleDriveStorage implements StorageBackend {
       if (options.credentialsJson) {
         const creds =
           typeof options.credentialsJson === "string"
-            ? JSON.parse(options.credentialsJson)
-            : options.credentialsJson;
-        auth = new google.auth.JWT({
-          email: creds.client_email,
-          key: creds.private_key,
-          scopes: ["https://www.googleapis.com/auth/drive"],
-        });
-      } else {
+            ? (JSON.parse(options.credentialsJson) as Record<string, unknown>)
+            : (options.credentialsJson as Record<string, unknown>);
+
+        if (creds.client_email && creds.private_key) {
+          auth = new google.auth.JWT({
+            email: creds.client_email as string,
+            key: creds.private_key as string,
+            scopes: ["https://www.googleapis.com/auth/drive"],
+          });
+        } else if (creds.client_id && creds.refresh_token) {
+          const oauth2 = new google.auth.OAuth2(
+            creds.client_id as string,
+            creds.client_secret as string
+          );
+          oauth2.setCredentials({
+            refresh_token: creds.refresh_token as string,
+            access_token: creds.token as string | undefined,
+          });
+          auth = oauth2;
+        }
+      }
+
+      if (!auth) {
+        const tokenCandidate = options.keyFile || "token.json";
+        if (existsSync(tokenCandidate)) {
+          try {
+            const tokenData = JSON.parse(readFileSync(tokenCandidate, "utf-8")) as Record<
+              string,
+              unknown
+            >;
+            if (tokenData.client_id && tokenData.refresh_token) {
+              const oauth2 = new google.auth.OAuth2(
+                tokenData.client_id as string,
+                tokenData.client_secret as string
+              );
+              oauth2.setCredentials({
+                refresh_token: tokenData.refresh_token as string,
+                access_token: tokenData.token as string | undefined,
+              });
+              auth = oauth2;
+            }
+          } catch {
+            // fallback
+          }
+        }
+      }
+
+      if (!auth) {
         auth = new google.auth.GoogleAuth({
           keyFile: options.keyFile || process.env.GOOGLE_APPLICATION_CREDENTIALS,
           scopes: ["https://www.googleapis.com/auth/drive"],

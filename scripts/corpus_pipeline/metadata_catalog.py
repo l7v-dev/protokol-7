@@ -194,22 +194,29 @@ class MetadataCatalog:
         estimated_tokens: int = 0,
         compression_codec: str = "zstd",
         compression_level: int = 6,
+        dataset_name: Optional[str] = None,
     ) -> None:
         """Registers a packaged Parquet shard."""
         now = get_utc_iso_now()
         with self._get_connection() as conn:
+            actual_dataset_name = dataset_name
+            if not actual_dataset_name:
+                row = conn.execute("SELECT dataset_id FROM pipeline_runs WHERE run_id = ?", (run_id,)).fetchone()
+                actual_dataset_name = row[0] if (row and row[0]) else "default"
+
             conn.execute(
                 """
                 INSERT INTO dataset_shards (
-                    shard_id, run_id, shard_index, filename, record_count, size_bytes,
+                    shard_id, run_id, shard_index, dataset_name, filename, record_count, size_bytes,
                     compression_codec, compression_level, sha256_hash, blake3_hash,
                     row_group_count, char_count, word_count, estimated_tokens, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     shard_id,
                     run_id,
                     shard_index,
+                    actual_dataset_name,
                     filename,
                     record_count,
                     size_bytes,

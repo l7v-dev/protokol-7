@@ -4,6 +4,7 @@
 
 import { EventEmitter } from "node:events";
 import { getDefaultRegistryDatabase, type RegistryDatabase } from "./registry-database";
+import { writeRunLog } from "./run-logger";
 
 export type RunStatus = "pending" | "running" | "succeeded" | "failed" | "vetoed";
 
@@ -176,6 +177,11 @@ export class RunRegistry extends EventEmitter {
       }
     }
     this.appendLog(runId, "PASS", `Aktör tamamlandı (${run.durationMs}ms, ${itemCount} kayıt).`);
+    try {
+      writeRunLog(run);
+    } catch {
+      // Fallback: log disk yazımı akışı kesmez
+    }
     this.emit(`status:${runId}`, run.status);
     this.emit(`done:${runId}`, run);
   }
@@ -198,6 +204,11 @@ export class RunRegistry extends EventEmitter {
       }
     }
     this.appendLog(runId, "ERROR", `Hata oluştu: ${errorMessage}`);
+    try {
+      writeRunLog(run);
+    } catch {
+      // Fallback: log disk yazımı akışı kesmez
+    }
     this.emit(`status:${runId}`, run.status);
     this.emit(`done:${runId}`, run);
   }

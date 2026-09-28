@@ -8,6 +8,8 @@ output/
 .venv/
 */.venv/
 .pytest_cache/
+__pycache__/
+*.pyc
 token.json
 credentials.json
 service_account.json

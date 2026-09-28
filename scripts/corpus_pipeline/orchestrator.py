@@ -18,11 +18,11 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from scripts.bigdata_pipeline.cleaner import TextNormalizer, QualityFilter, estimate_token_count
-from scripts.bigdata_pipeline.metadata_catalog import MetadataCatalog, get_utc_iso_now
-from scripts.bigdata_pipeline.packer import StreamingParquetPacker
-from scripts.bigdata_pipeline.storage import get_storage_provider
-from scripts.bigdata_pipeline.verifier import VerificationGatekeeper, VerificationError
+from scripts.corpus_pipeline.cleaner import TextNormalizer, QualityFilter, estimate_token_count
+from scripts.corpus_pipeline.metadata_catalog import MetadataCatalog, get_utc_iso_now
+from scripts.corpus_pipeline.packer import StreamingParquetPacker
+from scripts.corpus_pipeline.storage import get_storage_provider
+from scripts.corpus_pipeline.verifier import VerificationGatekeeper, VerificationError
 
 
 class BigDataPipelineOrchestrator:

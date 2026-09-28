@@ -11,9 +11,9 @@ import os
 from typing import List, Optional
 import pyarrow.parquet as pq
 
-from scripts.bigdata_pipeline.metadata_catalog import MetadataCatalog, compute_file_sha256
-from scripts.bigdata_pipeline.packer import CompletedShard, PARQUET_SCHEMA
-from scripts.bigdata_pipeline.storage.base import StorageProvider, StorageReceipt
+from scripts.corpus_pipeline.metadata_catalog import MetadataCatalog, compute_file_sha256
+from scripts.corpus_pipeline.packer import CompletedShard, PARQUET_SCHEMA
+from scripts.corpus_pipeline.storage.base import StorageProvider, StorageReceipt
 
 
 class VerificationError(Exception):

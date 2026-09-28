@@ -110,23 +110,24 @@ export class PipelineRouter {
       resolvedFilePath = normalizedPath;
     }
 
-    const executePipeline = async (): Promise<PipelineRunResult> => {
+    const executePipeline = async (customRunId?: string): Promise<PipelineRunResult> => {
+      const options = customRunId ? { runId: customRunId } : undefined;
       if (resolvedFilePath) {
-        return this.runner.runFile(resolvedFilePath);
+        return this.runner.runFile(resolvedFilePath, options);
       }
       if (yaml) {
-        return this.runner.runYaml(yaml);
+        return this.runner.runYaml(yaml, options);
       }
       if (config) {
-        return this.runner.runConfig(config);
+        return this.runner.runConfig(config, options);
       }
       throw new Error("No executable pipeline configuration found.");
     };
 
     if (isAsync) {
       const estimatedRunId = `run_async_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      // Launch in background
-      void executePipeline().catch((err) => {
+      // Launch in background with exact runId match
+      void executePipeline(estimatedRunId).catch((err) => {
         console.error(`[PIPELINE_ASYNC_ERROR] Background execution failed:`, err);
       });
 
@@ -135,7 +136,8 @@ export class PipelineRouter {
         runId: estimatedRunId,
         status: "pending",
         message: "Pipeline execution started in background.",
-        eventsUrl: `/api/v1/pipelines/runs/${estimatedRunId}/events`,
+        url: `/api/v1/pipelines/runs/${estimatedRunId}`,
+        eventsUrl: `/api/v1/pipelines/runs/${estimatedRunId}`,
       });
       return;
     }
@@ -202,20 +204,7 @@ export class PipelineRouter {
    * Returns details of a specific pipeline execution.
    */
   handleGetRun(res: http.ServerResponse, runId: string): void {
-    let run: unknown | undefined;
-
-    if (this.registryDb) {
-      try {
-        const executions = this.registryDb.listPipelineExecutions(200);
-        run = executions.find((e) => e.runId === runId);
-      } catch (_err) {
-        // Ignore and fallback
-      }
-    }
-
-    if (!run) {
-      run = this.runner.getRunHistory().find((r) => r.runId === runId);
-    }
+    const run = this.runner.getRunById(runId);
 
     if (!run) {
       sendError(

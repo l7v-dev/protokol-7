@@ -36,7 +36,7 @@ const REQUIRED_PATHS = [
   "context/format-standards.md",
   "skills/",
   "docs/",
-  "archive/index.jsonl",
+  "ledger/index.jsonl",
 ];
 
 const missing = [];
@@ -181,6 +181,7 @@ function scanDocumentation(dir) {
     if (
       f.startsWith(".") ||
       f === "node_modules" ||
+      f === "ledger" ||
       f === "archive" ||
       f === "dist" ||
       f === "docs" ||
@@ -253,6 +254,7 @@ function scanEmojis(dir) {
     if (
       f.startsWith(".") ||
       f === "node_modules" ||
+      f === "ledger" ||
       f === "archive" ||
       f === "dist" ||
       f === "skills" ||

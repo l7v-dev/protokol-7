@@ -143,6 +143,19 @@ export async function safeRedirectFetch(
       currentHeaders.delete("content-type");
     }
 
+    // RFC 9110 / Security: Strip sensitive credential headers on cross-origin redirects
+    try {
+      const prevOrigin = new URL(currentUrl).origin;
+      const nextOrigin = new URL(nextUrl).origin;
+      if (prevOrigin !== nextOrigin) {
+        currentHeaders.delete("authorization");
+        currentHeaders.delete("cookie");
+        currentHeaders.delete("proxy-authorization");
+      }
+    } catch {
+      // Ignored: URL validation handles invalid formats
+    }
+
     // Drain or cancel redirect response stream to release underlying TCP socket immediately
     try {
       await response.body?.cancel();

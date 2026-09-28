@@ -47,7 +47,7 @@ export const ERROR_CLASSES = Object.freeze({
 /**
  * Belirtilen parametrelerle tekil bir açıklık (span) kaydı oluşturur ve atomik JSONL'e yazar.
  */
-export function logTrace(entry, telemetryFile = "archive/telemetry.jsonl") {
+export function logTrace(entry, telemetryFile = "ledger/telemetry.jsonl") {
   const dir = dirname(telemetryFile);
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
@@ -82,7 +82,7 @@ export function logTrace(entry, telemetryFile = "archive/telemetry.jsonl") {
 /**
  * Çok adımlı bir görev için paylaşılan bir trace_id bağlamı üretir.
  */
-export function createTraceSession(task, tier = 0, telemetryFile = "archive/telemetry.jsonl") {
+export function createTraceSession(task, tier = 0, telemetryFile = "ledger/telemetry.jsonl") {
   const traceId = randomUUID();
   let rootSpanId = null;
 
@@ -142,6 +142,6 @@ if (process.argv[1]?.endsWith("telemetry-logger.mjs")) {
   });
 
   console.log(
-    `[OK] 9 katmanli telemetri oturumu archive/telemetry.jsonl dosyasina islendi (trace_id: ${session.trace_id}).`
+    `[OK] 9 katmanli telemetri oturumu ledger/telemetry.jsonl dosyasina islendi (trace_id: ${session.trace_id}).`
   );
 }

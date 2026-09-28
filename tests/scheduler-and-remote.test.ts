@@ -69,6 +69,27 @@ describe("Scheduler & Remote Execution (Phase 3)", () => {
       assert.equal(broker.getActiveJobs().length, 0);
       assert.equal(executionCount, 0);
     });
+
+    it("handles multiple epoch-minute checks correctly without locking", async () => {
+      const broker = new ScheduleBroker();
+      let executionCount = 0;
+      const job = broker.scheduleJob(
+        "epoch-minute-job",
+        "* * * * *",
+        () => {
+          executionCount++;
+        },
+        30
+      );
+
+      assert.equal(broker.hasJob("epoch-minute-job"), true);
+      // Allow timer to trigger check loop
+      await new Promise((r) => setTimeout(r, 60));
+      job.stop();
+      assert.equal(broker.hasJob("epoch-minute-job"), false);
+      // Execution happened at least once on epoch-minute match
+      assert.ok(executionCount >= 1);
+    });
   });
 
   describe("Remote HTTP Executor", () => {

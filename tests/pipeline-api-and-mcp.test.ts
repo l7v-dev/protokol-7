@@ -143,6 +143,19 @@ actor:
     assert.ok(data.total >= 1);
   });
 
+  it("GET /api/v1/pipelines/runs/:id returns details for valid runId", async () => {
+    const listRes = await fetch(`${baseUrl}/api/v1/pipelines/runs`);
+    const listData = (await listRes.json()) as { success: boolean; runs: Array<{ runId: string }> };
+    assert.ok(listData.runs.length > 0);
+    const targetRunId = listData.runs[0].runId;
+
+    const res = await fetch(`${baseUrl}/api/v1/pipelines/runs/${targetRunId}`);
+    assert.equal(res.status, 200);
+    const data = (await res.json()) as { success: boolean; run: { runId: string } };
+    assert.equal(data.success, true);
+    assert.equal(data.run.runId, targetRunId);
+  });
+
   it("MCP ProtokolMcpServer exposes run_pipeline and list_pipelines tools", () => {
     const mcp = new ProtokolMcpServer();
     const tools = mcp.getTools();

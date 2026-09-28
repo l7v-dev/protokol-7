@@ -17,6 +17,8 @@
     "format": "biome format --write",
     "connectome": "node scripts/generate-connectome.mjs > context/connectome.md",
     "consolidate": "node scripts/consolidate-memory.mjs",
+    "pulse": "node scripts/pulse.mjs",
+    "logs": "node scripts/logs.mjs",
     "memory": "node scripts/omega-memory.mjs",
     "sca": "node scripts/sca-check.mjs",
     "mcp": "node scripts/omega-mcp-server.mjs",
@@ -26,7 +28,7 @@
     "rollback": "node scripts/checkpoint.mjs rollback",
     "pipedream": "node scripts/pipedream-cli.mjs",
     "corpus:pipeline": "python3 scripts/corpus_pipeline/orchestrator.py",
-    "test:corpus": "python3 scripts/corpus_pipeline/test_corpus_pipeline.py",
+    "test:corpus": "if command -v uv >/dev/null 2>&1; then uv run --with pyarrow --with duckdb --with datasketch python scripts/corpus_pipeline/test_corpus_pipeline.py; else python3 scripts/corpus_pipeline/test_corpus_pipeline.py; fi",
     "make:actor": "node scripts/scaffold-actor.mjs"
   },
   "dependencies": {
