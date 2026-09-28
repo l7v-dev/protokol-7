@@ -1,0 +1,23 @@
+name: yerel-hukuk-resmi-gazete-pipeline
+version: 1
+
+actor:
+  id: resmi-gazete
+  config:
+    category: all
+    limit: 50
+    format: json
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: drive
+  folder_id: "${GOOGLE_DRIVE_LEGAL_FOLDER_ID}"

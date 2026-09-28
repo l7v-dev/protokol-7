@@ -1,0 +1,7 @@
+{
+  "court": "yargitay",
+  "chamber": "1. Hukuk Dairesi",
+  "query": "tapu iptali ve tescil",
+  "limit": 10,
+  "timeoutMs": 15000
+}

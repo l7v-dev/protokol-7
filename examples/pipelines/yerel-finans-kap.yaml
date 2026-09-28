@@ -1,0 +1,23 @@
+name: yerel-finans-kap-pipeline
+version: 1
+
+actor:
+  id: kap
+  config:
+    companyTicker: "THYAO"
+    disclosureType: "all"
+    limit: 50
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: drive
+  folder_id: "${GOOGLE_DRIVE_LEGAL_FOLDER_ID}"
