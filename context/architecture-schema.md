@@ -33,7 +33,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/actors/actor-registry.ts` | `ActorRegistry` | Central registry for discovering, registering, and instantiating all actors across all categories. |
-| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 31 actors. |
+| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 41 actors. |
 | `src/actors/actor.template.ts` | `TemplateActor`, `TemplateActorResult` | Canonical reference implementation blueprint, contract template, and security scaffold for new actors. |
 
 #### Web Actors (`src/actors/web/`) — general-purpose HTTP and browser extraction
@@ -54,7 +54,9 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | File Path | Class | Source |
 |---|---|---|
 | `src/actors/corpus/arxiv-actor.ts` | `ArxivActor` | arXiv Export API (Atom 1.0) — preprints, metadata, abstracts, optional PDF text. |
-| `src/actors/corpus/wikimedia-actor.ts` | `WikimediaActor` | Wikimedia REST API v1 — encyclopedic summaries and articles as markdown. |
+| `src/actors/corpus/wikipedia-actor.ts` | `WikipediaActor`, `WikimediaActor` | Official Wikimedia REST API v1 extraction actor. Fetches clean summaries, full Parsoid HTML converted to GFM markdown, batch title extractions, and full article page search. Detailed technical specification in `docs/actors/wikipedia.md`. |
+| `src/actors/corpus/wikimedia-actor.ts` | Trampoline Re-export | Backwards-compatibility re-export module routing to `src/actors/corpus/wikipedia-actor.ts`. |
+
 | `src/actors/corpus/openalex-actor.ts` | `OpenAlexActor` | OpenAlex API — scholarly works, inverted-index abstract reconstruction, citations. |
 | `src/actors/corpus/stack-exchange-actor.ts` | `StackExchangeActor` | Stack Exchange API v2.3 — verified algorithmic Q&A and instruction-tuning pairs. |
 | `src/actors/corpus/gutenberg-actor.ts` | `GutenbergActor` | Gutendex API — public domain books with license block stripping. |
@@ -72,6 +74,18 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/actors/corpus/eur-lex-actor.ts` | `EurLexActor` | EUR-Lex CELLAR SPARQL — EU directives, regulations, and CJEU case law. |
 | `src/actors/corpus/saglik-ekutuphane-actor.ts` | `SaglikEkutuphaneActor` | TR Health Ministry e-library — medical publications with PDF distillation. |
 | `src/actors/corpus/ktb-ekitap-actor.ts` | `KtbEkitapActor` | TR Culture Ministry e-book portal — public domain books with LLM sanitization. |
+| `src/actors/corpus/resmi-gazete-actor.ts` | `ResmiGazeteActor` | T.C. Resmî Gazete daily bulletins, laws, presidential decrees, regulations, and announcements with full metadata. |
+| `src/actors/corpus/yargitay-actor.ts` | `YargitayActor` | Yargıtay & Danıştay judicial precedents, chamber decisions, and legal reasoning with full metadata. |
+| `src/actors/corpus/kap-actor.ts` | `KapActor` | Kamuoyu Aydınlatma Platformu (KAP) company disclosures, financial reports, and regulatory filings with full metadata. |
+| `src/actors/corpus/github-actor.ts` | `GithubActor` | GitHub REST API v3 — repository metadata, README documentation, issues, pull requests, releases, and git trees with full GFM markdown. |
+| `src/actors/corpus/openreview-actor.ts` | `OpenReviewActor` | OpenReview REST API v1/v2 — academic submissions, peer review scores, author rebuttals, meta-reviews, and decisions with full dialectic GFM markdown. |
+| `src/actors/corpus/hacker-news-actor.ts` | `HackerNewsActor` | Hacker News Algolia & Firebase APIs — engineering discussions, architecture post-mortems, and nested comment trees with full GFM markdown. |
+| `src/actors/corpus/huggingface-datasets-actor.ts` | `HuggingFaceDatasetsActor` | Hugging Face Datasets Server API — dataset rows, split configurations, and schema features with full GFM markdown table. |
+| `src/actors/corpus/math-reasoning-actor.ts` | `MathReasoningActor` | Mathematical Reasoning & CoT Harvester — GSM8K, Hendrycks MATH, SVAMP, and OlympiadBench problems, reasoning steps, LaTeX expressions, and boxed answers. |
+| `src/actors/corpus/code-eval-actor.ts` | `CodeEvalActor` | Code Generation & Evaluation Benchmark Harvester — HumanEval, MBPP, and SWE-bench programming tasks, entry points, canonical solutions, and verification unit tests. |
+| `src/actors/corpus/proofwiki-actor.ts` | `ProofWikiActor` | ProofWiki MediaWiki API — formal mathematical theorems, axioms, step-by-step proofs, definitions, sources, and normalized LaTeX math formulas. |
+| `src/actors/corpus/lean-mathlib-actor.ts` | `LeanMathlibActor` | Lean 4 & Mathlib4 — computer-verified formal theorems, lemmas, definitions, and proof tactic steps with GFM markdown. |
+| `src/actors/corpus/lesswrong-actor.ts` | `LessWrongActor` | LessWrong & Alignment Forum GraphQL API — Bayesian rationality, decision theory, AI alignment essays, vote scores, and dialectic comment trees with GFM markdown. |
 
 #### Document Actors (`src/actors/documents/`) — local file and archive extraction
 
@@ -184,7 +198,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/pipeline/connectors/index.ts` | Connector Barrel | Re-exports connector registry and environment resolver. |
 | `src/pipeline/storage/index.ts` | `StorageBackend`, `StorageReceipt` | Storage provider contract and SHA-256 receipt generation interface. |
 | `src/pipeline/storage/local-storage.ts` | `LocalStorage` | Local disk pool storage provider calculating SHA-256 receipts. |
-| `src/pipeline/storage/google-drive-storage.ts` | `GoogleDriveStorage` | Google Drive storage backend uploading artifacts via Drive API v3. |
+| `src/pipeline/storage/google-drive-storage.ts` | `GoogleDriveStorage` | Google Drive storage backend uploading artifacts via Drive API v3 supporting both Service Account JWT and OAuth2 user tokens. |
 | `src/pipeline/storage/s3-storage.ts` | `S3Storage`, `detectMimeType` | AWS S3 storage driver using PutObjectCommand and SHA-256 receipts. |
 | `src/pipeline/storage/r2-storage.ts` | `R2Storage` | Cloudflare R2 storage driver with custom account endpoint mapping. |
 | `src/pipeline/storage/b2-storage.ts` | `B2Storage` | Backblaze B2 storage driver with S3-compatible endpoints. |
@@ -244,6 +258,8 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/arxiv-actor.test.ts` | `ArxivActor`, `src/core/server.ts` | arXiv Export API Atom XML parsing, searchQuery/idList param building, URL ID parsing, PDF extraction, SSRF protection, and REST routes. |
 | `tests/protokol-mcp-server.test.ts` | `ProtokolMcpServer` | Model Context Protocol JSON-RPC 2.0 handshake, tools/list inspection, actor execution via tools/call, and stream error handling. |
 | `tests/wikimedia-actor.test.ts` | `WikimediaActor`, `src/core/server.ts` | Page summaries, full article Parsoid HTML to Markdown, search parsing, SSRF guard, and REST route. |
+| `tests/wikipedia-actor.test.ts` | `WikipediaActor`, `WikimediaActor` | Wikipedia and Wikimedia actor test suite verifying summaries, GFM conversion, search parsing, and SSRF guard. |
+
 | `tests/openalex-actor.test.ts` | `OpenAlexActor`, `src/core/server.ts` | Inverted index abstract reconstruction, citation and open access filters, SSRF guard, and REST route. |
 | `tests/stack-exchange-actor.test.ts` | `StackExchangeActor`, `src/core/server.ts` | Questions and answers retrieval, instruction-tuning pair formatting, score filters, SSRF guard, and REST route. |
 | `tests/gutenberg-actor.test.ts` | `GutenbergActor`, `src/core/server.ts` | Gutendex search and book metadata, plain text download, license delimiter stripping, SSRF guard, and REST route. |
@@ -272,6 +288,18 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/job-scheduler-and-api.test.ts` | `JobRouter`, `ScheduleBroker`, `ProtokolMcpServer` | Integration tests for scheduled jobs, cron validation, path traversal guard, REST endpoints, and MCP tools. |
 | `tests/cold-vault-exporter-and-api.test.ts` | `ColdVaultExporter`, `VaultRouter`, `ProtokolMcpServer` | Integration tests for cold vault volume initialization, dataset packaging, SHA256SUMS generation, replica ledger tracking, file corruption detection, REST endpoints, and MCP tools. |
 | `tests/scaffold-actor.test.ts` | `scripts/scaffold-actor.mjs` | Validation tests for actor scaffolding CLI, argument parsing, category verification, name validation, and template invariants. |
+| `tests/resmi-gazete-actor.test.ts` | `ResmiGazeteActor`, `src/api/server.ts` | URL resolution, date parsing, SSRF guard, daily bulletin extraction, category/query filtering, GFM markdown, and REST route. |
+| `tests/yargitay-actor.test.ts` | `YargitayActor`, `src/api/server.ts` | URL resolution, court routing, SSRF guard, JSON/HTML decision parsing, Turkish diacritic normalization, chamber/query filtering, GFM markdown, and REST route. |
+| `tests/kap-actor.test.ts` | `KapActor`, `src/api/server.ts` | URL resolution, ticker routing, SSRF guard, JSON/HTML disclosure parsing, Turkish diacritic normalization, ticker/query filtering, GFM markdown, and REST route. |
+| `tests/github-actor.test.ts` | `GithubActor`, `src/api/server.ts` | URL resolution, repo routing, SSRF guard, base64 README decoding, repo metadata, issues/PR/releases GFM markdown, and REST route. |
+| `tests/openreview-actor.test.ts` | `OpenReviewActor`, `src/api/server.ts` | URL resolution, venue/forum routing, SSRF guard, v1/v2 note parsing, review/rebuttal dialectic GFM markdown, and REST route. |
+| `tests/hacker-news-actor.test.ts` | `HackerNewsActor`, `src/api/server.ts` | URL resolution, story/search routing, SSRF guard, Algolia/Firebase JSON parsing, nested comment trees, and REST route. |
+| `tests/huggingface-datasets-actor.test.ts` | `HuggingFaceDatasetsActor`, `src/api/server.ts` | URL resolution, rows/splits/info routing, SSRF guard, datasets-server JSON streaming, schema parsing, GFM markdown, and REST route. |
+| `tests/math-reasoning-actor.test.ts` | `MathReasoningActor`, `src/api/server.ts` | URL resolution, benchmark routing, SSRF guard, GSM8K CoT split, Hendrycks MATH boxed answer extraction, SVAMP parsing, GFM markdown, and REST route. |
+| `tests/code-eval-actor.test.ts` | `CodeEvalActor`, `src/api/server.ts` | URL resolution, benchmark routing, SSRF guard, HumanEval entry point / test extraction, MBPP test list joining, SWE-bench patch parsing, and REST route. |
+| `tests/proofwiki-actor.test.ts` | `ProofWikiActor`, `src/api/server.ts` | URL resolution, action routing, SSRF guard, wikitext math normalization, multi-proof parsing, sources/categories extraction, and REST route. |
+| `tests/lean-mathlib-actor.test.ts` | `LeanMathlibActor`, `src/api/server.ts` | URL resolution, repo routing, SSRF guard, declaration parsing, docstrings, tactic sequence extraction, theorem filtering, and REST route. |
+| `tests/lesswrong-actor.test.ts` | `LessWrongActor`, `src/api/server.ts` | URL resolution, action routing, SSRF guard, post extraction, author attribution, vote scores, dialectic comment trees, and REST route. |
 
 ---
 
@@ -284,10 +312,14 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/types/node-sqlite.d.ts` | Ambient Declaration | TypeScript type declaration for `node:sqlite` (DatabaseSync, StatementSync). Required because `@types/node@20` does not include Node 22 built-in SQLite types. |
 | `AGENTS.md` | Agent Context | Operational rules, naming discipline, neuro-ergonomic communication rules. |
 | `GEMINI.md` | Agent Context | Project rules and architectural integrity instructions. |
-| `.agents/skills/` | Skill Library | 38 technical skill definitions (naming discipline, code review, tdd, etc.). |
+| `.agents/skills/` | Skill Library | Curated technical skill definitions (naming discipline, code review, tdd, etc.) with symlink at `skills/`. |
+| `context/system-manifest.md` | System Map | Ultra-compact single-page operational runtime manifest (DB paths, routers, storage, actors). |
+| `ledger/` | Append-Only Ledger | Immutable task ledger (`index.jsonl`), gzipped session checkpoints (`sessions/`), and telemetry. |
 | `docs/git-commit-convention.md` | Engineering Standard | Git Commit Convention v1.0 specification and agent attribution rules. |
 | `docs/developer-onboarding.md` | Documentation | Getting started guide, environment variables, command references. |
 | `docs/actor-contract.md` | Engineering Standard | Actor contract specification, security invariants, lifecycle, and 8-step registration checklist. |
+| `docs/actor-wiki-template.md` | Engineering Standard | Canonical technical wiki specification template with Mermaid diagrams, security invariants, and input/output contracts. |
+| `docs/actors/` | Technical Wikis | Canonical architectural wiki specifications for domain actors (e.g. `wikipedia.md`, `hacker-news.md`). |
 | `scripts/scaffold-actor.mjs` | Automation CLI | Actor scaffolding generator CLI (`npm run make:actor`) producing actor class, test, JSON example, and barrel export. |
 | `biome.json` | Linter / Formatter Config | Biome static analysis and formatting rules for src, tests, and scripts. |
 | `context/connectome.md` | System Map | Deterministically generated routing and actor dependency map. |
@@ -299,8 +331,8 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `examples/pipelines/ktb-ekitap-sample.yaml` | Pipeline Config | Sample pipeline configuration for Turkish Ministry of Culture e-book scraping actor. |
 | `examples/pipelines/corpus-parquet-sample.yaml` | Pipeline Config | Sample pipeline configuration for corpus text datasets with zstd-compressed Parquet sharding. |
 | `examples/pipelines/wikimedia-sample.yaml` | Pipeline Config | Sample pipeline configuration for Wikimedia encyclopedic article extraction. |
-| `examples/actors/` | Example Configs | 31 standalone, runnable JSON configuration templates for all extraction actors. |
-| `src/actors/README.md` | Actor Catalog | Categorized 6-domain documentation of 31 actors with REST, MCP, and input/output contracts. |
+| `examples/actors/` | Example Configs | 34 standalone, runnable JSON configuration templates for all extraction actors. |
+| `src/actors/README.md` | Actor Catalog | Categorized 6-domain documentation of 41 actors with REST, MCP, and input/output contracts. |
 | `context/schema.sql` | Database Schema | Canonical single source of truth ANSI/SQLite schema for datasets, shards, replicas, and audit ledger. |
 | `scripts/corpus_pipeline/schema.sql` | Database Schema | Mirrored ANSI/SQLite relational DDL for corpus pipeline components. |
 | `scripts/corpus_pipeline/metadata_catalog.py` | Catalog Manager | Corpus metadata manager, shard ledger, replica tracking, and manifest exporter. |

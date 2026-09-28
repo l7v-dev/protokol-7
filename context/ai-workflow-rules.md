@@ -31,7 +31,7 @@ Update the relevant context file whenever implementation changes:
 - System architecture or boundaries (`architecture-context.md`)
 - File map or component inventory (`architecture-schema.md`)
 - Code conventions or standards (`code-standards.md`)
-- Progress and completed phases (`progress-tracker.md`)
+- Progress and completed phases (`TASKS.md`, `ledger/index.jsonl`)
 
 ---
 
@@ -42,7 +42,7 @@ Before considering a unit complete:
 2. TypeScript compiles without errors (`npm run lint` / `tsc --noEmit`).
 3. Zero marketing buzzwords are present (`npm run lint:naming`).
 4. Production build succeeds (`npm run build`).
-5. `progress-tracker.md` reflects the actual completed state.
+5. `TASKS.md` and `ledger/index.jsonl` reflect the actual completed state.
 
 ---
 

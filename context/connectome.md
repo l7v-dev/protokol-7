@@ -1,6 +1,6 @@
 # Connectome — Otomatik Üretilen Sistem Haritası
 
-> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-27). Elle düzenlenmez.
+> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-28). Elle düzenlenmez.
 > Çözümleyici Motor: TypeScript Compiler API AST (v5.9.3)
 
 ## Çekirdek Modüller ve Mimari Düğümler (Centrality)
@@ -9,17 +9,20 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/core/types.ts` | 68 | 113 | Yardımcı Modül |
-| `src/dataset/types.ts` | 68 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 68 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 68 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 29 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 26 | 3 | Yardımcı Modül |
-| `src/core/server.ts` | 17 | 1 | Giriş Noktası (Server) |
-| `src/server.ts` | 17 | 0 | Giriş Noktası (Server) |
+| `src/api/types.ts` | 93 | 154 | Yardımcı Modül |
+| `src/dataset/types.ts` | 93 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 93 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 93 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 42 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 39 | 3 | Yardımcı Modül |
+| `src/api/server.ts` | 18 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 18 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
-| `src/core/registry-database.ts` | 13 | 8 | Bileşen Tescili (Registry) |
-| `src/core/index.ts` | 10 | 0 | Yardımcı Modül |
+| `src/api/registry-database.ts` | 13 | 8 | Bileşen Tescili (Registry) |
+| `src/actors/corpus/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/actors/documents/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/actors/web/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/api/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/dataset/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/mcp/index.ts` | 10 | 0 | Yardımcı Modül |
@@ -30,12 +33,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/processors/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/vault/index.ts` | 10 | 0 | Yardımcı Modül |
-| `src/pipeline/pipeline-runner.ts` | 9 | 3 | Yardımcı Modül |
+| `src/pipeline/pipeline-runner.ts` | 9 | 4 | Yardımcı Modül |
+| `src/api/run-registry.ts` | 8 | 6 | Bileşen Tescili (Registry) |
 | `src/browser/browser-pool.ts` | 7 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/mcp/protokol-mcp-server.ts` | 7 | 3 | Giriş Noktası (Server) |
 | `src/actors/actor-registry.ts` | 6 | 2 | Bileşen Tescili (Registry) |
-| `src/core/context-guard.ts` | 6 | 4 | Yardımcı Modül |
-| `src/core/run-registry.ts` | 6 | 6 | Bileşen Tescili (Registry) |
+| `src/api/context-guard.ts` | 6 | 4 | Yardımcı Modül |
 | `src/pipeline/storage/s3-storage.ts` | 6 | 4 | Yardımcı Modül |
 | `src/extractors/structured-extractor.ts` | 5 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
@@ -45,7 +48,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
-| `src/actors/pdf-document-actor.ts` | 3 | 1 | Etki Alanı Aktörü (Actor) |
+| `scripts/terminal-theme.mjs` | 3 | 7 | Yardımcı Modül |
+| `src/actors/documents/pdf-document-actor.ts` | 3 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/dataset/dataset-publisher.ts` | 3 | 2 | Yardımcı Modül |
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/integrations/pipedream-connect.ts` | 3 | 6 | Yardımcı Modül |
@@ -57,31 +61,45 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/storage/b2-storage.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/local-storage.ts` | 3 | 1 | Yardımcı Modül |
 | `src/pipeline/storage/r2-storage.ts` | 3 | 2 | Yardımcı Modül |
+| `src/utils/terminal-theme.ts` | 3 | 8 | Yardımcı Modül |
 | `src/vault/cold-vault-exporter.ts` | 3 | 1 | Yardımcı Modül |
-| `src/actors/archive-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/clinical-trials-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/court-listener-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/dergipark-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/document-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/epub-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/eur-lex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/europe-pmc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/gutenberg-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/ietf-rfc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/internet-archive-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/ktb-ekitap-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/mit-ocw-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/open-fda-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/openalex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/openstax-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/playwright-browser-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/saglik-ekutuphane-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/sec-edgar-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/software-heritage-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/stack-exchange-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/wikimedia-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/clinical-trials-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/code-eval-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/court-listener-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/dergipark-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/eur-lex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/europe-pmc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/github-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/gutenberg-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/hacker-news-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/huggingface-datasets-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/ietf-rfc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/internet-archive-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/kap-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/ktb-ekitap-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/lean-mathlib-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/lesswrong-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/math-reasoning-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/mit-ocw-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/open-fda-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/openalex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/openreview-actor.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/openstax-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/proofwiki-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/resmi-gazete-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/saglik-ekutuphane-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/sec-edgar-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/software-heritage-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/stack-exchange-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wikipedia-actor.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/yargitay-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/documents/archive-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/documents/document-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/documents/epub-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/web/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/web/playwright-browser-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/api/run-logger.ts` | 2 | 2 | Yardımcı Modül |
 | `src/browser/stealth-manager.ts` | 2 | 2 | Yardımcı Modül |
 | `src/extractors/epub-extractor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/multi-column-layout-resolver.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
@@ -101,21 +119,22 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/processors/quality-filter.ts` | 2 | 4 | Yardımcı Modül |
 | `src/pipeline/processors/text-normalizer.ts` | 2 | 3 | Yardımcı Modül |
 | `src/pipeline/storage/google-drive-storage.ts` | 2 | 3 | Yardımcı Modül |
-| `src/actors/api-extractor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/crawler-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/markdown-reader-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/network-interceptor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/serp-search-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
-| `src/actors/sitemap-xml-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wikimedia-actor.ts` | 1 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/actors/web/api-extractor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/web/crawler-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/web/markdown-reader-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/web/network-interceptor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/web/serp-search-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/web/sitemap-xml-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/api/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
+| `src/api/routers/dataset-router.ts` | 1 | 1 | Yardımcı Modül |
+| `src/api/routers/job-router.ts` | 1 | 2 | Yardımcı Modül |
+| `src/api/routers/pipeline-router.ts` | 1 | 2 | Yardımcı Modül |
+| `src/api/routers/store-router.ts` | 1 | 1 | Yardımcı Modül |
+| `src/api/routers/vault-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/browser/browser-session-manager.ts` | 1 | 3 | Oturum Denetleyicisi |
 | `src/browser/dom-indexer.ts` | 1 | 3 | Yardımcı Modül |
 | `src/browser/interactive-browser-controller.ts` | 1 | 5 | Yardımcı Modül |
-| `src/core/dataset-router.ts` | 1 | 1 | Yardımcı Modül |
-| `src/core/job-router.ts` | 1 | 2 | Yardımcı Modül |
-| `src/core/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
-| `src/core/pipeline-router.ts` | 1 | 2 | Yardımcı Modül |
-| `src/core/store-router.ts` | 1 | 1 | Yardımcı Modül |
-| `src/core/vault-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/extractors/robots-parser.ts` | 1 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/mcp/http-transport.ts` | 1 | 2 | Yardımcı Modül |
 | `src/network/crawl-url-accumulator.ts` | 1 | 3 | Yardımcı Modül |
@@ -126,15 +145,20 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/ocr/connectors/local-tesseract-connector.ts` | 1 | 2 | Yardımcı Modül |
 | `src/ocr/connectors/mistral-ocr-connector.ts` | 1 | 2 | Yardımcı Modül |
 | `src/ocr/pdf-rasterizer.ts` | 1 | 2 | Yardımcı Modül |
+| `src/telemetry/anomalies.ts` | 1 | 4 | Yardımcı Modül |
 | `scripts/checkpoint.mjs` | 0 | 3 | Yardımcı Modül |
 | `scripts/consolidate-memory.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/doctor.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/generate-connectome.mjs` | 0 | 4 | Sistem Haritacısı |
+| `scripts/logs.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/omega-mcp-server.mjs` | 0 | 0 | Giriş Noktası (Server) |
 | `scripts/omega-memory.mjs` | 0 | 0 | Semantik Bellek |
 | `scripts/pipedream-cli.mjs` | 0 | 0 | Yardımcı Modül |
+| `scripts/pulse.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/sca-check.mjs` | 0 | 0 | Yardımcı Modül |
+| `scripts/scaffold-actor.mjs` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `scripts/verify-pipeline.mjs` | 0 | 0 | Doğrulama Hattı |
+| `src/actors/actor.template.ts` | 0 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/ocr/ocr-connector-registry.ts` | 0 | 3 | Bileşen Tescili (Registry) |
 | `src/pipeline/cli.ts` | 0 | 0 | Yardımcı Modül |
 | `src/types/node-sqlite.d.ts` | 0 | 0 | Yardımcı Modül |
@@ -147,6 +171,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/browser-pool.test.ts` | 0 | 0 | Kaynak Yöneticisi (BrowserPool) |
 | `tests/browser-session-manager.test.ts` | 0 | 0 | Oturum Denetleyicisi |
 | `tests/clinical-trials-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/code-eval-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/cold-vault-exporter-and-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/context-guard.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/court-listener-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -161,13 +186,20 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/epub-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/eur-lex-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/europe-pmc-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/github-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/gutenberg-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/hacker-news-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/huggingface-datasets-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/ietf-rfc-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/interactive-browser-controller.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/internet-archive-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/job-scheduler-and-api.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/kap-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/ktb-ekitap-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/lean-mathlib-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/lesswrong-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/markdown-reader-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/math-reasoning-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/mcp-http-transport.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/mit-ocw-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/multi-column-layout-resolver.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -176,6 +208,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/office-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/open-fda-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/openalex-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/openreview-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/openstax-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/pdf-anomaly-detector.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pdf-document-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -187,14 +220,17 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/pipeline-runner.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipeline-schema.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/politeness-limiter.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/proofwiki-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/protokol-mcp-server.test.ts` | 0 | 0 | Giriş Noktası (Server) |
 | `tests/proxy-manager.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/readability-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/registry-database.test.ts` | 0 | 0 | Bileşen Tescili (Registry) |
+| `tests/resmi-gazete-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/retry-handler.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/robots-parser.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/safe-redirect-fetcher.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/saglik-ekutuphane-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/scaffold-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/scheduler-and-remote.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/scraping-actors.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/sec-edgar-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -210,119 +246,16 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/store-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/structured-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/tabular-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/telemetry-and-logs.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/wikimedia-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/wikipedia-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/yargitay-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 
 ## Kayıtlı API Rotaları
 
 | Route | Method | Bağlı Actor / Controller |
 |---|---|---|
-| `/openapi.json` | GET | — |
-| `/docs` | GET | — |
-| `/api-docs` | GET | — |
-| `/health` | GET | BrowserPool (health) |
-| `/api/v1/actors` | GET | ActorRegistry (list) |
-| `/actors` | GET | ActorRegistry (list) |
-| `/api/v1/actors` | POST | ActorRegistry (execute) |
-| `/actors` | POST | ActorRegistry (execute) |
-| `/api/v1/scrape` | POST | CheerioScraperActor / PlaywrightBrowserActor |
-| `/scrape` | POST | CheerioScraperActor / PlaywrightBrowserActor |
-| `/api/v1/crawl` | POST | CrawlerActor |
-| `/crawl` | POST | CrawlerActor |
-| `/api/v1/sitemap` | POST | SitemapXmlActor |
-| `/sitemap` | POST | SitemapXmlActor |
-| `/api/v1/reader` | POST | MarkdownReaderActor |
-| `/reader` | POST | MarkdownReaderActor |
-| `/api/v1/network/intercept` | POST | NetworkInterceptorActor |
-| `/network/intercept` | POST | NetworkInterceptorActor |
-| `/api/v1/search` | POST | SerpSearchActor |
-| `/search` | POST | SerpSearchActor |
-| `/api/v1/pdf` | POST | PdfDocumentActor |
-| `/pdf` | POST | PdfDocumentActor |
-| `/api/v1/documents` | POST | — |
-| `/documents` | POST | — |
-| `/api/v1/archives` | POST | — |
-| `/archives` | POST | — |
-| `/api/v1/ocr` | POST | — |
-| `/ocr` | POST | — |
-| `/api/v1/arxiv` | POST | — |
-| `/arxiv` | POST | — |
-| `/api/v1/wikimedia` | POST | — |
-| `/wikimedia` | POST | — |
-| `/api/v1/openalex` | POST | — |
-| `/openalex` | POST | — |
-| `/api/v1/stack-exchange` | POST | — |
-| `/stack-exchange` | POST | — |
-| `/api/v1/gutenberg` | POST | — |
-| `/gutenberg` | POST | — |
-| `/api/v1/europe-pmc` | POST | — |
-| `/europe-pmc` | POST | — |
-| `/api/v1/ietf-rfc` | POST | — |
-| `/ietf-rfc` | POST | — |
-| `/api/v1/saglik-ekutuphane` | POST | — |
-| `/saglik-ekutuphane` | POST | — |
-| `/api/v1/ktb-ekitap` | POST | — |
-| `/ktb-ekitap` | POST | — |
-| `/api/v1/epub` | POST | — |
-| `/epub` | POST | — |
-| `/api/v1/dergipark` | POST | — |
-| `/dergipark` | POST | — |
-| `/api/v1/internet-archive` | POST | — |
-| `/internet-archive` | POST | — |
-| `/api/v1/clinical-trials` | POST | — |
-| `/clinical-trials` | POST | — |
-| `/api/v1/open-fda` | POST | — |
-| `/open-fda` | POST | — |
-| `/api/v1/sec-edgar` | POST | — |
-| `/sec-edgar` | POST | — |
-| `/api/v1/court-listener` | POST | — |
-| `/court-listener` | POST | — |
-| `/api/v1/software-heritage` | POST | — |
-| `/software-heritage` | POST | — |
-| `/api/v1/eur-lex` | POST | — |
-| `/eur-lex` | POST | — |
-| `/api/v1/openstax` | POST | — |
-| `/openstax` | POST | — |
-| `/api/v1/mit-ocw` | POST | — |
-| `/mit-ocw` | POST | — |
-| `/api/v1/browser/action` | POST | InteractiveBrowserController.executeAction |
-| `/browser/action` | POST | InteractiveBrowserController.executeAction |
-| `/api/v1/browser/session/:id` | DELETE | InteractiveBrowserController.closeSession |
-| `/browser/session/:id` | DELETE | InteractiveBrowserController.closeSession |
-| `/:id` | GET | — |
-| `/store` | GET | — |
-| `/dashboard` | GET | — |
-| `/.well-known/mcp.json` | GET | — |
-| `/api/v1/store/actors` | GET | ActorRegistry (list) |
-| `/api/v1/store/actors/:id` | GET | ActorRegistry (list) |
-| `/api/v1/store/actors/:id` | POST | ActorRegistry (execute) |
-| `/api/v1/store/runs` | GET | — |
-| `/api/v1/store/runs/:id` | GET | — |
-| `/api/v1/store/quarantine` | GET | — |
-| `/api/v1/pipedream/config` | GET | — |
-| `/api/pipedream/config` | GET | — |
-| `/api/v1/pipedream/connect-token` | POST | — |
-| `/api/v1/pipedream/tokens` | POST | — |
-| `/api/pipedream/tokens` | POST | — |
-| `/api/v1/pipedream/accounts` | GET | — |
-| `/api/pipedream/accounts` | GET | — |
-| `/api/v1/pipedream/accounts/:id` | DELETE | — |
-| `/api/pipedream/accounts/:id` | DELETE | — |
-| `/api/v1/pipedream/mcp/config` | GET | — |
-| `/api/pipedream/mcp/config` | GET | — |
-| `/api/v1/pipedream/mcp/token` | POST | — |
-| `/api/pipedream/mcp/token` | POST | — |
-| `/api/v1/pipelines/run` | POST | — |
-| `/api/v1/pipelines/runs` | GET | — |
-| `/api/v1/pipelines/runs/:id` | GET | — |
-| `/api/v1/pipelines/templates` | GET | — |
-| `/api/v1/datasets/publish` | POST | — |
-| `/api/v1/datasets` | GET | — |
-| `/api/v1/datasets/:id` | GET | — |
-| `/api/v1/jobs/schedule` | POST | — |
-| `/api/v1/jobs` | GET | — |
-| `/api/v1/vault/export` | POST | — |
-| `/api/v1/vault/verify` | POST | — |
-| `/api/v1/vault/inspect` | GET | — |
+| *(Belirlenemedi — henüz kaynak kodda API rotası tanımlanmamış)* | — | — |
 
 ## Kayıtlı Aktörler & Bileşenler
 
@@ -339,6 +272,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `pdf-document` | `PdfDocumentActor` |
 | `arxiv` | `ArxivActor` |
 | `wikimedia` | `WikimediaActor` |
+| `wikipedia` | `WikipediaActor` |
 | `open-alex` | `OpenAlexActor` |
 | `stack-exchange` | `StackExchangeActor` |
 | `gutenberg` | `GutenbergActor` |
@@ -359,6 +293,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `eur-lex` | `EurLexActor` |
 | `open-stax` | `OpenStaxActor` |
 | `mit-ocw` | `MitOcwActor` |
+| `resmi-gazete` | `ResmiGazeteActor` |
+| `yargitay` | `YargitayActor` |
+| `kap` | `KapActor` |
+| `github` | `GithubActor` |
+| `hacker-news` | `HackerNewsActor` |
+| `hugging-face-datasets` | `HuggingFaceDatasetsActor` |
+| `math-reasoning` | `MathReasoningActor` |
+| `code-eval` | `CodeEvalActor` |
+| `proof-wiki` | `ProofWikiActor` |
+| `lean-mathlib` | `LeanMathlibActor` |
+| `less-wrong` | `LessWrongActor` |
+| `open-review` | `OpenReviewActor` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
 | `mistral-ocr-connector` | `MistralOcrConnector` |
@@ -392,6 +338,15 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `logTrace(entry, telemetryFile): void`
 - `createTraceSession(task, tier, telemetryFile): void`
 
+### `scripts/terminal-theme.mjs`
+
+**Fonksiyonlar (Functions):**
+- `badge(level, message): void`
+- `banner(title, subtitle): void`
+- `divider(char): void`
+- `panel(title, entries): void`
+- `table(headers, rows): void`
+
 ### `src/actors/actor-manifests.ts`
 
 **Arayüzler (Interfaces):**
@@ -412,22 +367,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Fonksiyonlar (Functions):**
 - `createDefaultActorRegistry(): ActorRegistry`
 
-### `src/actors/api-extractor-actor.ts`
+### `src/actors/actor.template.ts`
 
 **Sınıflar (Classes):**
-- `class ApiExtractorActor`
-  - `getNestedValue(obj: unknown, path: string): unknown`
-  - `applyProjection(data: unknown, keys: string[]): unknown`
-  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ApiExtractorResult>>`
-  - `executeRequest(url: string, method: string, options: ApiExtractorTaskOptions, timeoutMs: number): Promise<{ status: number; headers: Record<string, string>; data: unknown }>`
+- `class TemplateActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<TemplateActorResult>>`
+  - `buildEndpointUrl(targetUrl: string, options: TemplateActorTaskOptions): string`
+  - `parseResponse(rawContent: string, sourceUrl: string): TemplateActorResult`
+**Arayüzler (Interfaces):**
+- `interface TemplateActorTaskOptions` (4 üye)
+- `interface TemplateActorResult` (3 üye)
 
-### `src/actors/archive-extractor-actor.ts`
-
-**Sınıflar (Classes):**
-- `class ArchiveExtractorActor`
-  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<ArchiveExtractorResult>>`
-
-### `src/actors/arxiv-actor.ts`
+### `src/actors/corpus/arxiv-actor.ts`
 
 **Sınıflar (Classes):**
 - `class ArxivActor`
@@ -442,13 +393,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   }`
   - `enrichPapersWithPdfText(papers: ArxivPaperItem[], timeoutMs: number, allowLocalNetwork: boolean): Promise<void>`
 
-### `src/actors/cheerio-scraper-actor.ts`
-
-**Sınıflar (Classes):**
-- `class CheerioScraperActor`
-  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ScrapedPageResult>>`
-
-### `src/actors/clinical-trials-actor.ts`
+### `src/actors/corpus/clinical-trials-actor.ts`
 
 **Sınıflar (Classes):**
 - `class ClinicalTrialsActor`
@@ -457,7 +402,30 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `normalizeStudy(raw: RawStudyProtocol): ClinicalStudySummary`
   - `synthesizeMarkdown(studies: ClinicalStudySummary[], totalCount: number): string`
 
-### `src/actors/court-listener-actor.ts`
+### `src/actors/corpus/code-eval-actor.ts`
+
+**Sınıflar (Classes):**
+- `class CodeEvalActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<CodeEvalActorResult>>`
+  - `resolveParameters(targetUrl: string, options: CodeEvalActorTaskOptions): {
+    benchmark: string;
+    dataset: string;
+    config: string;
+    split: string;
+    offset: number;
+    limit: number;
+  }`
+  - `buildEndpointUrl(targetUrl: string, resolved: {
+      dataset: string;
+      config: string;
+      split: string;
+      offset: number;
+      limit: number;
+    }): string`
+  - `parseTasks(benchmark: string, json: Record<string, unknown>): CodeEvalItem[]`
+  - `renderMarkdown(benchmark: string, split: string, tasks: CodeEvalItem[]): string`
+
+### `src/actors/corpus/court-listener-actor.ts`
 
 **Sınıflar (Classes):**
 - `class CourtListenerActor`
@@ -466,13 +434,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `normalizeItem(raw: RawCourtListenerItem): CourtListenerDocumentItem`
   - `synthesizeMarkdown(items: CourtListenerDocumentItem[], totalCount: number, options: CourtListenerActorTaskOptions): string`
 
-### `src/actors/crawler-actor.ts`
-
-**Sınıflar (Classes):**
-- `class CrawlerActor`
-  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<CrawlerResult>>`
-
-### `src/actors/dergipark-actor.ts`
+### `src/actors/corpus/dergipark-actor.ts`
 
 **Sınıflar (Classes):**
 - `class DergiParkActor`
@@ -483,20 +445,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `parseRecord($: ReturnType<typeof cheerio.load>, el: Parameters<ReturnType<typeof cheerio.load>>[0]): DergiParkArticle | undefined`
   - `httpError(task: ActorTask, status: number, message: string, startTime: number): ActorResult<DergiParkActorResult>`
 
-### `src/actors/document-extractor-actor.ts`
-
-**Sınıflar (Classes):**
-- `class DocumentExtractorActor`
-  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<DocumentExtractorResult>>`
-  - `resolveFormat(url: string, buffer: Buffer, explicitFormat: SupportedDocumentFormat): SupportedDocumentFormat`
-
-### `src/actors/epub-extractor-actor.ts`
-
-**Sınıflar (Classes):**
-- `class EpubExtractorActor`
-  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<EpubExtractorResult>>`
-
-### `src/actors/eur-lex-actor.ts`
+### `src/actors/corpus/eur-lex-actor.ts`
 
 **Sınıflar (Classes):**
 - `class EurLexActor`
@@ -508,14 +457,23 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `inferDocType(celex: string): string`
   - `synthesizeMarkdown(docs: EurLexDocumentItem[], celex: string, query: string, language): string`
 
-### `src/actors/europe-pmc-actor.ts`
+### `src/actors/corpus/europe-pmc-actor.ts`
 
 **Sınıflar (Classes):**
 - `class EuropePmcActor`
   - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<EuropePmcActorResult>>`
   - `buildApiUrl(targetUrl: string | undefined, options: EuropePmcActorTaskOptions): string`
 
-### `src/actors/gutenberg-actor.ts`
+### `src/actors/corpus/github-actor.ts`
+
+**Sınıflar (Classes):**
+- `class GithubActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<GithubActorResult>>`
+  - `resolveRepoAndAction(targetUrl: string, options: GithubActorTaskOptions): { owner: string; repo: string; action: string }`
+  - `buildEndpointUrl(targetUrl: string | undefined, owner: string, repo: string, action: string, options: GithubActorTaskOptions): string`
+  - `renderMarkdown(owner: string, repo: string, action: string, data: Record<string, unknown> | Array<Record<string, unknown>>, endpointUrl: string): string`
+
+### `src/actors/corpus/gutenberg-actor.ts`
 
 **Sınıflar (Classes):**
 - `class GutenbergActor`
@@ -524,7 +482,56 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `stripGutenbergHeaders(rawText: string): string`
   - `buildApiUrl(targetUrl: string | undefined, options: GutenbergActorTaskOptions): string`
 
-### `src/actors/ietf-rfc-actor.ts`
+### `src/actors/corpus/hacker-news-actor.ts`
+
+**Sınıflar (Classes):**
+- `class HackerNewsActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<HackerNewsActorResult>>`
+  - `resolveParameters(targetUrl: string, options: HackerNewsActorTaskOptions): {
+    action: "top" | "best" | "new" | "ask" | "show" | "story" | "search";
+    storyId?: number;
+    query?: string;
+  }`
+  - `buildEndpointUrl(targetUrl: string | undefined, action: string, storyId: number, query: string, limit: number): string`
+  - `parseResponse(action: string, rawText: string, endpointUrl: string, maxComments: number): { stories: HackerNewsStoryItem[]; markdown: string }`
+  - `parseCommentTree(rawChildren: Array<Record<string, unknown>> | undefined, maxCount: number, currentCount): HackerNewsCommentItem[]`
+  - `renderMarkdown(action: string, stories: HackerNewsStoryItem[], endpointUrl: string): string`
+  - `renderCommentsMarkdown(comments: HackerNewsCommentItem[], lines: string[], depth: number): void`
+
+### `src/actors/corpus/huggingface-datasets-actor.ts`
+
+**Sınıflar (Classes):**
+- `class HuggingFaceDatasetsActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<HuggingFaceDatasetsActorResult>>`
+  - `resolveParameters(targetUrl: string, options: HuggingFaceDatasetsActorTaskOptions): {
+    action: "rows" | "splits" | "info" | "size";
+    dataset: string;
+    config: string;
+    split: string;
+    offset: number;
+    limit: number;
+  }`
+  - `buildEndpointUrl(targetUrl: string, resolved: {
+      action: "rows" | "splits" | "info" | "size";
+      dataset: string;
+      config: string;
+      split: string;
+      offset: number;
+      limit: number;
+    }): string`
+  - `parseResponse(resolved: {
+      action: "rows" | "splits" | "info" | "size";
+      dataset: string;
+      config: string;
+      split: string;
+      offset: number;
+      limit: number;
+    }, queryUrl: string, json: Record<string, unknown>): HuggingFaceDatasetsActorResult`
+  - `renderRowsMarkdown(resolved: { dataset: string; config: string; split: string; offset: number; limit: number }, features: HuggingFaceDatasetsFeatureItem[], rows: Array<Record<string, unknown>>, totalRows: number): string`
+  - `renderSplitsMarkdown(dataset: string, splits: HuggingFaceDatasetsSplitItem[]): string`
+  - `renderInfoMarkdown(dataset: string, info: { description?: string; homepage?: string; license?: string; citation?: string }): string`
+
+### `src/actors/corpus/ietf-rfc-actor.ts`
 
 **Sınıflar (Classes):**
 - `class IetfRfcActor`
@@ -542,7 +549,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `buildRfcTextUrl(targetUrl: string | undefined, rfcNumber: number): string`
   - `buildDatatrackerSearchUrl(targetUrl: string | undefined, options: IetfRfcActorTaskOptions): string`
 
-### `src/actors/internet-archive-actor.ts`
+### `src/actors/corpus/internet-archive-actor.ts`
 
 **Sınıflar (Classes):**
 - `class InternetArchiveActor`
@@ -555,7 +562,19 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `resolveIdentifier(task: ActorTask, opts: InternetArchiveActorTaskOptions): string | undefined`
   - `httpError(task: ActorTask, status: number, message: string, startTime: number): ActorResult<InternetArchiveActorResult>`
 
-### `src/actors/ktb-ekitap-actor.ts`
+### `src/actors/corpus/kap-actor.ts`
+
+**Sınıflar (Classes):**
+- `class KapActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<KapActorResult>>`
+  - `buildEndpointUrl(targetUrl: string, options: KapActorTaskOptions): string`
+  - `parseResponse(rawText: string, queryUrl: string, options: KapActorTaskOptions): KapActorResult`
+  - `parseJsonDisclosures(rawItems: Record<string, unknown>[], queryUrl: string, options: KapActorTaskOptions): KapActorResult`
+  - `parseHtmlDisclosures(html: string, queryUrl: string, options: KapActorTaskOptions): KapActorResult`
+  - `applyFilters(items: KapDisclosureItem[], options: KapActorTaskOptions): KapDisclosureItem[]`
+  - `renderMarkdownSummary(disclosures: KapDisclosureItem[], queryUrl: string, companyTicker: string): string`
+
+### `src/actors/corpus/ktb-ekitap-actor.ts`
 
 **Sınıflar (Classes):**
 - `class KtbEkitapActor`
@@ -566,17 +585,84 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `handleDetailOrExtractAction(task: ActorTask, baseUrl: string, detailUrl: string, explicitBookId: number | undefined, shouldExtractText: boolean, timeoutMs: number, allowLocalNetwork: boolean, startTime: number): Promise<ActorResult<KtbEkitapActorResult>>`
   - `sanitizeTextForLlm(pages: string[]): string`
 
-### `src/actors/markdown-reader-actor.ts`
+### `src/actors/corpus/lean-mathlib-actor.ts`
 
 **Sınıflar (Classes):**
-- `class MarkdownReaderActor`
-  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<MarkdownReaderResult>>`
-  - `distillHtml(html: string, targetUrl: string, options: MarkdownReaderTaskOptions): MarkdownReaderResult`
-  - `extractHeadings(markdown: string): MarkdownHeadingItem[]`
-  - `renderToc(headings: MarkdownHeadingItem[]): string`
-  - `generateFrontmatter(meta: Record<string, string | number | undefined>): string`
+- `class LeanMathlibActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<LeanMathlibActorResult>>`
+  - `resolveParameters(targetUrl: string, options: LeanMathlibActorTaskOptions): {
+    action: "file" | "theorem" | "search" | "random";
+    repo: string;
+    path: string;
+    theorem?: string;
+    query?: string;
+    limit: number;
+    githubToken?: string;
+  }`
+  - `buildEndpointUrl(targetUrl: string, resolved: {
+      action: "file" | "theorem" | "search" | "random";
+      repo: string;
+      path: string;
+      query?: string;
+    }): string`
+  - `parseLeanDeclarations(sourceText: string, repo: string, filePath: string, filterTheorem: string): LeanMathlibItem[]`
+  - `parseSearchResults(json: Record<string, unknown>, repo: string): LeanMathlibItem[]`
+  - `renderMarkdown(action: string, repo: string, path: string, items: LeanMathlibItem[]): string`
 
-### `src/actors/mit-ocw-actor.ts`
+### `src/actors/corpus/lesswrong-actor.ts`
+
+**Sınıflar (Classes):**
+- `class LessWrongActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<LessWrongActorResult>>`
+  - `resolveParameters(targetUrl: string, options: LessWrongActorTaskOptions): {
+    action: "posts" | "post" | "comments" | "search";
+    platform: "lesswrong" | "alignmentforum";
+    postId?: string;
+    slug?: string;
+    query?: string;
+    limit: number;
+    view: string;
+    includeComments: boolean;
+    maxComments: number;
+  }`
+  - `buildEndpointUrl(targetUrl: string, platform: "lesswrong" | "alignmentforum"): string`
+  - `buildGraphQLPayload(resolved: {
+    action: "posts" | "post" | "comments" | "search";
+    postId?: string;
+    slug?: string;
+    query?: string;
+    limit: number;
+    view: string;
+  }): { query: string; variables: Record<string, unknown> }`
+  - `parseGraphQLResponse(action: string, json: Record<string, unknown>): { posts: LessWrongPost[]; comments?: LessWrongComment[] }`
+  - `fetchCommentsForPost(endpoint: string, postId: string, limit: number, headers: Record<string, string>, allowLocalNetwork: boolean): Promise<LessWrongComment[]>`
+  - `renderMarkdown(platform: string, action: string, posts: LessWrongPost[], comments: LessWrongComment[]): string`
+
+### `src/actors/corpus/math-reasoning-actor.ts`
+
+**Sınıflar (Classes):**
+- `class MathReasoningActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<MathReasoningActorResult>>`
+  - `resolveParameters(targetUrl: string, options: MathReasoningActorTaskOptions): {
+    benchmark: string;
+    dataset: string;
+    config: string;
+    split: string;
+    subject?: string;
+    offset: number;
+    limit: number;
+  }`
+  - `buildEndpointUrl(targetUrl: string, resolved: {
+      dataset: string;
+      config: string;
+      split: string;
+      offset: number;
+      limit: number;
+    }): string`
+  - `parseProblems(benchmark: string, json: Record<string, unknown>): MathReasoningItem[]`
+  - `renderMarkdown(benchmark: string, subject: string | undefined, problems: MathReasoningItem[]): string`
+
+### `src/actors/corpus/mit-ocw-actor.ts`
 
 **Sınıflar (Classes):**
 - `class MitOcwActor`
@@ -586,13 +672,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `renderCoursesMarkdown(courses: MitOcwCourseItem[], query: string | undefined, totalCount: number): string`
   - `renderCourseDetailMarkdown(course: MitOcwCourseItem, data: RawCourseDataJson): string`
 
-### `src/actors/network-interceptor-actor.ts`
-
-**Sınıflar (Classes):**
-- `class NetworkInterceptorActor`
-  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<NetworkInterceptorResult>>`
-
-### `src/actors/open-fda-actor.ts`
+### `src/actors/corpus/open-fda-actor.ts`
 
 **Sınıflar (Classes):**
 - `class OpenFdaActor`
@@ -601,7 +681,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `synthesizeMarkdown(endpoint: string, results: Array<Record<string, unknown>>, total: number): string`
   - `getFirstStringArray(val: unknown): string | undefined`
 
-### `src/actors/openalex-actor.ts`
+### `src/actors/corpus/openalex-actor.ts`
 
 **Sınıflar (Classes):**
 - `class OpenAlexActor`
@@ -609,7 +689,23 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `reconstructAbstract(invertedIndex: Record<string, number[]>): string | undefined`
   - `buildApiUrl(targetUrl: string | undefined, options: OpenAlexActorTaskOptions): string`
 
-### `src/actors/openstax-actor.ts`
+### `src/actors/corpus/openreview-actor.ts`
+
+**Sınıflar (Classes):**
+- `class OpenReviewActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<OpenReviewActorResult>>`
+  - `resolveParameters(targetUrl: string, options: OpenReviewActorTaskOptions): {
+    action: "submissions" | "forum" | "note";
+    venue?: string;
+    forumId?: string;
+    noteId?: string;
+    query?: string;
+  }`
+  - `buildEndpointUrl(targetUrl: string | undefined, action: string, venue: string, forumId: string, noteId: string, query: string, limit: number): string`
+  - `parseNotes(rawJson: string): OpenReviewNoteItem[]`
+  - `renderMarkdown(action: string, venue: string, forumId: string, notes: OpenReviewNoteItem[], endpointUrl: string): string`
+
+### `src/actors/corpus/openstax-actor.ts`
 
 **Sınıflar (Classes):**
 - `class OpenStaxActor`
@@ -620,20 +716,48 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `renderBooksMarkdown(books: OpenStaxBookItem[], query: string | undefined, totalCount: number, action: string): string`
   - `renderBookDetailMarkdown(book: OpenStaxBookItem, detail: Record<string, unknown>): string`
 
-### `src/actors/pdf-document-actor.ts`
+### `src/actors/corpus/proofwiki-actor.ts`
 
 **Sınıflar (Classes):**
-- `class PdfDocumentActor`
-  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<PdfDocumentResult>>`
-  - `validatePdfMagicBytes(data: Uint8Array): boolean`
+- `class ProofWikiActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<ProofWikiActorResult>>`
+  - `resolveParameters(targetUrl: string, options: ProofWikiActorTaskOptions): {
+    action: "theorem" | "search" | "random" | "category";
+    title?: string;
+    query?: string;
+    category?: string;
+    limit: number;
+  }`
+  - `buildEndpointUrl(targetUrl: string, resolved: {
+      action: "theorem" | "search" | "random" | "category";
+      title?: string;
+      query?: string;
+      category?: string;
+      limit: number;
+    }): string`
+  - `parseResponse(_action: string, json: Record<string, unknown>, fallbackTitle: string): ProofWikiItem[]`
+  - `parseWikitextSections(wikitext: string): {
+    theorem?: string;
+    proofs: string[];
+    definitions: string[];
+    sources: string[];
+  }`
+  - `normalizeMath(text: string): string`
+  - `renderMarkdown(action: string, items: ProofWikiItem[]): string`
 
-### `src/actors/playwright-browser-actor.ts`
+### `src/actors/corpus/resmi-gazete-actor.ts`
 
 **Sınıflar (Classes):**
-- `class PlaywrightBrowserActor`
-  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ScrapedPageResult>>`
+- `class ResmiGazeteActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<ResmiGazeteActorResult>>`
+  - `buildEndpointUrl(targetUrl: string, options: ResmiGazeteActorTaskOptions): string`
+  - `parseResmiGazeteHtml(html: string, queryUrl: string, options: ResmiGazeteActorTaskOptions): ResmiGazeteActorResult`
+  - `resolveAbsoluteUrl(href: string, base: string): string`
+  - `cleanDocumentText($: cheerio.CheerioAPI, _url: string): string`
+  - `monthNameToNumber(name: string): string`
+  - `renderMarkdownSummary(date: string, issueNumber: number | undefined, isRepeated: boolean, items: ResmiGazeteItem[], queryUrl: string): string`
 
-### `src/actors/saglik-ekutuphane-actor.ts`
+### `src/actors/corpus/saglik-ekutuphane-actor.ts`
 
 **Sınıflar (Classes):**
 - `class SaglikEkutuphaneActor`
@@ -644,7 +768,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `handleDetailOrExtractAction(task: ActorTask, baseUrl: string, publicationId: number, shouldExtractText: boolean, timeoutMs: number, allowLocalNetwork: boolean, startTime: number): Promise<ActorResult<SaglikEkutuphaneActorResult>>`
   - `parseSizeToBytes(sizeStr: string): number | undefined`
 
-### `src/actors/sec-edgar-actor.ts`
+### `src/actors/corpus/sec-edgar-actor.ts`
 
 **Sınıflar (Classes):**
 - `class SecEdgarActor`
@@ -656,22 +780,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `filterFilings(filings: SecFilingItem[], options: SecEdgarActorTaskOptions): SecFilingItem[]`
   - `synthesizeMarkdown(entityName: string, cik: string, sic: string, sicDescription: string, filings: SecFilingItem[], totalFilings): string`
 
-### `src/actors/serp-search-actor.ts`
-
-**Sınıflar (Classes):**
-- `class SerpSearchActor`
-  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<SerpSearchResult>>`
-  - `parseSerpHtml(html: string, maxResults: number): SerpResultItem[]`
-
-### `src/actors/sitemap-xml-actor.ts`
-
-**Sınıflar (Classes):**
-- `class SitemapXmlActor`
-  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<SitemapResult>>`
-  - `fetchXml(url: string, signal: AbortSignal): Promise<string>`
-  - `crawlSitemapRecursive(url: string, currentDepth: number, maxDepth: number, maxUrls: number, filterPatterns: string[] | undefined, aggregatedUrls: SitemapUrlEntry[], subSitemapsList: string[], signal: AbortSignal, setIndexFlag: (isIndex: boolean) => void): Promise<void>`
-
-### `src/actors/software-heritage-actor.ts`
+### `src/actors/corpus/software-heritage-actor.ts`
 
 **Sınıflar (Classes):**
 - `class SoftwareHeritageActor`
@@ -686,7 +795,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `synthesizeOriginMarkdown(visit: RawSwhOriginVisit): string`
   - `synthesizeRevisionMarkdown(swhid: string, rev: RawSwhRevision): string`
 
-### `src/actors/stack-exchange-actor.ts`
+### `src/actors/corpus/stack-exchange-actor.ts`
 
 **Sınıflar (Classes):**
 - `class StackExchangeActor`
@@ -694,12 +803,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `fetchAnswersForQuestions(questionIds: number[], site: string, apiKey: string | undefined, timeoutMs: number, allowLocalNetwork: boolean, baseApiUrl: string): Promise<Map<number, RawAnswer[]>>`
   - `buildSearchUrl(targetUrl: string | undefined, options: StackExchangeActorTaskOptions, site: string): string`
 
-### `src/actors/wikimedia-actor.ts`
+### `src/actors/corpus/wikipedia-actor.ts`
 
 **Sınıflar (Classes):**
-- `class WikimediaActor`
-  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikimediaActorResult>>`
-  - `resolveParameters(targetUrl: string | undefined, options: WikimediaActorTaskOptions): {
+- `class WikipediaActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikipediaActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: WikipediaActorTaskOptions): {
     lang: string;
     title?: string;
     action: "summary" | "article" | "search";
@@ -707,6 +816,431 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   }`
   - `buildApiUrl(targetUrl: string | undefined, lang: string, action: "summary" | "article" | "search", title: string, query: string, limit: number): string`
   - `stripHtmlTags(input: string): string`
+- `class WikimediaActor`
+
+### `src/actors/corpus/yargitay-actor.ts`
+
+**Sınıflar (Classes):**
+- `class YargitayActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<YargitayActorResult>>`
+  - `buildEndpointUrl(targetUrl: string, options: YargitayActorTaskOptions): string`
+  - `parseResponse(rawText: string, queryUrl: string, options: YargitayActorTaskOptions): YargitayActorResult`
+  - `parseJsonDecisions(rawItems: Record<string, unknown>[], queryUrl: string, courtName: string, options: YargitayActorTaskOptions): YargitayActorResult`
+  - `parseHtmlDecisions(html: string, queryUrl: string, courtName: string, options: YargitayActorTaskOptions): YargitayActorResult`
+  - `applyFilters(items: YargitayDecisionItem[], options: YargitayActorTaskOptions): YargitayDecisionItem[]`
+  - `renderMarkdownSummary(courtName: string, decisions: YargitayDecisionItem[], queryUrl: string): string`
+
+### `src/actors/documents/archive-extractor-actor.ts`
+
+**Sınıflar (Classes):**
+- `class ArchiveExtractorActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<ArchiveExtractorResult>>`
+
+### `src/actors/documents/document-extractor-actor.ts`
+
+**Sınıflar (Classes):**
+- `class DocumentExtractorActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<DocumentExtractorResult>>`
+  - `resolveFormat(url: string, buffer: Buffer, explicitFormat: SupportedDocumentFormat): SupportedDocumentFormat`
+
+### `src/actors/documents/epub-extractor-actor.ts`
+
+**Sınıflar (Classes):**
+- `class EpubExtractorActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<EpubExtractorResult>>`
+
+### `src/actors/documents/pdf-document-actor.ts`
+
+**Sınıflar (Classes):**
+- `class PdfDocumentActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<PdfDocumentResult>>`
+  - `validatePdfMagicBytes(data: Uint8Array): boolean`
+
+### `src/actors/web/api-extractor-actor.ts`
+
+**Sınıflar (Classes):**
+- `class ApiExtractorActor`
+  - `getNestedValue(obj: unknown, path: string): unknown`
+  - `applyProjection(data: unknown, keys: string[]): unknown`
+  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ApiExtractorResult>>`
+  - `executeRequest(url: string, method: string, options: ApiExtractorTaskOptions, timeoutMs: number): Promise<{ status: number; headers: Record<string, string>; data: unknown }>`
+
+### `src/actors/web/cheerio-scraper-actor.ts`
+
+**Sınıflar (Classes):**
+- `class CheerioScraperActor`
+  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ScrapedPageResult>>`
+
+### `src/actors/web/crawler-actor.ts`
+
+**Sınıflar (Classes):**
+- `class CrawlerActor`
+  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<CrawlerResult>>`
+
+### `src/actors/web/markdown-reader-actor.ts`
+
+**Sınıflar (Classes):**
+- `class MarkdownReaderActor`
+  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<MarkdownReaderResult>>`
+  - `distillHtml(html: string, targetUrl: string, options: MarkdownReaderTaskOptions): MarkdownReaderResult`
+  - `extractHeadings(markdown: string): MarkdownHeadingItem[]`
+  - `renderToc(headings: MarkdownHeadingItem[]): string`
+  - `generateFrontmatter(meta: Record<string, string | number | undefined>): string`
+
+### `src/actors/web/network-interceptor-actor.ts`
+
+**Sınıflar (Classes):**
+- `class NetworkInterceptorActor`
+  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<NetworkInterceptorResult>>`
+
+### `src/actors/web/playwright-browser-actor.ts`
+
+**Sınıflar (Classes):**
+- `class PlaywrightBrowserActor`
+  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<ScrapedPageResult>>`
+
+### `src/actors/web/serp-search-actor.ts`
+
+**Sınıflar (Classes):**
+- `class SerpSearchActor`
+  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<SerpSearchResult>>`
+  - `parseSerpHtml(html: string, maxResults: number): SerpResultItem[]`
+
+### `src/actors/web/sitemap-xml-actor.ts`
+
+**Sınıflar (Classes):**
+- `class SitemapXmlActor`
+  - `run(task: ActorTask, _context: ActorRunContext): Promise<ActorResult<SitemapResult>>`
+  - `fetchXml(url: string, signal: AbortSignal): Promise<string>`
+  - `crawlSitemapRecursive(url: string, currentDepth: number, maxDepth: number, maxUrls: number, filterPatterns: string[] | undefined, aggregatedUrls: SitemapUrlEntry[], subSitemapsList: string[], signal: AbortSignal, setIndexFlag: (isIndex: boolean) => void): Promise<void>`
+
+### `src/api/context-guard.ts`
+
+**Sınıflar (Classes):**
+- `class ContextGuard`
+  - `stripInvisibleUnicode(text: string, options: { preserveZwnj?: boolean }): string`
+  - `sanitizeInvisibleCharacters(text: string, options: { preserveZwnj?: boolean }): InvisibleCharacterSanitizeResult`
+  - `estimateTokens(text: string): number`
+  - `guardMarkdown(content: string, options: ContextGuardOptions): GuardedContentResult`
+**Arayüzler (Interfaces):**
+- `interface ContextGuardOptions` (4 üye)
+- `interface GuardedContentResult` (6 üye)
+- `interface InvisibleCharacterSanitizeResult` (3 üye)
+
+### `src/api/openapi-spec.ts`
+
+**Fonksiyonlar (Functions):**
+- `renderDocsHtml(): string`
+
+### `src/api/registry-database.ts`
+
+**Sınıflar (Classes):**
+- `class RegistryDatabase`
+  - `initDatabase(): void`
+  - `prepareStatements(): void`
+  - `createRun(record: {
+    runId: string;
+    actorName: string;
+    input: Record<string, unknown>;
+    startedAt: string;
+    metadata?: RunMetadata;
+  }): void`
+  - `startRun(runId: string): void`
+  - `appendLog(runId: string, log: { timestamp: string; level: "INFO" | "WARN" | "ERROR" | "PASS" | "VETO"; message: string }): void`
+  - `completeRun(runId: string, output: unknown, itemCount: number, finishedAt: string, durationMs: number, metadata: RunMetadata): void`
+  - `failRun(runId: string, errorMessage: string, finishedAt: string, durationMs: number, metadata: RunMetadata): void`
+  - `getRun(runId: string): RunRecord | undefined`
+  - `listRuns(limit): RunRecord[]`
+  - `mapRunRow(row: Record<string, unknown>, logs: Array<{
+      timestamp: string;
+      level: "INFO" | "WARN" | "ERROR" | "PASS" | "VETO";
+      message: string;
+    }>): RunRecord`
+  - `recordPipelineExecution(result: PipelineRunResult): void`
+  - `listPipelineExecutions(limit): PipelineRunResult[]`
+  - `upsertScheduledJob(job: ScheduledJobInfo): void`
+  - `updateScheduledJobRun(id: string, lastRunAt: string, runCount: number): void`
+  - `setScheduledJobRunning(id: string, running: boolean): void`
+  - `listScheduledJobs(): ScheduledJobInfo[]`
+  - `getScheduledJob(id: string): ScheduledJobInfo | undefined`
+  - `recordDatasetShard(shard: DatasetShardRecord): void`
+  - `listDatasetShards(datasetName: string, limit): DatasetShardRecord[]`
+  - `getDatasetShard(shardId: string): DatasetShardRecord | undefined`
+  - `upsertDataset(dataset: DatasetRecord): void`
+  - `getDataset(datasetId: string): DatasetRecord | undefined`
+  - `listDatasets(): DatasetRecord[]`
+  - `recordDatasetSnapshot(snapshot: DatasetSnapshotRecord): void`
+  - `listDatasetSnapshots(datasetName: string, limit): DatasetSnapshotRecord[]`
+  - `getDatasetSnapshot(snapshotId: string): DatasetSnapshotRecord | undefined`
+  - `getLatestDatasetSnapshot(datasetName: string): DatasetSnapshotRecord | undefined`
+  - `recordStorageReplica(replica: StorageReplicaRecord): void`
+  - `listStorageReplicas(shardId: string): StorageReplicaRecord[]`
+  - `recordVerificationAudit(audit: VerificationAuditRecord): void`
+  - `listVerificationAudits(runId: string): VerificationAuditRecord[]`
+  - `close(): void`
+**Fonksiyonlar (Functions):**
+- `getDefaultRegistryDatabase(): RegistryDatabase`
+**Arayüzler (Interfaces):**
+- `interface DatasetShardRecord` (11 üye)
+- `interface DatasetSnapshotRecord` (11 üye)
+- `interface DatasetRecord` (7 üye)
+- `interface StorageReplicaRecord` (9 üye)
+- `interface VerificationAuditRecord` (14 üye)
+- `interface RegistryDatabaseOptions` (2 üye)
+
+### `src/api/routers/dataset-router.ts`
+
+**Sınıflar (Classes):**
+- `class DatasetRouter`
+  - `getPublisher(): DatasetPublisher`
+  - `handlePublishDataset(res: http.ServerResponse, body: PublishDatasetOptions): Promise<void>`
+  - `handleListDatasets(res: http.ServerResponse): void`
+  - `handleGetDataset(res: http.ServerResponse, datasetName: string): void`
+  - `handleListSnapshots(res: http.ServerResponse, datasetName: string): void`
+  - `handleGetSnapshot(res: http.ServerResponse, _datasetName: string, snapshotId: string): void`
+  - `handleGetLatestManifest(res: http.ServerResponse, datasetName: string): void`
+
+### `src/api/routers/job-router.ts`
+
+**Sınıflar (Classes):**
+- `class JobRouter`
+  - `getBroker(): ScheduleBroker`
+  - `handleScheduleJob(res: http.ServerResponse, body: ScheduleJobRequestBody): Promise<void>`
+  - `handleListJobs(res: http.ServerResponse): void`
+  - `handleGetJob(res: http.ServerResponse, jobId: string): void`
+  - `handleCancelJob(res: http.ServerResponse, jobId: string): void`
+**Arayüzler (Interfaces):**
+- `interface ScheduleJobRequestBody` (6 üye)
+
+### `src/api/routers/pipeline-router.ts`
+
+**Sınıflar (Classes):**
+- `class PipelineRouter`
+  - `getRunner(): PipelineRunner`
+  - `handleRunPipeline(res: http.ServerResponse, body: PipelineRunRequestBody): Promise<void>`
+  - `handleListRuns(req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleGetRun(res: http.ServerResponse, runId: string): void`
+  - `handleListTemplates(res: http.ServerResponse): void`
+**Arayüzler (Interfaces):**
+- `interface PipelineRunRequestBody` (4 üye)
+
+### `src/api/routers/store-router.ts`
+
+**Sınıflar (Classes):**
+- `class StoreRouter`
+  - `handleListActors(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleGetActor(res: http.ServerResponse, name: string): void`
+  - `handleRunActor(res: http.ServerResponse, name: string, body: Record<string, unknown>): Promise<void>`
+  - `handleListRuns(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleGetRun(res: http.ServerResponse, runId: string): void`
+  - `handleRunEventsSSE(res: http.ServerResponse, runId: string): void`
+  - `handleGetQuarantine(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleGetMcpCatalog(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleServiceInfo(_req: http.IncomingMessage, res: http.ServerResponse): void`
+  - `handleServeWeb(req: http.IncomingMessage, res: http.ServerResponse): void`
+
+### `src/api/routers/vault-router.ts`
+
+**Sınıflar (Classes):**
+- `class VaultRouter`
+  - `getExporter(): ColdVaultExporter`
+  - `validateVolumePath(pathInput: string): {
+    valid: boolean;
+    resolvedPath: string;
+    error?: string;
+  }`
+  - `handleExport(res: http.ServerResponse, body: ColdVaultExportOptions): Promise<void>`
+  - `handleVerify(res: http.ServerResponse, body: { volumeRoot: string }): Promise<void>`
+  - `handleInspect(res: http.ServerResponse, volumeRoot: string): void`
+
+### `src/api/run-logger.ts`
+
+**Fonksiyonlar (Functions):**
+- `writeRunLog(run: RunRecord, baseDir): { logPath: string; indexEntry: LogIndexEntry }`
+**Arayüzler (Interfaces):**
+- `interface LogIndexEntry` (11 üye)
+
+### `src/api/run-registry.ts`
+
+**Sınıflar (Classes):**
+- `class RunRegistry`
+  - `createRun(actorName: string, input: Record<string, unknown>, metadata: Partial<RunMetadata>): RunRecord`
+  - `getRun(runId: string): RunRecord | undefined`
+  - `listRuns(limit): RunRecord[]`
+  - `startRun(runId: string): void`
+  - `appendLog(runId: string, level: "INFO" | "WARN" | "ERROR" | "PASS" | "VETO", message: string): void`
+  - `completeRun(runId: string, output: unknown, itemCount, metadataUpdate: Partial<RunMetadata>): void`
+  - `failRun(runId: string, errorMessage: string, metadataUpdate: Partial<RunMetadata>): void`
+**Arayüzler (Interfaces):**
+- `interface RunMetadata` (10 üye)
+- `interface RunRecord` (12 üye)
+- `interface RunRegistryOptions` (1 üye)
+**Tipler (Types):**
+- `type RunStatus`
+
+### `src/api/server.ts`
+
+**Fonksiyonlar (Functions):**
+- `createServer(): http.Server`
+
+### `src/api/types.ts`
+
+**Arayüzler (Interfaces):**
+- `interface ExtractedTable` (5 üye)
+- `interface ScrapedPageResult` (16 üye)
+- `interface ApiPaginationConfig` (7 üye)
+- `interface ApiExtractorTaskOptions` (9 üye)
+- `interface ApiExtractorResult` (5 üye)
+- `interface CrawledPageData` (6 üye)
+- `interface CrawlerTaskOptions` (15 üye)
+- `interface CrawlerResult` (4 üye)
+- `interface SitemapUrlEntry` (4 üye)
+- `interface SitemapTaskOptions` (5 üye)
+- `interface SitemapResult` (5 üye)
+- `interface MarkdownHeadingItem` (3 üye)
+- `interface MarkdownReaderTaskOptions` (8 üye)
+- `interface MarkdownReaderResult` (16 üye)
+- `interface InterceptedApiResponse` (7 üye)
+- `interface NetworkInterceptorTaskOptions` (5 üye)
+- `interface NetworkInterceptorResult` (3 üye)
+- `interface SerpResultItem` (5 üye)
+- `interface SerpSearchTaskOptions` (4 üye)
+- `interface SerpSearchResult` (3 üye)
+- `interface PdfDocumentMetadata` (6 üye)
+- `interface PdfPageEntry` (4 üye)
+- `interface PdfDocumentAnomalyInfo` (6 üye)
+- `interface PdfDocumentTaskOptions` (7 üye)
+- `interface PdfDocumentResult` (12 üye)
+- `interface DocumentExtractorTaskOptions` (5 üye)
+- `interface DocumentSpreadsheetSheet` (5 üye)
+- `interface DocumentExtractorResult` (9 üye)
+- `interface ArchiveEntryResult` (6 üye)
+- `interface ArchiveExtractorTaskOptions` (8 üye)
+- `interface ArchiveExtractorResult` (6 üye)
+- `interface PublicationIssueMetadata` (11 üye)
+- `interface TableOfContentsItem` (6 üye)
+- `interface EpubChapterItem` (6 üye)
+- `interface EpubExtractorTaskOptions` (4 üye)
+- `interface EpubExtractorResult` (8 üye)
+- `interface MultiColumnLayoutOptions` (3 üye)
+- `interface DergiParkActorTaskOptions` (7 üye)
+- `interface DergiParkArticle` (12 üye)
+- `interface DergiParkActorResult` (6 üye)
+- `interface InternetArchiveActorTaskOptions` (7 üye)
+- `interface InternetArchiveFile` (4 üye)
+- `interface InternetArchiveItem` (12 üye)
+- `interface InternetArchiveActorResult` (5 üye)
+- `interface ArxivAuthor` (2 üye)
+- `interface ArxivPaperItem` (16 üye)
+- `interface ArxivActorTaskOptions` (8 üye)
+- `interface ArxivActorResult` (5 üye)
+- `interface WikimediaArticleItem` (9 üye)
+- `interface WikimediaActorTaskOptions` (8 üye)
+- `interface WikimediaActorResult` (4 üye)
+- `interface OpenAlexWorkItem` (12 üye)
+- `interface OpenAlexActorTaskOptions` (11 üye)
+- `interface OpenAlexActorResult` (5 üye)
+- `interface StackExchangeAnswerItem` (6 üye)
+- `interface StackExchangeQuestionItem` (10 üye)
+- `interface StackExchangeActorTaskOptions` (11 üye)
+- `interface StackExchangeActorResult` (5 üye)
+- `interface GutenbergBookItem` (8 üye)
+- `interface GutenbergActorTaskOptions` (7 üye)
+- `interface GutenbergActorResult` (3 üye)
+- `interface EuropePmcArticleItem` (13 üye)
+- `interface EuropePmcActorTaskOptions` (6 üye)
+- `interface EuropePmcActorResult` (4 üye)
+- `interface IetfRfcItem` (10 üye)
+- `interface IetfRfcActorTaskOptions` (7 üye)
+- `interface IetfRfcActorResult` (3 üye)
+- `interface SaglikEkutuphaneItem` (12 üye)
+- `interface SaglikEkutuphaneTaskOptions` (7 üye)
+- `interface SaglikEkutuphaneActorResult` (6 üye)
+- `interface KtbEkitapItem` (12 üye)
+- `interface KtbEkitapTaskOptions` (8 üye)
+- `interface KtbEkitapActorResult` (6 üye)
+- `interface ClinicalStudySummary` (14 üye)
+- `interface ClinicalTrialsActorTaskOptions` (9 üye)
+- `interface ClinicalTrialsActorResult` (5 üye)
+- `interface OpenFdaActorTaskOptions` (6 üye)
+- `interface OpenFdaActorResult` (5 üye)
+- `interface SecFilingItem` (15 üye)
+- `interface SecEdgarActorTaskOptions` (7 üye)
+- `interface SecEdgarActorResult` (10 üye)
+- `interface CourtListenerDocumentItem` (11 üye)
+- `interface CourtListenerActorTaskOptions` (11 üye)
+- `interface CourtListenerActorResult` (5 üye)
+- `interface SoftwareHeritageDirectoryEntry` (5 üye)
+- `interface SoftwareHeritageActorTaskOptions` (6 üye)
+- `interface SoftwareHeritageActorResult` (5 üye)
+- `interface EurLexDocumentItem` (8 üye)
+- `interface EurLexActorTaskOptions` (7 üye)
+- `interface EurLexActorResult` (6 üye)
+- `interface OpenStaxBookItem` (10 üye)
+- `interface OpenStaxActorTaskOptions` (7 üye)
+- `interface OpenStaxActorResult` (7 üye)
+- `interface MitOcwCourseItem` (12 üye)
+- `interface MitOcwActorTaskOptions` (7 üye)
+- `interface MitOcwActorResult` (8 üye)
+- `interface ResmiGazeteItem` (10 üye)
+- `interface ResmiGazeteActorTaskOptions` (9 üye)
+- `interface ResmiGazeteActorResult` (7 üye)
+- `interface YargitayDecisionItem` (12 üye)
+- `interface YargitayActorTaskOptions` (11 üye)
+- `interface YargitayActorResult` (5 üye)
+- `interface KapDisclosureItem` (11 üye)
+- `interface KapActorTaskOptions` (9 üye)
+- `interface KapActorResult` (5 üye)
+- `interface GithubActorTaskOptions` (8 üye)
+- `interface GithubActorResult` (6 üye)
+- `interface OpenReviewNoteItem` (16 üye)
+- `interface OpenReviewActorTaskOptions` (8 üye)
+- `interface OpenReviewActorResult` (7 üye)
+- `interface HackerNewsCommentItem` (6 üye)
+- `interface HackerNewsStoryItem` (9 üye)
+- `interface HackerNewsActorTaskOptions` (7 üye)
+- `interface HackerNewsActorResult` (5 üye)
+- `interface HuggingFaceDatasetsFeatureItem` (3 üye)
+- `interface HuggingFaceDatasetsSplitItem` (4 üye)
+- `interface HuggingFaceDatasetsActorTaskOptions` (9 üye)
+- `interface HuggingFaceDatasetsActorResult` (13 üye)
+- `interface MathReasoningItem` (9 üye)
+- `interface MathReasoningActorTaskOptions` (8 üye)
+- `interface MathReasoningActorResult` (5 üye)
+- `interface CodeEvalItem` (8 üye)
+- `interface CodeEvalActorTaskOptions` (7 üye)
+- `interface CodeEvalActorResult` (8 üye)
+- `interface ProofWikiItem` (9 üye)
+- `interface ProofWikiActorTaskOptions` (7 üye)
+- `interface ProofWikiActorResult` (5 üye)
+- `interface LeanMathlibItem` (10 üye)
+- `interface LeanMathlibActorTaskOptions` (9 üye)
+- `interface LeanMathlibActorResult` (6 üye)
+- `interface LessWrongComment` (7 üye)
+- `interface LessWrongPost` (11 üye)
+- `interface LessWrongActorTaskOptions` (12 üye)
+- `interface LessWrongActorResult` (7 üye)
+- `interface ActorTask` (5 üye)
+- `interface ActorResult` (7 üye)
+- `interface ActorRunContext` (3 üye)
+- `interface IActor` (3 üye)
+- `interface SelfHealingError` (6 üye)
+- `interface SelfHealingErrorResponse` (7 üye)
+**Tipler (Types):**
+- `type EntityId`
+- `type ActorType`
+- `type PdfAnomalyStatus`
+- `type SupportedDocumentFormat`
+- `type ArchiveFormat`
+- `type DergiParkAction`
+- `type InternetArchiveAction`
+- `type WikipediaArticleItem`
+- `type WikipediaActorTaskOptions`
+- `type WikipediaActorResult`
+- `type SaglikEkutuphaneCategory`
+- `type SaglikEkutuphaneAction`
+- `type KtbEkitapCategory`
+- `type KtbEkitapAction`
 
 ### `src/browser/browser-pool.ts`
 
@@ -805,282 +1339,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   }): Promise<void>`
 **Arayüzler (Interfaces):**
 - `interface StealthProfile` (3 üye)
-
-### `src/core/context-guard.ts`
-
-**Sınıflar (Classes):**
-- `class ContextGuard`
-  - `stripInvisibleUnicode(text: string, options: { preserveZwnj?: boolean }): string`
-  - `sanitizeInvisibleCharacters(text: string, options: { preserveZwnj?: boolean }): InvisibleCharacterSanitizeResult`
-  - `estimateTokens(text: string): number`
-  - `guardMarkdown(content: string, options: ContextGuardOptions): GuardedContentResult`
-**Arayüzler (Interfaces):**
-- `interface ContextGuardOptions` (4 üye)
-- `interface GuardedContentResult` (6 üye)
-- `interface InvisibleCharacterSanitizeResult` (3 üye)
-
-### `src/core/dataset-router.ts`
-
-**Sınıflar (Classes):**
-- `class DatasetRouter`
-  - `getPublisher(): DatasetPublisher`
-  - `handlePublishDataset(res: http.ServerResponse, body: PublishDatasetOptions): Promise<void>`
-  - `handleListDatasets(res: http.ServerResponse): void`
-  - `handleGetDataset(res: http.ServerResponse, datasetName: string): void`
-  - `handleListSnapshots(res: http.ServerResponse, datasetName: string): void`
-  - `handleGetSnapshot(res: http.ServerResponse, _datasetName: string, snapshotId: string): void`
-  - `handleGetLatestManifest(res: http.ServerResponse, datasetName: string): void`
-
-### `src/core/job-router.ts`
-
-**Sınıflar (Classes):**
-- `class JobRouter`
-  - `getBroker(): ScheduleBroker`
-  - `handleScheduleJob(res: http.ServerResponse, body: ScheduleJobRequestBody): Promise<void>`
-  - `handleListJobs(res: http.ServerResponse): void`
-  - `handleGetJob(res: http.ServerResponse, jobId: string): void`
-  - `handleCancelJob(res: http.ServerResponse, jobId: string): void`
-**Arayüzler (Interfaces):**
-- `interface ScheduleJobRequestBody` (6 üye)
-
-### `src/core/openapi-spec.ts`
-
-**Fonksiyonlar (Functions):**
-- `renderDocsHtml(): string`
-
-### `src/core/pipeline-router.ts`
-
-**Sınıflar (Classes):**
-- `class PipelineRouter`
-  - `getRunner(): PipelineRunner`
-  - `handleRunPipeline(res: http.ServerResponse, body: PipelineRunRequestBody): Promise<void>`
-  - `handleListRuns(req: http.IncomingMessage, res: http.ServerResponse): void`
-  - `handleGetRun(res: http.ServerResponse, runId: string): void`
-  - `handleListTemplates(res: http.ServerResponse): void`
-**Arayüzler (Interfaces):**
-- `interface PipelineRunRequestBody` (4 üye)
-
-### `src/core/registry-database.ts`
-
-**Sınıflar (Classes):**
-- `class RegistryDatabase`
-  - `initDatabase(): void`
-  - `prepareStatements(): void`
-  - `createRun(record: {
-    runId: string;
-    actorName: string;
-    input: Record<string, unknown>;
-    startedAt: string;
-    metadata?: RunMetadata;
-  }): void`
-  - `startRun(runId: string): void`
-  - `appendLog(runId: string, log: { timestamp: string; level: "INFO" | "WARN" | "ERROR" | "PASS" | "VETO"; message: string }): void`
-  - `completeRun(runId: string, output: unknown, itemCount: number, finishedAt: string, durationMs: number, metadata: RunMetadata): void`
-  - `failRun(runId: string, errorMessage: string, finishedAt: string, durationMs: number, metadata: RunMetadata): void`
-  - `getRun(runId: string): RunRecord | undefined`
-  - `listRuns(limit): RunRecord[]`
-  - `mapRunRow(row: Record<string, unknown>, logs: Array<{
-      timestamp: string;
-      level: "INFO" | "WARN" | "ERROR" | "PASS" | "VETO";
-      message: string;
-    }>): RunRecord`
-  - `recordPipelineExecution(result: PipelineRunResult): void`
-  - `listPipelineExecutions(limit): PipelineRunResult[]`
-  - `upsertScheduledJob(job: ScheduledJobInfo): void`
-  - `updateScheduledJobRun(id: string, lastRunAt: string, runCount: number): void`
-  - `setScheduledJobRunning(id: string, running: boolean): void`
-  - `listScheduledJobs(): ScheduledJobInfo[]`
-  - `getScheduledJob(id: string): ScheduledJobInfo | undefined`
-  - `recordDatasetShard(shard: DatasetShardRecord): void`
-  - `listDatasetShards(datasetName: string, limit): DatasetShardRecord[]`
-  - `getDatasetShard(shardId: string): DatasetShardRecord | undefined`
-  - `upsertDataset(dataset: DatasetRecord): void`
-  - `getDataset(datasetId: string): DatasetRecord | undefined`
-  - `listDatasets(): DatasetRecord[]`
-  - `recordDatasetSnapshot(snapshot: DatasetSnapshotRecord): void`
-  - `listDatasetSnapshots(datasetName: string, limit): DatasetSnapshotRecord[]`
-  - `getDatasetSnapshot(snapshotId: string): DatasetSnapshotRecord | undefined`
-  - `getLatestDatasetSnapshot(datasetName: string): DatasetSnapshotRecord | undefined`
-  - `recordStorageReplica(replica: StorageReplicaRecord): void`
-  - `listStorageReplicas(shardId: string): StorageReplicaRecord[]`
-  - `recordVerificationAudit(audit: VerificationAuditRecord): void`
-  - `listVerificationAudits(runId: string): VerificationAuditRecord[]`
-  - `close(): void`
-**Fonksiyonlar (Functions):**
-- `getDefaultRegistryDatabase(): RegistryDatabase`
-**Arayüzler (Interfaces):**
-- `interface DatasetShardRecord` (11 üye)
-- `interface DatasetSnapshotRecord` (11 üye)
-- `interface DatasetRecord` (7 üye)
-- `interface StorageReplicaRecord` (9 üye)
-- `interface VerificationAuditRecord` (14 üye)
-- `interface RegistryDatabaseOptions` (2 üye)
-
-### `src/core/run-registry.ts`
-
-**Sınıflar (Classes):**
-- `class RunRegistry`
-  - `createRun(actorName: string, input: Record<string, unknown>, metadata: Partial<RunMetadata>): RunRecord`
-  - `getRun(runId: string): RunRecord | undefined`
-  - `listRuns(limit): RunRecord[]`
-  - `startRun(runId: string): void`
-  - `appendLog(runId: string, level: "INFO" | "WARN" | "ERROR" | "PASS" | "VETO", message: string): void`
-  - `completeRun(runId: string, output: unknown, itemCount, metadataUpdate: Partial<RunMetadata>): void`
-  - `failRun(runId: string, errorMessage: string, metadataUpdate: Partial<RunMetadata>): void`
-**Arayüzler (Interfaces):**
-- `interface RunMetadata` (10 üye)
-- `interface RunRecord` (12 üye)
-- `interface RunRegistryOptions` (1 üye)
-**Tipler (Types):**
-- `type RunStatus`
-
-### `src/core/server.ts`
-
-**Fonksiyonlar (Functions):**
-- `createServer(): http.Server`
-
-### `src/core/store-router.ts`
-
-**Sınıflar (Classes):**
-- `class StoreRouter`
-  - `handleListActors(_req: http.IncomingMessage, res: http.ServerResponse): void`
-  - `handleGetActor(res: http.ServerResponse, name: string): void`
-  - `handleRunActor(res: http.ServerResponse, name: string, body: Record<string, unknown>): Promise<void>`
-  - `handleListRuns(_req: http.IncomingMessage, res: http.ServerResponse): void`
-  - `handleGetRun(res: http.ServerResponse, runId: string): void`
-  - `handleRunEventsSSE(res: http.ServerResponse, runId: string): void`
-  - `handleGetQuarantine(_req: http.IncomingMessage, res: http.ServerResponse): void`
-  - `handleGetMcpCatalog(_req: http.IncomingMessage, res: http.ServerResponse): void`
-  - `handleServiceInfo(_req: http.IncomingMessage, res: http.ServerResponse): void`
-  - `handleServeWeb(req: http.IncomingMessage, res: http.ServerResponse): void`
-
-### `src/core/types.ts`
-
-**Arayüzler (Interfaces):**
-- `interface ExtractedTable` (5 üye)
-- `interface ScrapedPageResult` (16 üye)
-- `interface ApiPaginationConfig` (7 üye)
-- `interface ApiExtractorTaskOptions` (9 üye)
-- `interface ApiExtractorResult` (5 üye)
-- `interface CrawledPageData` (6 üye)
-- `interface CrawlerTaskOptions` (15 üye)
-- `interface CrawlerResult` (4 üye)
-- `interface SitemapUrlEntry` (4 üye)
-- `interface SitemapTaskOptions` (5 üye)
-- `interface SitemapResult` (5 üye)
-- `interface MarkdownHeadingItem` (3 üye)
-- `interface MarkdownReaderTaskOptions` (8 üye)
-- `interface MarkdownReaderResult` (16 üye)
-- `interface InterceptedApiResponse` (7 üye)
-- `interface NetworkInterceptorTaskOptions` (5 üye)
-- `interface NetworkInterceptorResult` (3 üye)
-- `interface SerpResultItem` (5 üye)
-- `interface SerpSearchTaskOptions` (4 üye)
-- `interface SerpSearchResult` (3 üye)
-- `interface PdfDocumentMetadata` (6 üye)
-- `interface PdfPageEntry` (4 üye)
-- `interface PdfDocumentAnomalyInfo` (6 üye)
-- `interface PdfDocumentTaskOptions` (7 üye)
-- `interface PdfDocumentResult` (12 üye)
-- `interface DocumentExtractorTaskOptions` (5 üye)
-- `interface DocumentSpreadsheetSheet` (5 üye)
-- `interface DocumentExtractorResult` (9 üye)
-- `interface ArchiveEntryResult` (6 üye)
-- `interface ArchiveExtractorTaskOptions` (8 üye)
-- `interface ArchiveExtractorResult` (6 üye)
-- `interface PublicationIssueMetadata` (11 üye)
-- `interface TableOfContentsItem` (6 üye)
-- `interface EpubChapterItem` (6 üye)
-- `interface EpubExtractorTaskOptions` (4 üye)
-- `interface EpubExtractorResult` (8 üye)
-- `interface MultiColumnLayoutOptions` (3 üye)
-- `interface DergiParkActorTaskOptions` (7 üye)
-- `interface DergiParkArticle` (12 üye)
-- `interface DergiParkActorResult` (6 üye)
-- `interface InternetArchiveActorTaskOptions` (7 üye)
-- `interface InternetArchiveFile` (4 üye)
-- `interface InternetArchiveItem` (12 üye)
-- `interface InternetArchiveActorResult` (5 üye)
-- `interface ArxivAuthor` (2 üye)
-- `interface ArxivPaperItem` (16 üye)
-- `interface ArxivActorTaskOptions` (8 üye)
-- `interface ArxivActorResult` (5 üye)
-- `interface WikimediaArticleItem` (9 üye)
-- `interface WikimediaActorTaskOptions` (6 üye)
-- `interface WikimediaActorResult` (4 üye)
-- `interface OpenAlexWorkItem` (12 üye)
-- `interface OpenAlexActorTaskOptions` (11 üye)
-- `interface OpenAlexActorResult` (5 üye)
-- `interface StackExchangeAnswerItem` (6 üye)
-- `interface StackExchangeQuestionItem` (10 üye)
-- `interface StackExchangeActorTaskOptions` (11 üye)
-- `interface StackExchangeActorResult` (5 üye)
-- `interface GutenbergBookItem` (8 üye)
-- `interface GutenbergActorTaskOptions` (7 üye)
-- `interface GutenbergActorResult` (3 üye)
-- `interface EuropePmcArticleItem` (13 üye)
-- `interface EuropePmcActorTaskOptions` (6 üye)
-- `interface EuropePmcActorResult` (4 üye)
-- `interface IetfRfcItem` (10 üye)
-- `interface IetfRfcActorTaskOptions` (7 üye)
-- `interface IetfRfcActorResult` (3 üye)
-- `interface SaglikEkutuphaneItem` (12 üye)
-- `interface SaglikEkutuphaneTaskOptions` (7 üye)
-- `interface SaglikEkutuphaneActorResult` (6 üye)
-- `interface KtbEkitapItem` (12 üye)
-- `interface KtbEkitapTaskOptions` (8 üye)
-- `interface KtbEkitapActorResult` (6 üye)
-- `interface ClinicalStudySummary` (14 üye)
-- `interface ClinicalTrialsActorTaskOptions` (9 üye)
-- `interface ClinicalTrialsActorResult` (5 üye)
-- `interface OpenFdaActorTaskOptions` (6 üye)
-- `interface OpenFdaActorResult` (5 üye)
-- `interface SecFilingItem` (15 üye)
-- `interface SecEdgarActorTaskOptions` (7 üye)
-- `interface SecEdgarActorResult` (10 üye)
-- `interface CourtListenerDocumentItem` (11 üye)
-- `interface CourtListenerActorTaskOptions` (11 üye)
-- `interface CourtListenerActorResult` (5 üye)
-- `interface SoftwareHeritageDirectoryEntry` (5 üye)
-- `interface SoftwareHeritageActorTaskOptions` (6 üye)
-- `interface SoftwareHeritageActorResult` (5 üye)
-- `interface EurLexDocumentItem` (8 üye)
-- `interface EurLexActorTaskOptions` (7 üye)
-- `interface EurLexActorResult` (6 üye)
-- `interface OpenStaxBookItem` (10 üye)
-- `interface OpenStaxActorTaskOptions` (7 üye)
-- `interface OpenStaxActorResult` (7 üye)
-- `interface MitOcwCourseItem` (12 üye)
-- `interface MitOcwActorTaskOptions` (7 üye)
-- `interface MitOcwActorResult` (8 üye)
-- `interface ActorTask` (5 üye)
-- `interface ActorResult` (7 üye)
-- `interface ActorRunContext` (3 üye)
-- `interface IActor` (3 üye)
-- `interface SelfHealingError` (6 üye)
-- `interface SelfHealingErrorResponse` (7 üye)
-**Tipler (Types):**
-- `type EntityId`
-- `type ActorType`
-- `type PdfAnomalyStatus`
-- `type SupportedDocumentFormat`
-- `type ArchiveFormat`
-- `type DergiParkAction`
-- `type InternetArchiveAction`
-- `type SaglikEkutuphaneCategory`
-- `type SaglikEkutuphaneAction`
-- `type KtbEkitapCategory`
-- `type KtbEkitapAction`
-
-### `src/core/vault-router.ts`
-
-**Sınıflar (Classes):**
-- `class VaultRouter`
-  - `getExporter(): ColdVaultExporter`
-  - `validateVolumePath(pathInput: string): { valid: boolean; resolvedPath: string; error?: string }`
-  - `handleExport(res: http.ServerResponse, body: ColdVaultExportOptions): Promise<void>`
-  - `handleVerify(res: http.ServerResponse, body: { volumeRoot: string }): Promise<void>`
-  - `handleInspect(res: http.ServerResponse, volumeRoot: string): void`
 
 ### `src/dataset/dataset-publisher.ts`
 
@@ -1567,15 +1825,17 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `scheduleConfig(config: PipelineConfig, checkIntervalMs: number): { stop: () => void }`
   - `getScheduleBroker(): ScheduleBroker`
   - `getRegistryDatabase(): RegistryDatabase | undefined`
-  - `runFile(filePath: string): Promise<PipelineRunResult>`
-  - `runYaml(yamlString: string): Promise<PipelineRunResult>`
-  - `runConfig(config: PipelineConfig): Promise<PipelineRunResult>`
+  - `runFile(filePath: string, options: PipelineExecutionOptions): Promise<PipelineRunResult>`
+  - `runYaml(yamlString: string, options: PipelineExecutionOptions): Promise<PipelineRunResult>`
+  - `runConfig(config: PipelineConfig, options: PipelineExecutionOptions): Promise<PipelineRunResult>`
   - `getRunHistory(limit: number): PipelineRunResult[]`
+  - `getRunById(runId: string): PipelineRunResult | undefined`
   - `getFailedRuns(): PipelineRunResult[]`
   - `resolveExecutor(config: PipelineConfig): ExecutionTarget`
   - `resolveStorageBackend(config: PipelineConfig): StorageBackend`
 **Arayüzler (Interfaces):**
 - `interface PipelineRunResult` (10 üye)
+- `interface PipelineExecutionOptions` (1 üye)
 - `interface PipelineRunnerOptions` (9 üye)
 
 ### `src/pipeline/processors/csv-writer.ts`
@@ -1730,6 +1990,27 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface S3ClientLike` (1 üye)
 - `interface S3StorageOptions` (5 üye)
 
+### `src/telemetry/anomalies.ts`
+
+**Fonksiyonlar (Functions):**
+- `recordAnomaly(anomaly: Omit<AnomalyEvent, "eventId" | "timestamp">, filePath): AnomalyEvent`
+**Arayüzler (Interfaces):**
+- `interface AnomalyEvent` (10 üye)
+**Tipler (Types):**
+- `type AnomalyCode`
+- `type AnomalySeverity`
+
+### `src/utils/terminal-theme.ts`
+
+**Fonksiyonlar (Functions):**
+- `badge(level: LogLevel | string, message: string): string`
+- `banner(title: string, subtitle: string): string`
+- `divider(char): string`
+- `panel(title: string, entries: Array<[string, string]>): string`
+- `table(headers: string[], rows: (string | number)[][]): string`
+**Tipler (Types):**
+- `type LogLevel`
+
 ### `src/vault/cold-vault-exporter.ts`
 
 **Sınıflar (Classes):**
@@ -1758,51 +2039,51 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/consolidate-memory.mjs` |
 | `scripts/doctor.mjs` |
 | `scripts/generate-connectome.mjs` |
+| `scripts/logs.mjs` |
 | `scripts/omega-mcp-server.mjs` |
 | `scripts/omega-memory.mjs` |
 | `scripts/pipedream-cli.mjs` |
+| `scripts/pulse.mjs` |
 | `scripts/sca-check.mjs` |
+| `scripts/scaffold-actor.mjs` |
 | `scripts/telemetry-logger.mjs` |
+| `scripts/terminal-theme.mjs` |
 | `scripts/verify-pipeline.mjs` |
 | `src/actors/actor-manifests.ts` |
 | `src/actors/actor-registry.ts` |
-| `src/actors/api-extractor-actor.ts` |
-| `src/actors/archive-extractor-actor.ts` |
-| `src/actors/arxiv-actor.ts` |
-| `src/actors/cheerio-scraper-actor.ts` |
-| `src/actors/clinical-trials-actor.ts` |
-| `src/actors/court-listener-actor.ts` |
-| `src/actors/crawler-actor.ts` |
-| `src/actors/dergipark-actor.ts` |
-| `src/actors/document-extractor-actor.ts` |
-| `src/actors/epub-extractor-actor.ts` |
-| `src/actors/eur-lex-actor.ts` |
-| `src/actors/europe-pmc-actor.ts` |
-| `src/actors/gutenberg-actor.ts` |
-| `src/actors/ietf-rfc-actor.ts` |
-| `src/actors/internet-archive-actor.ts` |
-| `src/actors/ktb-ekitap-actor.ts` |
-| `src/actors/markdown-reader-actor.ts` |
-| `src/actors/mit-ocw-actor.ts` |
-| `src/actors/network-interceptor-actor.ts` |
-| `src/actors/open-fda-actor.ts` |
-| `src/actors/openalex-actor.ts` |
-| `src/actors/openstax-actor.ts` |
-| `src/actors/pdf-document-actor.ts` |
-| `src/actors/playwright-browser-actor.ts` |
-| `src/actors/saglik-ekutuphane-actor.ts` |
-| `src/actors/sec-edgar-actor.ts` |
-| `src/actors/serp-search-actor.ts` |
-| `src/actors/sitemap-xml-actor.ts` |
-| `src/actors/software-heritage-actor.ts` |
-| `src/actors/stack-exchange-actor.ts` |
-| `src/actors/wikimedia-actor.ts` |
-| `src/browser/browser-pool.ts` |
-| `src/browser/browser-session-manager.ts` |
-| `src/browser/dom-indexer.ts` |
-| `src/browser/interactive-browser-controller.ts` |
-| `src/browser/session-vault.ts` |
-| `src/browser/stealth-manager.ts` |
-| `src/core/context-guard.ts` |
-| *... ve 152 dosya daha* |
+| `src/actors/actor.template.ts` |
+| `src/actors/corpus/arxiv-actor.ts` |
+| `src/actors/corpus/clinical-trials-actor.ts` |
+| `src/actors/corpus/code-eval-actor.ts` |
+| `src/actors/corpus/court-listener-actor.ts` |
+| `src/actors/corpus/dergipark-actor.ts` |
+| `src/actors/corpus/eur-lex-actor.ts` |
+| `src/actors/corpus/europe-pmc-actor.ts` |
+| `src/actors/corpus/github-actor.ts` |
+| `src/actors/corpus/gutenberg-actor.ts` |
+| `src/actors/corpus/hacker-news-actor.ts` |
+| `src/actors/corpus/huggingface-datasets-actor.ts` |
+| `src/actors/corpus/ietf-rfc-actor.ts` |
+| `src/actors/corpus/index.ts` |
+| `src/actors/corpus/internet-archive-actor.ts` |
+| `src/actors/corpus/kap-actor.ts` |
+| `src/actors/corpus/ktb-ekitap-actor.ts` |
+| `src/actors/corpus/lean-mathlib-actor.ts` |
+| `src/actors/corpus/lesswrong-actor.ts` |
+| `src/actors/corpus/math-reasoning-actor.ts` |
+| `src/actors/corpus/mit-ocw-actor.ts` |
+| `src/actors/corpus/open-fda-actor.ts` |
+| `src/actors/corpus/openalex-actor.ts` |
+| `src/actors/corpus/openreview-actor.ts` |
+| `src/actors/corpus/openstax-actor.ts` |
+| `src/actors/corpus/proofwiki-actor.ts` |
+| `src/actors/corpus/resmi-gazete-actor.ts` |
+| `src/actors/corpus/saglik-ekutuphane-actor.ts` |
+| `src/actors/corpus/sec-edgar-actor.ts` |
+| `src/actors/corpus/software-heritage-actor.ts` |
+| `src/actors/corpus/stack-exchange-actor.ts` |
+| `src/actors/corpus/wikimedia-actor.ts` |
+| `src/actors/corpus/wikipedia-actor.ts` |
+| `src/actors/corpus/yargitay-actor.ts` |
+| *... ve 191 dosya daha* |
 

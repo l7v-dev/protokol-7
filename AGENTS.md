@@ -26,10 +26,11 @@ Bilerek **kısa** tutulur — her oturumda tam bağlamla yüklenen tek dosya bud
 | **Planlama Deposu**| `docs/plans/` | `<gorev-adi>-plani.md` kalıcı depolanır |
 | **Doğrulama Deposu**| `docs/walkthroughs/` | `<gorev-adi>-walkthrough.md` kalıcı depolanır |
 | **Connectome** | `context/connectome.md` | `npm run connectome` ile üretilir |
-| **Arşiv** | `archive/` | `npm run consolidate` ile 5'ten eski işler buraya taşınır |
+| **Defter (Ledger)** | `ledger/` | `npm run consolidate` ile 3-5'ten eski işler buraya taşınır |
 
 ## Sabit İlkeler
 - **Retrieve, don't preload:** Bütün repoyu belleğe doldurma, sadece gereken dosyayı aç.
 - Kural (`rules/`) ile beceri (`skills/`) çelişirse **kural kazanır**.
 - **Sıfır Emoji:** Hiçbir logda, kod yorumunda veya commit mesajında emoji kullanılamaz.
 - **Kalıcı Görev Planları:** Antigravity ile üretilen planlar `docs/plans/<gorev-adi>-plani.md`, walkthrough'lar `docs/walkthroughs/<gorev-adi>-walkthrough.md` olarak saklanır.
+- **Dürüst Mimari Danışmanlık ve Erken Uyarı:** Kullanıcı anti-pattern, katman kirliliği (ör. aktör içine transport/mcp gömme) veya verimsiz/hatalı bir yaklaşım önerdiğinde, ajanın körü körüne uygulaması kesinlikle yasaktır. Ajan derhal durup teknik riskleri açıkça belirtmeli, kullanıcıyı uyarmalı ve temiz standardı savunmalıdır.

@@ -48,7 +48,7 @@ Prensip: **Durum (state) taşıyan ve asenkron kod metin okumayla değil, çalı
 ## Otomasyon Hattı (`npm run verify` / `scripts/verify-pipeline.mjs`)
 
 Hattın çalıştırdığı 5 deterministik adım:
-1. `[1/5] Mimari Dosya Bütünlüğü`: `AGENTS.md`, `TASKS.md`, `biome.json`, `rules/`, `context/`, `skills/`, `docs/plans/`, `docs/walkthroughs/`, `archive/index.jsonl`.
+1. `[1/5] Mimari Dosya Bütünlüğü`: `AGENTS.md`, `TASKS.md`, `biome.json`, `rules/`, `context/`, `skills/`, `docs/plans/`, `docs/walkthroughs/`, `ledger/index.jsonl`.
 2. `[2/5] İsimlendirme Disiplini`: Kod tabanında yasaklı pazarlama terimlerinin (`smart`, `intelligent`, `next-gen` vb.) otomatik taranması.
 3. `[3/5] Loglama Disiplini`: Kodlarda ve betiklerde emoji bulunmaması garantisi (Sıfır emoji kuralı).
 4. `[4/5] SCA & Paket Halüsinasyon Kontrolü`: Harici npm bağımlılıklarının resmi npm registry üzerinde canlı doğrulanması.
