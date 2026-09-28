@@ -1,0 +1,25 @@
+name: wikipedia-hi-drive-pipeline
+version: 1
+
+actor:
+  id: wikipedia
+  config:
+    lang: hi
+    query: "कंप्यूटर विज्ञान"
+    action: search
+    limit: 5
+    fetchFullArticles: true
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: drive
+  folder_id: "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"

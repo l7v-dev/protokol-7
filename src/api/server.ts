@@ -350,8 +350,14 @@ export function createServer(): http.Server {
         return;
       }
 
-      // LLM Markdown Reader (/reader or /api/v1/reader)
-      if (method === "POST" && (pathname === "/api/v1/reader" || pathname === "/reader")) {
+      // LLM Markdown Reader (/reader or /api/v1/reader, aliases: /markdown, /api/v1/markdown)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/reader" ||
+          pathname === "/reader" ||
+          pathname === "/api/v1/markdown" ||
+          pathname === "/markdown")
+      ) {
         const body = await parseBody<{
           targetUrl?: string;
           options?: ActorTask["options"];
@@ -395,10 +401,13 @@ export function createServer(): http.Server {
         return;
       }
 
-      // Network Interceptor (/network/intercept or /api/v1/network/intercept)
+      // Network Interceptor (/network/intercept or /api/v1/network/intercept, aliases: /intercept, /api/v1/intercept)
       if (
         method === "POST" &&
-        (pathname === "/api/v1/network/intercept" || pathname === "/network/intercept")
+        (pathname === "/api/v1/network/intercept" ||
+          pathname === "/network/intercept" ||
+          pathname === "/api/v1/intercept" ||
+          pathname === "/intercept")
       ) {
         const body = await parseBody<{
           targetUrl?: string;
@@ -443,8 +452,14 @@ export function createServer(): http.Server {
         return;
       }
 
-      // SERP Search (/search or /api/v1/search)
-      if (method === "POST" && (pathname === "/api/v1/search" || pathname === "/search")) {
+      // SERP Search (/search or /api/v1/search, aliases: /serp, /api/v1/serp)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/search" ||
+          pathname === "/search" ||
+          pathname === "/api/v1/serp" ||
+          pathname === "/serp")
+      ) {
         const body = await parseBody<{
           query?: string;
           targetUrl?: string;
@@ -542,8 +557,14 @@ export function createServer(): http.Server {
         return;
       }
 
-      // Document Extractor (/documents or /api/v1/documents)
-      if (method === "POST" && (pathname === "/api/v1/documents" || pathname === "/documents")) {
+      // Document Extractor (/documents or /api/v1/documents, aliases: /document, /api/v1/document)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/documents" ||
+          pathname === "/documents" ||
+          pathname === "/api/v1/document" ||
+          pathname === "/document")
+      ) {
         const body = await parseBody<{
           targetUrl?: string;
           documentBase64?: string;
@@ -604,8 +625,14 @@ export function createServer(): http.Server {
         return;
       }
 
-      // Archive Extractor (/archives or /api/v1/archives)
-      if (method === "POST" && (pathname === "/api/v1/archives" || pathname === "/archives")) {
+      // Archive Extractor (/archives or /api/v1/archives, aliases: /archive, /api/v1/archive)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/archives" ||
+          pathname === "/archives" ||
+          pathname === "/api/v1/archive" ||
+          pathname === "/archive")
+      ) {
         const body = await parseBody<{
           targetUrl?: string;
           archiveBase64?: string;
@@ -814,6 +841,55 @@ export function createServer(): http.Server {
         };
 
         const result = await wikimediaActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Wikipedia Structured Knowledge Extractor (/wikipedia or /api/v1/wikipedia)
+      if (method === "POST" && (pathname === "/api/v1/wikipedia" || pathname === "/wikipedia")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          title?: string;
+          lang?: string;
+          action?: "summary" | "article" | "search";
+          query?: string;
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wikipediaActor = registry.get("wikipedia");
+        if (!wikipediaActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Wikipedia actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `wikipedia-${Date.now()}`,
+          actorType: "wikipedia",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wikipediaOptions: {
+              title: body.title,
+              lang: body.lang,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              ...body.options?.wikipediaOptions,
+            },
+          },
+        };
+
+        const result = await wikipediaActor.run(task, { task, startTime: Date.now() });
         sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
           success: result.status === "completed",
           ...result,
@@ -1761,6 +1837,662 @@ export function createServer(): http.Server {
         return;
       }
 
+      // T.C. Resmî Gazete Harvester (/resmi-gazete or /api/v1/resmi-gazete)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/resmi-gazete" || pathname === "/resmi-gazete")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          date?: string;
+          issueNumber?: number;
+          category?:
+            | "all"
+            | "kanun"
+            | "cumhurbaskanligi"
+            | "yonetmelik"
+            | "teblig"
+            | "kurul-karari"
+            | "ilanlar";
+          query?: string;
+          format?: "markdown" | "json";
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const rgActor = registry.get("resmi-gazete");
+        if (!rgActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Resmi Gazete actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `rg-${Date.now()}`,
+          actorType: "resmi-gazete",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            resmiGazeteOptions: {
+              date: body.date,
+              issueNumber: body.issueNumber,
+              category: body.category,
+              query: body.query,
+              format: body.format,
+              limit: body.limit,
+              ...body.options?.resmiGazeteOptions,
+            },
+          },
+        };
+
+        const result = await rgActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Yargıtay & Danıştay Jurisprudence Harvester (/yargitay or /api/v1/yargitay)
+      if (method === "POST" && (pathname === "/api/v1/yargitay" || pathname === "/yargitay")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          court?: "yargitay" | "danistay";
+          chamber?: string;
+          caseNumber?: string;
+          decisionNumber?: string;
+          year?: number;
+          legalArea?: "all" | "hukuk" | "ceza" | "idari" | "vergi";
+          query?: string;
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const yargitayActor = registry.get("yargitay");
+        if (!yargitayActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Yargitay actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `yargitay-${Date.now()}`,
+          actorType: "yargitay",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            yargitayOptions: {
+              court: body.court,
+              chamber: body.chamber,
+              caseNumber: body.caseNumber,
+              decisionNumber: body.decisionNumber,
+              year: body.year,
+              legalArea: body.legalArea,
+              query: body.query,
+              limit: body.limit,
+              ...body.options?.yargitayOptions,
+            },
+          },
+        };
+
+        const result = await yargitayActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Kamuoyu Aydınlatma Platformu (KAP) Harvester (/kap or /api/v1/kap)
+      if (method === "POST" && (pathname === "/api/v1/kap" || pathname === "/kap")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          companyTicker?: string;
+          disclosureType?: "all" | "oda" | "fr" | "dg" | "gk" | string;
+          fromDate?: string;
+          toDate?: string;
+          query?: string;
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const kapActor = registry.get("kap");
+        if (!kapActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "KAP actor is not available.",
+            "Verify actor registry initialization."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `kap-${Date.now()}`,
+          actorType: "kap",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            kapOptions: {
+              companyTicker: body.companyTicker,
+              disclosureType: body.disclosureType,
+              fromDate: body.fromDate,
+              toDate: body.toDate,
+              query: body.query,
+              limit: body.limit,
+              ...body.options?.kapOptions,
+            },
+          },
+        };
+
+        const result = await kapActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // GitHub Repository & Code Harvester (/github or /api/v1/github)
+      if (method === "POST" && (pathname === "/api/v1/github" || pathname === "/github")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          owner?: string;
+          repo?: string;
+          action?: "repo" | "readme" | "issues" | "pulls" | "releases" | "tree";
+          state?: "open" | "closed" | "all";
+          limit?: number;
+          token?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const githubActor = registry.get("github");
+        if (!githubActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "GitHub actor is not available.",
+            "Ensure GithubActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `github-${Date.now()}`,
+          actorType: "github",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            githubOptions: {
+              owner: body.owner,
+              repo: body.repo,
+              action: body.action,
+              state: body.state,
+              limit: body.limit,
+              token: body.token,
+              ...body.options?.githubOptions,
+            },
+          },
+        };
+
+        const result = await githubActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // OpenReview Academic Submissions & Reviews (/openreview or /api/v1/openreview)
+      if (method === "POST" && (pathname === "/api/v1/openreview" || pathname === "/openreview")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          action?: "submissions" | "forum" | "note";
+          venue?: string;
+          forumId?: string;
+          noteId?: string;
+          query?: string;
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const openreviewActor = registry.get("openreview");
+        if (!openreviewActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "OpenReview actor is not available.",
+            "Ensure OpenReviewActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `openreview-${Date.now()}`,
+          actorType: "openreview",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            openreviewOptions: {
+              action: body.action,
+              venue: body.venue,
+              forumId: body.forumId,
+              noteId: body.noteId,
+              query: body.query,
+              limit: body.limit,
+              ...body.options?.openreviewOptions,
+            },
+          },
+        };
+
+        const result = await openreviewActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Hacker News Discussions & Architecture Post-Mortems (/hacker-news or /api/v1/hacker-news)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/hacker-news" || pathname === "/hacker-news")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          action?: "top" | "best" | "new" | "ask" | "show" | "story" | "search";
+          storyId?: number;
+          query?: string;
+          limit?: number;
+          maxComments?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const hnActor = registry.get("hacker-news");
+        if (!hnActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Hacker News actor is not available.",
+            "Ensure HackerNewsActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `hn-${Date.now()}`,
+          actorType: "hacker-news",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            hackerNewsOptions: {
+              action: body.action,
+              storyId: body.storyId,
+              query: body.query,
+              limit: body.limit,
+              maxComments: body.maxComments,
+              ...body.options?.hackerNewsOptions,
+            },
+          },
+        };
+
+        const result = await hnActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Hugging Face Datasets Server Harvester (/huggingface-datasets or /api/v1/huggingface-datasets)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/huggingface-datasets" || pathname === "/huggingface-datasets")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          dataset?: string;
+          action?: "rows" | "splits" | "info" | "size";
+          config?: string;
+          split?: string;
+          offset?: number;
+          limit?: number;
+          hfToken?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const dataset = body.dataset || body.options?.huggingfaceDatasetsOptions?.dataset;
+        if (!dataset && !body.targetUrl) {
+          sendError(
+            res,
+            400,
+            "MISSING_REQUIRED_PARAMETER",
+            "Missing required 'dataset' or 'targetUrl' parameter.",
+            "Provide dataset identifier (e.g. 'openai/gsm8k') in request body."
+          );
+          return;
+        }
+
+        const hfActor = registry.get("huggingface-datasets");
+        if (!hfActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Hugging Face Datasets actor is not available.",
+            "Ensure HuggingFaceDatasetsActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `hf-${Date.now()}`,
+          actorType: "huggingface-datasets",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            huggingfaceDatasetsOptions: {
+              dataset: dataset || "",
+              action: body.action,
+              config: body.config,
+              split: body.split,
+              offset: body.offset,
+              limit: body.limit,
+              hfToken: body.hfToken,
+              ...body.options?.huggingfaceDatasetsOptions,
+            },
+          },
+        };
+
+        const result = await hfActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Mathematical Reasoning & CoT Harvester (/math-reasoning or /api/v1/math-reasoning)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/math-reasoning" || pathname === "/math-reasoning")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          benchmark?: "gsm8k" | "math" | "svamp" | "olympiadbench" | string;
+          subject?: string;
+          split?: "train" | "test" | string;
+          offset?: number;
+          limit?: number;
+          hfToken?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const mathActor = registry.get("math-reasoning");
+        if (!mathActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Mathematical reasoning actor is not available.",
+            "Ensure MathReasoningActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `math-${Date.now()}`,
+          actorType: "math-reasoning",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            mathReasoningOptions: {
+              benchmark: body.benchmark,
+              subject: body.subject,
+              split: body.split,
+              offset: body.offset,
+              limit: body.limit,
+              hfToken: body.hfToken,
+              ...body.options?.mathReasoningOptions,
+            },
+          },
+        };
+
+        const result = await mathActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Code Generation & Evaluation Benchmark Harvester (/code-eval or /api/v1/code-eval)
+      if (method === "POST" && (pathname === "/api/v1/code-eval" || pathname === "/code-eval")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          benchmark?: "humaneval" | "mbpp" | "swe-bench" | string;
+          split?: string;
+          offset?: number;
+          limit?: number;
+          hfToken?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const codeActor = registry.get("code-eval");
+        if (!codeActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Code evaluation actor is not available.",
+            "Ensure CodeEvalActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `code-eval-${Date.now()}`,
+          actorType: "code-eval",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            codeEvalOptions: {
+              benchmark: body.benchmark,
+              split: body.split,
+              offset: body.offset,
+              limit: body.limit,
+              hfToken: body.hfToken,
+              ...body.options?.codeEvalOptions,
+            },
+          },
+        };
+
+        const result = await codeActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Formal Mathematical Proofs & Theorems Harvester (/proofwiki or /api/v1/proofwiki)
+      if (method === "POST" && (pathname === "/api/v1/proofwiki" || pathname === "/proofwiki")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          action?: "theorem" | "search" | "random" | "category" | string;
+          title?: string;
+          query?: string;
+          category?: string;
+          limit?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const proofWikiActor = registry.get("proofwiki");
+        if (!proofWikiActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "ProofWiki actor is not available.",
+            "Ensure ProofWikiActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `proofwiki-${Date.now()}`,
+          actorType: "proofwiki",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            proofWikiOptions: {
+              action: body.action,
+              title: body.title,
+              query: body.query,
+              category: body.category,
+              limit: body.limit,
+              ...body.options?.proofWikiOptions,
+            },
+          },
+        };
+
+        const result = await proofWikiActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Lean 4 & Mathlib Computer-Verified Formal Proofs Harvester (/lean-mathlib or /api/v1/lean-mathlib)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/lean-mathlib" || pathname === "/lean-mathlib")
+      ) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          action?: "file" | "theorem" | "search" | "random" | string;
+          repo?: string;
+          path?: string;
+          theorem?: string;
+          query?: string;
+          limit?: number;
+          githubToken?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const leanActor = registry.get("lean-mathlib");
+        if (!leanActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Lean Mathlib actor is not available.",
+            "Ensure LeanMathlibActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `lean-mathlib-${Date.now()}`,
+          actorType: "lean-mathlib",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            leanMathlibOptions: {
+              action: body.action,
+              repo: body.repo,
+              path: body.path,
+              theorem: body.theorem,
+              query: body.query,
+              limit: body.limit,
+              githubToken: body.githubToken,
+              ...body.options?.leanMathlibOptions,
+            },
+          },
+        };
+
+        const result = await leanActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // LessWrong & Alignment Forum Epistemic Rationality Harvester (/lesswrong or /api/v1/lesswrong)
+      if (method === "POST" && (pathname === "/api/v1/lesswrong" || pathname === "/lesswrong")) {
+        const body = await parseBody<{
+          targetUrl?: string;
+          action?: "posts" | "post" | "comments" | "sequence" | "search" | string;
+          platform?: "lesswrong" | "alignmentforum" | string;
+          postId?: string;
+          slug?: string;
+          sequenceId?: string;
+          query?: string;
+          limit?: number;
+          view?: "curated" | "top" | "new" | string;
+          includeComments?: boolean;
+          maxComments?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const lwActor = registry.get("lesswrong");
+        if (!lwActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "LessWrong actor is not available.",
+            "Ensure LessWrongActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `lesswrong-${Date.now()}`,
+          actorType: "lesswrong",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            lessWrongOptions: {
+              action: body.action,
+              platform: body.platform,
+              postId: body.postId,
+              slug: body.slug,
+              sequenceId: body.sequenceId,
+              query: body.query,
+              limit: body.limit,
+              view: body.view,
+              includeComments: body.includeComments,
+              maxComments: body.maxComments,
+              ...body.options?.lessWrongOptions,
+            },
+          },
+        };
+
+        const result = await lwActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&
@@ -1783,12 +2515,23 @@ export function createServer(): http.Server {
           return;
         }
 
-        const actionResult = await InteractiveBrowserController.executeAction(
-          body.sessionId,
-          body.action,
-          body.params || {}
-        );
-        sendJson(res, actionResult.success ? 200 : 400, actionResult);
+        try {
+          const actionResult = await InteractiveBrowserController.executeAction(
+            body.sessionId,
+            body.action,
+            body.params || {}
+          );
+          sendJson(res, actionResult.success ? 200 : 400, actionResult);
+        } catch (actionErr) {
+          const message = actionErr instanceof Error ? actionErr.message : String(actionErr);
+          sendError(
+            res,
+            400,
+            "BROWSER_ACTION_FAILED",
+            `Browser action execution failed: ${message}`,
+            "Verify session validity and action parameters."
+          );
+        }
         return;
       }
 

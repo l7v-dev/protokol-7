@@ -1052,6 +1052,99 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+  wikipedia: {
+    actorType: "wikipedia",
+    name: "wikipedia",
+    title: "Wikipedia REST Extractor",
+    category: "API",
+    version: "1.0.0",
+    description:
+      "Queries official Wikimedia REST API v1 for clean encyclopedic summaries, full articles as GFM markdown, and page search.",
+    author: "protokol-7",
+    tags: ["wikipedia", "wikimedia", "encyclopedic", "llm-data", "markdown"],
+    inputSchema: {
+      type: "object",
+      title: "Wikipedia Extractor Input",
+      description: "Wikipedia REST API query parameters",
+      properties: {
+        title: {
+          name: "title",
+          type: "string",
+          title: "Page Title",
+          description: "Canonical title of the Wikipedia page.",
+          editor: "textfield",
+        },
+        lang: {
+          name: "lang",
+          type: "string",
+          title: "Language Code",
+          description: "Two-letter language code (e.g. 'en', 'tr', 'de'). Defaults to 'en'.",
+          default: "en",
+          editor: "textfield",
+        },
+        action: {
+          name: "action",
+          type: "string",
+          title: "Action",
+          description: "Extraction mode: summary, article (HTML-to-markdown), or search.",
+          default: "summary",
+          enum: ["summary", "article", "search"],
+          editor: "select",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Keyword search expression for page discovery.",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Max Results",
+          description: "Maximum search results to return.",
+          default: 10,
+          editor: "number",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        lang: { type: "string", description: "Target language code" },
+        action: { type: "string", description: "Executed action" },
+        items: { type: "array", description: "Extracted article and summary items" },
+        queryUrl: { type: "string", description: "Constructed Wikimedia endpoint URL" },
+      },
+    },
+    exampleInput: {
+      title: "Alan Turing",
+      lang: "en",
+      action: "summary",
+    },
+    readme: `# Wikipedia REST Extractor\n\nRetrieves factual, peer-reviewed encyclopedic knowledge from official Wikimedia REST API endpoints. Supports clean summary extracts, full Parsoid HTML converted to GFM markdown, and search discovery across all language editions.`,
+    mcpTool: {
+      name: "wikipedia_query",
+      description:
+        "Query Wikipedia / Wikimedia REST API for factual summaries, articles as markdown, or page search.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Page title (e.g. 'Alan Turing')" },
+          lang: { type: "string", description: "Language code (e.g. 'en', 'tr')" },
+          action: {
+            type: "string",
+            enum: ["summary", "article", "search"],
+            description: "Action type",
+          },
+          query: { type: "string", description: "Search query for discovery" },
+          limit: { type: "integer", description: "Max results count" },
+        },
+        required: [],
+      },
+    },
+  },
   openalex: {
     actorType: "openalex",
     name: "openalex",
@@ -2822,6 +2915,1769 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           },
           limit: { type: "integer", description: "Max courses to return (1-50, default 10)." },
           offset: { type: "integer", description: "Pagination offset (default 0)." },
+        },
+        required: [],
+      },
+    },
+  },
+  "resmi-gazete": {
+    actorType: "resmi-gazete",
+    name: "resmi-gazete",
+    title: "T.C. Resmî Gazete Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Harvests T.C. Resmî Gazete daily bulletins, laws, presidential decrees, regulations, and announcements with full metadata.",
+    author: "Protokol-7 Architecture Team",
+    tags: ["turkey", "law", "legislation", "government", "official-gazette", "legal-corpus"],
+    inputSchema: {
+      type: "object",
+      title: "ResmiGazeteInput",
+      description: "Input parameters for T.C. Resmî Gazete extraction actor.",
+      properties: {
+        date: {
+          name: "date",
+          type: "string",
+          title: "Publication Date",
+          description: "Target publication date (YYYY-MM-DD or YYYYMMDD, e.g. 2024-03-15).",
+          editor: "textfield",
+        },
+        issueNumber: {
+          name: "issueNumber",
+          type: "integer",
+          title: "Issue Number",
+          description: "Official gazette issue number (e.g. 32490).",
+          editor: "number",
+        },
+        category: {
+          name: "category",
+          type: "string",
+          title: "Legislation Category",
+          description:
+            "Category filter (all, kanun, cumhurbaskanligi, yonetmelik, teblig, kurul-karari, ilanlar).",
+          default: "all",
+          enum: [
+            "all",
+            "kanun",
+            "cumhurbaskanligi",
+            "yonetmelik",
+            "teblig",
+            "kurul-karari",
+            "ilanlar",
+          ],
+          editor: "select",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Keyword filter for legislation titles or content.",
+          editor: "textfield",
+        },
+        format: {
+          name: "format",
+          type: "string",
+          title: "Output Format",
+          description: "Response format: markdown or json.",
+          default: "markdown",
+          enum: ["markdown", "json"],
+          editor: "select",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Limit",
+          description: "Maximum items to return (default: 50).",
+          default: 50,
+          editor: "number",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description: "Direct URL to specific Resmî Gazete bulletin or document.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        date: { type: "string", description: "Bulletin publication date (YYYY-MM-DD)" },
+        issueNumber: { type: "number", description: "Official gazette issue number" },
+        isRepeated: { type: "boolean", description: "True if repeated (mükerrer) issue" },
+        totalItems: { type: "number", description: "Total extracted legislation items" },
+        items: { type: "array", description: "Structured legislation documents and metadata" },
+        queryUrl: { type: "string", description: "Source URL resolved" },
+        markdown: {
+          type: "string",
+          description: "LLM-ready Markdown table of contents and summaries",
+        },
+      },
+    },
+    exampleInput: {
+      date: "2024-03-15",
+      category: "all",
+      limit: 10,
+    },
+    readme:
+      "# T.C. Resmî Gazete Harvester\n\nExtracts daily legislative bulletins, acts, decrees, and regulations from the official portal of the Presidency of the Republic of Turkey.",
+    mcpTool: {
+      name: "query_resmi_gazete",
+      description:
+        "Queries T.C. Resmî Gazete for daily legislative bulletins, laws, presidential decrees, regulations, and announcements.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          date: {
+            type: "string",
+            description: "Date in YYYY-MM-DD or YYYYMMDD format (e.g. 2024-03-15).",
+          },
+          issueNumber: {
+            type: "integer",
+            description: "Official gazette issue number (e.g. 32490).",
+          },
+          category: {
+            type: "string",
+            enum: [
+              "all",
+              "kanun",
+              "cumhurbaskanligi",
+              "yonetmelik",
+              "teblig",
+              "kurul-karari",
+              "ilanlar",
+            ],
+            description: "Legislation category filter.",
+          },
+          query: {
+            type: "string",
+            description: "Keyword search filter in legislation titles.",
+          },
+          limit: { type: "integer", description: "Maximum items to extract (default 50)." },
+          targetUrl: {
+            type: "string",
+            description: "Direct link to a specific Resmî Gazete page.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+
+  yargitay: {
+    actorType: "yargitay",
+    name: "yargitay",
+    title: "Yargıtay ve Danıştay İçtihat Derleyici",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Yargıtay ve Danıştay emsal içtihat kararlarını, gerekçeli metinleri ve hukuk/ceza dairesi kararlarını ayıklayan aktör.",
+    author: "protokol-7",
+    tags: ["legal", "court", "yargitay", "danistay", "precedent", "turkey"],
+    inputSchema: {
+      type: "object",
+      title: "Yargıtay/Danıştay Sorgu Parametreleri",
+      description: "Emsal karar arama kriterleri",
+      properties: {
+        court: {
+          name: "court",
+          type: "string",
+          title: "Mahkeme",
+          description: "Yargıtay veya Danıştay seçimi.",
+          default: "yargitay",
+          enum: ["yargitay", "danistay"],
+          editor: "select",
+        },
+        chamber: {
+          name: "chamber",
+          type: "string",
+          title: "Daire",
+          description: "Hukuk veya Ceza dairesi (ör. 1. Hukuk Dairesi, Ceza Genel Kurulu).",
+          editor: "textfield",
+        },
+        caseNumber: {
+          name: "caseNumber",
+          type: "string",
+          title: "Esas Numarası",
+          description: "Dava esas numarası (ör. 2021/1234).",
+          editor: "textfield",
+        },
+        decisionNumber: {
+          name: "decisionNumber",
+          type: "string",
+          title: "Karar Numarası",
+          description: "Dava karar numarası (ör. 2022/567).",
+          editor: "textfield",
+        },
+        year: {
+          name: "year",
+          type: "integer",
+          title: "Yıl",
+          description: "Karar yılı (ör. 2023).",
+          editor: "number",
+        },
+        legalArea: {
+          name: "legalArea",
+          type: "string",
+          title: "Hukuk Alanı",
+          description: "Hukuk veya Ceza ayrımı.",
+          default: "all",
+          enum: ["all", "hukuk", "ceza", "idari", "vergi"],
+          editor: "select",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Arama Terimi",
+          description: "Karar özeti veya gerekçesinde aranacak anahtar kelime.",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Limit",
+          description: "Döndürülecek maksimum karar adedi.",
+          default: 20,
+          editor: "number",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        totalCount: { type: "number", description: "Toplam karar adedi" },
+        court: { type: "string", description: "Mahkeme adı (Yargıtay / Danıştay)" },
+        decisions: { type: "array", description: "Yapılandırılmış emsal karar listesi" },
+        queryUrl: { type: "string", description: "Çözümlenen kaynak URL" },
+        markdown: { type: "string", description: "LLM için hazır Markdown özeti" },
+      },
+    },
+    exampleInput: {
+      court: "yargitay",
+      chamber: "1. Hukuk Dairesi",
+      query: "tapu iptali ve tescil",
+      limit: 10,
+    },
+    readme:
+      "# Yargıtay & Danıştay Emsal Karar Derleyici\\n\\nYargıtay ve Danıştay kararlarını, daire kararlarını ve gerekçelerini yapılandırılmış biçimde ayıklar.",
+    mcpTool: {
+      name: "query_yargitay",
+      description:
+        "Queries Turkish Supreme Court of Appeals (Yargıtay) and Council of State (Danıştay) for precedent decisions, chamber rulings, and case jurisprudence.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          court: {
+            type: "string",
+            enum: ["yargitay", "danistay"],
+            description: "Target supreme court (default: yargitay).",
+          },
+          chamber: {
+            type: "string",
+            description: "Chamber name (e.g. '1. Hukuk Dairesi', 'Ceza Genel Kurulu').",
+          },
+          caseNumber: {
+            type: "string",
+            description: "Case number / Esas No (e.g. '2021/1234').",
+          },
+          decisionNumber: {
+            type: "string",
+            description: "Decision number / Karar No (e.g. '2022/567').",
+          },
+          year: {
+            type: "integer",
+            description: "Decision year (e.g. 2023).",
+          },
+          legalArea: {
+            type: "string",
+            enum: ["all", "Hukuk", "Ceza"],
+            description: "Legal area filter.",
+          },
+          query: {
+            type: "string",
+            description: "Keyword search in decisions.",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum number of decisions to return (default 20).",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Direct URL to a decision page or query endpoint.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+
+  kap: {
+    actorType: "kap",
+    name: "kap",
+    title: "Kamuoyu Aydınlatma Platformu (KAP) Bildirim Aktörü",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "BIST şirketlerinin KAP özel durum açıklamalarını, finansal raporlarını ve resmi bildirimlerini ayıklayan aktör.",
+    author: "protokol-7",
+    tags: ["finance", "bist", "kap", "disclosures", "turkey", "corporate"],
+    inputSchema: {
+      type: "object",
+      title: "KAP Sorgu Parametreleri",
+      description: "KAP bildirim ve şirket sorgu kriterleri",
+      properties: {
+        companyTicker: {
+          name: "companyTicker",
+          type: "string",
+          title: "Hisse / Şirket Kodu",
+          description: "BIST hisse kodu (ör. THYAO, ASELS, GARAN, KCHOL).",
+          editor: "textfield",
+        },
+        disclosureType: {
+          name: "disclosureType",
+          type: "string",
+          title: "Bildirim Türü",
+          description: "Özel Durum Açıklaması, Finansal Rapor, Genel Kurul vb.",
+          default: "all",
+          enum: ["all", "oda", "fr", "dg", "gk"],
+          editor: "select",
+        },
+        fromDate: {
+          name: "fromDate",
+          type: "string",
+          title: "Başlangıç Tarihi",
+          description: "YYYY-MM-DD formatında başlangıç tarihi.",
+          editor: "textfield",
+        },
+        toDate: {
+          name: "toDate",
+          type: "string",
+          title: "Bitiş Tarihi",
+          description: "YYYY-MM-DD formatında bitiş tarihi.",
+          editor: "textfield",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Arama Terimi",
+          description: "Bildirim başlığı veya özetinde aranacak kelime.",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Limit",
+          description: "Maksimum bildirim sayısı (varsayılan: 20).",
+          default: 20,
+          editor: "number",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        totalCount: { type: "number", description: "Toplam bildirim sayısı" },
+        companyTicker: { type: "string", description: "Sorgulanan hisse kodu" },
+        disclosures: { type: "array", description: "Yapılandırılmış bildirim kayıtları" },
+        queryUrl: { type: "string", description: "Çözümlenen kaynak URL" },
+        markdown: { type: "string", description: "LLM için hazır Markdown özeti" },
+      },
+    },
+    exampleInput: {
+      companyTicker: "THYAO",
+      limit: 10,
+    },
+    readme:
+      "# Kamuoyu Aydınlatma Platformu (KAP) Bildirim Aktörü\\n\\nBorsa İstanbul (BIST) şirketlerinin özel durum açıklamalarını, finansal raporlarını ve kurumsal duyurularını yapılandırılmış biçimde ayıklar.",
+    mcpTool: {
+      name: "query_kap",
+      description:
+        "Queries Turkish Public Disclosure Platform (KAP) for Borsa Istanbul (BIST) company disclosures, financial reports, board decisions, and regulatory filings.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          companyTicker: {
+            type: "string",
+            description:
+              "BIST company stock ticker symbol (e.g. 'THYAO', 'ASELS', 'GARAN', 'KCHOL').",
+          },
+          disclosureType: {
+            type: "string",
+            enum: ["all", "oda", "fr", "dg", "gk"],
+            description:
+              "Disclosure type filter ('oda': special disclosure, 'fr': financial report, 'gk': general assembly).",
+          },
+          fromDate: {
+            type: "string",
+            description: "Start date (YYYY-MM-DD).",
+          },
+          toDate: {
+            type: "string",
+            description: "End date (YYYY-MM-DD).",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword in disclosure summary or subject.",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum number of disclosures to return (default 20).",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Direct URL to a specific KAP disclosure or endpoint.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+
+  github: {
+    actorType: "github",
+    name: "github",
+    title: "GitHub Repository & Code Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "GitHub ambar metaverilerini, README belgelerini, issue ve PR tartışmalarını, sürümleri ve kaynak ağacını ayıklayan aktör.",
+    author: "protokol-7",
+    tags: ["github", "code", "git", "issues", "pull-requests", "readme", "releases"],
+    inputSchema: {
+      type: "object",
+      title: "GitHub Sorgu Parametreleri",
+      description: "GitHub ambarı veya veri arama parametreleri",
+      properties: {
+        owner: {
+          name: "owner",
+          type: "string",
+          title: "Ambar Sahibi (Owner)",
+          description: "GitHub kullanıcı adı veya organizasyon adı (ör. facebook, vercel).",
+          editor: "textfield",
+        },
+        repo: {
+          name: "repo",
+          type: "string",
+          title: "Ambar Adı (Repository)",
+          description: "GitHub ambar adı (ör. react, next.js).",
+          editor: "textfield",
+        },
+        action: {
+          name: "action",
+          type: "string",
+          title: "İşlem Türü",
+          description: "repo, readme, issues, pulls, releases veya tree.",
+          default: "repo",
+          enum: ["repo", "readme", "issues", "pulls", "releases", "tree"],
+          editor: "select",
+        },
+        state: {
+          name: "state",
+          type: "string",
+          title: "Durum",
+          description: "open, closed veya all (issues ve pulls için).",
+          default: "open",
+          enum: ["open", "closed", "all"],
+          editor: "select",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Limit",
+          description: "Döndürülecek maksimum kayıt adedi.",
+          default: 30,
+          editor: "number",
+        },
+        token: {
+          name: "token",
+          type: "string",
+          title: "GitHub Kişisel Erişim Jetonu (PAT)",
+          description: "Yüksek API kotası (5000/saat) için isteğe bağlı erişim belirteci.",
+          editor: "textfield",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Hedef URL",
+          description: "Doğrudan ambar veya API adresi (ör. https://github.com/owner/repo).",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        owner: { type: "string", description: "Ambar sahibi" },
+        repo: { type: "string", description: "Ambar adı" },
+        action: { type: "string", description: "Yürütülen işlem türü" },
+        data: { type: "object", description: "Yapılandırılmış ambar verileri" },
+        queryUrl: { type: "string", description: "Çağrılan GitHub REST API adresi" },
+        markdown: { type: "string", description: "LLM için hazır Markdown çıktısı" },
+      },
+    },
+    exampleInput: {
+      owner: "torvalds",
+      repo: "linux",
+      action: "repo",
+    },
+    readme:
+      "# GitHub Harvester\\n\\nGitHub açık kaynak ambarlarının metaverilerini, README belgelerini, hata kayıtlarını ve sürüm notlarını yapılandırılmış biçimde ayıklar.",
+    mcpTool: {
+      name: "query_github",
+      description:
+        "Queries GitHub REST API to extract repository metadata, README documentation, issues, pull requests, releases, and source trees.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          owner: {
+            type: "string",
+            description: "GitHub repository owner/organization (e.g. 'torvalds', 'facebook').",
+          },
+          repo: {
+            type: "string",
+            description: "GitHub repository name (e.g. 'linux', 'react').",
+          },
+          action: {
+            type: "string",
+            enum: ["repo", "readme", "issues", "pulls", "releases", "tree"],
+            description: "Extraction target type (default: 'repo').",
+          },
+          state: {
+            type: "string",
+            enum: ["open", "closed", "all"],
+            description: "Filter state for issues and pulls (default: 'open').",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum items to return (default 30).",
+          },
+          token: {
+            type: "string",
+            description: "Optional GitHub personal access token for higher rate limits.",
+          },
+          targetUrl: {
+            type: "string",
+            description:
+              "Direct GitHub repository or API URL (e.g. 'https://github.com/owner/repo').",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+
+  openreview: {
+    actorType: "openreview",
+    name: "openreview",
+    title: "OpenReview Academic Submissions & Peer Reviews Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "OpenReview konferans makalelerini, hakem değerlendirmelerini, yazar yanıtlarını (rebuttal) ve kabul kararlarını ayıklayan aktör.",
+    author: "protokol-7",
+    tags: ["openreview", "academic", "peer-review", "iclr", "neurips", "icml", "rebuttal"],
+    inputSchema: {
+      type: "object",
+      title: "OpenReview Sorgu Parametreleri",
+      description: "OpenReview arama veya makale forumu parametreleri",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "İşlem Türü",
+          description:
+            "Çıkarma türü: submissions (bildiriler), forum (tartışma/hakemlik ağacı), note (tekil kayıt).",
+          enum: ["submissions", "forum", "note"],
+          editor: "select",
+          prefill: "submissions",
+        },
+        venue: {
+          name: "venue",
+          type: "string",
+          title: "Konferans / Venue Tanımlayıcısı",
+          description:
+            "Hedef konferans ID (ör. ICLR.cc/2024/Conference, NeurIPS.cc/2023/Conference).",
+          editor: "textfield",
+        },
+        forumId: {
+          name: "forumId",
+          type: "string",
+          title: "Forum / Makale ID",
+          description: "Tüm hakemlik sürecini ve yazar yanıtlarını getirecek bildiri ID'si.",
+          editor: "textfield",
+        },
+        noteId: {
+          name: "noteId",
+          type: "string",
+          title: "Not ID",
+          description: "Tekil not veya inceleme ID'si.",
+          editor: "textfield",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Arama Terimi",
+          description: "Bildiri başlığı veya özetinde aranacak kelime.",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "number",
+          title: "Maksimum Kayıt",
+          description: "Döndürülecek maksimum bildiri sayısı (varsayılan: 25).",
+          editor: "number",
+          prefill: "25",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Hedef URL",
+          description:
+            "Doğrudan OpenReview forum veya API adresi (ör. https://openreview.net/forum?id=xxx).",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Çalıştırılan eylem" },
+        venue: { type: "string", description: "Konferans tanımlayıcısı" },
+        forumId: { type: "string", description: "Forum ID" },
+        totalCount: { type: "number", description: "Toplam not sayısı" },
+        notes: {
+          type: "array",
+          description: "Ayrıştırılmış makale, hakemlik ve yanıt notları",
+        },
+        queryUrl: { type: "string", description: "Sorgulanan OpenReview API URL" },
+        markdown: {
+          type: "string",
+          description: "LLM için yapılandırılmış GFM Markdown",
+        },
+      },
+    },
+    exampleInput: {
+      action: "submissions",
+      venue: "ICLR.cc/2024/Conference",
+      limit: 10,
+    },
+    readme:
+      "# OpenReview Harvester\\n\\nOpenReview platformundaki akademik yayınları, hakem incelemelerini, güven puanlarını ve yazar yanıtlarını LLM eğitimine uygun diyalektik biçimde ayıklar.",
+    mcpTool: {
+      name: "query_openreview",
+      description:
+        "Queries OpenReview API to extract academic paper submissions, peer reviews, author rebuttals, meta-reviews, and decisions (ICLR, NeurIPS, ICML).",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["submissions", "forum", "note"],
+            description:
+              "Target action: 'submissions' (list papers), 'forum' (full review/rebuttal thread), 'note' (single note).",
+          },
+          venue: {
+            type: "string",
+            description:
+              "Conference venue ID (e.g. 'ICLR.cc/2024/Conference', 'NeurIPS.cc/2023/Conference').",
+          },
+          forumId: {
+            type: "string",
+            description:
+              "Paper forum ID to fetch all peer reviews, comments, and author rebuttals.",
+          },
+          noteId: {
+            type: "string",
+            description: "Specific note ID.",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword in papers.",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum notes/papers to return (default: 25).",
+          },
+          targetUrl: {
+            type: "string",
+            description:
+              "Direct OpenReview forum URL (e.g. 'https://openreview.net/forum?id=xxx').",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+
+  "hacker-news": {
+    actorType: "hacker-news",
+    name: "hacker-news",
+    title: "Hacker News Discussions & Architecture Post-Mortems Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Y Combinator Hacker News mühendislik tartışmalarını, mimari incelemelerini ve iç içe geçmiş yorum ağaçlarını çeken aktör.",
+    author: "protokol-7",
+    tags: [
+      "hackernews",
+      "ycombinator",
+      "engineering",
+      "postmortem",
+      "architecture",
+      "discussions",
+      "reasoning",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Hacker News Sorgu Parametreleri",
+      description: "Hacker News tartışma ve yorum ağacı çıkarma parametreleri",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "İşlem Türü",
+          description:
+            "Çıkarma türü: top (öne çıkanlar), best (en iyiler), new (en yeniler), ask (Ask HN), show (Show HN), story (tekil başlık ve yorum ağacı), search (arama).",
+          enum: ["top", "best", "new", "ask", "show", "story", "search"],
+          editor: "select",
+          prefill: "top",
+        },
+        storyId: {
+          name: "storyId",
+          type: "number",
+          title: "Başlık ID",
+          description: "Yorum ağacıyla birlikte çekilecek tekil Hacker News başlık/tartışma ID'si.",
+          editor: "number",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Arama Terimi",
+          description: "Mühendislik tartışmalarında aranacak anahtar kelime veya konu.",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "number",
+          title: "Maksimum Başlık",
+          description: "Döndürülecek maksimum başlık sayısı (varsayılan: 20).",
+          editor: "number",
+          prefill: "20",
+        },
+        maxComments: {
+          name: "maxComments",
+          type: "number",
+          title: "Maksimum Yorum",
+          description:
+            "Tekil başlık için ayıklanacak maksimum iç içe yorum adedi (varsayılan: 50).",
+          editor: "number",
+          prefill: "50",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Hedef URL",
+          description:
+            "Doğrudan Hacker News başlık adresi (ör. https://news.ycombinator.com/item?id=38870197) veya Algolia API URL.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Çalıştırılan eylem" },
+        totalStories: { type: "number", description: "Toplam başlık sayısı" },
+        stories: {
+          type: "array",
+          description: "Ayrıştırılmış başlıklar ve iç içe yorum ağaçları",
+        },
+        queryUrl: { type: "string", description: "Sorgulanan Hacker News / Algolia API URL" },
+        markdown: {
+          type: "string",
+          description: "LLM için biçimlendirilmiş GFM Markdown metni",
+        },
+      },
+    },
+    exampleInput: {
+      action: "top",
+      limit: 10,
+    },
+    readme:
+      "# Hacker News Harvester\\n\\nY Combinator Hacker News platformundaki mühendislik tartışmalarını, mimari incelemelerini ve iç içe geçmiş yorum ağaçlarını temiz GFM Markdown olarak ayıklar.",
+    mcpTool: {
+      name: "query_hacker_news",
+      description:
+        "Queries Hacker News (via Algolia and Firebase APIs) to extract engineering discussions, architecture post-mortems, and nested comment trees.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["top", "best", "new", "ask", "show", "story", "search"],
+            description:
+              "Target action: 'top', 'best', 'new', 'ask', 'show', 'story', or 'search'.",
+          },
+          storyId: {
+            type: "integer",
+            description: "Hacker News story ID to fetch complete nested comment tree.",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword query across Hacker News stories.",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum stories to return (default: 20).",
+          },
+          maxComments: {
+            type: "integer",
+            description: "Maximum nested comments to parse for a single story (default: 50).",
+          },
+          targetUrl: {
+            type: "string",
+            description:
+              "Direct Hacker News item or API URL (e.g. 'https://news.ycombinator.com/item?id=12345').",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  "huggingface-datasets": {
+    actorType: "huggingface-datasets",
+    name: "huggingface-datasets",
+    title: "Hugging Face Datasets Server Harvester",
+    category: "API",
+    version: "1.0.0",
+    description:
+      "Streams structured dataset rows, split configurations, and schema features from the Hugging Face Serverless Datasets API.",
+    author: "protokol-7",
+    tags: ["huggingface", "datasets", "machine-learning", "fine-tuning", "cot", "llm-training"],
+    inputSchema: {
+      type: "object",
+      title: "Hugging Face Datasets Girdi Parametreleri",
+      description: "Hugging Face Datasets Server API parametreleri",
+      properties: {
+        dataset: {
+          name: "dataset",
+          type: "string",
+          title: "Veri Kümesi Adı",
+          description:
+            "Hugging Face veri kümesi tanımlayıcısı (ör. 'openai/gsm8k' veya 'tatsu-lab/alpaca').",
+          editor: "textfield",
+        },
+        action: {
+          name: "action",
+          type: "string",
+          title: "Eylem",
+          description:
+            "Çalıştırılacak eylem türü: 'rows' (satırlar), 'splits' (dilimler), 'info' (bilgi), 'size' (boyut).",
+          default: "rows",
+          enum: ["rows", "splits", "info", "size"],
+          editor: "select",
+        },
+        config: {
+          name: "config",
+          type: "string",
+          title: "Konfigürasyon",
+          description: "Veri kümesi konfigürasyonu/alt kümesi (varsayılan: 'default').",
+          editor: "textfield",
+        },
+        split: {
+          name: "split",
+          type: "string",
+          title: "Dilim (Split)",
+          description:
+            "Veri kümesi dilimi (ör. 'train', 'test', 'validation'). Varsayılan: 'train'.",
+          editor: "textfield",
+        },
+        offset: {
+          name: "offset",
+          type: "number",
+          title: "Satır Başlangıç Ofseti",
+          description: "Akıtılacak satırların başlangıç indeksi (varsayılan: 0).",
+          editor: "number",
+          prefill: "0",
+        },
+        limit: {
+          name: "limit",
+          type: "number",
+          title: "Maksimum Satır Sayısı",
+          description: "Döndürülecek maksimum satır adedi (1-100 arası, varsayılan: 20).",
+          editor: "number",
+          prefill: "20",
+        },
+        hfToken: {
+          name: "hfToken",
+          type: "string",
+          title: "Hugging Face API Anahtarı",
+          description:
+            "Özel veya kapalı veri setleri için opsiyonel Hugging Face User Access Token.",
+          editor: "textfield",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Hedef URL",
+          description: "Doğrudan Hugging Face veri kümesi URL'i veya Datasets Server uç noktası.",
+          editor: "textfield",
+        },
+      },
+      required: ["dataset"],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        dataset: { type: "string", description: "Sorgulanan veri kümesi" },
+        action: { type: "string", description: "Çalıştırılan eylem" },
+        config: { type: "string", description: "Veri kümesi konfigürasyonu" },
+        split: { type: "string", description: "Veri kümesi dilimi" },
+        totalRows: { type: "number", description: "Dilimdeki toplam kayıt sayısı" },
+        features: { type: "array", description: "Sütun ve özellik şeması" },
+        splits: { type: "array", description: "Mevcut dilim listesi" },
+        rows: { type: "array", description: "Ayıklanan yapılandırılmış veri satırları" },
+        info: { type: "object", description: "Veri kümesi meta-bilgileri ve lisans" },
+        queryUrl: { type: "string", description: "Sorgulanan Datasets Server API URL" },
+        markdown: {
+          type: "string",
+          description: "LLM için biçimlendirilmiş GFM Markdown tablosu",
+        },
+      },
+    },
+    exampleInput: {
+      dataset: "openai/gsm8k",
+      config: "main",
+      split: "train",
+      limit: 10,
+    },
+    readme:
+      "# Hugging Face Datasets Server Harvester\\n\\nHugging Face üzerindeki açık kaynaklı yapay zeka eğitim ve değerlendirme veri setlerini (CoT, kod tamamlama, talimat çiftleri) datasets-server API'si üzerinden akıtarak yapılandırılmış JSON ve GFM Markdown tablosuna dönüştürür.",
+    mcpTool: {
+      name: "query_huggingface_datasets",
+      description:
+        "Queries Hugging Face Datasets Serverless API to stream rows, inspect schema features, and list splits for any public or gated dataset.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          dataset: {
+            type: "string",
+            description:
+              "Hugging Face dataset identifier (e.g. 'openai/gsm8k' or 'tatsu-lab/alpaca').",
+          },
+          action: {
+            type: "string",
+            enum: ["rows", "splits", "info", "size"],
+            description: "Target action: 'rows', 'splits', 'info', or 'size'.",
+          },
+          config: {
+            type: "string",
+            description: "Dataset configuration or subset name (default: 'default').",
+          },
+          split: {
+            type: "string",
+            description: "Dataset split (e.g. 'train', 'test', 'validation'). Default: 'train'.",
+          },
+          offset: {
+            type: "integer",
+            description: "Row offset to start streaming from (default: 0).",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum number of rows to fetch (1-100, default: 20).",
+          },
+          hfToken: {
+            type: "string",
+            description: "Optional Hugging Face user access token for gated datasets.",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Direct Hugging Face dataset URL or datasets-server endpoint.",
+          },
+        },
+        required: ["dataset"],
+      },
+    },
+  },
+  "math-reasoning": {
+    actorType: "math-reasoning",
+    name: "math-reasoning",
+    title: "Mathematical Reasoning & CoT Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Extracts mathematical problem solving and Chain-of-Thought (CoT) reasoning pairs (GSM8K, Hendrycks MATH, SVAMP) for LLM fine-tuning and evaluation.",
+    author: "protokol-7",
+    tags: [
+      "math",
+      "reasoning",
+      "cot",
+      "chain-of-thought",
+      "gsm8k",
+      "hendrycks-math",
+      "svamp",
+      "llm-training",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Matematiksel Muhakeme Girdi Parametreleri",
+      description: "Matematiksel problem ve düşünce zinciri ayıklama parametreleri",
+      properties: {
+        benchmark: {
+          name: "benchmark",
+          type: "string",
+          title: "Benchmark / Veri Kümesi",
+          description:
+            "Hedef matematik kıyaslama kümesi: 'gsm8k', 'math' (Hendrycks), 'svamp', veya 'olympiadbench'. Varsayılan: 'gsm8k'.",
+          default: "gsm8k",
+          enum: ["gsm8k", "math", "svamp", "olympiadbench"],
+          editor: "select",
+        },
+        subject: {
+          name: "subject",
+          type: "string",
+          title: "Alt Konu / Branş",
+          description:
+            "Hendrycks MATH için alt dal (ör. 'algebra', 'geometry', 'number_theory', 'precalculus').",
+          editor: "textfield",
+        },
+        split: {
+          name: "split",
+          type: "string",
+          title: "Dilim (Split)",
+          description: "Veri kümesi dilimi: 'train' veya 'test'. Varsayılan: 'train'.",
+          default: "train",
+          enum: ["train", "test"],
+          editor: "select",
+        },
+        offset: {
+          name: "offset",
+          type: "number",
+          title: "Başlangıç İndeksi",
+          description: "Akıtılacak problemlerin başlangıç ofseti (varsayılan: 0).",
+          editor: "number",
+          prefill: "0",
+        },
+        limit: {
+          name: "limit",
+          type: "number",
+          title: "Maksimum Problem Sayısı",
+          description: "Döndürülecek maksimum problem sayısı (1-100 arası, varsayılan: 20).",
+          editor: "number",
+          prefill: "20",
+        },
+        hfToken: {
+          name: "hfToken",
+          type: "string",
+          title: "Hugging Face Token",
+          description: "Hız sınırlarını genişletmek için opsiyonel Hugging Face User Access Token.",
+          editor: "textfield",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Hedef URL",
+          description: "Doğrudan test uç noktası veya API URL'i.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        benchmark: { type: "string", description: "Sorgulanan matematik benchmark kümesi" },
+        totalProblems: { type: "number", description: "Ayıklanan problem adedi" },
+        problems: {
+          type: "array",
+          description: "Yapılandırılmış problem, düşünce zinciri ve cevap nesneleri",
+        },
+        queryUrl: { type: "string", description: "Sorgulanan Datasets API uç noktası" },
+        markdown: {
+          type: "string",
+          description: "LLM CoT eğitimi için biçimlendirilmiş GFM Markdown metni",
+        },
+      },
+    },
+    exampleInput: {
+      benchmark: "gsm8k",
+      split: "train",
+      limit: 10,
+    },
+    readme:
+      "# Mathematical Reasoning & CoT Harvester\\n\\nGSM8K, Hendrycks MATH ve SVAMP gibi temel matematiksel akıl yürütme veri setlerinden soru, adım adım düşünme süreci (CoT), LaTeX formülleri ve nihai cevabı ayıklayarak LLM SFT ve muhakeme eğitimine uygun biçimde sunar.",
+    mcpTool: {
+      name: "query_math_reasoning",
+      description:
+        "Queries mathematical reasoning datasets (GSM8K, Hendrycks MATH, SVAMP) to extract multi-step Chain-of-Thought (CoT) problem-solution pairs.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          benchmark: {
+            type: "string",
+            enum: ["gsm8k", "math", "svamp", "olympiadbench"],
+            description:
+              "Mathematical benchmark name: 'gsm8k', 'math', 'svamp', or 'olympiadbench' (default: 'gsm8k').",
+          },
+          subject: {
+            type: "string",
+            description:
+              "Subject domain for Hendrycks MATH (e.g. 'algebra', 'geometry', 'number_theory').",
+          },
+          split: {
+            type: "string",
+            enum: ["train", "test"],
+            description: "Dataset split: 'train' or 'test' (default: 'train').",
+          },
+          offset: {
+            type: "integer",
+            description: "Row offset to start streaming from (default: 0).",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum problems to return (1-100, default: 20).",
+          },
+          hfToken: {
+            type: "string",
+            description: "Optional Hugging Face access token.",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Direct API URL or mock endpoint.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  "code-eval": {
+    actorType: "code-eval",
+    name: "code-eval",
+    title: "Code Generation & Evaluation Benchmark Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Extracts standard coding evaluation benchmark tasks (HumanEval, MBPP, SWE-bench) with prompts, canonical solutions, and verification tests for LLM coding evaluation.",
+    author: "protokol-7",
+    tags: [
+      "code",
+      "coding",
+      "humaneval",
+      "mbpp",
+      "swe-bench",
+      "benchmark",
+      "evaluation",
+      "llm-training",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Kod Değerlendirme Girdi Parametreleri",
+      description: "Kodlama benchmark ve test süiti ayıklama parametreleri",
+      properties: {
+        benchmark: {
+          name: "benchmark",
+          type: "string",
+          title: "Benchmark / Kıyaslama Kümesi",
+          description:
+            "Hedef kod kıyaslama kümesi: 'humaneval', 'mbpp', veya 'swe-bench'. Varsayılan: 'humaneval'.",
+          default: "humaneval",
+          enum: ["humaneval", "mbpp", "swe-bench"],
+          editor: "select",
+        },
+        split: {
+          name: "split",
+          type: "string",
+          title: "Dilim (Split)",
+          description: "Veri kümesi dilimi (ör. 'test' veya 'train'). Varsayılan: 'test'.",
+          default: "test",
+          editor: "textfield",
+        },
+        offset: {
+          name: "offset",
+          type: "number",
+          title: "Başlangıç İndeksi",
+          description: "Akıtılacak görevlerin başlangıç ofseti (varsayılan: 0).",
+          editor: "number",
+          prefill: "0",
+        },
+        limit: {
+          name: "limit",
+          type: "number",
+          title: "Maksimum Görev Sayısı",
+          description: "Döndürülecek maksimum kodlama görevi sayısı (1-100 arası, varsayılan: 20).",
+          editor: "number",
+          prefill: "20",
+        },
+        hfToken: {
+          name: "hfToken",
+          type: "string",
+          title: "Hugging Face Token",
+          description: "Hız sınırlarını genişletmek için opsiyonel Hugging Face User Access Token.",
+          editor: "textfield",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Hedef URL",
+          description: "Doğrudan test uç noktası veya API URL'i.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        benchmark: { type: "string", description: "Sorgulanan kodlama benchmark kümesi" },
+        split: { type: "string", description: "Veri kümesi dilimi" },
+        totalTasks: { type: "number", description: "Ayıklanan kodlama görevi sayısı" },
+        tasks: {
+          type: "array",
+          description: "Yapılandırılmış prompt, kanonik çözüm ve test süiti nesneleri",
+        },
+        queryUrl: { type: "string", description: "Sorgulanan Datasets API uç noktası" },
+        markdown: {
+          type: "string",
+          description: "LLM kodlama eğitimi için biçimlendirilmiş GFM Markdown metni",
+        },
+      },
+    },
+    exampleInput: {
+      benchmark: "humaneval",
+      split: "test",
+      limit: 10,
+    },
+    readme:
+      "# Code Generation & Evaluation Benchmark Harvester\\n\\nHumanEval, MBPP ve SWE-bench gibi standart kodlama kıyaslama kümelerinden problem tanımı, giriş noktası, kanonik çözüm ve birim testlerini ayıklayarak LLM kodlama değerlendirmesi ve SFT için sunar.",
+    mcpTool: {
+      name: "query_code_eval",
+      description:
+        "Queries code generation and evaluation benchmarks (HumanEval, MBPP, SWE-bench) to extract programming tasks, canonical solutions, and verification unit tests.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          benchmark: {
+            type: "string",
+            enum: ["humaneval", "mbpp", "swe-bench"],
+            description:
+              "Coding benchmark name: 'humaneval', 'mbpp', or 'swe-bench' (default: 'humaneval').",
+          },
+          split: {
+            type: "string",
+            description: "Dataset split: 'test' or 'train' (default: 'test').",
+          },
+          offset: {
+            type: "integer",
+            description: "Task offset to start streaming from (default: 0).",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum tasks to return (1-100, default: 20).",
+          },
+          hfToken: {
+            type: "string",
+            description: "Optional Hugging Face access token.",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Direct API URL or mock endpoint.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  proofwiki: {
+    actorType: "proofwiki",
+    name: "proofwiki",
+    title: "ProofWiki Mathematical Theorems & Proofs Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Harvests mathematical theorems, axioms, definitions, and step-by-step proof chains from ProofWiki MediaWiki API for LLM reasoning and mathematical proof training.",
+    author: "protokol-7",
+    tags: [
+      "math",
+      "mathematics",
+      "theorems",
+      "proofs",
+      "axioms",
+      "definitions",
+      "proofwiki",
+      "formal-logic",
+      "llm-training",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "ProofWiki Girdi Parametreleri",
+      description: "ProofWiki teorem, ispat ve tanım ayıklama parametreleri",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Eylem Modu",
+          description:
+            "Sorgulama modu: 'theorem' (tekil sayfa), 'search' (anahtar kelime), 'random' (rastgele teoremler), 'category' (kategori üyeleri).",
+          default: "theorem",
+          enum: ["theorem", "search", "random", "category"],
+          editor: "select",
+        },
+        title: {
+          name: "title",
+          type: "string",
+          title: "Teorem / Sayfa Başlığı",
+          description: "Çekilecek teorem veya sayfa başlığı (ör. 'Pythagorean Theorem').",
+          editor: "textfield",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Arama Terimi",
+          description: "ProofWiki genel arama sorgusu.",
+          editor: "textfield",
+        },
+        category: {
+          name: "category",
+          type: "string",
+          title: "Kategori Adı",
+          description: "Listelenecek kategori adı (ör. 'Theorems', 'Definitions', 'Axioms').",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "number",
+          title: "Maksimum Sonuç Sayısı",
+          description: "Döndürülecek maksimum sonuç adedi (1-50 arası, varsayılan: 10).",
+          editor: "number",
+          prefill: "10",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Hedef URL",
+          description: "Doğrudan ProofWiki sayfa URL'i veya test uç noktası.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Çalıştırılan eylem modu" },
+        totalResults: { type: "number", description: "Döndürülen sonuç adedi" },
+        items: {
+          type: "array",
+          description: "Yapılandırılmış teorem, ispat ve kaynak nesneleri",
+        },
+        queryUrl: { type: "string", description: "Sorgulanan ProofWiki MediaWiki API uç noktası" },
+        markdown: {
+          type: "string",
+          description: "Matematiksel muhakeme eğitimi için biçimlendirilmiş GFM Markdown metni",
+        },
+      },
+    },
+    exampleInput: {
+      action: "theorem",
+      title: "Pythagorean Theorem",
+    },
+    readme:
+      "# ProofWiki Mathematical Theorems & Proofs Harvester\\n\\nProofWiki üzerinden aksiyomlar, tanımlar, teoremler ve adım adım matematiksel ispat zincirlerini çekerek LLM matematiksel akıl yürütme (Chain-of-Thought) ve sembolik muhakeme eğitimine uygun biçimde sunar.",
+    mcpTool: {
+      name: "query_proofwiki",
+      description:
+        "Queries ProofWiki to extract mathematical theorems, axioms, definitions, and step-by-step formal and informal proofs.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["theorem", "search", "random", "category"],
+            description:
+              "Query mode: 'theorem' (single page), 'search' (keyword), 'random' (random articles), 'category' (category members).",
+          },
+          title: {
+            type: "string",
+            description: "Theorem or page title (e.g. 'Pythagorean Theorem', 'Euclid\\'s Lemma').",
+          },
+          query: {
+            type: "string",
+            description: "Keyword search query.",
+          },
+          category: {
+            type: "string",
+            description: "Category name (e.g. 'Theorems', 'Abstract Algebra').",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum results to return (1-50, default: 10).",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Direct ProofWiki page URL or mock endpoint.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  "lean-mathlib": {
+    actorType: "lean-mathlib",
+    name: "lean-mathlib",
+    title: "Lean 4 & Mathlib Computer-Verified Formal Proofs Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Harvests computer-verified formal theorems, lemmas, definitions, and proof tactic steps from Lean 4 and Mathlib4 repositories for symbolic logic and formal verification LLM training.",
+    author: "protokol-7",
+    tags: [
+      "math",
+      "formal-verification",
+      "lean4",
+      "mathlib",
+      "theorems",
+      "lemmas",
+      "tactics",
+      "proofs",
+      "symbolic-ai",
+      "llm-training",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Lean 4 & Mathlib Girdi Parametreleri",
+      description: "Lean 4 ve Mathlib dosya, teorem ve taktik çıkarma parametreleri",
+      properties: {
+        action: {
+          name: "action",
+          title: "Çıkarma Kipi",
+          type: "string",
+          description:
+            "Çıkarma kipi: file (dosya analizi), theorem (spesifik teorem), search (arama) veya random.",
+          required: false,
+          enum: ["file", "theorem", "search", "random"],
+          default: "file",
+        },
+        repo: {
+          name: "repo",
+          title: "Lean Ambarı",
+          type: "string",
+          description: "GitHub ambarı (varsayılan: leanprover-community/mathlib4).",
+          required: false,
+          default: "leanprover-community/mathlib4",
+        },
+        path: {
+          name: "path",
+          title: "Lean Dosya Yolu",
+          type: "string",
+          description: "Ambar içi .lean dosya yolu (ör. Mathlib/Data/Nat/Basic.lean).",
+          required: false,
+          default: "Mathlib/Data/Nat/Basic.lean",
+        },
+        theorem: {
+          name: "theorem",
+          title: "Teorem / Lemma Adı",
+          type: "string",
+          description: "Spesifik teorem veya lemma adı (ör. succ_le_succ).",
+          required: false,
+        },
+        query: {
+          name: "query",
+          title: "Arama Sorgusu",
+          type: "string",
+          description: "Kod arama anahtar sözcüğü.",
+          required: false,
+        },
+        limit: {
+          name: "limit",
+          title: "Maksimum Tanım Sayısı",
+          type: "number",
+          description: "Çıkarılacak maksimum teorem/tanım sayısı (1-100, varsayılan: 20).",
+          required: false,
+          default: 20,
+        },
+        githubToken: {
+          name: "githubToken",
+          title: "GitHub API Belirteci",
+          type: "string",
+          description: "İsteğe bağlı GitHub Personal Access Token.",
+          required: false,
+        },
+        targetUrl: {
+          name: "targetUrl",
+          title: "Doğrudan URL",
+          type: "string",
+          description: "Doğrudan GitHub raw veya mock test URL'si.",
+          required: false,
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Çalıştırılan eylem modu" },
+        repo: { type: "string", description: "Kaynak ambar" },
+        totalDeclarations: { type: "number", description: "Döndürülen tanım adedi" },
+        items: {
+          type: "array",
+          description: "Yapılandırılmış teorem, lemma, tanım ve taktik nesneleri",
+        },
+        queryUrl: { type: "string", description: "Sorgulanan GitHub veya raw uç noktası" },
+        markdown: {
+          type: "string",
+          description: "Sembolik muhakeme eğitimi için biçimlendirilmiş GFM Markdown metni",
+        },
+      },
+    },
+    exampleInput: {
+      action: "file",
+      repo: "leanprover-community/mathlib4",
+      path: "Mathlib/Data/Nat/Basic.lean",
+      limit: 20,
+    },
+    readme:
+      "# Lean 4 & Mathlib Computer-Verified Formal Proofs Harvester\\n\\nLean 4 ve Mathlib4 ambarlarından biçimsel olarak doğrulanabilir teorem ifadeleri, lemma tanımları, tip imzaları ve taktik adımlarını (`rw`, `simp`, `exact`, `apply`) çekerek sembolik muhakeme ve formel kanıtlama eğitimine uygun veri çiftleri üretir.",
+    mcpTool: {
+      name: "query_lean_mathlib",
+      description:
+        "Queries Lean 4 and Mathlib4 repositories to extract computer-verified formal theorems, lemmas, definitions, and proof tactic steps.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["file", "theorem", "search", "random"],
+            description: "Query mode: 'file', 'theorem', 'search', or 'random'.",
+          },
+          repo: {
+            type: "string",
+            description: "GitHub repository (default: 'leanprover-community/mathlib4').",
+          },
+          path: {
+            type: "string",
+            description: "Path to .lean file (e.g. 'Mathlib/Data/Nat/Basic.lean').",
+          },
+          theorem: {
+            type: "string",
+            description: "Specific theorem or lemma name to extract.",
+          },
+          query: {
+            type: "string",
+            description: "Keyword search query.",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum declarations to return (1-100, default: 20).",
+          },
+          githubToken: {
+            type: "string",
+            description: "Optional GitHub personal access token.",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Direct GitHub raw URL or mock endpoint.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  lesswrong: {
+    actorType: "lesswrong",
+    name: "lesswrong",
+    title: "LessWrong & Alignment Forum Epistemic Rationality Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Harvests epistemic rationality, Bayesian epistemology, AI alignment essays, and dialectic comment trees from LessWrong and Alignment Forum GraphQL APIs for reasoning and philosophical alignment LLM training.",
+    author: "protokol-7",
+    tags: [
+      "rationality",
+      "epistemology",
+      "alignment",
+      "lesswrong",
+      "decision-theory",
+      "bayes",
+      "philosophy",
+      "ai-safety",
+      "dialectic",
+      "llm-training",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "LessWrong & Alignment Forum Girdi Parametreleri",
+      description: "LessWrong ve Alignment Forum yazı ve yorum çıkarma parametreleri",
+      properties: {
+        action: {
+          name: "action",
+          title: "Çıkarma Kipi",
+          type: "string",
+          description:
+            "Çıkarma kipi: posts (yazı listesi), post (tek yazı), comments (yorumlar) veya search.",
+          required: false,
+          enum: ["posts", "post", "comments", "search"],
+          default: "posts",
+        },
+        platform: {
+          name: "platform",
+          title: "Platform",
+          type: "string",
+          description: "Hedef platform: lesswrong veya alignmentforum.",
+          required: false,
+          enum: ["lesswrong", "alignmentforum"],
+          default: "lesswrong",
+        },
+        postId: {
+          name: "postId",
+          title: "Yazı Kimliği (ID)",
+          type: "string",
+          description: "Spesifik gönderi kimliği.",
+          required: false,
+        },
+        slug: {
+          name: "slug",
+          title: "Yazı Başlık Kısaltması (Slug)",
+          type: "string",
+          description: "Gönderi URL slug'ı.",
+          required: false,
+        },
+        query: {
+          name: "query",
+          title: "Arama Sorgusu",
+          type: "string",
+          description: "Yazı veya tartışma arama anahtar sözcüğü.",
+          required: false,
+        },
+        view: {
+          name: "view",
+          title: "Sıralama Görünümü",
+          type: "string",
+          description: "Yazı görünümü: curated (küratör onaylı), top veya new.",
+          required: false,
+          enum: ["curated", "top", "new"],
+          default: "curated",
+        },
+        limit: {
+          name: "limit",
+          title: "Maksimum Yazı Sayısı",
+          type: "number",
+          description: "Çıkarılacak maksimum yazı sayısı (1-50, varsayılan: 10).",
+          required: false,
+          default: 10,
+        },
+        includeComments: {
+          name: "includeComments",
+          title: "Yorumları Dahil Et",
+          type: "boolean",
+          description: "Tek yazı modunda diyalektik yorumları dahil et.",
+          required: false,
+          default: true,
+        },
+        maxComments: {
+          name: "maxComments",
+          title: "Maksimum Yorum Sayısı",
+          type: "number",
+          description: "Çıkarılacak maksimum yorum sayısı (1-50, varsayılan: 10).",
+          required: false,
+          default: 10,
+        },
+        targetUrl: {
+          name: "targetUrl",
+          title: "Doğrudan URL",
+          type: "string",
+          description: "Doğrudan LessWrong/AlignmentForum sayfa veya mock test URL'si.",
+          required: false,
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Çalıştırılan eylem modu" },
+        platform: { type: "string", description: "Kaynak platform (lesswrong / alignmentforum)" },
+        totalResults: { type: "number", description: "Döndürülen sonuç adedi" },
+        posts: {
+          type: "array",
+          description: "Yapılandırılmış rasyonalite ve yapay zeka güvenliği makaleleri",
+        },
+        comments: {
+          type: "array",
+          description: "Diyalektik yorumlar ve argümantasyon zincirleri",
+        },
+        queryUrl: { type: "string", description: "Sorgulanan GraphQL uç noktası" },
+        markdown: {
+          type: "string",
+          description: "Epistemik muhakeme eğitimi için biçimlendirilmiş GFM Markdown metni",
+        },
+      },
+    },
+    exampleInput: {
+      action: "posts",
+      platform: "lesswrong",
+      view: "curated",
+      limit: 10,
+    },
+    readme:
+      "# LessWrong & Alignment Forum Epistemic Rationality Harvester\\n\\nLessWrong ve Alignment Forum GraphQL API üzerinden Bayesyen epistemoloji, karar teorisi, bilişsel önyargılar ve yapay zeka güvenliği/hizalama (alignment) makaleleri ve diyalektik argümantasyon ağaçlarını çıkarır.",
+    mcpTool: {
+      name: "query_lesswrong",
+      description:
+        "Queries LessWrong and Alignment Forum GraphQL APIs to extract epistemic rationality, Bayesian reasoning, and AI alignment essays and dialectic comment trees.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["posts", "post", "comments", "search"],
+            description:
+              "Query mode: 'posts' (list), 'post' (single post), 'comments', or 'search'.",
+          },
+          platform: {
+            type: "string",
+            enum: ["lesswrong", "alignmentforum"],
+            description: "Target platform: 'lesswrong' or 'alignmentforum'.",
+          },
+          postId: {
+            type: "string",
+            description: "Post ID.",
+          },
+          slug: {
+            type: "string",
+            description: "Post slug.",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword query.",
+          },
+          view: {
+            type: "string",
+            enum: ["curated", "top", "new"],
+            description: "Posts sorting view: 'curated', 'top', or 'new'.",
+          },
+          limit: {
+            type: "integer",
+            description: "Maximum posts to return (1-50, default: 10).",
+          },
+          includeComments: {
+            type: "boolean",
+            description: "Whether to include top dialectic comments for single post.",
+          },
+          maxComments: {
+            type: "integer",
+            description: "Maximum comments to return (1-50, default: 10).",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Direct LessWrong/AlignmentForum URL or mock endpoint.",
+          },
         },
         required: [],
       },

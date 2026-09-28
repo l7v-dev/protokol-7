@@ -64,9 +64,22 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 41);
+    assert.equal(result.tools.length, 54);
 
     const toolNames = result.tools.map((t) => t.name);
+    assert.ok(toolNames.includes("wikipedia_query"));
+    assert.ok(toolNames.includes("query_resmi_gazete"));
+    assert.ok(toolNames.includes("query_yargitay"));
+    assert.ok(toolNames.includes("query_kap"));
+    assert.ok(toolNames.includes("query_github"));
+    assert.ok(toolNames.includes("query_openreview"));
+    assert.ok(toolNames.includes("query_hacker_news"));
+    assert.ok(toolNames.includes("query_huggingface_datasets"));
+    assert.ok(toolNames.includes("query_math_reasoning"));
+    assert.ok(toolNames.includes("query_code_eval"));
+    assert.ok(toolNames.includes("query_proofwiki"));
+    assert.ok(toolNames.includes("query_lean_mathlib"));
+    assert.ok(toolNames.includes("query_lesswrong"));
     assert.ok(toolNames.includes("run_pipeline"));
     assert.ok(toolNames.includes("list_pipelines"));
     assert.ok(toolNames.includes("publish_dataset"));
@@ -285,5 +298,500 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.equal(typedTask.options.gutenbergOptions.searchQuery, "Nietzsche");
     assert.equal(typedTask.options.gutenbergOptions.topic, "philosophy");
     assert.equal(typedTask.options.gutenbergOptions.downloadText, true);
+  });
+
+  it("correctly maps query_github parameters to githubOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockGithub: IActor = {
+      actorType: "github",
+      description: "Mock GitHub actor",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: task.actorType,
+          status: "completed",
+          data: { success: true },
+          executionDurationMs: 1,
+        };
+      },
+    };
+    mockRegistry.register(mockGithub);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "github-test",
+      method: "tools/call",
+      params: {
+        name: "query_github",
+        arguments: {
+          owner: "torvalds",
+          repo: "linux",
+          action: "readme",
+          limit: 10,
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        githubOptions?: {
+          owner?: string;
+          repo?: string;
+          action?: string;
+          limit?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.githubOptions);
+    assert.equal(typedTask.options.githubOptions.owner, "torvalds");
+    assert.equal(typedTask.options.githubOptions.repo, "linux");
+    assert.equal(typedTask.options.githubOptions.action, "readme");
+    assert.equal(typedTask.options.githubOptions.limit, 10);
+  });
+
+  it("correctly maps query_openreview parameters to openreviewOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockOpenReview: IActor = {
+      actorType: "openreview",
+      description: "Mock OpenReview actor",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: task.actorType,
+          status: "completed",
+          data: { success: true },
+          executionDurationMs: 1,
+        };
+      },
+    };
+    mockRegistry.register(mockOpenReview);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "openreview-test",
+      method: "tools/call",
+      params: {
+        name: "query_openreview",
+        arguments: {
+          action: "submissions",
+          venue: "ICLR.cc/2024/Conference",
+          limit: 15,
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        openreviewOptions?: {
+          action?: string;
+          venue?: string;
+          limit?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.openreviewOptions);
+    assert.equal(typedTask.options.openreviewOptions.action, "submissions");
+    assert.equal(typedTask.options.openreviewOptions.venue, "ICLR.cc/2024/Conference");
+    assert.equal(typedTask.options.openreviewOptions.limit, 15);
+  });
+
+  it("correctly maps query_hacker_news parameters to hackerNewsOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockHN: IActor = {
+      actorType: "hacker-news",
+      description: "Mock Hacker News actor",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: task.actorType,
+          status: "completed",
+          data: { success: true },
+          executionDurationMs: 1,
+        };
+      },
+    };
+    mockRegistry.register(mockHN);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "hn-test",
+      method: "tools/call",
+      params: {
+        name: "query_hacker_news",
+        arguments: {
+          action: "story",
+          storyId: 38870197,
+          maxComments: 30,
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        hackerNewsOptions?: {
+          action?: string;
+          storyId?: number;
+          maxComments?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.hackerNewsOptions);
+    assert.equal(typedTask.options.hackerNewsOptions.action, "story");
+    assert.equal(typedTask.options.hackerNewsOptions.storyId, 38870197);
+    assert.equal(typedTask.options.hackerNewsOptions.maxComments, 30);
+  });
+
+  it("correctly maps query_huggingface_datasets parameters to huggingfaceDatasetsOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockHF: IActor = {
+      actorType: "huggingface-datasets",
+      description: "Mock HF Datasets actor",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: task.actorType,
+          status: "completed",
+          data: { success: true },
+          executionDurationMs: 1,
+        };
+      },
+    };
+    mockRegistry.register(mockHF);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "hf-test",
+      method: "tools/call",
+      params: {
+        name: "query_huggingface_datasets",
+        arguments: {
+          dataset: "openai/gsm8k",
+          config: "main",
+          split: "train",
+          action: "rows",
+          limit: 10,
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        huggingfaceDatasetsOptions?: {
+          dataset?: string;
+          config?: string;
+          split?: string;
+          action?: string;
+          limit?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.huggingfaceDatasetsOptions);
+    assert.equal(typedTask.options.huggingfaceDatasetsOptions.dataset, "openai/gsm8k");
+    assert.equal(typedTask.options.huggingfaceDatasetsOptions.config, "main");
+    assert.equal(typedTask.options.huggingfaceDatasetsOptions.split, "train");
+    assert.equal(typedTask.options.huggingfaceDatasetsOptions.action, "rows");
+    assert.equal(typedTask.options.huggingfaceDatasetsOptions.limit, 10);
+  });
+
+  it("correctly maps query_math_reasoning parameters to mathReasoningOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockMath: IActor = {
+      actorType: "math-reasoning",
+      description: "Mock Math Reasoning actor",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "math-reasoning",
+          status: "completed",
+          data: {
+            benchmark: "gsm8k",
+            split: "train",
+            totalProblems: 0,
+            offset: 0,
+            limit: 10,
+            problems: [],
+            queryUrl: "http://mock",
+          },
+          executionDurationMs: 0,
+        };
+      },
+    };
+    mockRegistry.register(mockMath);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "math-test",
+      method: "tools/call",
+      params: {
+        name: "query_math_reasoning",
+        arguments: {
+          benchmark: "math",
+          subject: "algebra",
+          split: "train",
+          limit: 10,
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        mathReasoningOptions?: {
+          benchmark?: string;
+          subject?: string;
+          split?: string;
+          limit?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.mathReasoningOptions);
+    assert.equal(typedTask.options.mathReasoningOptions.benchmark, "math");
+    assert.equal(typedTask.options.mathReasoningOptions.subject, "algebra");
+    assert.equal(typedTask.options.mathReasoningOptions.split, "train");
+    assert.equal(typedTask.options.mathReasoningOptions.limit, 10);
+  });
+
+  it("correctly maps query_code_eval parameters to codeEvalOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockCodeEval: IActor = {
+      actorType: "code-eval",
+      description: "Mock Code Eval actor",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "code-eval",
+          status: "completed",
+          data: {
+            benchmark: "humaneval",
+            split: "test",
+            totalTasks: 0,
+            offset: 0,
+            limit: 10,
+            tasks: [],
+            queryUrl: "http://mock",
+          },
+          executionDurationMs: 0,
+        };
+      },
+    };
+    mockRegistry.register(mockCodeEval);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "code-eval-test",
+      method: "tools/call",
+      params: {
+        name: "query_code_eval",
+        arguments: {
+          benchmark: "humaneval",
+          split: "test",
+          limit: 10,
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        codeEvalOptions?: {
+          benchmark?: string;
+          split?: string;
+          limit?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.codeEvalOptions);
+    assert.equal(typedTask.options.codeEvalOptions.benchmark, "humaneval");
+    assert.equal(typedTask.options.codeEvalOptions.split, "test");
+    assert.equal(typedTask.options.codeEvalOptions.limit, 10);
+  });
+
+  it("correctly maps query_proofwiki parameters to proofWikiOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockProofWiki: IActor = {
+      actorType: "proofwiki",
+      description: "Mock ProofWiki actor",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "proofwiki",
+          status: "completed",
+          data: {
+            action: "theorem",
+            totalResults: 1,
+            items: [],
+            queryUrl: "https://proofwiki.org",
+          },
+          executionDurationMs: 10,
+        };
+      },
+    };
+    mockRegistry.register(mockProofWiki);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "proofwiki-test",
+      method: "tools/call",
+      params: {
+        name: "query_proofwiki",
+        arguments: {
+          action: "theorem",
+          title: "Pythagorean Theorem",
+          limit: 5,
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        proofWikiOptions?: {
+          action?: string;
+          title?: string;
+          limit?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.proofWikiOptions);
+    assert.equal(typedTask.options.proofWikiOptions.action, "theorem");
+    assert.equal(typedTask.options.proofWikiOptions.title, "Pythagorean Theorem");
+    assert.equal(typedTask.options.proofWikiOptions.limit, 5);
+  });
+
+  it("correctly maps query_lean_mathlib parameters to leanMathlibOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockLeanMathlib: IActor = {
+      actorType: "lean-mathlib",
+      description: "Mock Lean Mathlib actor",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "lean-mathlib",
+          status: "completed",
+          data: {
+            action: "file",
+            repo: "leanprover-community/mathlib4",
+            totalDeclarations: 1,
+            items: [],
+            queryUrl: "https://raw.githubusercontent.com",
+          },
+          executionDurationMs: 10,
+        };
+      },
+    };
+    mockRegistry.register(mockLeanMathlib);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "lean-test",
+      method: "tools/call",
+      params: {
+        name: "query_lean_mathlib",
+        arguments: {
+          action: "file",
+          path: "Mathlib/Data/Nat/Basic.lean",
+          limit: 10,
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        leanMathlibOptions?: {
+          action?: string;
+          path?: string;
+          limit?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.leanMathlibOptions);
+    assert.equal(typedTask.options.leanMathlibOptions.action, "file");
+    assert.equal(typedTask.options.leanMathlibOptions.path, "Mathlib/Data/Nat/Basic.lean");
+    assert.equal(typedTask.options.leanMathlibOptions.limit, 10);
+  });
+
+  it("correctly maps query_lesswrong parameters to lessWrongOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockLessWrong: IActor = {
+      actorType: "lesswrong",
+      description: "Mock LessWrong actor",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "lesswrong",
+          status: "completed",
+          data: {
+            action: "posts",
+            view: "curated",
+            totalPosts: 1,
+            posts: [],
+            queryUrl: "https://www.lesswrong.com/graphql",
+          },
+          executionDurationMs: 10,
+        };
+      },
+    };
+    mockRegistry.register(mockLessWrong);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "lesswrong-test",
+      method: "tools/call",
+      params: {
+        name: "query_lesswrong",
+        arguments: {
+          action: "posts",
+          view: "curated",
+          limit: 10,
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        lessWrongOptions?: {
+          action?: string;
+          view?: string;
+          limit?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.lessWrongOptions);
+    assert.equal(typedTask.options.lessWrongOptions.action, "posts");
+    assert.equal(typedTask.options.lessWrongOptions.view, "curated");
+    assert.equal(typedTask.options.lessWrongOptions.limit, 10);
   });
 });

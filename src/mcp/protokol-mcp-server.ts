@@ -22,28 +22,41 @@ import type {
   ArchiveExtractorTaskOptions,
   ArxivActorTaskOptions,
   ClinicalTrialsActorTaskOptions,
+  CodeEvalActorTaskOptions,
   CourtListenerActorTaskOptions,
   DergiParkActorTaskOptions,
   DocumentExtractorTaskOptions,
   EpubExtractorTaskOptions,
   EurLexActorTaskOptions,
   EuropePmcActorTaskOptions,
+  GithubActorTaskOptions,
   GutenbergActorTaskOptions,
+  HackerNewsActorTaskOptions,
+  HuggingFaceDatasetsActorTaskOptions,
   IetfRfcActorTaskOptions,
   InternetArchiveActorTaskOptions,
+  KapActorTaskOptions,
   KtbEkitapTaskOptions,
+  LeanMathlibActorTaskOptions,
+  LessWrongActorTaskOptions,
+  MathReasoningActorTaskOptions,
   MitOcwActorTaskOptions,
   NetworkInterceptorTaskOptions,
   OpenAlexActorTaskOptions,
   OpenFdaActorTaskOptions,
+  OpenReviewActorTaskOptions,
   OpenStaxActorTaskOptions,
   PdfDocumentTaskOptions,
+  ProofWikiActorTaskOptions,
+  ResmiGazeteActorTaskOptions,
   SaglikEkutuphaneTaskOptions,
   SecEdgarActorTaskOptions,
   SerpSearchTaskOptions,
   SoftwareHeritageActorTaskOptions,
   StackExchangeActorTaskOptions,
   WikimediaActorTaskOptions,
+  WikipediaActorTaskOptions,
+  YargitayActorTaskOptions,
 } from "../api/types";
 import { DatasetPublisher } from "../dataset/dataset-publisher";
 import type { PublishDatasetOptions, SplitRatios } from "../dataset/types";
@@ -1135,6 +1148,10 @@ export class ProtokolMcpServer {
               manifest.actorType === "wikimedia"
                 ? (toolArgs as unknown as WikimediaActorTaskOptions)
                 : undefined,
+            wikipediaOptions:
+              manifest.actorType === "wikipedia" || manifest.actorType === "wikimedia"
+                ? (toolArgs as unknown as WikipediaActorTaskOptions)
+                : undefined,
             openalexOptions:
               manifest.actorType === "openalex"
                 ? (toolArgs as unknown as OpenAlexActorTaskOptions)
@@ -1218,6 +1235,54 @@ export class ProtokolMcpServer {
             mitOcwOptions:
               manifest.actorType === "mit-ocw"
                 ? (toolArgs as unknown as MitOcwActorTaskOptions)
+                : undefined,
+            resmiGazeteOptions:
+              manifest.actorType === "resmi-gazete"
+                ? (toolArgs as unknown as ResmiGazeteActorTaskOptions)
+                : undefined,
+            yargitayOptions:
+              manifest.actorType === "yargitay"
+                ? (toolArgs as unknown as YargitayActorTaskOptions)
+                : undefined,
+            kapOptions:
+              manifest.actorType === "kap"
+                ? (toolArgs as unknown as KapActorTaskOptions)
+                : undefined,
+            githubOptions:
+              manifest.actorType === "github"
+                ? (toolArgs as unknown as GithubActorTaskOptions)
+                : undefined,
+            openreviewOptions:
+              manifest.actorType === "openreview"
+                ? (toolArgs as unknown as OpenReviewActorTaskOptions)
+                : undefined,
+            hackerNewsOptions:
+              manifest.actorType === "hacker-news"
+                ? (toolArgs as unknown as HackerNewsActorTaskOptions)
+                : undefined,
+            huggingfaceDatasetsOptions:
+              manifest.actorType === "huggingface-datasets"
+                ? (toolArgs as unknown as HuggingFaceDatasetsActorTaskOptions)
+                : undefined,
+            mathReasoningOptions:
+              manifest.actorType === "math-reasoning"
+                ? (toolArgs as unknown as MathReasoningActorTaskOptions)
+                : undefined,
+            codeEvalOptions:
+              manifest.actorType === "code-eval"
+                ? (toolArgs as unknown as CodeEvalActorTaskOptions)
+                : undefined,
+            proofWikiOptions:
+              manifest.actorType === "proofwiki"
+                ? (toolArgs as unknown as ProofWikiActorTaskOptions)
+                : undefined,
+            leanMathlibOptions:
+              manifest.actorType === "lean-mathlib"
+                ? (toolArgs as unknown as LeanMathlibActorTaskOptions)
+                : undefined,
+            lessWrongOptions:
+              manifest.actorType === "lesswrong"
+                ? (toolArgs as unknown as LessWrongActorTaskOptions)
                 : undefined,
           },
         };

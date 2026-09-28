@@ -439,6 +439,36 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         responses: { "200": { description: "Clean encyclopedic summaries or markdown." } },
       },
     },
+    "/api/v1/wikipedia": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Wikipedia Structured Knowledge Extractor",
+        description:
+          "Extracts high-fidelity Wikipedia encyclopedic articles, structured sections, infoboxes, and plain text across language editions.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: { type: "string", description: "Article title." },
+                  lang: { type: "string", default: "en" },
+                  action: {
+                    type: "string",
+                    enum: ["summary", "article", "search"],
+                    default: "article",
+                  },
+                  query: { type: "string" },
+                  limit: { type: "integer", default: 10 },
+                },
+              },
+            },
+          },
+        },
+        responses: { "200": { description: "Structured Wikipedia content or search results." } },
+      },
+    },
     "/api/v1/openalex": {
       post: {
         tags: ["Clean Datasets"],
@@ -1024,6 +1054,690 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
           "200": {
             description:
               "MIT OpenCourseWare courses, syllabi, lecture notes, and structured markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/resmi-gazete": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "T.C. Resmî Gazete Harvester",
+        description:
+          "Harvests T.C. Resmî Gazete daily bulletins, laws, presidential decrees, regulations, and announcements with full metadata.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: { type: "string", description: "Direct Resmî Gazete bulletin URL" },
+                  date: {
+                    type: "string",
+                    description: "Publication date (YYYY-MM-DD or YYYYMMDD)",
+                  },
+                  issueNumber: { type: "integer", description: "Official gazette issue number" },
+                  category: {
+                    type: "string",
+                    enum: [
+                      "all",
+                      "kanun",
+                      "cumhurbaskanligi",
+                      "yonetmelik",
+                      "teblig",
+                      "kurul-karari",
+                      "ilanlar",
+                    ],
+                    default: "all",
+                  },
+                  query: { type: "string", description: "Keyword search filter" },
+                  format: { type: "string", enum: ["markdown", "json"], default: "markdown" },
+                  limit: { type: "integer", default: 50 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured Resmî Gazete legislation documents, issue metadata, and LLM Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/yargitay": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Yargıtay & Danıştay Jurisprudence Harvester",
+        description:
+          "Extracts Turkish Supreme Court of Appeals (Yargıtay) and Council of State (Danıştay) precedent rulings, case jurisprudence, and reasoning.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct decision URL or search query endpoint",
+                  },
+                  court: {
+                    type: "string",
+                    enum: ["yargitay", "danistay"],
+                    default: "yargitay",
+                  },
+                  chamber: {
+                    type: "string",
+                    description: "Chamber name (e.g. '1. Hukuk Dairesi')",
+                  },
+                  caseNumber: { type: "string", description: "Esas No (e.g. '2021/1234')" },
+                  decisionNumber: { type: "string", description: "Karar No (e.g. '2022/567')" },
+                  year: { type: "integer", description: "Decision year" },
+                  legalArea: {
+                    type: "string",
+                    enum: ["all", "hukuk", "ceza", "idari", "vergi"],
+                    default: "all",
+                  },
+                  query: { type: "string", description: "Search keyword" },
+                  limit: { type: "integer", default: 20 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured court decisions, chambers, legal reasoning, and LLM-ready Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/kap": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Kamuoyu Aydınlatma Platformu (KAP) Harvester",
+        description:
+          "Extracts Borsa Istanbul (BIST) corporate disclosures, financial reports, board decisions, and regulatory filings.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct URL to a specific KAP disclosure or endpoint",
+                  },
+                  companyTicker: {
+                    type: "string",
+                    description: "BIST company ticker (e.g. THYAO, ASELS, GARAN)",
+                  },
+                  disclosureType: {
+                    type: "string",
+                    enum: ["all", "oda", "fr", "dg", "gk"],
+                    default: "all",
+                  },
+                  fromDate: { type: "string", description: "Start date (YYYY-MM-DD)" },
+                  toDate: { type: "string", description: "End date (YYYY-MM-DD)" },
+                  query: { type: "string", description: "Search keyword in disclosures" },
+                  limit: { type: "integer", default: 20 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured company disclosures, financial reports, and LLM-ready Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/github": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "GitHub Repository & Code Harvester",
+        description:
+          "Extracts repository metadata, README documentation, issues, pull requests, releases, and git trees from GitHub.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: {
+                    type: "string",
+                    description:
+                      "Direct URL to GitHub repository (e.g. https://github.com/owner/repo)",
+                  },
+                  owner: {
+                    type: "string",
+                    description: "Repository owner or organization name",
+                  },
+                  repo: {
+                    type: "string",
+                    description: "Repository name",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["repo", "readme", "issues", "pulls", "releases", "tree"],
+                    default: "repo",
+                  },
+                  state: {
+                    type: "string",
+                    enum: ["open", "closed", "all"],
+                    default: "open",
+                  },
+                  limit: { type: "integer", default: 30 },
+                  token: {
+                    type: "string",
+                    description: "Optional GitHub personal access token for higher rate limits",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured repository data, documentation, issue/PR discussions, and LLM-ready Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/openreview": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "OpenReview Academic Submissions & Reviews Harvester",
+        description:
+          "Extracts academic paper submissions, peer reviews, author rebuttals, meta-reviews, and decisions (ICLR, NeurIPS, ICML).",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: {
+                    type: "string",
+                    description:
+                      "Direct OpenReview forum URL (e.g. https://openreview.net/forum?id=xxx)",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["submissions", "forum", "note"],
+                    default: "submissions",
+                  },
+                  venue: {
+                    type: "string",
+                    description:
+                      "Conference venue ID (e.g. ICLR.cc/2024/Conference, NeurIPS.cc/2023/Conference)",
+                  },
+                  forumId: {
+                    type: "string",
+                    description:
+                      "Paper forum ID to fetch all peer reviews, comments, and author rebuttals",
+                  },
+                  noteId: {
+                    type: "string",
+                    description: "Specific note ID",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword in paper titles and abstracts",
+                  },
+                  limit: { type: "integer", default: 25 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured academic submissions, peer review scores, author rebuttals, and LLM-ready dialectic Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/hacker-news": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Hacker News Discussions & Architecture Post-Mortems Harvester",
+        description:
+          "Extracts Hacker News engineering discussions, architecture post-mortems, and nested comment trees via Algolia and Firebase APIs.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  targetUrl: {
+                    type: "string",
+                    description:
+                      "Direct Hacker News item or API URL (e.g. https://news.ycombinator.com/item?id=38870197)",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["top", "best", "new", "ask", "show", "story", "search"],
+                    default: "top",
+                  },
+                  storyId: {
+                    type: "integer",
+                    description: "Hacker News story ID to fetch complete nested comment tree",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword query across stories and discussions",
+                  },
+                  limit: { type: "integer", default: 20 },
+                  maxComments: { type: "integer", default: 50 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured Hacker News stories, points, authors, nested comment trees, and LLM-ready Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/huggingface-datasets": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Hugging Face Datasets Server Harvester",
+        description:
+          "Streams structured dataset rows, split configurations, and schema features from Hugging Face Serverless Datasets API.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["dataset"],
+                properties: {
+                  dataset: {
+                    type: "string",
+                    description:
+                      "Hugging Face dataset identifier (e.g. 'openai/gsm8k' or 'tatsu-lab/alpaca')",
+                    example: "openai/gsm8k",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["rows", "splits", "info", "size"],
+                    default: "rows",
+                    description: "Target action: rows, splits, info, or size",
+                  },
+                  config: {
+                    type: "string",
+                    default: "default",
+                    description: "Dataset configuration or subset name",
+                  },
+                  split: {
+                    type: "string",
+                    default: "train",
+                    description: "Dataset split (e.g. train, test, validation)",
+                  },
+                  offset: {
+                    type: "integer",
+                    default: 0,
+                    description: "Row offset to start streaming from",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Maximum number of rows to return (1-100)",
+                  },
+                  hfToken: {
+                    type: "string",
+                    description: "Optional Hugging Face user access token for gated datasets",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Hugging Face dataset URL or datasets-server endpoint",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured dataset rows, schema features, total row count, and GFM Markdown preview table.",
+          },
+        },
+      },
+    },
+    "/api/v1/math-reasoning": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Mathematical Reasoning & Chain-of-Thought Harvester",
+        description:
+          "Extracts mathematical problem solving and multi-step Chain-of-Thought (CoT) reasoning pairs (GSM8K, Hendrycks MATH, SVAMP, OlympiadBench).",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  benchmark: {
+                    type: "string",
+                    enum: ["gsm8k", "math", "svamp", "olympiadbench"],
+                    default: "gsm8k",
+                    description: "Target benchmark dataset family",
+                    example: "gsm8k",
+                  },
+                  subject: {
+                    type: "string",
+                    description: "Specific subject or category (e.g. 'algebra' for Hendrycks MATH)",
+                    example: "algebra",
+                  },
+                  split: {
+                    type: "string",
+                    default: "train",
+                    description: "Dataset split: train or test",
+                    example: "train",
+                  },
+                  offset: {
+                    type: "integer",
+                    default: 0,
+                    description: "Row offset to start streaming from",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Maximum number of problems to return (1-100)",
+                  },
+                  hfToken: {
+                    type: "string",
+                    description: "Optional Hugging Face user access token",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Hugging Face dataset URL or datasets-server endpoint",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured problem-reasoning-answer items, LaTeX expressions, and Chain-of-Thought Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/code-eval": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Code Generation & Evaluation Benchmark Harvester",
+        description:
+          "Extracts standard coding evaluation benchmark tasks (HumanEval, MBPP, SWE-bench) with prompts, canonical solutions, and verification unit tests.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  benchmark: {
+                    type: "string",
+                    enum: ["humaneval", "mbpp", "swe-bench"],
+                    default: "humaneval",
+                    description: "Target coding benchmark family",
+                    example: "humaneval",
+                  },
+                  split: {
+                    type: "string",
+                    default: "test",
+                    description: "Dataset split: test or train",
+                    example: "test",
+                  },
+                  offset: {
+                    type: "integer",
+                    default: 0,
+                    description: "Task offset to start streaming from",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Maximum number of tasks to return (1-100)",
+                  },
+                  hfToken: {
+                    type: "string",
+                    description: "Optional Hugging Face user access token",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Hugging Face dataset URL or datasets-server endpoint",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured coding tasks, entry points, canonical solutions, and verification unit tests.",
+          },
+        },
+      },
+    },
+    "/api/v1/proofwiki": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Formal Mathematical Proofs & Theorems Harvester",
+        description:
+          "Extracts mathematical theorems, formal multi-step proofs, definitions, sources, and normalized LaTeX math equations from ProofWiki via MediaWiki API.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["theorem", "search", "random", "category"],
+                    default: "theorem",
+                    description:
+                      "Extraction mode: theorem (direct title lookup), search, random, or category",
+                    example: "theorem",
+                  },
+                  title: {
+                    type: "string",
+                    description: "Target theorem or definition title",
+                    example: "Pythagorean Theorem",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Keyword search query when action is search",
+                    example: "Euler identity",
+                  },
+                  category: {
+                    type: "string",
+                    description:
+                      "MediaWiki category title without namespace prefix when action is category",
+                    example: "Theorems",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Maximum number of items to return (1-50)",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Optional custom ProofWiki API endpoint URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Structured theorems, proofs, definitions, categories, and GFM Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/lean-mathlib": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "Lean 4 & Mathlib Computer-Verified Formal Proofs Harvester",
+        description:
+          "Extracts machine-verified formal theorems, lemmas, definitions, and step-by-step proof tactic sequences from Lean 4 and Mathlib4 repositories.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["file", "theorem", "search", "random"],
+                    default: "file",
+                    description:
+                      "Extraction mode: file (full file declarations), theorem (specific theorem), search, or random",
+                    example: "file",
+                  },
+                  repo: {
+                    type: "string",
+                    default: "leanprover-community/mathlib4",
+                    description: "Target GitHub repository",
+                    example: "leanprover-community/mathlib4",
+                  },
+                  path: {
+                    type: "string",
+                    default: "Mathlib/Data/Nat/Basic.lean",
+                    description: "Path to .lean file in repository",
+                    example: "Mathlib/Data/Nat/Basic.lean",
+                  },
+                  theorem: {
+                    type: "string",
+                    description: "Specific theorem or lemma name to filter and extract",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword for code search mode",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Maximum number of declarations to return (1-100)",
+                  },
+                  githubToken: {
+                    type: "string",
+                    description: "Optional GitHub personal access token",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct GitHub raw URL or mock endpoint",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured formal declarations, docstrings, type signatures, and tactic proofs.",
+          },
+        },
+      },
+    },
+    "/api/v1/lesswrong": {
+      post: {
+        tags: ["Clean Datasets"],
+        summary: "LessWrong & Alignment Forum Epistemic Rationality Harvester",
+        description:
+          "Extracts epistemic rationality, Bayesian epistemology, decision theory, and AI alignment essays and dialectic comment trees from LessWrong and Alignment Forum GraphQL APIs.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["posts", "post", "comments", "search"],
+                    default: "posts",
+                    description:
+                      "Extraction mode: posts (list), post (single article with comments), comments, or search",
+                    example: "posts",
+                  },
+                  platform: {
+                    type: "string",
+                    enum: ["lesswrong", "alignmentforum"],
+                    default: "lesswrong",
+                    description: "Target platform: lesswrong or alignmentforum",
+                    example: "lesswrong",
+                  },
+                  postId: {
+                    type: "string",
+                    description: "Specific post ID",
+                  },
+                  slug: {
+                    type: "string",
+                    description: "Post URL slug",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword for articles or topics",
+                  },
+                  view: {
+                    type: "string",
+                    enum: ["curated", "top", "new"],
+                    default: "curated",
+                    description: "Article sorting view",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Maximum number of posts or comments to return (1-50)",
+                  },
+                  includeComments: {
+                    type: "boolean",
+                    default: true,
+                    description: "Whether to include dialectic comment thread for single post",
+                  },
+                  maxComments: {
+                    type: "integer",
+                    default: 10,
+                    description: "Maximum comments to fetch for a post (1-50)",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct LessWrong/AlignmentForum URL or mock endpoint",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured rationality essays, author metadata, vote scores, and dialectic comments.",
           },
         },
       },

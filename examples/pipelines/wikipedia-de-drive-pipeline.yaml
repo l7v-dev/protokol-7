@@ -1,0 +1,26 @@
+name: wikipedia-de-drive-pipeline
+version: 1
+
+actor:
+  id: wikipedia
+  config:
+    lang: de
+    titles:
+      - "Künstliche Intelligenz"
+      - "Maschinelles Lernen"
+      - "Deep Learning"
+    action: article
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: drive
+  folder_id: "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"

@@ -21,6 +21,7 @@ export type ActorType =
   | "saglik-ekutuphane"
   | "arxiv"
   | "wikimedia"
+  | "wikipedia"
   | "openalex"
   | "stack-exchange"
   | "gutenberg"
@@ -39,7 +40,19 @@ export type ActorType =
   | "software-heritage"
   | "eur-lex"
   | "openstax"
-  | "mit-ocw";
+  | "mit-ocw"
+  | "resmi-gazete"
+  | "yargitay"
+  | "kap"
+  | "github"
+  | "openreview"
+  | "hacker-news"
+  | "huggingface-datasets"
+  | "math-reasoning"
+  | "code-eval"
+  | "proofwiki"
+  | "lean-mathlib"
+  | "lesswrong";
 
 export interface ExtractedTable {
   id: string;
@@ -576,10 +589,12 @@ export interface WikimediaArticleItem {
 export interface WikimediaActorTaskOptions {
   lang?: string;
   title?: string;
+  titles?: string[];
   action?: "summary" | "article" | "search";
   query?: string;
   limit?: number;
   timeoutMs?: number;
+  fetchFullArticles?: boolean;
 }
 
 export interface WikimediaActorResult {
@@ -588,6 +603,10 @@ export interface WikimediaActorResult {
   items: WikimediaArticleItem[];
   queryUrl: string;
 }
+
+export type WikipediaArticleItem = WikimediaArticleItem;
+export type WikipediaActorTaskOptions = WikimediaActorTaskOptions;
+export type WikipediaActorResult = WikimediaActorResult;
 
 export interface OpenAlexWorkItem {
   id: string;
@@ -1103,6 +1122,440 @@ export interface MitOcwActorResult {
   queryUrl: string;
 }
 
+export interface ResmiGazeteItem {
+  id: string;
+  title: string;
+  category: string;
+  actNumber?: string;
+  url: string;
+  pdfUrl?: string;
+  content?: string;
+  summary?: string;
+  pageNumber?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ResmiGazeteActorTaskOptions {
+  date?: string;
+  issueNumber?: number;
+  category?:
+    | "all"
+    | "kanun"
+    | "cumhurbaskanligi"
+    | "yonetmelik"
+    | "teblig"
+    | "kurul-karari"
+    | "ilanlar";
+  query?: string;
+  downloadPdf?: boolean;
+  format?: "markdown" | "json";
+  limit?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface ResmiGazeteActorResult {
+  date: string;
+  issueNumber?: number;
+  isRepeated?: boolean;
+  totalItems: number;
+  items: ResmiGazeteItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface YargitayDecisionItem {
+  id: string;
+  court: "Yargıtay" | "Danıştay" | string;
+  chamber: string;
+  caseNumber: string;
+  decisionNumber: string;
+  decisionDate: string;
+  legalArea?: string;
+  subject?: string;
+  summary?: string;
+  fullText?: string;
+  url: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface YargitayActorTaskOptions {
+  query?: string;
+  court?: "yargitay" | "danistay" | "all";
+  chamber?: string;
+  caseNumber?: string;
+  decisionNumber?: string;
+  year?: number;
+  legalArea?: "hukuk" | "ceza" | "idari" | "vergi" | "all";
+  format?: "markdown" | "json";
+  limit?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface YargitayActorResult {
+  totalCount: number;
+  court: string;
+  decisions: YargitayDecisionItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface KapDisclosureItem {
+  id: string;
+  companyTicker: string;
+  companyName: string;
+  publishDate: string;
+  disclosureType: string;
+  subject?: string;
+  summary?: string;
+  content?: string;
+  url: string;
+  attachmentUrl?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface KapActorTaskOptions {
+  query?: string;
+  companyTicker?: string;
+  disclosureType?: "all" | "oda" | "fr" | "dg" | "gk" | string;
+  fromDate?: string;
+  toDate?: string;
+  format?: "markdown" | "json";
+  limit?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface KapActorResult {
+  totalCount: number;
+  companyTicker?: string;
+  disclosures: KapDisclosureItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface GithubActorTaskOptions {
+  owner?: string;
+  repo?: string;
+  action?: "repo" | "readme" | "issues" | "pulls" | "releases" | "tree";
+  state?: "open" | "closed" | "all";
+  token?: string;
+  limit?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface GithubActorResult {
+  owner: string;
+  repo: string;
+  action: string;
+  data: Record<string, unknown> | Array<Record<string, unknown>>;
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface OpenReviewNoteItem {
+  id: string;
+  forum?: string;
+  replyto?: string;
+  invitation?: string;
+  title?: string;
+  authors?: string[];
+  abstract?: string;
+  venue?: string;
+  year?: number;
+  pdfUrl?: string;
+  rating?: string;
+  confidence?: string;
+  decision?: string;
+  comment?: string;
+  content?: Record<string, unknown>;
+  createdAt?: string | number;
+}
+
+export interface OpenReviewActorTaskOptions {
+  action?: "submissions" | "forum" | "note";
+  venue?: string;
+  forumId?: string;
+  noteId?: string;
+  query?: string;
+  limit?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface OpenReviewActorResult {
+  action: string;
+  venue?: string;
+  forumId?: string;
+  totalCount: number;
+  notes: OpenReviewNoteItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface HackerNewsCommentItem {
+  id: number;
+  author?: string;
+  text?: string;
+  time?: number;
+  parentId?: number;
+  children?: HackerNewsCommentItem[];
+}
+
+export interface HackerNewsStoryItem {
+  id: number;
+  title: string;
+  url?: string;
+  author?: string;
+  points?: number;
+  commentsCount?: number;
+  time?: number;
+  text?: string;
+  comments?: HackerNewsCommentItem[];
+}
+
+export interface HackerNewsActorTaskOptions {
+  action?: "top" | "best" | "new" | "ask" | "show" | "story" | "search";
+  storyId?: number;
+  query?: string;
+  limit?: number;
+  maxComments?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface HackerNewsActorResult {
+  action: string;
+  totalStories: number;
+  stories: HackerNewsStoryItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface HuggingFaceDatasetsFeatureItem {
+  featureIdx: number;
+  name: string;
+  type: string;
+}
+
+export interface HuggingFaceDatasetsSplitItem {
+  dataset: string;
+  config: string;
+  split: string;
+  numRows?: number;
+}
+
+export interface HuggingFaceDatasetsActorTaskOptions {
+  action?: "rows" | "splits" | "info" | "size";
+  dataset: string;
+  config?: string;
+  split?: string;
+  offset?: number;
+  limit?: number;
+  hfToken?: string;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface HuggingFaceDatasetsActorResult {
+  dataset: string;
+  action: string;
+  config?: string;
+  split?: string;
+  totalRows?: number;
+  offset?: number;
+  limit?: number;
+  features?: HuggingFaceDatasetsFeatureItem[];
+  splits?: HuggingFaceDatasetsSplitItem[];
+  rows?: Array<Record<string, unknown>>;
+  info?: {
+    description?: string;
+    homepage?: string;
+    license?: string;
+    citation?: string;
+  };
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface MathReasoningItem {
+  id?: string | number;
+  benchmark: string;
+  subject?: string;
+  level?: string | number;
+  problem: string;
+  reasoning: string;
+  answer: string;
+  boxedAnswer?: string;
+  rawSolution?: string;
+}
+
+export interface MathReasoningActorTaskOptions {
+  benchmark?: "gsm8k" | "math" | "svamp" | "olympiadbench" | string;
+  subject?: string;
+  split?: "train" | "test" | string;
+  offset?: number;
+  limit?: number;
+  targetUrl?: string;
+  hfToken?: string;
+  timeoutMs?: number;
+}
+
+export interface MathReasoningActorResult {
+  benchmark: string;
+  totalProblems: number;
+  problems: MathReasoningItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface CodeEvalItem {
+  taskId: string;
+  entryPoint?: string;
+  prompt: string;
+  canonicalSolution?: string;
+  test?: string;
+  language?: string;
+  difficulty?: string;
+  raw?: Record<string, unknown>;
+}
+
+export interface CodeEvalActorTaskOptions {
+  benchmark?: "humaneval" | "mbpp" | "swe-bench" | string;
+  split?: string;
+  offset?: number;
+  limit?: number;
+  targetUrl?: string;
+  hfToken?: string;
+  timeoutMs?: number;
+}
+
+export interface CodeEvalActorResult {
+  benchmark: string;
+  split: string;
+  totalTasks: number;
+  offset: number;
+  limit: number;
+  tasks: CodeEvalItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface ProofWikiItem {
+  pageId?: number;
+  title: string;
+  url: string;
+  theorem?: string;
+  proofs?: string[];
+  definitions?: string[];
+  sources?: string[];
+  categories?: string[];
+  rawWikitext?: string;
+}
+
+export interface ProofWikiActorTaskOptions {
+  action?: "theorem" | "search" | "random" | "category" | string;
+  title?: string;
+  query?: string;
+  category?: string;
+  limit?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface ProofWikiActorResult {
+  action: string;
+  totalResults: number;
+  items: ProofWikiItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface LeanMathlibItem {
+  name: string;
+  kind: "theorem" | "lemma" | "def" | "axiom" | "instance" | string;
+  docstring?: string;
+  signature: string;
+  proof?: string;
+  tactics?: string[];
+  code: string;
+  file?: string;
+  repo: string;
+  url: string;
+}
+
+export interface LeanMathlibActorTaskOptions {
+  action?: "file" | "theorem" | "search" | "random" | string;
+  repo?: string;
+  path?: string;
+  theorem?: string;
+  query?: string;
+  limit?: number;
+  githubToken?: string;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface LeanMathlibActorResult {
+  action: string;
+  repo: string;
+  totalDeclarations: number;
+  items: LeanMathlibItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface LessWrongComment {
+  id: string;
+  postId?: string;
+  parentCommentId?: string;
+  author: string;
+  postedAt: string;
+  score: number;
+  contentMarkdown: string;
+}
+
+export interface LessWrongPost {
+  id: string;
+  title: string;
+  slug: string;
+  url: string;
+  author: string;
+  postedAt: string;
+  score: number;
+  voteCount?: number;
+  commentCount?: number;
+  contentMarkdown?: string;
+  comments?: LessWrongComment[];
+}
+
+export interface LessWrongActorTaskOptions {
+  action?: "posts" | "post" | "comments" | "sequence" | "search" | string;
+  platform?: "lesswrong" | "alignmentforum" | string;
+  postId?: string;
+  slug?: string;
+  sequenceId?: string;
+  query?: string;
+  limit?: number;
+  view?: "curated" | "top" | "new" | string;
+  includeComments?: boolean;
+  maxComments?: number;
+  targetUrl?: string;
+  timeoutMs?: number;
+}
+
+export interface LessWrongActorResult {
+  action: string;
+  platform: string;
+  totalResults: number;
+  posts: LessWrongPost[];
+  comments?: LessWrongComment[];
+  queryUrl: string;
+  markdown?: string;
+}
+
 export interface ActorTask {
   taskId: EntityId;
   actorType: ActorType;
@@ -1126,6 +1579,7 @@ export interface ActorTask {
     pdfOptions?: PdfDocumentTaskOptions;
     arxivOptions?: ArxivActorTaskOptions;
     wikimediaOptions?: WikimediaActorTaskOptions;
+    wikipediaOptions?: WikipediaActorTaskOptions;
     openalexOptions?: OpenAlexActorTaskOptions;
     stackExchangeOptions?: StackExchangeActorTaskOptions;
     gutenbergOptions?: GutenbergActorTaskOptions;
@@ -1146,6 +1600,18 @@ export interface ActorTask {
     eurLexOptions?: EurLexActorTaskOptions;
     openstaxOptions?: OpenStaxActorTaskOptions;
     mitOcwOptions?: MitOcwActorTaskOptions;
+    resmiGazeteOptions?: ResmiGazeteActorTaskOptions;
+    yargitayOptions?: YargitayActorTaskOptions;
+    kapOptions?: KapActorTaskOptions;
+    githubOptions?: GithubActorTaskOptions;
+    openreviewOptions?: OpenReviewActorTaskOptions;
+    hackerNewsOptions?: HackerNewsActorTaskOptions;
+    huggingfaceDatasetsOptions?: HuggingFaceDatasetsActorTaskOptions;
+    mathReasoningOptions?: MathReasoningActorTaskOptions;
+    codeEvalOptions?: CodeEvalActorTaskOptions;
+    proofWikiOptions?: ProofWikiActorTaskOptions;
+    leanMathlibOptions?: LeanMathlibActorTaskOptions;
+    lessWrongOptions?: LessWrongActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

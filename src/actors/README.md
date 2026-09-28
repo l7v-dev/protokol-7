@@ -1,6 +1,6 @@
 # Protokol-7 Aktörler Rehberi (Actor Catalog)
 
-Bu rehber, **protokol-7** bünyesindeki 31 veri çıkarma aktörünün ne işe yaradığını, nasıl çalıştığını ve nasıl çağrılacağını en sade biçimde açıklar.
+Bu rehber, **protokol-7** bünyesindeki 44 veri çıkarma aktörünün ne işe yaradığını, nasıl çalıştığını ve nasıl çağrılacağını en sade biçimde açıklar.
 
 Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 1. **HTTP REST API:** `http://localhost:4000/api/v1/<aktor-adi>` (veya `/api/v1/actors`)
@@ -16,9 +16,9 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 | 2 | `playwright-browser` | Web & Tarama | `POST /api/v1/scrape` | `scrape_dynamic_page` | Gerçek bir Chrome tarayıcı açarak JavaScript ile yüklenen sayfaları okur. |
 | 3 | `crawler` | Web & Tarama | `POST /api/v1/crawl` | `crawl_website` | Bir sitedeki tüm linkleri adım adım gezerek sitenin haritasını çıkarır. |
 | 4 | `sitemap-xml` | Web & Tarama | `POST /api/v1/sitemap` | `parse_sitemap_xml` | Sitenin `sitemap.xml` dosyasını okuyup tüm sayfa adreslerini listeler. |
-| 5 | `markdown-reader` | Web & Tarama | `POST /api/v1/markdown` | `read_page_markdown` | Web sayfasındaki reklamları ve menüleri atıp sadece ana makaleyi Markdown yapar. |
-| 6 | `network-interceptor` | Web & Tarama | `POST /api/v1/intercept` | `intercept_api_responses` | Tarayıcının arkasında dönen gizli API ve JSON veri akışlarını yakalar. |
-| 7 | `serp-search` | Web & Tarama | `POST /api/v1/serp` | `search_engine_results` | Arama motoruna soru sorup çıkan ilk sayfa linklerini ve özetlerini getirir. |
+| 5 | `markdown-reader` | Web & Tarama | `POST /api/v1/reader` | `read_page_markdown` | Web sayfasındaki reklamları ve menüleri atıp sadece ana makaleyi Markdown yapar. |
+| 6 | `network-interceptor` | Web & Tarama | `POST /api/v1/network/intercept` | `intercept_api_responses` | Tarayıcının arkasında dönen gizli API ve JSON veri akışlarını yakalar. |
+| 7 | `serp-search` | Web & Tarama | `POST /api/v1/search` | `search_engine_results` | Arama motoruna soru sorup çıkan ilk sayfa linklerini ve özetlerini getirir. |
 | 8 | `api-extractor` | Web & Tarama | `POST /api/v1/api-extractor` | `extract_rest_api` | Sayfalanmış (sayfa 1, sayfa 2...) JSON API verilerini otomatik toplar. |
 | 9 | `arxiv` | Bilim & Akademi | `POST /api/v1/arxiv` | `query_arxiv` | Fizik, matematik ve yapay zeka ön-baskı makalelerini ve özetlerini çeker. |
 | 10 | `europe-pmc` | Bilim & Akademi | `POST /api/v1/europe-pmc` | `query_europe_pmc` | Biyoloji ve tıp alanındaki milyonlarca bilimsel makaleyi arar ve getirir. |
@@ -40,9 +40,22 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 | 26 | `stack-exchange` | Kod & Standartlar | `POST /api/v1/stack-exchange` | `query_stack_exchange` | Yazılımcıların StackOverflow soru ve kabul edilmiş cevaplarını LLM çifti yapar. |
 | 27 | `ietf-rfc` | Kod & Standartlar | `POST /api/v1/ietf-rfc` | `query_ietf_rfc` | İnternetin resmi teknik kurallarını (TCP/IP, HTTP) temiz metin olarak getirir. |
 | 28 | `wikimedia` | Kod & Standartlar | `POST /api/v1/wikimedia` | `query_wikimedia` | Vikipedi maddelerini özet veya tam Markdown metni olarak anında getirir. |
-| 29 | `pdf-document` | Belge & Arşiv | `POST /api/v1/pdf` | `extract_pdf` | PDF dosyalarındaki yazıları 2-3 sütunlu olsa bile doğru sırada okur ve çıkarır. |
-| 30 | `document-extractor` | Belge & Arşiv | `POST /api/v1/document` | `extract_document` | Word (.docx), Excel (.xlsx) ve CSV dosyalarını yapılandırılmış Markdown yapar. |
-| 31 | `archive-extractor` | Belge & Arşiv | `POST /api/v1/archive` | `extract_archive` | ZIP ve TAR arşivlerini güvenlik kontrolleriyle (Zip-Slip koruması) açar. |
+| 29 | `wikipedia` | Kod & Standartlar | `POST /api/v1/wikipedia` | `query_wikipedia` | Yapılandırılmış Wikipedia maddelerini, bölümlerini, bilgi kutularını ve düz metnini çeker. |
+| 30 | `pdf-document` | Belge & Arşiv | `POST /api/v1/pdf` | `extract_pdf` | PDF dosyalarındaki yazıları 2-3 sütunlu olsa bile doğru sırada okur ve çıkarır. |
+| 31 | `document-extractor` | Belge & Arşiv | `POST /api/v1/documents` | `extract_document` | Word (.docx), Excel (.xlsx) ve CSV dosyalarını yapılandırılmış Markdown yapar. |
+| 32 | `archive-extractor` | Belge & Arşiv | `POST /api/v1/archives` | `extract_archive` | ZIP ve TAR arşivlerini güvenlik kontrolleriyle (Zip-Slip koruması) açar. |
+| 33 | `resmi-gazete` | Kamu & Hukuk | `POST /api/v1/resmi-gazete` | `query_resmi_gazete` | T.C. Resmî Gazete bültenlerini, kanun, kararname ve yönetmelikleri çeker. |
+| 34 | `yargitay` | Kamu & Hukuk | `POST /api/v1/yargitay` | `query_yargitay` | Yargıtay ve Danıştay emsal içtihat kararlarını ve gerekçelerini çeker. |
+| 35 | `kap` | Kamu & Hukuk | `POST /api/v1/kap` | `query_kap` | BIST şirketlerinin KAP bildirimlerini ve finansal raporlarını çeker. |
+| 36 | `github` | Kod & Standartlar | `POST /api/v1/github` | `query_github` | GitHub ambarlarını, README, issues, PR ve kod ağaçlarını toplar. |
+| 37 | `openreview` | Bilim & Akademi | `POST /api/v1/openreview` | `query_openreview` | OpenReview konferans makalelerini, hakem yorumlarını ve yazar yanıtlarını çeker. |
+| 38 | `hacker-news` | Kod & Standartlar | `POST /api/v1/hacker-news` | `query_hacker_news` | Hacker News mühendislik tartışmalarını, mimari incelemelerini ve yorum ağaçlarını çeker. |
+| 39 | `huggingface-datasets` | Yapay Zeka & Korpus | `POST /api/v1/huggingface-datasets` | `query_huggingface_datasets` | Hugging Face veri setlerini (CoT, muhakeme, kodlama) satır satır akıtarak çeker. |
+| 40 | `math-reasoning` | Yapay Zeka & Korpus | `POST /api/v1/math-reasoning` | `query_math_reasoning` | Matematik ve muhakeme (GSM8K, MATH, SVAMP) sorularını, CoT adımlarını ve cevaplarını çeker. |
+| 41 | `code-eval` | Yapay Zeka & Korpus | `POST /api/v1/code-eval` | `query_code_eval` | Kodlama değerlendirme (HumanEval, MBPP, SWE-bench) problemlerini, çözümlerini ve testlerini çeker. |
+| 42 | `proofwiki` | Yapay Zeka & Korpus | `POST /api/v1/proofwiki` | `query_proofwiki` | ProofWiki teorem ifadelerini, çok adımlı biçimsel ispatlarını ve LaTeX matematik formüllerini çeker. |
+| 43 | `lean-mathlib` | Yapay Zeka & Korpus | `POST /api/v1/lean-mathlib` | `query_lean_mathlib` | Lean 4 ve Mathlib4 biçimsel teorem tanımlarını, lemmaları ve ispat taktik adımlarını çeker. |
+| 44 | `lesswrong` | Yapay Zeka & Korpus | `POST /api/v1/lesswrong` | `query_lesswrong` | LessWrong ve Alignment Forum rasyonalite, yapay zeka güvenliği ve epistemik muhakeme makaleleri ile yorum ağaçlarını çeker. |
 
 ---
 
@@ -180,6 +193,17 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 }
 ```
 
+#### 9b. OpenReview Aktörü (`openreview`)
+* **Ne Yapar?** ICLR, NeurIPS ve ICML gibi konferanslardaki makaleleri, hakem puanlarını, değerlendirmeleri ve yazar yanıtlarını diyalektik biçimde çeker.
+* **REST:** `POST /api/v1/openreview`
+* **MCP:** `query_openreview`
+```json
+{
+  "action": "forum",
+  "forumId": "ICLR_2024_sample_id"
+}
+```
+
 ---
 
 ### Kategori 3: Kamu, Hukuk ve Regülasyon Aktörleri
@@ -237,6 +261,43 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 {
   "condition": "diabetes",
   "pageSize": 5
+}
+```
+
+#### 14.b. T.C. Resmî Gazete Aktörü (`resmi-gazete`)
+* **Ne Yapar?** Cumhurbaşkanlığı Resmî Gazete günlük bültenlerini, kanunları, cumhurbaşkanlığı kararnamelerini ve yönetmelikleri çeker.
+* **REST:** `POST /api/v1/resmi-gazete`
+* **MCP:** `query_resmi_gazete`
+```json
+{
+  "date": "2024-03-15",
+  "category": "kanun",
+  "limit": 5
+}
+```
+
+#### 14.c. Yargıtay & Danıştay İçtihat Aktörü (`yargitay`)
+* **Ne Yapar?** Yargıtay ve Danıştay emsal kararlarını, daire kararlarını ve gerekçeli metinleri çeker.
+* **REST:** `POST /api/v1/yargitay`
+* **MCP:** `query_yargitay`
+```json
+{
+  "court": "yargitay",
+  "chamber": "1. Hukuk Dairesi",
+  "query": "tapu iptali ve tescil",
+  "limit": 10
+}
+```
+
+#### 14.d. Kamuoyu Aydınlatma Platformu Aktörü (`kap`)
+* **Ne Yapar?** BIST şirketlerinin KAP özel durum açıklamalarını, finansal tablolarını ve kurumsal duyurularını çeker.
+* **REST:** `POST /api/v1/kap`
+* **MCP:** `query_kap`
+```json
+{
+  "companyTicker": "THYAO",
+  "disclosureType": "oda",
+  "limit": 10
 }
 ```
 
@@ -349,11 +410,47 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 }
 ```
 
+#### 24. Wikipedia Aktörü (`wikipedia`)
+* **Ne Yapar?** Yapılandırılmış Wikipedia maddelerini, bölümlerini, bilgi kutularını ve düz metnini çeker.
+* **REST:** `POST /api/v1/wikipedia`
+* **MCP:** `query_wikipedia`
+```json
+{
+  "title": "Alan Turing",
+  "lang": "en",
+  "action": "article"
+}
+```
+
+#### 24b. GitHub Aktörü (`github`)
+* **Ne Yapar?** GitHub açık kaynak ambarlarının metaverilerini, README belgelerini, issue ve PR tartışmalarını, sürümlerini ve dosya ağacını yapılandırılmış biçimde çeker.
+* **REST:** `POST /api/v1/github`
+* **MCP:** `query_github`
+```json
+{
+  "owner": "torvalds",
+  "repo": "linux",
+  "action": "readme"
+}
+```
+
+#### 24c. Hacker News Aktörü (`hacker-news`)
+* **Ne Yapar?** Y Combinator Hacker News platformundaki mühendislik tartışmalarını, mimari incelemelerini ve iç içe geçmiş yorum ağaçlarını temiz GFM Markdown olarak ayıklar.
+* **REST:** `POST /api/v1/hacker-news`
+* **MCP:** `query_hacker_news`
+```json
+{
+  "action": "story",
+  "storyId": 38870197,
+  "maxComments": 20
+}
+```
+
 ---
 
 ### Kategori 6: Belge, Ofis ve Arşiv Aktörleri
 
-#### 24. PDF Document Aktörü (`pdf-document`)
+#### 25. PDF Document Aktörü (`pdf-document`)
 * **Ne Yapar?** İki veya üç sütunlu zorlu PDF belgelerini okuma sırasına göre düzgün metne dönüştürür.
 * **REST:** `POST /api/v1/pdf`
 * **MCP:** `extract_pdf`
@@ -364,9 +461,9 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 }
 ```
 
-#### 25. Document Extractor Aktörü (`document-extractor`)
+#### 26. Document Extractor Aktörü (`document-extractor`)
 * **Ne Yapar?** Word (`.docx`), Excel (`.xlsx`) ve CSV tablolarını okur ve Markdown tablolarına çevirir.
-* **REST:** `POST /api/v1/document`
+* **REST:** `POST /api/v1/documents`
 * **MCP:** `extract_document`
 ```json
 {
@@ -375,12 +472,89 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 }
 ```
 
-#### 26. Archive Extractor Aktörü (`archive-extractor`)
+#### 27. Archive Extractor Aktörü (`archive-extractor`)
 * **Ne Yapar?** ZIP ve TAR arşivlerini açar, içindeki dosyaları listeler ve çıkarır (Zip Bomb korumalıdır).
-* **REST:** `POST /api/v1/archive`
+* **REST:** `POST /api/v1/archives`
 * **MCP:** `extract_archive`
 ```json
 {
   "fileUrl": "https://example.com/dataset.zip"
 }
 ```
+
+---
+
+### Kategori 7: Yapay Zeka, Muhakeme ve Benchmark Aktörleri
+
+#### 28. Hugging Face Datasets Aktörü (`huggingface-datasets`)
+* **Ne Yapar?** Hugging Face hub üzerindeki açık veri setlerini (CoT, kodlama, talimat) yerel depolama ve RAM tüketmeden satır satır akıtarak çeker.
+* **REST:** `POST /api/v1/huggingface-datasets`
+* **MCP:** `query_huggingface_datasets`
+```json
+{
+  "dataset": "tatsu-lab/alpaca",
+  "split": "train",
+  "limit": 20
+}
+```
+
+#### 29. Mathematical Reasoning Aktörü (`math-reasoning`)
+* **Ne Yapar?** GSM8K, MATH, SVAMP ve OlympiadBench gibi standart matematik kıyaslama kümelerinden soru, çok adımlı Chain-of-Thought (CoT) akıl yürütme ve nihai cevap çiftlerini çıkarır.
+* **REST:** `POST /api/v1/math-reasoning`
+* **MCP:** `query_math_reasoning`
+```json
+{
+  "benchmark": "gsm8k",
+  "limit": 10
+}
+```
+
+#### 30. Code Evaluation Benchmark Aktörü (`code-eval`)
+* **Ne Yapar?** HumanEval, MBPP ve SWE-bench gibi standart kodlama kıyaslama kümelerinden problem tanımı, fonksiyon giriş noktası, kanonik çözüm ve doğrulama birim testlerini çıkarır.
+* **REST:** `POST /api/v1/code-eval`
+* **MCP:** `query_code_eval`
+```json
+{
+  "benchmark": "humaneval",
+  "limit": 10
+}
+```
+
+#### 31. ProofWiki Formal Proofs Aktörü (`proofwiki`)
+* **Ne Yapar?** ProofWiki MediaWiki API üzerinden biçimsel matematiksel teorem ifadelerini, çok adımlı ispat zincirlerini, tanımları ve LaTeX matematik formüllerini ayıklar.
+* **REST:** `POST /api/v1/proofwiki`
+* **MCP:** `query_proofwiki`
+```json
+{
+  "action": "theorem",
+  "title": "Pythagorean Theorem",
+  "limit": 10
+}
+```
+
+#### 32. Lean 4 & Mathlib Aktörü (`lean-mathlib`)
+* **Ne Yapar?** Lean 4 ve Mathlib4 ambarlarından bilgisayar tarafından doğrulanabilir teorem tanımlarını, lemmaları, tip imzalarını ve taktik adımlarını (`rw`, `simp`, `exact`, `apply`, `induction`) ayıklar.
+* **REST:** `POST /api/v1/lean-mathlib`
+* **MCP:** `query_lean_mathlib`
+```json
+{
+  "action": "file",
+  "repo": "leanprover-community/mathlib4",
+  "path": "Mathlib/Data/Nat/Basic.lean",
+  "limit": 20
+}
+```
+
+#### 33. LessWrong & Alignment Forum Aktörü (`lesswrong`)
+* **Ne Yapar?** LessWrong ve Alignment Forum GraphQL API üzerinden Bayesyen rasyonalite, karar teorisi, yapay zeka güvenliği/hizalama (AI alignment) ve epistemik muhakeme makalelerini, yazarları, oyları ve diyalektik yorum ağaçlarını ayıklar.
+* **REST:** `POST /api/v1/lesswrong`
+* **MCP:** `query_lesswrong`
+```json
+{
+  "action": "posts",
+  "view": "curated",
+  "limit": 10
+}
+```
+
+

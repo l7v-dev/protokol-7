@@ -6,23 +6,36 @@ import type { ActorType, IActor } from "../api/types";
 // corpus: LLM training data source actors
 import { ArxivActor } from "./corpus/arxiv-actor";
 import { ClinicalTrialsActor } from "./corpus/clinical-trials-actor";
+import { CodeEvalActor } from "./corpus/code-eval-actor";
 import { CourtListenerActor } from "./corpus/court-listener-actor";
 import { DergiParkActor } from "./corpus/dergipark-actor";
 import { EurLexActor } from "./corpus/eur-lex-actor";
 import { EuropePmcActor } from "./corpus/europe-pmc-actor";
+import { GithubActor } from "./corpus/github-actor";
 import { GutenbergActor } from "./corpus/gutenberg-actor";
+import { HackerNewsActor } from "./corpus/hacker-news-actor";
+import { HuggingFaceDatasetsActor } from "./corpus/huggingface-datasets-actor";
 import { IetfRfcActor } from "./corpus/ietf-rfc-actor";
 import { InternetArchiveActor } from "./corpus/internet-archive-actor";
+import { KapActor } from "./corpus/kap-actor";
 import { KtbEkitapActor } from "./corpus/ktb-ekitap-actor";
+import { LeanMathlibActor } from "./corpus/lean-mathlib-actor";
+import { LessWrongActor } from "./corpus/lesswrong-actor";
+import { MathReasoningActor } from "./corpus/math-reasoning-actor";
 import { MitOcwActor } from "./corpus/mit-ocw-actor";
 import { OpenFdaActor } from "./corpus/open-fda-actor";
 import { OpenAlexActor } from "./corpus/openalex-actor";
+import { OpenReviewActor } from "./corpus/openreview-actor";
 import { OpenStaxActor } from "./corpus/openstax-actor";
+import { ProofWikiActor } from "./corpus/proofwiki-actor";
+import { ResmiGazeteActor } from "./corpus/resmi-gazete-actor";
 import { SaglikEkutuphaneActor } from "./corpus/saglik-ekutuphane-actor";
 import { SecEdgarActor } from "./corpus/sec-edgar-actor";
 import { SoftwareHeritageActor } from "./corpus/software-heritage-actor";
 import { StackExchangeActor } from "./corpus/stack-exchange-actor";
-import { WikimediaActor } from "./corpus/wikimedia-actor";
+import { WikimediaActor, WikipediaActor } from "./corpus/wikipedia-actor";
+import { YargitayActor } from "./corpus/yargitay-actor";
+
 // documents: local file and archive extraction actors
 import { ArchiveExtractorActor } from "./documents/archive-extractor-actor";
 import { DocumentExtractorActor } from "./documents/document-extractor-actor";
@@ -71,6 +84,7 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new PdfDocumentActor());
   registry.register(new ArxivActor());
   registry.register(new WikimediaActor());
+  registry.register(new WikipediaActor());
   registry.register(new OpenAlexActor());
   registry.register(new StackExchangeActor());
   registry.register(new GutenbergActor());
@@ -91,5 +105,17 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new EurLexActor());
   registry.register(new OpenStaxActor());
   registry.register(new MitOcwActor());
+  registry.register(new ResmiGazeteActor());
+  registry.register(new YargitayActor());
+  registry.register(new KapActor());
+  registry.register(new GithubActor());
+  registry.register(new HackerNewsActor());
+  registry.register(new HuggingFaceDatasetsActor());
+  registry.register(new MathReasoningActor());
+  registry.register(new CodeEvalActor());
+  registry.register(new ProofWikiActor());
+  registry.register(new LeanMathlibActor());
+  registry.register(new LessWrongActor());
+  registry.register(new OpenReviewActor());
   return registry;
 }
