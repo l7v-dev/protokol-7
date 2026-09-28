@@ -1,0 +1,22 @@
+name: hacker-news-corpus-pipeline
+version: 1
+
+actor:
+  id: hacker-news
+  config:
+    action: "top"
+    limit: 25
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: cold_vault
+  vault_dir: "./vault"

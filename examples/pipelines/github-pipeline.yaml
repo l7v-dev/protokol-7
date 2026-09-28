@@ -1,0 +1,24 @@
+name: github-corpus-pipeline
+version: 1
+
+actor:
+  id: github
+  config:
+    owner: "torvalds"
+    repo: "linux"
+    action: "readme"
+    limit: 30
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: cold_vault
+  vault_dir: "./vault"

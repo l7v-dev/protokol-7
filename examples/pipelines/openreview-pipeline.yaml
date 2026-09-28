@@ -1,0 +1,23 @@
+name: openreview-corpus-pipeline
+version: 1
+
+actor:
+  id: openreview
+  config:
+    action: "submissions"
+    venue: "ICLR.cc/2024/Conference"
+    limit: 50
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: cold_vault
+  vault_dir: "./vault"

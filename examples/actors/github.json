@@ -1,0 +1,7 @@
+{
+  "owner": "torvalds",
+  "repo": "linux",
+  "action": "readme",
+  "limit": 10,
+  "timeoutMs": 30000
+}
