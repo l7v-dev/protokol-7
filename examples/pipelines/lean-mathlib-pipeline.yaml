@@ -1,0 +1,26 @@
+version: "1.0"
+name: "lean-mathlib-pipeline"
+description: "Extracts machine-verified formal theorems, lemmas, and tactic steps from Lean 4 and Mathlib4"
+
+stages:
+  - id: "fetch_nat_basic_lemmas"
+    actor: "lean-mathlib"
+    options:
+      action: "file"
+      repo: "leanprover-community/mathlib4"
+      path: "Mathlib/Data/Nat/Basic.lean"
+      limit: 30
+    storage:
+      driver: "local"
+      destination: "data/corpus/formal_math/nat_basic.json"
+
+  - id: "fetch_group_theory_theorems"
+    actor: "lean-mathlib"
+    options:
+      action: "file"
+      repo: "leanprover-community/mathlib4"
+      path: "Mathlib/Algebra/Group/Basic.lean"
+      limit: 30
+    storage:
+      driver: "local"
+      destination: "data/corpus/formal_math/group_basic.json"

@@ -1,0 +1,7 @@
+{
+  "actor": "lean-mathlib",
+  "action": "file",
+  "repo": "leanprover-community/mathlib4",
+  "path": "Mathlib/Data/Nat/Basic.lean",
+  "limit": 20
+}

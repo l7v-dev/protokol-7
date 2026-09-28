@@ -1,0 +1,7 @@
+{
+  "actor": "lesswrong",
+  "action": "posts",
+  "platform": "lesswrong",
+  "view": "curated",
+  "limit": 10
+}

@@ -1,0 +1,26 @@
+version: "1.0"
+name: "lesswrong-pipeline"
+description: "Extracts epistemic rationality essays, AI alignment arguments, and dialectic comments from LessWrong and Alignment Forum"
+
+stages:
+  - id: "fetch_curated_rationality_essays"
+    actor: "lesswrong"
+    options:
+      action: "posts"
+      platform: "lesswrong"
+      view: "curated"
+      limit: 15
+    storage:
+      driver: "local"
+      destination: "data/corpus/rationality/curated_essays.json"
+
+  - id: "fetch_alignment_forum_posts"
+    actor: "lesswrong"
+    options:
+      action: "posts"
+      platform: "alignmentforum"
+      view: "top"
+      limit: 15
+    storage:
+      driver: "local"
+      destination: "data/corpus/rationality/alignment_posts.json"

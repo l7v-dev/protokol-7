@@ -1,0 +1,23 @@
+version: "1.0"
+name: "proofwiki-pipeline"
+description: "Extracts formal mathematical theorems, proofs, definitions, and LaTeX formulas from ProofWiki"
+
+stages:
+  - id: "fetch_pythagorean_theorem"
+    actor: "proofwiki"
+    options:
+      action: "theorem"
+      title: "Pythagorean Theorem"
+    storage:
+      driver: "local"
+      destination: "data/corpus/math/pythagorean_theorem.json"
+
+  - id: "search_euler_identities"
+    actor: "proofwiki"
+    options:
+      action: "search"
+      query: "Euler Identity"
+      limit: 5
+    storage:
+      driver: "local"
+      destination: "data/corpus/math/euler_identities.json"
