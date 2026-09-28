@@ -1,0 +1,30 @@
+version: "1.0"
+name: "huggingface-datasets-pipeline"
+description: "Streams reasoning and code dataset slices from Hugging Face Datasets Server API for LLM training"
+
+stages:
+  - id: "fetch_gsm8k_cot"
+    actor: "huggingface-datasets"
+    options:
+      dataset: "openai/gsm8k"
+      config: "main"
+      split: "train"
+      action: "rows"
+      offset: 0
+      limit: 50
+    storage:
+      driver: "local"
+      destination: "data/corpus/huggingface/gsm8k_train.json"
+
+  - id: "fetch_alpaca_instructions"
+    actor: "huggingface-datasets"
+    options:
+      dataset: "tatsu-lab/alpaca"
+      config: "default"
+      split: "train"
+      action: "rows"
+      offset: 0
+      limit: 50
+    storage:
+      driver: "local"
+      destination: "data/corpus/huggingface/alpaca_train.json"

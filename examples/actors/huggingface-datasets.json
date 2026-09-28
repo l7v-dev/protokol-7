@@ -1,0 +1,9 @@
+{
+  "actor": "huggingface-datasets",
+  "dataset": "openai/gsm8k",
+  "config": "main",
+  "split": "train",
+  "action": "rows",
+  "offset": 0,
+  "limit": 20
+}

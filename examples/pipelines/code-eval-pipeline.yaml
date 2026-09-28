@@ -1,0 +1,26 @@
+version: "1.0"
+name: "code-eval-pipeline"
+description: "Streams programming problems, canonical solutions, and verification unit tests for LLM coding evaluation"
+
+stages:
+  - id: "fetch_humaneval_tasks"
+    actor: "code-eval"
+    options:
+      benchmark: "humaneval"
+      split: "test"
+      offset: 0
+      limit: 50
+    storage:
+      driver: "local"
+      destination: "data/corpus/code/humaneval_test.json"
+
+  - id: "fetch_mbpp_tasks"
+    actor: "code-eval"
+    options:
+      benchmark: "mbpp"
+      split: "test"
+      offset: 0
+      limit: 50
+    storage:
+      driver: "local"
+      destination: "data/corpus/code/mbpp_test.json"

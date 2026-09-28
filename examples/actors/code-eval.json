@@ -1,0 +1,7 @@
+{
+  "actor": "code-eval",
+  "benchmark": "humaneval",
+  "split": "test",
+  "offset": 0,
+  "limit": 20
+}

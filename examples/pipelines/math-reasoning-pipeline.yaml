@@ -1,0 +1,27 @@
+version: "1.0"
+name: "math-reasoning-pipeline"
+description: "Streams mathematical problem solving and Chain-of-Thought (CoT) reasoning pairs for LLM fine-tuning"
+
+stages:
+  - id: "fetch_gsm8k_cot"
+    actor: "math-reasoning"
+    options:
+      benchmark: "gsm8k"
+      split: "train"
+      offset: 0
+      limit: 50
+    storage:
+      driver: "local"
+      destination: "data/corpus/math/gsm8k_cot_train.json"
+
+  - id: "fetch_hendrycks_math_algebra"
+    actor: "math-reasoning"
+    options:
+      benchmark: "math"
+      subject: "algebra"
+      split: "train"
+      offset: 0
+      limit: 50
+    storage:
+      driver: "local"
+      destination: "data/corpus/math/hendrycks_algebra_train.json"

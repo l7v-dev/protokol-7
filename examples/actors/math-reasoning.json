@@ -1,0 +1,7 @@
+{
+  "actor": "math-reasoning",
+  "benchmark": "gsm8k",
+  "split": "train",
+  "offset": 0,
+  "limit": 20
+}
