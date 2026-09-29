@@ -2600,6 +2600,169 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/devdocs": {
+      post: {
+        tags: ["Corpus - Developer Knowledge"],
+        summary: "DevDocs Developer Documentation Harvester",
+        description:
+          "Harvests official developer documentation, API references, guides, and docset indexes across 100+ technologies from DevDocs.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["list_docs", "search", "entry"],
+                    default: "list_docs",
+                    description: "Extraction mode",
+                  },
+                  doc: {
+                    type: "string",
+                    description: "Docset slug (e.g. 'rust', 'python~3.12')",
+                  },
+                  path: {
+                    type: "string",
+                    description: "Entry path within docset",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Keyword search query",
+                  },
+                  category: {
+                    type: "string",
+                    description: "Category filter",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Max results",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct DevDocs URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Documentation catalog, search index results, or clean GFM Markdown documentation.",
+          },
+        },
+      },
+    },
+    "/api/v1/rosetta-code": {
+      post: {
+        tags: ["Corpus - Developer Knowledge"],
+        summary: "Rosetta Code Multi-Language Algorithm Harvester",
+        description:
+          "Harvests multi-language algorithm implementations, code comparisons, and programming tasks across 800+ languages from Rosetta Code.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["task", "search", "random", "languages"],
+                    default: "task",
+                    description: "Extraction mode",
+                  },
+                  task: {
+                    type: "string",
+                    description: "Task name (e.g. '100 doors')",
+                  },
+                  language: {
+                    type: "string",
+                    description: "Target programming language (e.g. 'Python', 'Rust')",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Keyword search query",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Max implementations or results",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Rosetta Code wiki URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured task description, multi-language code implementations, and GFM Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/papers-with-code": {
+      post: {
+        tags: ["Corpus - Developer Knowledge"],
+        summary: "Papers With Code & Hugging Face Papers Harvester",
+        description:
+          "Harvests machine learning papers, official GitHub code repositories, arXiv abstracts, and benchmark tasks from Papers With Code & Hugging Face Papers.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["paper", "trending", "daily", "search"],
+                    default: "paper",
+                    description: "Extraction mode",
+                  },
+                  paper: {
+                    type: "string",
+                    description: "Paper slug or title (e.g. 'attention-is-all-you-need')",
+                  },
+                  arxivId: {
+                    type: "string",
+                    description: "arXiv identifier (e.g. '1706.03762')",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword query",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Max papers to return",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct paper URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured ML paper record, authors, abstract, GitHub code implementations, and GFM Markdown.",
+          },
+        },
+      },
+    },
     "/api/v1/sitemap": {
       post: {
         tags: ["Crawling"],

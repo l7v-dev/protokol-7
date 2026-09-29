@@ -1,0 +1,12 @@
+{
+  "actor": "papers-with-code",
+  "action": "paper",
+  "arxivId": "1706.03762",
+  "options": {
+    "papersWithCodeOptions": {
+      "action": "paper",
+      "arxivId": "1706.03762",
+      "limit": 10
+    }
+  }
+}

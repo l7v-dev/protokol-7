@@ -1,0 +1,14 @@
+{
+  "actor": "devdocs",
+  "action": "entry",
+  "doc": "rust",
+  "path": "book/ch01-00-getting-started",
+  "options": {
+    "devdocsOptions": {
+      "action": "entry",
+      "doc": "rust",
+      "path": "book/ch01-00-getting-started",
+      "limit": 20
+    }
+  }
+}

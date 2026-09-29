@@ -271,6 +271,9 @@ test("GET /openapi.json returns valid OpenAPI 3.1.0 specification", async () => 
     assert.ok(schema.paths["/api/v1/epub"]);
     assert.ok(schema.paths["/api/v1/dergipark"]);
     assert.ok(schema.paths["/api/v1/internet-archive"]);
+    assert.ok(schema.paths["/api/v1/devdocs"]);
+    assert.ok(schema.paths["/api/v1/rosetta-code"]);
+    assert.ok(schema.paths["/api/v1/papers-with-code"]);
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
@@ -1712,6 +1715,154 @@ test("POST /api/v1/metamath returns formal theorem through HTTP endpoint", async
     assert.equal(json.success, true);
     assert.equal(json.data?.theorem?.name, "mpc2");
     assert.equal(json.data?.theorem?.assertion, "⊢ ψ");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/devdocs routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify([
+        {
+          name: "Rust",
+          slug: "rust",
+          type: "rust",
+          version: "1.75",
+        },
+      ])
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/devdocs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "list_docs",
+        targetUrl: `http://127.0.0.1:${mockPort}/docs/docs.json`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        docs?: Array<{ name: string; slug: string }>;
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "list_docs");
+    assert.equal(json.data?.docs?.[0]?.slug, "rust");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/rosetta-code routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        parse: {
+          title: "100 doors",
+          sections: [{ toclevel: 1, level: "2", line: "Python", anchor: "Python" }],
+          text: {
+            "*": "<div><p>Task description</p><h2 id='Python'>Python</h2><pre><code>print(1)</code></pre></div>",
+          },
+        },
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/rosetta-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "task",
+        task: "100 doors",
+        targetUrl: `http://127.0.0.1:${mockPort}/wiki/100_doors`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        taskDetails?: { title: string };
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "task");
+    assert.equal(json.data?.taskDetails?.title, "100 doors");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/papers-with-code routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        id: "1706.03762",
+        title: "Attention Is All You Need",
+        summary: "Transformer model.",
+        authors: [{ name: "Ashish Vaswani" }],
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/papers-with-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "paper",
+        arxivId: "1706.03762",
+        targetUrl: `http://127.0.0.1:${mockPort}/papers/1706.03762`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        paper?: { id: string; title: string };
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "paper");
+    assert.equal(json.data?.paper?.title, "Attention Is All You Need");
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await new Promise<void>((resolve) => mockServer.close(() => resolve()));

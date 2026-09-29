@@ -9,6 +9,7 @@ import { ClinicalTrialsActor } from "./corpus/clinical-trials-actor";
 import { CodeEvalActor } from "./corpus/code-eval-actor";
 import { CourtListenerActor } from "./corpus/court-listener-actor";
 import { DergiParkActor } from "./corpus/dergipark-actor";
+import { DevDocsActor } from "./corpus/devdocs-actor";
 import { EurLexActor } from "./corpus/eur-lex-actor";
 import { EuropePmcActor } from "./corpus/europe-pmc-actor";
 import { GithubActor } from "./corpus/github-actor";
@@ -29,9 +30,11 @@ import { OpenFdaActor } from "./corpus/open-fda-actor";
 import { OpenAlexActor } from "./corpus/openalex-actor";
 import { OpenReviewActor } from "./corpus/openreview-actor";
 import { OpenStaxActor } from "./corpus/openstax-actor";
+import { PapersWithCodeActor } from "./corpus/papers-with-code-actor";
 import { PhilPapersActor } from "./corpus/philpapers-actor";
 import { ProofWikiActor } from "./corpus/proofwiki-actor";
 import { ResmiGazeteActor } from "./corpus/resmi-gazete-actor";
+import { RosettaCodeActor } from "./corpus/rosetta-code-actor";
 import { SaglikEkutuphaneActor } from "./corpus/saglik-ekutuphane-actor";
 import { SecEdgarActor } from "./corpus/sec-edgar-actor";
 import { SoftwareHeritageActor } from "./corpus/software-heritage-actor";
@@ -145,5 +148,8 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new InternetPhilActor());
   registry.register(new MetamathActor());
   registry.register(new PhilPapersActor());
+  registry.register(new DevDocsActor());
+  registry.register(new RosettaCodeActor());
+  registry.register(new PapersWithCodeActor());
   return registry;
 }

@@ -66,7 +66,10 @@ export type ActorType =
   | "stanford-phil"
   | "internet-phil"
   | "metamath"
-  | "philpapers";
+  | "philpapers"
+  | "devdocs"
+  | "rosetta-code"
+  | "papers-with-code";
 
 export interface ExtractedTable {
   id: string;
@@ -1135,6 +1138,162 @@ export interface PhilPapersActorResult {
   record?: PhilPapersRecord;
   searchResults?: PhilPapersSearchResultItem[];
   categoryDetails?: PhilPapersCategoryDetails;
+  markdown?: string;
+}
+
+// ---------------------------------------------------------------------------
+// DevDocs (API Documentation)
+// ---------------------------------------------------------------------------
+
+export interface DevDocMeta {
+  name: string;
+  slug: string;
+  type: string;
+  version?: string;
+  release?: string;
+  mtime?: number;
+  db_size?: number;
+  links?: {
+    home?: string;
+    code?: string;
+  };
+  attribution?: string;
+  alias?: string;
+}
+
+export interface DevDocEntry {
+  name: string;
+  path: string;
+  type: string;
+}
+
+export interface DevDocsActorTaskOptions {
+  action?: "list_docs" | "search" | "entry";
+  doc?: string;
+  path?: string;
+  query?: string;
+  category?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface DevDocsActorResult {
+  action: "list_docs" | "search" | "entry";
+  queryUrl: string;
+  totalResults: number;
+  doc?: string;
+  path?: string;
+  title?: string;
+  docs?: DevDocMeta[];
+  entries?: DevDocEntry[];
+  markdown?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Rosetta Code (Multi-language Algorithms)
+// ---------------------------------------------------------------------------
+
+export interface RosettaCodeImplementation {
+  language: string;
+  code: string;
+  explanation?: string;
+  lineCount: number;
+}
+
+export interface RosettaCodeSearchResultItem {
+  title: string;
+  snippet?: string;
+  size?: number;
+  wordCount?: number;
+}
+
+export interface RosettaCodeTaskDetails {
+  task: string;
+  title: string;
+  url: string;
+  description: string;
+  totalLanguages: number;
+  availableLanguages: string[];
+  implementations: RosettaCodeImplementation[];
+  markdown: string;
+}
+
+export interface RosettaCodeActorTaskOptions {
+  action?: "task" | "search" | "random" | "languages";
+  task?: string;
+  language?: string;
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface RosettaCodeActorResult {
+  action: "task" | "search" | "random" | "languages";
+  queryUrl: string;
+  totalResults: number;
+  taskDetails?: RosettaCodeTaskDetails;
+  searchResults?: RosettaCodeSearchResultItem[];
+  languages?: string[];
+  markdown?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Papers With Code / Hugging Face Papers (Machine Learning & Benchmarks)
+// ---------------------------------------------------------------------------
+
+export interface PapersWithCodeRepo {
+  url: string;
+  name?: string;
+  stars?: number;
+  framework?: string;
+  isOfficial?: boolean;
+}
+
+export interface PapersWithCodePaperRecord {
+  id: string;
+  title: string;
+  url: string;
+  arxivId?: string;
+  publishedAt?: string;
+  authors: string[];
+  summary: string;
+  aiSummary?: string;
+  upvotes?: number;
+  tasks?: string[];
+  methods?: string[];
+  linkedModels?: string[];
+  linkedDatasets?: string[];
+  codeRepositories?: PapersWithCodeRepo[];
+  markdown: string;
+}
+
+export interface PapersWithCodeSearchResultItem {
+  id: string;
+  title: string;
+  url: string;
+  arxivId?: string;
+  publishedAt?: string;
+  authors: string[];
+  summary?: string;
+  upvotes?: number;
+}
+
+export interface PapersWithCodeActorTaskOptions {
+  action?: "paper" | "search" | "trending" | "daily";
+  paper?: string;
+  arxivId?: string;
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface PapersWithCodeActorResult {
+  action: "paper" | "search" | "trending" | "daily";
+  queryUrl: string;
+  totalResults: number;
+  paper?: PapersWithCodePaperRecord;
+  papers?: PapersWithCodePaperRecord[];
+  searchResults?: PapersWithCodeSearchResultItem[];
   markdown?: string;
 }
 
@@ -2228,6 +2387,9 @@ export interface ActorTask {
     internetPhilOptions?: InternetPhilActorTaskOptions;
     metamathOptions?: MetamathActorTaskOptions;
     philpapersOptions?: PhilPapersActorTaskOptions;
+    devdocsOptions?: DevDocsActorTaskOptions;
+    rosettaCodeOptions?: RosettaCodeActorTaskOptions;
+    papersWithCodeOptions?: PapersWithCodeActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

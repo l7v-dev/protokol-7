@@ -6615,4 +6615,397 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+  devdocs: {
+    name: "devdocs",
+    actorType: "devdocs",
+    title: "DevDocs Developer Documentation Harvester",
+    category: "API",
+    version: "1.0.0",
+    description:
+      "Harvests official developer documentation, API references, guides, and docset indexes across 100+ technologies from DevDocs.",
+    author: "protokol-7",
+    tags: [
+      "devdocs",
+      "documentation",
+      "api-reference",
+      "programming",
+      "developer-knowledge",
+      "llm-pretraining",
+      "code-docs",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "DevDocs Harvester Input Parameters",
+      description:
+        "Parameters for querying DevDocs docsets, search indexes, and documentation entries",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Action Mode",
+          description:
+            "Extraction mode: 'list_docs' (directory of docsets), 'search' (keyword search in docset), 'entry' (full doc page).",
+          default: "list_docs",
+          enum: ["list_docs", "search", "entry"],
+          editor: "select",
+        },
+        doc: {
+          name: "doc",
+          type: "string",
+          title: "Docset Slug",
+          description:
+            "Target docset slug (e.g. 'rust', 'python~3.12', 'javascript', 'go', 'cpp').",
+          editor: "textfield",
+        },
+        path: {
+          name: "path",
+          type: "string",
+          title: "Entry Path",
+          description:
+            "Relative path to entry within docset (e.g. 'book/ch01-00-getting-started', 'std/collections/struct.hashmap').",
+          editor: "textfield",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Search keyword within the selected docset or documentation catalog.",
+          editor: "textfield",
+        },
+        category: {
+          name: "category",
+          type: "string",
+          title: "Category Filter",
+          description: "Filter docsets by technology category/type.",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Max Results",
+          description: "Maximum entries or docsets to return.",
+          default: 20,
+          editor: "number",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description:
+            "Direct DevDocs URL (e.g. 'https://devdocs.io/rust/std/collections/struct.hashmap').",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Executed action mode" },
+        queryUrl: { type: "string", description: "Source URL fetched" },
+        totalResults: { type: "number", description: "Total results returned" },
+        doc: { type: "string", description: "Target docset" },
+        path: { type: "string", description: "Doc entry path" },
+        title: { type: "string", description: "Documentation entry title" },
+        docs: { type: "array", description: "List of available docsets" },
+        entries: { type: "array", description: "Search result entries" },
+        markdown: { type: "string", description: "GFM markdown documentation output" },
+      },
+    },
+    exampleInput: {
+      action: "entry",
+      doc: "rust",
+      path: "book/ch01-00-getting-started",
+    },
+    readme:
+      "# DevDocs Harvester\n\nHarvests official developer documentation, API references, guides, and docset indexes across 100+ technologies from DevDocs in clean GFM Markdown format.",
+    mcpTool: {
+      name: "query_devdocs",
+      description:
+        "Queries DevDocs for official developer documentation, API references, guides, and docset search indexes across 100+ technologies.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["list_docs", "search", "entry"],
+            description: "Action: list_docs, search, or entry",
+          },
+          doc: {
+            type: "string",
+            description: "Docset slug (e.g. 'rust', 'python~3.12', 'javascript', 'go')",
+          },
+          path: {
+            type: "string",
+            description: "Entry subpath within docset (e.g. 'book/ch01-00-getting-started')",
+          },
+          query: {
+            type: "string",
+            description: "Keyword search query",
+          },
+          category: {
+            type: "string",
+            description: "Docset category filter",
+          },
+          limit: { type: "number", description: "Maximum entries to return" },
+          targetUrl: { type: "string", description: "Direct DevDocs URL" },
+        },
+        required: [],
+      },
+    },
+  },
+  "rosetta-code": {
+    name: "rosetta-code",
+    actorType: "rosetta-code",
+    title: "Rosetta Code Multi-Language Algorithm Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Harvests multi-language algorithm implementations, code comparisons, and programming tasks across 800+ languages from Rosetta Code.",
+    author: "protokol-7",
+    tags: [
+      "rosetta-code",
+      "algorithms",
+      "multi-language",
+      "code-comparison",
+      "programming",
+      "cross-language",
+      "llm-pretraining",
+      "reasoning",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Rosetta Code Harvester Input Parameters",
+      description:
+        "Parameters for harvesting programming tasks, algorithms, and multi-language implementations",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Action Mode",
+          description:
+            "Extraction mode: 'task' (harvest task implementations), 'search' (search tasks), 'random' (random task), 'languages' (list languages).",
+          default: "task",
+          enum: ["task", "search", "random", "languages"],
+          editor: "select",
+        },
+        task: {
+          name: "task",
+          type: "string",
+          title: "Task Name",
+          description:
+            "Name of the programming task (e.g. '100 doors', 'Fibonacci sequence', 'A* search algorithm').",
+          editor: "textfield",
+        },
+        language: {
+          name: "language",
+          type: "string",
+          title: "Programming Language",
+          description:
+            "Specific programming language to extract (e.g. 'Python', 'Rust', 'C++', 'Haskell').",
+          editor: "textfield",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Keyword query to search across Rosetta Code tasks.",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Max Results",
+          description: "Maximum languages or search items to return.",
+          default: 10,
+          editor: "number",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description:
+            "Direct Rosetta Code wiki URL (e.g. 'https://rosettacode.org/wiki/100_doors#Python').",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Executed action mode" },
+        queryUrl: { type: "string", description: "Source URL fetched" },
+        totalResults: { type: "number", description: "Total results returned" },
+        taskDetails: { type: "object", description: "Task description and implementations" },
+        searchResults: { type: "array", description: "Search result listings" },
+        languages: { type: "array", description: "List of available languages" },
+        markdown: { type: "string", description: "GFM markdown formatted code report" },
+      },
+    },
+    exampleInput: {
+      action: "task",
+      task: "100 doors",
+      language: "Python",
+    },
+    readme:
+      "# Rosetta Code Harvester\n\nHarvests programming tasks and multi-language algorithm implementations from Rosetta Code across 800+ languages.",
+    mcpTool: {
+      name: "query_rosetta_code",
+      description:
+        "Queries Rosetta Code for multi-language algorithm implementations, code comparisons, and programming task solutions across 800+ programming languages.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["task", "search", "random", "languages"],
+            description: "Action: task, search, random, or languages",
+          },
+          task: {
+            type: "string",
+            description: "Task name (e.g. '100 doors', 'Fibonacci sequence')",
+          },
+          language: {
+            type: "string",
+            description: "Specific language (e.g. 'Python', 'Rust', 'C++')",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword query",
+          },
+          limit: { type: "number", description: "Maximum implementations or search items" },
+          targetUrl: { type: "string", description: "Direct Rosetta Code URL" },
+        },
+        required: [],
+      },
+    },
+  },
+  "papers-with-code": {
+    name: "papers-with-code",
+    actorType: "papers-with-code",
+    title: "Papers With Code & Hugging Face Papers Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Harvests machine learning papers, official GitHub code repositories, arXiv abstracts, and benchmark tasks from Papers With Code & Hugging Face Papers.",
+    author: "protokol-7",
+    tags: [
+      "papers-with-code",
+      "huggingface-papers",
+      "machine-learning",
+      "arxiv",
+      "deep-learning",
+      "code-repositories",
+      "benchmarks",
+      "ai-research",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Papers With Code Input Parameters",
+      description:
+        "Parameters for harvesting ML research papers, GitHub implementations, and trending benchmarks",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Action Mode",
+          description:
+            "Extraction mode: 'paper' (retrieve paper metadata and GitHub repos), 'trending' (daily trending ML papers), 'search' (keyword search).",
+          default: "paper",
+          enum: ["paper", "trending", "daily", "search"],
+          editor: "select",
+        },
+        paper: {
+          name: "paper",
+          type: "string",
+          title: "Paper Slug or Title",
+          description:
+            "Paper title, slug, or arXiv ID (e.g. 'attention-is-all-you-need', '1706.03762').",
+          editor: "textfield",
+        },
+        arxivId: {
+          name: "arxivId",
+          type: "string",
+          title: "arXiv ID",
+          description: "arXiv identifier (e.g. '1706.03762').",
+          editor: "textfield",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Keyword query for searching machine learning papers.",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Max Results",
+          description: "Maximum paper records to return.",
+          default: 10,
+          editor: "number",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description: "Direct Papers With Code or Hugging Face Papers URL.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Executed action mode" },
+        queryUrl: { type: "string", description: "Source URL fetched" },
+        totalResults: { type: "number", description: "Total results returned" },
+        paper: {
+          type: "object",
+          description: "Detailed paper record, authors, abstract, and code repos",
+        },
+        papers: { type: "array", description: "List of trending paper records" },
+        searchResults: { type: "array", description: "Search result listings" },
+        markdown: { type: "string", description: "GFM markdown formatted paper report" },
+      },
+    },
+    exampleInput: {
+      action: "paper",
+      arxivId: "1706.03762",
+    },
+    readme:
+      "# Papers With Code Harvester\n\nHarvests machine learning papers, official GitHub code repositories, arXiv abstracts, and benchmark tasks from Papers With Code & Hugging Face Papers.",
+    mcpTool: {
+      name: "query_papers_with_code",
+      description:
+        "Queries Papers With Code and Hugging Face Papers for machine learning papers, arXiv abstracts, official GitHub code repositories, and trending research benchmarks.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["paper", "trending", "daily", "search"],
+            description: "Action: paper, trending, daily, or search",
+          },
+          paper: {
+            type: "string",
+            description: "Paper slug or title (e.g. 'attention-is-all-you-need')",
+          },
+          arxivId: {
+            type: "string",
+            description: "arXiv identifier (e.g. '1706.03762')",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword query",
+          },
+          limit: { type: "number", description: "Maximum papers to return" },
+          targetUrl: { type: "string", description: "Direct paper URL" },
+        },
+        required: [],
+      },
+    },
+  },
 };

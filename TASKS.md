@@ -9,7 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- [/] **Geliştirici Bilgi Tabanı ve Çok Dilli Kodlama Aktörleri (Set 5: DevDocs, Rosetta-Code, Papers-With-Code)** — `Tier: 2` — `docs/plans/wikimedia-kardesleri-ve-yeni-aktor-setleri-plani.md` kapsamındaki 3 kritik mühendislik ve kodlama aktörünün tip sözleşmeleri, sınıfları, manifestoları, REST rotaları, MCP araçları, testleri ve teknik dokümantasyonları inşa ediliyor.
+- [/] **Açık Üniversite & STEM Ders Kitapları Aktörleri (Set 3: LibreTexts, Open-Textbook, Semantic-Scholar)** — `Tier: 2` — `docs/plans/wikimedia-kardesleri-ve-yeni-aktor-setleri-plani.md` kapsamındaki 3 açık üniversite ve akademik literatür aktörünün tip sözleşmeleri, sınıfları, manifestoları, REST rotaları, MCP araçları, testleri ve teknik dokümantasyonları inşa ediliyor.
 
 ## Bekleyen (Blok var)
 
@@ -20,6 +20,8 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 - *(Yeni fikirler burada bekler)*
 
 ## Son tamamlananlar (son 3-5, eskiler ledger/'a taşınır)
+
+- [x] **Geliştirici Bilgi Tabanı ve Çok Dilli Kodlama Aktörleri (Set 5: DevDocs, Rosetta-Code, Papers-With-Code)** — `Tier: 2` — DevDocs API ve doküman çıkarıcı (`devdocs`), Rosetta Code çok dilli algoritma karşılaştırıcı (`rosetta-code`), ve Papers With Code / Hugging Face Papers makale ve kod deposu çıkarıcı (`papers-with-code`) aktör sınıfları, REST uç noktaları (`POST /api/v1/<name>`), MCP araçları (`query_*`, toplam 71 araç), Zod/JSON şemaları, OpenAPI 3.1.0 tanımları, birim/entegrasyon testleri (`tests/*-actor.test.ts`), teknik wikileri (`docs/actors/*.md`) ve örnek yapılandırmalarıyla eksiksiz tamamlandı; 806 test ve 6 aşamalı doğrulama hattı başarıyla geçti.
 
 - [x] **Felsefe, Mantık ve Derin Muhakeme Aktörleri (Set 2: Stanford-Phil, Internet-Phil, Metamath, PhilPapers)** — `Tier: 2` — Stanford Encyclopedia of Philosophy (`stanford-phil`), Internet Encyclopedia of Philosophy (`internet-phil`), Metamath Proof Explorer (`metamath`) ve PhilPapers Archive (`philpapers`) olmak üzere 4 derin muhakeme ve formel mantık aktörü tip sözleşmeleri, aktör sınıfları, REST uç noktaları (`POST /api/v1/<name>`), MCP araçları (`query_*`, toplam 68 araç), Zod/JSON şemaları, OpenAPI 3.1.0 tanımları, 29 birim/entegrasyon testi, teknik dokümanları ve örnek konfigürasyonlarıyla eksiksiz tamamlandı; 782 test ve 6 aşamalı doğrulama hattı başarıyla geçti.
 

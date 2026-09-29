@@ -1,0 +1,14 @@
+{
+  "actor": "rosetta-code",
+  "action": "task",
+  "task": "100 doors",
+  "language": "Python",
+  "options": {
+    "rosettaCodeOptions": {
+      "action": "task",
+      "task": "100 doors",
+      "language": "Python",
+      "limit": 10
+    }
+  }
+}

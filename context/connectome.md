@@ -9,12 +9,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 121 | 211 | Yardımcı Modül |
-| `src/dataset/types.ts` | 121 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 121 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 121 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 56 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 53 | 3 | Yardımcı Modül |
+| `src/api/types.ts` | 127 | 225 | Yardımcı Modül |
+| `src/dataset/types.ts` | 127 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 127 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 127 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 59 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 56 | 3 | Yardımcı Modül |
 | `src/api/server.ts` | 18 | 1 | Giriş Noktası (Server) |
 | `src/server.ts` | 18 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
@@ -68,6 +68,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/code-eval-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/court-listener-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/dergipark-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/devdocs-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/eur-lex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/europe-pmc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/github-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -88,9 +89,11 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/openalex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/openreview-actor.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/openstax-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/papers-with-code-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/philpapers-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/proofwiki-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/resmi-gazete-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/rosetta-code-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/saglik-ekutuphane-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/sec-edgar-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/software-heritage-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -193,6 +196,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/crawler-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/dataset-publisher-and-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/dergipark-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/devdocs-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/document-extractor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/documents-archives-ocr-endpoints.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/dom-indexer.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -226,6 +230,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/openalex-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/openreview-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/openstax-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/papers-with-code-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/pdf-anomaly-detector.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pdf-document-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/pdf-ocr-pipeline.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -245,6 +250,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/resmi-gazete-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/retry-handler.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/robots-parser.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/rosetta-code-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/safe-redirect-fetcher.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/saglik-ekutuphane-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/scaffold-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -347,6 +353,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `internet-phil` | `InternetPhilActor` |
 | `metamath` | `MetamathActor` |
 | `phil-papers` | `PhilPapersActor` |
+| `dev-docs` | `DevDocsActor` |
+| `rosetta-code` | `RosettaCodeActor` |
+| `papers-with-code` | `PapersWithCodeActor` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
 | `mistral-ocr-connector` | `MistralOcrConnector` |
@@ -486,6 +495,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `handleListRecords(task: ActorTask, opts: DergiParkActorTaskOptions, timeoutMs: number, allowLocalNetwork: boolean, startTime: number): Promise<ActorResult<DergiParkActorResult>>`
   - `parseRecord($: ReturnType<typeof cheerio.load>, el: Parameters<ReturnType<typeof cheerio.load>>[0]): DergiParkArticle | undefined`
   - `httpError(task: ActorTask, status: number, message: string, startTime: number): ActorResult<DergiParkActorResult>`
+
+### `src/actors/corpus/devdocs-actor.ts`
+
+**Sınıflar (Classes):**
+- `class DevDocsActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<DevDocsActorResult>>`
 
 ### `src/actors/corpus/eur-lex-actor.ts`
 
@@ -789,6 +804,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `renderBooksMarkdown(books: OpenStaxBookItem[], query: string | undefined, totalCount: number, action: string): string`
   - `renderBookDetailMarkdown(book: OpenStaxBookItem, detail: Record<string, unknown>): string`
 
+### `src/actors/corpus/papers-with-code-actor.ts`
+
+**Sınıflar (Classes):**
+- `class PapersWithCodeActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<PapersWithCodeActorResult>>`
+
 ### `src/actors/corpus/philpapers-actor.ts`
 
 **Sınıflar (Classes):**
@@ -847,6 +868,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `cleanDocumentText($: cheerio.CheerioAPI, _url: string): string`
   - `monthNameToNumber(name: string): string`
   - `renderMarkdownSummary(date: string, issueNumber: number | undefined, isRepeated: boolean, items: ResmiGazeteItem[], queryUrl: string): string`
+
+### `src/actors/corpus/rosetta-code-actor.ts`
+
+**Sınıflar (Classes):**
+- `class RosettaCodeActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<RosettaCodeActorResult>>`
 
 ### `src/actors/corpus/saglik-ekutuphane-actor.ts`
 
@@ -1453,6 +1480,20 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface PhilPapersCategoryDetails` (6 üye)
 - `interface PhilPapersActorTaskOptions` (9 üye)
 - `interface PhilPapersActorResult` (7 üye)
+- `interface DevDocMeta` (10 üye)
+- `interface DevDocEntry` (3 üye)
+- `interface DevDocsActorTaskOptions` (7 üye)
+- `interface DevDocsActorResult` (9 üye)
+- `interface RosettaCodeImplementation` (4 üye)
+- `interface RosettaCodeSearchResultItem` (4 üye)
+- `interface RosettaCodeTaskDetails` (8 üye)
+- `interface RosettaCodeActorTaskOptions` (6 üye)
+- `interface RosettaCodeActorResult` (7 üye)
+- `interface PapersWithCodeRepo` (5 üye)
+- `interface PapersWithCodePaperRecord` (15 üye)
+- `interface PapersWithCodeSearchResultItem` (8 üye)
+- `interface PapersWithCodeActorTaskOptions` (6 üye)
+- `interface PapersWithCodeActorResult` (7 üye)
 - `interface OpenAlexWorkItem` (12 üye)
 - `interface OpenAlexActorTaskOptions` (11 üye)
 - `interface OpenAlexActorResult` (5 üye)
@@ -2378,6 +2419,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/code-eval-actor.ts` |
 | `src/actors/corpus/court-listener-actor.ts` |
 | `src/actors/corpus/dergipark-actor.ts` |
+| `src/actors/corpus/devdocs-actor.ts` |
 | `src/actors/corpus/eur-lex-actor.ts` |
 | `src/actors/corpus/europe-pmc-actor.ts` |
 | `src/actors/corpus/github-actor.ts` |
@@ -2399,12 +2441,11 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/openalex-actor.ts` |
 | `src/actors/corpus/openreview-actor.ts` |
 | `src/actors/corpus/openstax-actor.ts` |
+| `src/actors/corpus/papers-with-code-actor.ts` |
 | `src/actors/corpus/philpapers-actor.ts` |
 | `src/actors/corpus/proofwiki-actor.ts` |
 | `src/actors/corpus/resmi-gazete-actor.ts` |
+| `src/actors/corpus/rosetta-code-actor.ts` |
 | `src/actors/corpus/saglik-ekutuphane-actor.ts` |
-| `src/actors/corpus/sec-edgar-actor.ts` |
-| `src/actors/corpus/software-heritage-actor.ts` |
-| `src/actors/corpus/stack-exchange-actor.ts` |
-| *... ve 219 dosya daha* |
+| *... ve 225 dosya daha* |
 

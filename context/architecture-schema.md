@@ -33,7 +33,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/actors/actor-registry.ts` | `ActorRegistry` | Central registry for discovering, registering, and instantiating all actors across all categories. |
-| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 47 actors. |
+| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 54 actors. |
 | `src/actors/actor.template.ts` | `TemplateActor`, `TemplateActorResult` | Canonical reference implementation blueprint, contract template, and security scaffold for new actors. |
 
 #### Web Actors (`src/actors/web/`) — general-purpose HTTP and browser extraction
@@ -100,6 +100,9 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/actors/corpus/internet-phil-actor.ts` | `InternetPhilActor` | Internet Encyclopedia of Philosophy (IEP) — peer-reviewed academic philosophy articles, outlines, and references. |
 | `src/actors/corpus/metamath-actor.ts` | `MetamathActor` | Metamath Proof Explorer (set.mm, iset.mm, ql.mm) — formal mathematical proofs, axioms, hypotheses, and step-by-step verification chains. |
 | `src/actors/corpus/philpapers-actor.ts` | `PhilPapersActor` | PhilPapers Archive — academic philosophy citations, abstracts, publication metadata, and category taxonomies. |
+| `src/actors/corpus/devdocs-actor.ts` | `DevDocsActor` | DevDocs (`devdocs.io` & `documents.devdocs.io`) — official API documentation, search index lookups, and guides across 100+ technologies. |
+| `src/actors/corpus/rosetta-code-actor.ts` | `RosettaCodeActor` | Rosetta Code MediaWiki API — multi-language algorithm implementations, code comparisons, and language catalogs across 800+ programming languages. |
+| `src/actors/corpus/papers-with-code-actor.ts` | `PapersWithCodeActor` | Papers With Code & Hugging Face Papers — machine learning research papers, canonical arXiv abstracts, and official GitHub code repositories. |
 
 #### Document Actors (`src/actors/documents/`) — local file and archive extraction
 

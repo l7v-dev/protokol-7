@@ -3271,6 +3271,161 @@ export function createServer(): http.Server {
         return;
       }
 
+      // DevDocs Documentation (/devdocs or /api/v1/devdocs)
+      if (method === "POST" && (pathname === "/api/v1/devdocs" || pathname === "/devdocs")) {
+        const body = await parseBody<{
+          action?: "list_docs" | "search" | "entry";
+          doc?: string;
+          path?: string;
+          query?: string;
+          category?: string;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const devdocsActor = registry.get("devdocs");
+        if (!devdocsActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "DevDocs actor is not available.",
+            "Ensure DevDocsActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `devdocs-${Date.now()}`,
+          actorType: "devdocs",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            devdocsOptions: {
+              action: body.action,
+              doc: body.doc,
+              path: body.path,
+              query: body.query,
+              category: body.category,
+              limit: body.limit,
+              ...body.options?.devdocsOptions,
+            },
+          },
+        };
+
+        const result = await devdocsActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Rosetta Code (/rosetta-code or /api/v1/rosetta-code)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/rosetta-code" || pathname === "/rosetta-code")
+      ) {
+        const body = await parseBody<{
+          action?: "task" | "search" | "random" | "languages";
+          task?: string;
+          language?: string;
+          query?: string;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const rosettaActor = registry.get("rosetta-code");
+        if (!rosettaActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Rosetta Code actor is not available.",
+            "Ensure RosettaCodeActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `rosetta-${Date.now()}`,
+          actorType: "rosetta-code",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            rosettaCodeOptions: {
+              action: body.action,
+              task: body.task,
+              language: body.language,
+              query: body.query,
+              limit: body.limit,
+              ...body.options?.rosettaCodeOptions,
+            },
+          },
+        };
+
+        const result = await rosettaActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Papers With Code (/papers-with-code or /api/v1/papers-with-code)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/papers-with-code" || pathname === "/papers-with-code")
+      ) {
+        const body = await parseBody<{
+          action?: "paper" | "search" | "trending" | "daily";
+          paper?: string;
+          arxivId?: string;
+          query?: string;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const pwcActor = registry.get("papers-with-code");
+        if (!pwcActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Papers With Code actor is not available.",
+            "Ensure PapersWithCodeActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `pwc-${Date.now()}`,
+          actorType: "papers-with-code",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            papersWithCodeOptions: {
+              action: body.action,
+              paper: body.paper,
+              arxivId: body.arxivId,
+              query: body.query,
+              limit: body.limit,
+              ...body.options?.papersWithCodeOptions,
+            },
+          },
+        };
+
+        const result = await pwcActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

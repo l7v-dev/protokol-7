@@ -25,6 +25,7 @@ import type {
   CodeEvalActorTaskOptions,
   CourtListenerActorTaskOptions,
   DergiParkActorTaskOptions,
+  DevDocsActorTaskOptions,
   DocumentExtractorTaskOptions,
   EpubExtractorTaskOptions,
   EurLexActorTaskOptions,
@@ -48,10 +49,12 @@ import type {
   OpenFdaActorTaskOptions,
   OpenReviewActorTaskOptions,
   OpenStaxActorTaskOptions,
+  PapersWithCodeActorTaskOptions,
   PdfDocumentTaskOptions,
   PhilPapersActorTaskOptions,
   ProofWikiActorTaskOptions,
   ResmiGazeteActorTaskOptions,
+  RosettaCodeActorTaskOptions,
   SaglikEkutuphaneTaskOptions,
   SecEdgarActorTaskOptions,
   SerpSearchTaskOptions,
@@ -1353,6 +1356,18 @@ export class ProtokolMcpServer {
             philpapersOptions:
               manifest.actorType === "philpapers"
                 ? (toolArgs as unknown as PhilPapersActorTaskOptions)
+                : undefined,
+            devdocsOptions:
+              manifest.actorType === "devdocs"
+                ? (toolArgs as unknown as DevDocsActorTaskOptions)
+                : undefined,
+            rosettaCodeOptions:
+              manifest.actorType === "rosetta-code"
+                ? (toolArgs as unknown as RosettaCodeActorTaskOptions)
+                : undefined,
+            papersWithCodeOptions:
+              manifest.actorType === "papers-with-code"
+                ? (toolArgs as unknown as PapersWithCodeActorTaskOptions)
                 : undefined,
           },
         };

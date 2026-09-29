@@ -59,6 +59,20 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 | 45 | `youtube-transcripts` | Yapay Zeka & Korpus | `POST /api/v1/youtube-transcripts` | `query_youtube_transcripts` | YouTube video altyazılarını ve transkriptlerini çeker, zaman damgalarını ve akustik gürültüleri temizler. |
 | 46 | `wikisource` | Kitap & Kültür | `POST /api/v1/wikisource` | `query_wikisource` | 85 dildeki Wikisource tarihi, edebi ve antik metinleri şiir ve dize formatını koruyarak Markdown olarak çeker. |
 | 47 | `wiktionary` | Kitap & Kültür | `POST /api/v1/wiktionary` | `query_wiktionary` | 198 dildeki Wiktionary leksikal tanımları, etimoloji, sözcük türleri ve çevirileri yapılandırılmış Markdown olarak çeker. |
+| 48 | `wikiquote` | Kitap & Kültür | `POST /api/v1/wikiquote` | `query_wikiquote` | 90+ dildeki tarihi, edebi, felsefi alıntıları ve aforizmaları çeker. |
+| 49 | `wikibooks` | Kitap & Kültür | `POST /api/v1/wikibooks` | `query_wikibooks` | Açık ders kitaplarını, teknik ve akademik kılavuzları Markdown olarak çeker. |
+| 50 | `wikiversity` | Bilim & Akademi | `POST /api/v1/wikiversity` | `query_wikiversity` | Üniversite düzeyinde ders modülleri ve açık pedagojik öğrenme kaynaklarını çeker. |
+| 51 | `wikivoyage` | Kültür & Coğrafya | `POST /api/v1/wikivoyage` | `query_wikivoyage` | Coğrafi rotaları, şehir rehberlerini ve seyahat ansiklopedisini çeker. |
+| 52 | `wikinews` | Haber & Medya | `POST /api/v1/wikinews` | `query_wikinews` | Gazetecilik haberlerini, olay kronolojilerini ve bültenleri çeker. |
+| 53 | `wikispecies` | Biyoloji & Taksonomi | `POST /api/v1/wikispecies` | `query_wikispecies` | Canlıların taksonomik sınıflandırmasını ve biyolojik hiyerarşisini çeker. |
+| 54 | `wikidata` | Bilgi Grafiği | `POST /api/v1/wikidata` | `query_wikidata` | Q-ID varlıklarını, iddiaları (claims) ve ontoloji ilişkilerini çeker. |
+| 55 | `stanford-phil` | Felsefe & Mantık | `POST /api/v1/stanford-phil` | `query_stanford_phil` | Stanford Felsefe Ansiklopedisi maddelerini, argümanları ve kaynakçaları çeker. |
+| 56 | `internet-phil` | Felsefe & Mantık | `POST /api/v1/internet-phil` | `query_internet_phil` | Internet Felsefe Ansiklopedisi rehberlerini, ontoloji ve mantık metinlerini çeker. |
+| 57 | `metamath` | Biçimsel Mantık | `POST /api/v1/metamath` | `query_metamath` | Metamath biçimsel teorem ve aksiyomlarını, hipotezleri ve ispat tablolarını çeker. |
+| 58 | `philpapers` | Felsefe & Mantık | `POST /api/v1/philpapers` | `query_philpapers` | 2.5M+ felsefe makale kaydını, özetlerini, atıfları ve taksonomileri çeker. |
+| 59 | `devdocs` | Kod & Standartlar | `POST /api/v1/devdocs` | `query_devdocs` | 100+ teknolojinin resmi API dokümantasyonunu ve arama dizinlerini çeker. |
+| 60 | `rosetta-code` | Kod & Standartlar | `POST /api/v1/rosetta-code` | `query_rosetta_code` | 800+ dildeki çok dilli algoritma çözümlerini ve kod karşılaştırmalarını çeker. |
+| 61 | `papers-with-code` | Yapay Zeka & Korpus | `POST /api/v1/papers-with-code` | `query_papers_with_code` | Makine öğrenimi makalelerini, resmi GitHub kod ambarlarını ve kıyaslamaları çeker. |
 
 ---
 
@@ -644,6 +658,42 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
   "action": "record"
 }
 ```
+
+#### 41. DevDocs Aktörü (`devdocs`)
+* **Ne Yapar?** 100+ programlama dili ve kütüphanesinin (Rust, Python, Go, C++, JS vb.) resmi API dokümantasyonunu, arama dizinlerini ve kılavuz sayfalarını Markdown olarak çeker.
+* **REST:** `POST /api/v1/devdocs`
+* **MCP:** `query_devdocs`
+```json
+{
+  "doc": "rust",
+  "path": "book/ch01-00-getting-started",
+  "action": "entry"
+}
+```
+
+#### 42. Rosetta Code Aktörü (`rosetta-code`)
+* **Ne Yapar?** Rosetta Code üzerindeki 1.000'den fazla programlama algoritmasının 800+ farklı dildeki eşzamanlı çözümlerini, kaynak kodlarını ve açıklamalarını çeker.
+* **REST:** `POST /api/v1/rosetta-code`
+* **MCP:** `query_rosetta_code`
+```json
+{
+  "task": "100 doors",
+  "language": "Python",
+  "action": "task"
+}
+```
+
+#### 43. Papers With Code Aktörü (`papers-with-code`)
+* **Ne Yapar?** Makine öğrenimi makalelerini, arXiv özetlerini, resmi GitHub kod ambarlarını ve trend yapay zeka benchmarklarını yapılandırılmış formatta çeker.
+* **REST:** `POST /api/v1/papers-with-code`
+* **MCP:** `query_papers_with_code`
+```json
+{
+  "arxivId": "1706.03762",
+  "action": "paper"
+}
+```
+
 
 
 
