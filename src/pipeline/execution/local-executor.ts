@@ -161,6 +161,7 @@ export class LocalExecutor implements ExecutionTarget {
         epubOptions: (config.epubOptions ||
           rawOptions.epubOptions ||
           (manifest.actorType === "epub-extractor" ? config : undefined)) as object | undefined,
+        ...config,
         ...rawOptions,
       },
     };

@@ -13,7 +13,13 @@
 
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import readline from "node:readline";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(__dirname, "..");
+process.chdir(REPO_ROOT);
 
 const SERVER_NAME = "omega-3-memory-mcp";
 const SERVER_VERSION = "1.0.0";
