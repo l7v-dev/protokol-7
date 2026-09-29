@@ -1621,3 +1621,99 @@ test("POST /api/v1/wikidata routes correctly via server router", async () => {
     await new Promise<void>((resolve) => mockServer.close(() => resolve()));
   }
 });
+
+test("POST /api/v1/stanford-phil returns philosophical entry through HTTP endpoint", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(`
+      <div id="auhead">
+        <h1>Gödel's Incompleteness Theorems</h1>
+        <span class="author">Panu Raatikainen</span>
+      </div>
+      <div id="main-text">
+        <h2>1. Introduction</h2>
+        <p>In 1931 Kurt Gödel proved his incompleteness theorems.</p>
+      </div>
+    `);
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/stanford-phil`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug: "goedel-incompleteness",
+        action: "entry",
+        targetUrl: `http://127.0.0.1:${mockPort}/entries/goedel-incompleteness/`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        entry?: { title: string; authors: string[] };
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.entry?.title, "Gödel's Incompleteness Theorems");
+    assert.ok(json.data?.entry?.authors.includes("Panu Raatikainen"));
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/metamath returns formal theorem through HTTP endpoint", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(`
+      <title>Theorem mpc2</title>
+      <p>Modus ponens corollary.</p>
+      <table>
+        <tr><td>Assertion</td><td>⊢ ψ</td></tr>
+      </table>
+    `);
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/metamath`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        theorem: "mpc2",
+        database: "set.mm",
+        action: "theorem",
+        targetUrl: `http://127.0.0.1:${mockPort}/mpeuni/mpc2.html`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        theorem?: { name: string; assertion: string };
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.theorem?.name, "mpc2");
+    assert.equal(json.data?.theorem?.assertion, "⊢ ψ");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});

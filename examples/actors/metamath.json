@@ -1,0 +1,6 @@
+{
+  "theorem": "mpc2",
+  "database": "set.mm",
+  "action": "theorem",
+  "includeProofSteps": true
+}

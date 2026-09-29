@@ -2381,6 +2381,225 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/stanford-phil": {
+      post: {
+        tags: ["Corpus - Deep Reasoning"],
+        summary: "Stanford Encyclopedia of Philosophy (SEP) Harvester",
+        description:
+          "Harvests peer-reviewed philosophical entries, bibliographies, outlines, and concepts from the Stanford Encyclopedia of Philosophy (SEP).",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  slug: {
+                    type: "string",
+                    description: "SEP entry slug (e.g. 'goedel-incompleteness', 'logic-modal')",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["entry", "search", "contents"],
+                    default: "entry",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Keyword search query",
+                  },
+                  letter: {
+                    type: "string",
+                    description: "Index letter for contents",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Max results",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct SEP URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured SEP treatise, authors, outlines, bibliography, and GFM Markdown report.",
+          },
+        },
+      },
+    },
+    "/api/v1/internet-phil": {
+      post: {
+        tags: ["Corpus - Deep Reasoning"],
+        summary: "Internet Encyclopedia of Philosophy (IEP) Harvester",
+        description:
+          "Harvests peer-reviewed academic philosophy articles, outlines, author attributions, and references from the Internet Encyclopedia of Philosophy (IEP).",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  slug: {
+                    type: "string",
+                    description: "IEP article slug (e.g. 'goedel', 'prop-log')",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["entry", "search"],
+                    default: "entry",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword query",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Max results",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct IEP URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured IEP article, authors, outlines, references, and GFM Markdown report.",
+          },
+        },
+      },
+    },
+    "/api/v1/metamath": {
+      post: {
+        tags: ["Corpus - Deep Reasoning"],
+        summary: "Metamath Formal Proof Explorer Harvester",
+        description:
+          "Harvests formal mathematical proofs, axioms, hypotheses, and step-by-step verification chains from the Metamath Proof Explorer (set.mm, iset.mm, ql.mm).",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  theorem: {
+                    type: "string",
+                    description: "Metamath theorem symbol (e.g. 'mpc2', 'pythag')",
+                  },
+                  axiom: {
+                    type: "string",
+                    description: "Metamath axiom symbol (e.g. 'ax-1')",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["theorem", "search", "axiom"],
+                    default: "theorem",
+                    description: "Extraction mode",
+                  },
+                  database: {
+                    type: "string",
+                    enum: ["set.mm", "iset.mm", "ql.mm"],
+                    default: "set.mm",
+                    description: "Metamath database",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search query",
+                  },
+                  includeProofSteps: {
+                    type: "boolean",
+                    default: true,
+                    description: "Whether to include proof step table",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Max results",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Metamath URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured formal proof report, hypotheses, assertion, proof steps, and GFM Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/philpapers": {
+      post: {
+        tags: ["Corpus - Deep Reasoning"],
+        summary: "PhilPapers Philosophical Research Archive Harvester",
+        description:
+          "Harvests academic philosophy citations, abstracts, publication metadata, and category taxonomies from the PhilPapers Archive.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  id: {
+                    type: "string",
+                    description: "PhilPapers record ID (e.g. 'CHADCO')",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["record", "search", "category"],
+                    default: "record",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword query",
+                  },
+                  category: {
+                    type: "string",
+                    description: "Category slug",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Max results",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct PhilPapers URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured publication record, authors, abstract, taxonomy categories, and GFM Markdown report.",
+          },
+        },
+      },
+    },
     "/api/v1/sitemap": {
       post: {
         tags: ["Crawling"],

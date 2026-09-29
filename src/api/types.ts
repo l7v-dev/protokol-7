@@ -62,7 +62,11 @@ export type ActorType =
   | "wikivoyage"
   | "wikinews"
   | "wikispecies"
-  | "wikidata";
+  | "wikidata"
+  | "stanford-phil"
+  | "internet-phil"
+  | "metamath"
+  | "philpapers";
 
 export interface ExtractedTable {
   id: string;
@@ -920,6 +924,217 @@ export interface WikidataActorResult {
     head: { vars: string[] };
     results: { bindings: WikidataSparqlBinding[] };
   };
+  markdown?: string;
+}
+
+export interface StanfordPhilTableOfContentsItem {
+  sectionNumber?: string;
+  title: string;
+  anchor: string;
+}
+
+export interface StanfordPhilSection {
+  title: string;
+  level: number;
+  content: string;
+}
+
+export interface StanfordPhilSearchResultItem {
+  title: string;
+  slug: string;
+  url: string;
+  snippet?: string;
+}
+
+export interface StanfordPhilEntry {
+  slug: string;
+  title: string;
+  url: string;
+  authors: string[];
+  pubDate?: string;
+  revDate?: string;
+  preamble?: string;
+  tableOfContents: StanfordPhilTableOfContentsItem[];
+  sections: StanfordPhilSection[];
+  bibliography: string[];
+  relatedEntries: Array<{ slug: string; title: string }>;
+  markdown: string;
+}
+
+export interface StanfordPhilActorTaskOptions {
+  action?: "entry" | "search" | "contents";
+  slug?: string;
+  query?: string;
+  letter?: string;
+  limit?: number;
+  includeBibliography?: boolean;
+  includeRelated?: boolean;
+  timeoutMs?: number;
+}
+
+export interface StanfordPhilActorResult {
+  action: "entry" | "search" | "contents";
+  queryUrl: string;
+  totalResults: number;
+  entry?: StanfordPhilEntry;
+  searchResults?: StanfordPhilSearchResultItem[];
+  contents?: Array<{ slug: string; title: string; url: string }>;
+  markdown?: string;
+}
+
+export interface InternetPhilSection {
+  title: string;
+  level: number;
+  content: string;
+}
+
+export interface InternetPhilSearchResultItem {
+  title: string;
+  slug: string;
+  url: string;
+  snippet?: string;
+}
+
+export interface InternetPhilEntry {
+  slug: string;
+  title: string;
+  url: string;
+  authors: string[];
+  tableOfContents: string[];
+  sections: InternetPhilSection[];
+  references: string[];
+  markdown: string;
+}
+
+export interface InternetPhilActorTaskOptions {
+  action?: "entry" | "search";
+  slug?: string;
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface InternetPhilActorResult {
+  action: "entry" | "search";
+  queryUrl: string;
+  totalResults: number;
+  entry?: InternetPhilEntry;
+  searchResults?: InternetPhilSearchResultItem[];
+  markdown?: string;
+}
+
+export interface MetamathHypothesis {
+  tag: string;
+  type: "essential" | "distinct" | "floating";
+  expression: string;
+}
+
+export interface MetamathProofStep {
+  step: number;
+  hyp: string[];
+  ref: string;
+  expression: string;
+}
+
+export interface MetamathTheorem {
+  name: string;
+  database: string;
+  url: string;
+  description: string;
+  hypotheses: MetamathHypothesis[];
+  assertion: string;
+  proofSteps?: MetamathProofStep[];
+  crossReferences?: {
+    usedBy?: string[];
+    uses?: string[];
+  };
+  markdown: string;
+}
+
+export interface MetamathSearchResultItem {
+  name: string;
+  database: string;
+  url: string;
+  description?: string;
+  assertion?: string;
+}
+
+export interface MetamathActorTaskOptions {
+  action?: "theorem" | "search" | "axiom";
+  theorem?: string;
+  axiom?: string;
+  query?: string;
+  database?: "set.mm" | "iset.mm" | "ql.mm";
+  limit?: number;
+  includeProofSteps?: boolean;
+  timeoutMs?: number;
+}
+
+export interface MetamathActorResult {
+  action: "theorem" | "search" | "axiom";
+  queryUrl: string;
+  totalResults: number;
+  theorem?: MetamathTheorem;
+  searchResults?: MetamathSearchResultItem[];
+  markdown?: string;
+}
+
+export interface PhilPapersRecord {
+  id: string;
+  title: string;
+  url: string;
+  authors: string[];
+  year?: number;
+  publication?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  abstract?: string;
+  categories: string[];
+  doi?: string;
+  directLink?: string;
+  openAccess?: boolean;
+  markdown: string;
+}
+
+export interface PhilPapersSearchResultItem {
+  id: string;
+  title: string;
+  url: string;
+  authors: string[];
+  year?: number;
+  publication?: string;
+  snippet?: string;
+}
+
+export interface PhilPapersCategoryDetails {
+  category: string;
+  title: string;
+  url: string;
+  description?: string;
+  subcategories: Array<{ name: string; url: string; count?: number }>;
+  topRecords: PhilPapersSearchResultItem[];
+}
+
+export interface PhilPapersActorTaskOptions {
+  action?: "record" | "search" | "category";
+  id?: string;
+  query?: string;
+  category?: string;
+  filterSubject?: string;
+  startYear?: number;
+  endYear?: number;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface PhilPapersActorResult {
+  action: "record" | "search" | "category";
+  queryUrl: string;
+  totalResults: number;
+  record?: PhilPapersRecord;
+  searchResults?: PhilPapersSearchResultItem[];
+  categoryDetails?: PhilPapersCategoryDetails;
   markdown?: string;
 }
 
@@ -2009,6 +2224,10 @@ export interface ActorTask {
     wikinewsOptions?: WikinewsActorTaskOptions;
     wikispeciesOptions?: WikispeciesActorTaskOptions;
     wikidataOptions?: WikidataActorTaskOptions;
+    stanfordPhilOptions?: StanfordPhilActorTaskOptions;
+    internetPhilOptions?: InternetPhilActorTaskOptions;
+    metamathOptions?: MetamathActorTaskOptions;
+    philpapersOptions?: PhilPapersActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

@@ -3057,6 +3057,220 @@ export function createServer(): http.Server {
         return;
       }
 
+      // Stanford Encyclopedia of Philosophy (/stanford-phil or /api/v1/stanford-phil)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/stanford-phil" || pathname === "/stanford-phil")
+      ) {
+        const body = await parseBody<{
+          slug?: string;
+          action?: "entry" | "search" | "contents";
+          query?: string;
+          letter?: string;
+          limit?: number;
+          includeBibliography?: boolean;
+          includeRelated?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const sepActor = registry.get("stanford-phil");
+        if (!sepActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Stanford Encyclopedia of Philosophy actor is not available.",
+            "Ensure StanfordPhilActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `sep-${Date.now()}`,
+          actorType: "stanford-phil",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            stanfordPhilOptions: {
+              slug: body.slug,
+              action: body.action,
+              query: body.query,
+              letter: body.letter,
+              limit: body.limit,
+              includeBibliography: body.includeBibliography,
+              includeRelated: body.includeRelated,
+              ...body.options?.stanfordPhilOptions,
+            },
+          },
+        };
+
+        const result = await sepActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Internet Encyclopedia of Philosophy (/internet-phil or /api/v1/internet-phil)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/internet-phil" || pathname === "/internet-phil")
+      ) {
+        const body = await parseBody<{
+          slug?: string;
+          action?: "entry" | "search";
+          query?: string;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const iepActor = registry.get("internet-phil");
+        if (!iepActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Internet Encyclopedia of Philosophy actor is not available.",
+            "Ensure InternetPhilActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `iep-${Date.now()}`,
+          actorType: "internet-phil",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            internetPhilOptions: {
+              slug: body.slug,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              ...body.options?.internetPhilOptions,
+            },
+          },
+        };
+
+        const result = await iepActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Metamath Proof Explorer (/metamath or /api/v1/metamath)
+      if (method === "POST" && (pathname === "/api/v1/metamath" || pathname === "/metamath")) {
+        const body = await parseBody<{
+          theorem?: string;
+          axiom?: string;
+          action?: "theorem" | "search" | "axiom";
+          query?: string;
+          database?: "set.mm" | "iset.mm" | "ql.mm";
+          includeProofSteps?: boolean;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const mmActor = registry.get("metamath");
+        if (!mmActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Metamath actor is not available.",
+            "Ensure MetamathActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `mm-${Date.now()}`,
+          actorType: "metamath",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            metamathOptions: {
+              theorem: body.theorem,
+              axiom: body.axiom,
+              action: body.action,
+              query: body.query,
+              database: body.database,
+              includeProofSteps: body.includeProofSteps,
+              limit: body.limit,
+              ...body.options?.metamathOptions,
+            },
+          },
+        };
+
+        const result = await mmActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // PhilPapers Archive (/philpapers or /api/v1/philpapers)
+      if (method === "POST" && (pathname === "/api/v1/philpapers" || pathname === "/philpapers")) {
+        const body = await parseBody<{
+          id?: string;
+          action?: "record" | "search" | "category";
+          query?: string;
+          category?: string;
+          filterSubject?: string;
+          startYear?: number;
+          endYear?: number;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const ppActor = registry.get("philpapers");
+        if (!ppActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "PhilPapers actor is not available.",
+            "Ensure PhilPapersActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `pp-${Date.now()}`,
+          actorType: "philpapers",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            philpapersOptions: {
+              id: body.id,
+              action: body.action,
+              query: body.query,
+              category: body.category,
+              filterSubject: body.filterSubject,
+              startYear: body.startYear,
+              endYear: body.endYear,
+              limit: body.limit,
+              ...body.options?.philpapersOptions,
+            },
+          },
+        };
+
+        const result = await ppActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

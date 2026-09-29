@@ -9,8 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-
-- [/] **Felsefe, Mantık ve Derin Muhakeme Aktörleri (Set 2: Stanford-Phil, Internet-Phil, Metamath, PhilPapers)** — `Tier: 2` — `docs/plans/wikimedia-kardesleri-ve-yeni-aktor-setleri-plani.md` kapsamındaki 4 derin muhakeme ve formel mantık aktörünün tip sözleşmeleri, sınıfları, manifestoları, REST rotaları, MCP araçları, testleri ve teknik dokümantasyonları inşa ediliyor.
+- [/] **Geliştirici Bilgi Tabanı ve Çok Dilli Kodlama Aktörleri (Set 5: DevDocs, Rosetta-Code, Papers-With-Code)** — `Tier: 2` — `docs/plans/wikimedia-kardesleri-ve-yeni-aktor-setleri-plani.md` kapsamındaki 3 kritik mühendislik ve kodlama aktörünün tip sözleşmeleri, sınıfları, manifestoları, REST rotaları, MCP araçları, testleri ve teknik dokümantasyonları inşa ediliyor.
 
 ## Bekleyen (Blok var)
 
@@ -21,6 +20,8 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 - *(Yeni fikirler burada bekler)*
 
 ## Son tamamlananlar (son 3-5, eskiler ledger/'a taşınır)
+
+- [x] **Felsefe, Mantık ve Derin Muhakeme Aktörleri (Set 2: Stanford-Phil, Internet-Phil, Metamath, PhilPapers)** — `Tier: 2` — Stanford Encyclopedia of Philosophy (`stanford-phil`), Internet Encyclopedia of Philosophy (`internet-phil`), Metamath Proof Explorer (`metamath`) ve PhilPapers Archive (`philpapers`) olmak üzere 4 derin muhakeme ve formel mantık aktörü tip sözleşmeleri, aktör sınıfları, REST uç noktaları (`POST /api/v1/<name>`), MCP araçları (`query_*`, toplam 68 araç), Zod/JSON şemaları, OpenAPI 3.1.0 tanımları, 29 birim/entegrasyon testi, teknik dokümanları ve örnek konfigürasyonlarıyla eksiksiz tamamlandı; 782 test ve 6 aşamalı doğrulama hattı başarıyla geçti.
 
 - [x] **Wikimedia Kardeş Projeleri Paketi (Set 1: Wikiquote, Wikibooks, Wikiversity, Wikivoyage, Wikinews, Wikispecies, Wikidata)** — `Tier: 2` — Wikimedia Vakfı'nın 7 temel kardeş projesi için aktör sınıfları (`WikiquoteActor`, `WikibooksActor`, `WikiversityActor`, `WikivoyageActor`, `WikinewsActor`, `WikispeciesActor`, `WikidataActor`), REST uç noktaları (`POST /api/v1/<name>`), MCP araçları (`query_*`, toplam 64 araç), Zod/JSON şemaları, OpenAPI 3.1.0 tanımları, birim/entegrasyon testleri (`tests/*-actor.test.ts`), teknik wikileri (`docs/actors/*.md`) ve örnek yapılandırmaları (`examples/actors/*.json`) eksiksiz hayata geçirildi; 749 test ve 6 aşamalı doğrulama hattı başarıyla geçti.
 

@@ -35,11 +35,13 @@ import type {
   HuggingFaceDatasetsActorTaskOptions,
   IetfRfcActorTaskOptions,
   InternetArchiveActorTaskOptions,
+  InternetPhilActorTaskOptions,
   KapActorTaskOptions,
   KtbEkitapTaskOptions,
   LeanMathlibActorTaskOptions,
   LessWrongActorTaskOptions,
   MathReasoningActorTaskOptions,
+  MetamathActorTaskOptions,
   MitOcwActorTaskOptions,
   NetworkInterceptorTaskOptions,
   OpenAlexActorTaskOptions,
@@ -47,6 +49,7 @@ import type {
   OpenReviewActorTaskOptions,
   OpenStaxActorTaskOptions,
   PdfDocumentTaskOptions,
+  PhilPapersActorTaskOptions,
   ProofWikiActorTaskOptions,
   ResmiGazeteActorTaskOptions,
   SaglikEkutuphaneTaskOptions,
@@ -54,6 +57,7 @@ import type {
   SerpSearchTaskOptions,
   SoftwareHeritageActorTaskOptions,
   StackExchangeActorTaskOptions,
+  StanfordPhilActorTaskOptions,
   WikibooksActorTaskOptions,
   WikidataActorTaskOptions,
   WikimediaActorTaskOptions,
@@ -1333,6 +1337,22 @@ export class ProtokolMcpServer {
             wikidataOptions:
               manifest.actorType === "wikidata"
                 ? (toolArgs as unknown as WikidataActorTaskOptions)
+                : undefined,
+            stanfordPhilOptions:
+              manifest.actorType === "stanford-phil"
+                ? (toolArgs as unknown as StanfordPhilActorTaskOptions)
+                : undefined,
+            internetPhilOptions:
+              manifest.actorType === "internet-phil"
+                ? (toolArgs as unknown as InternetPhilActorTaskOptions)
+                : undefined,
+            metamathOptions:
+              manifest.actorType === "metamath"
+                ? (toolArgs as unknown as MetamathActorTaskOptions)
+                : undefined,
+            philpapersOptions:
+              manifest.actorType === "philpapers"
+                ? (toolArgs as unknown as PhilPapersActorTaskOptions)
                 : undefined,
           },
         };

@@ -6095,4 +6095,524 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+  "stanford-phil": {
+    name: "stanford-phil",
+    actorType: "stanford-phil",
+    title: "Stanford Encyclopedia of Philosophy (SEP) Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Harvests peer-reviewed philosophical entries, bibliographies, conceptual argumentation outlines, and related topics from the Stanford Encyclopedia of Philosophy (SEP).",
+    author: "protokol-7",
+    tags: [
+      "philosophy",
+      "logic",
+      "epistemology",
+      "ethics",
+      "metaphysics",
+      "sep",
+      "stanford",
+      "reasoning",
+      "llm-training",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Stanford Encyclopedia of Philosophy Input Parameters",
+      description: "Parameters for harvesting SEP articles and bibliographies",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Action Mode",
+          description:
+            "Extraction mode: 'entry' (default article), 'search' (keyword search), 'contents' (alphabetical index).",
+          default: "entry",
+          enum: ["entry", "search", "contents"],
+          editor: "select",
+        },
+        slug: {
+          name: "slug",
+          type: "string",
+          title: "Entry Slug",
+          description:
+            "SEP entry slug (e.g. 'goedel-incompleteness', 'logic-modal', 'epistemology').",
+          editor: "textfield",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Keyword search query for SEP entries.",
+          editor: "textfield",
+        },
+        letter: {
+          name: "letter",
+          type: "string",
+          title: "Index Letter",
+          description: "Alphabetical index letter for browsing entries (e.g. 'a', 'g').",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Max Results",
+          description: "Maximum search or content results to return (1-100).",
+          default: 20,
+          editor: "number",
+        },
+        includeBibliography: {
+          name: "includeBibliography",
+          type: "boolean",
+          title: "Include Bibliography",
+          description: "Whether to extract academic citations and bibliography.",
+          default: true,
+          editor: "checkbox",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description: "Direct SEP entry or search URL.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Executed extraction mode" },
+        queryUrl: { type: "string", description: "Source URL fetched" },
+        totalResults: { type: "number", description: "Total results returned" },
+        entry: {
+          type: "object",
+          description: "Extracted article, authors, outline, sections, and bibliography",
+        },
+        searchResults: { type: "array", description: "Search result listings" },
+        markdown: { type: "string", description: "GFM markdown formatted treatise" },
+      },
+    },
+    exampleInput: {
+      slug: "goedel-incompleteness",
+      action: "entry",
+    },
+    readme:
+      "# Stanford Encyclopedia of Philosophy Harvester\n\nHarvests peer-reviewed philosophical entries, bibliographies, conceptual argumentation outlines, and related topics from the Stanford Encyclopedia of Philosophy (SEP) for advanced LLM reasoning, epistemology, and logic datasets.",
+    mcpTool: {
+      name: "query_stanford_phil",
+      description:
+        "Queries Stanford Encyclopedia of Philosophy (SEP) for peer-reviewed philosophical entries, outlines, bibliographies, and concepts.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          slug: {
+            type: "string",
+            description: "SEP entry slug (e.g. 'goedel-incompleteness', 'logic-modal')",
+          },
+          action: {
+            type: "string",
+            enum: ["entry", "search", "contents"],
+            description: "Extraction mode: entry, search, or contents",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword query",
+          },
+          limit: { type: "number", description: "Maximum search items to return" },
+          targetUrl: { type: "string", description: "Direct SEP URL" },
+        },
+        required: [],
+      },
+    },
+  },
+  "internet-phil": {
+    name: "internet-phil",
+    actorType: "internet-phil",
+    title: "Internet Encyclopedia of Philosophy (IEP) Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Harvests peer-reviewed academic philosophy articles, conceptual outlines, author attributions, and references from the Internet Encyclopedia of Philosophy (IEP).",
+    author: "protokol-7",
+    tags: [
+      "philosophy",
+      "logic",
+      "iep",
+      "ethics",
+      "epistemology",
+      "science-philosophy",
+      "reasoning",
+      "llm-training",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Internet Encyclopedia of Philosophy Input Parameters",
+      description: "Parameters for harvesting IEP articles and references",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Action Mode",
+          description: "Extraction mode: 'entry' (default article), 'search' (keyword search).",
+          default: "entry",
+          enum: ["entry", "search"],
+          editor: "select",
+        },
+        slug: {
+          name: "slug",
+          type: "string",
+          title: "Article Slug",
+          description: "IEP article slug (e.g. 'goedel', 'prop-log', 'ethics').",
+          editor: "textfield",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Keyword search query for IEP articles.",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Max Results",
+          description: "Maximum search results to return.",
+          default: 20,
+          editor: "number",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description: "Direct IEP article or search URL.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Executed extraction mode" },
+        queryUrl: { type: "string", description: "Source URL fetched" },
+        totalResults: { type: "number", description: "Total results returned" },
+        entry: {
+          type: "object",
+          description: "Extracted article, author, outline, sections, and references",
+        },
+        searchResults: { type: "array", description: "Search result listings" },
+        markdown: { type: "string", description: "GFM markdown formatted article" },
+      },
+    },
+    exampleInput: {
+      slug: "goedel",
+      action: "entry",
+    },
+    readme:
+      "# Internet Encyclopedia of Philosophy Harvester\n\nHarvests peer-reviewed academic philosophy articles, conceptual outlines, author attributions, and references from the Internet Encyclopedia of Philosophy (IEP).",
+    mcpTool: {
+      name: "query_internet_phil",
+      description:
+        "Queries Internet Encyclopedia of Philosophy (IEP) for peer-reviewed articles, conceptual outlines, author attributions, and references.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          slug: {
+            type: "string",
+            description: "IEP article slug (e.g. 'goedel', 'prop-log')",
+          },
+          action: {
+            type: "string",
+            enum: ["entry", "search"],
+            description: "Extraction mode: entry or search",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword query",
+          },
+          limit: { type: "number", description: "Maximum search items to return" },
+          targetUrl: { type: "string", description: "Direct IEP URL" },
+        },
+        required: [],
+      },
+    },
+  },
+  metamath: {
+    name: "metamath",
+    actorType: "metamath",
+    title: "Metamath Formal Proof Explorer Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Harvests formal mathematical proofs, axioms, hypotheses, and step-by-step verification chains from the Metamath Proof Explorer databases (set.mm, iset.mm, ql.mm).",
+    author: "protokol-7",
+    tags: [
+      "math",
+      "formal-logic",
+      "metamath",
+      "proof-verification",
+      "zfc",
+      "axioms",
+      "theorems",
+      "chain-of-thought",
+      "llm-training",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Metamath Proof Explorer Input Parameters",
+      description: "Parameters for harvesting formal mathematical proofs and theorems",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Action Mode",
+          description: "Extraction mode: 'theorem' (default), 'search' (find theorems), 'axiom'.",
+          default: "theorem",
+          enum: ["theorem", "search", "axiom"],
+          editor: "select",
+        },
+        theorem: {
+          name: "theorem",
+          type: "string",
+          title: "Theorem Symbol",
+          description: "Metamath theorem name (e.g. 'mpc2', 'dtru', 'pythag').",
+          editor: "textfield",
+        },
+        axiom: {
+          name: "axiom",
+          type: "string",
+          title: "Axiom Symbol",
+          description: "Metamath axiom name (e.g. 'ax-1', 'ax-mp').",
+          editor: "textfield",
+        },
+        database: {
+          name: "database",
+          type: "string",
+          title: "Database Explorer",
+          description:
+            "Metamath database: 'set.mm' (ZFC classical), 'iset.mm' (intuitionistic), 'ql.mm' (quantum logic).",
+          default: "set.mm",
+          enum: ["set.mm", "iset.mm", "ql.mm"],
+          editor: "select",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Search theorem names or symbols.",
+          editor: "textfield",
+        },
+        includeProofSteps: {
+          name: "includeProofSteps",
+          type: "boolean",
+          title: "Include Proof Steps",
+          description: "Whether to extract step-by-step formal verification table.",
+          default: true,
+          editor: "checkbox",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Max Results",
+          description: "Maximum search items to return.",
+          default: 20,
+          editor: "number",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description: "Direct Metamath theorem HTML URL.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Executed extraction mode" },
+        queryUrl: { type: "string", description: "Source URL fetched" },
+        totalResults: { type: "number", description: "Total results returned" },
+        theorem: {
+          type: "object",
+          description:
+            "Extracted theorem, hypotheses, assertion, proof steps, and cross-references",
+        },
+        searchResults: { type: "array", description: "Search result listings" },
+        markdown: { type: "string", description: "GFM markdown formal proof report" },
+      },
+    },
+    exampleInput: {
+      theorem: "mpc2",
+      database: "set.mm",
+      action: "theorem",
+    },
+    readme:
+      "# Metamath Proof Explorer Harvester\n\nHarvests formal mathematical proofs, axioms, hypotheses, and step-by-step verification chains from the Metamath Proof Explorer databases (set.mm, iset.mm, ql.mm) for formal theorem proving and symbolic reasoning datasets.",
+    mcpTool: {
+      name: "query_metamath",
+      description:
+        "Queries Metamath Proof Explorer for formal mathematical proofs, axioms, hypotheses, and step-by-step verification chains.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          theorem: {
+            type: "string",
+            description: "Metamath theorem symbol (e.g. 'mpc2', 'pythag')",
+          },
+          action: {
+            type: "string",
+            enum: ["theorem", "search", "axiom"],
+            description: "Extraction mode: theorem, search, or axiom",
+          },
+          database: {
+            type: "string",
+            enum: ["set.mm", "iset.mm", "ql.mm"],
+            description: "Database explorer: set.mm, iset.mm, or ql.mm",
+          },
+          query: {
+            type: "string",
+            description: "Search query for theorems",
+          },
+          includeProofSteps: {
+            type: "boolean",
+            description: "Whether to include step-by-step formal proof table",
+          },
+          limit: { type: "number", description: "Maximum search items to return" },
+          targetUrl: { type: "string", description: "Direct Metamath theorem URL" },
+        },
+        required: [],
+      },
+    },
+  },
+  philpapers: {
+    name: "philpapers",
+    actorType: "philpapers",
+    title: "PhilPapers Philosophical Research Archive Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Harvests academic philosophy citations, abstracts, publication metadata, and category taxonomies from the PhilPapers Archive (2.5M+ publications).",
+    author: "protokol-7",
+    tags: [
+      "philosophy",
+      "citations",
+      "abstracts",
+      "bibliography",
+      "philpapers",
+      "taxonomy",
+      "academic-papers",
+      "llm-training",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "PhilPapers Archive Input Parameters",
+      description:
+        "Parameters for harvesting PhilPapers records, search results, and category trees",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Action Mode",
+          description:
+            "Extraction mode: 'record' (default publication metadata), 'search' (keyword search), 'category' (browse category).",
+          default: "record",
+          enum: ["record", "search", "category"],
+          editor: "select",
+        },
+        id: {
+          name: "id",
+          type: "string",
+          title: "Record ID",
+          description: "PhilPapers record identifier (e.g. 'CHADCO').",
+          editor: "textfield",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Keyword search query for philosophical publications.",
+          editor: "textfield",
+        },
+        category: {
+          name: "category",
+          type: "string",
+          title: "Category Slug",
+          description: "PhilPapers taxonomy category (e.g. 'epistemology', 'philosophy-of-mind').",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Max Results",
+          description: "Maximum search or category results to return.",
+          default: 20,
+          editor: "number",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description: "Direct PhilPapers record or search URL.",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Executed extraction mode" },
+        queryUrl: { type: "string", description: "Source URL fetched" },
+        totalResults: { type: "number", description: "Total results returned" },
+        record: {
+          type: "object",
+          description: "Extracted publication record, authors, abstract, and categories",
+        },
+        searchResults: { type: "array", description: "Search result listings" },
+        categoryDetails: {
+          type: "object",
+          description: "Category taxonomy details and subcategories",
+        },
+        markdown: { type: "string", description: "GFM markdown formatted report" },
+      },
+    },
+    exampleInput: {
+      id: "CHADCO",
+      action: "record",
+    },
+    readme:
+      "# PhilPapers Archive Harvester\n\nHarvests academic philosophy citations, abstracts, publication metadata, and category taxonomies from the PhilPapers Archive (over 2.5 million publications) for academic reasoning and philosophical research datasets.",
+    mcpTool: {
+      name: "query_philpapers",
+      description:
+        "Queries PhilPapers Archive for philosophical research publications, abstracts, citations, and taxonomy categories.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "PhilPapers record ID (e.g. 'CHADCO')",
+          },
+          action: {
+            type: "string",
+            enum: ["record", "search", "category"],
+            description: "Extraction mode: record, search, or category",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword query",
+          },
+          category: {
+            type: "string",
+            description: "Category slug (e.g. 'epistemology')",
+          },
+          limit: { type: "number", description: "Maximum items to return" },
+          targetUrl: { type: "string", description: "Direct PhilPapers URL" },
+        },
+        required: [],
+      },
+    },
+  },
 };

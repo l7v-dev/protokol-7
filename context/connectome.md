@@ -9,12 +9,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 113 | 189 | Yardımcı Modül |
-| `src/dataset/types.ts` | 113 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 113 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 113 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 52 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 49 | 3 | Yardımcı Modül |
+| `src/api/types.ts` | 121 | 211 | Yardımcı Modül |
+| `src/dataset/types.ts` | 121 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 121 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 121 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 56 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 53 | 3 | Yardımcı Modül |
 | `src/api/server.ts` | 18 | 1 | Giriş Noktası (Server) |
 | `src/server.ts` | 18 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
@@ -76,22 +76,26 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/huggingface-datasets-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/ietf-rfc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/internet-archive-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/internet-phil-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/kap-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/ktb-ekitap-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/lean-mathlib-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/lesswrong-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/math-reasoning-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/metamath-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/mit-ocw-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/open-fda-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/openalex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/openreview-actor.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/openstax-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/philpapers-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/proofwiki-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/resmi-gazete-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/saglik-ekutuphane-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/sec-edgar-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/software-heritage-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/stack-exchange-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/stanford-phil-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/wikibooks-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/wikidata-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/wikinews-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -203,6 +207,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/ietf-rfc-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/interactive-browser-controller.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/internet-archive-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/internet-phil-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/job-scheduler-and-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/kap-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/ktb-ekitap-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -211,6 +216,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/markdown-reader-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/math-reasoning-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/mcp-http-transport.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/metamath-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/mit-ocw-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/multi-column-layout-resolver.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/network-interceptor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -224,6 +230,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/pdf-document-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/pdf-ocr-pipeline.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pdf-rasterizer.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/philpapers-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/pipedream-connect.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipeline-api-and-mcp.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/pipeline-quality-and-dedup.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -251,6 +258,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/software-heritage-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/ssrf-guard.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/stack-exchange-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/stanford-phil-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/stealth-manager.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/storage-router.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/store-api.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -335,6 +343,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `wikinews` | `WikinewsActor` |
 | `wikispecies` | `WikispeciesActor` |
 | `wikidata` | `WikidataActor` |
+| `stanford-phil` | `StanfordPhilActor` |
+| `internet-phil` | `InternetPhilActor` |
+| `metamath` | `MetamathActor` |
+| `phil-papers` | `PhilPapersActor` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
 | `mistral-ocr-connector` | `MistralOcrConnector` |
@@ -592,6 +604,20 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `resolveIdentifier(task: ActorTask, opts: InternetArchiveActorTaskOptions): string | undefined`
   - `httpError(task: ActorTask, status: number, message: string, startTime: number): ActorResult<InternetArchiveActorResult>`
 
+### `src/actors/corpus/internet-phil-actor.ts`
+
+**Sınıflar (Classes):**
+- `class InternetPhilActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<InternetPhilActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: InternetPhilActorTaskOptions): {
+    action: "entry" | "search";
+    slug: string;
+    query?: string;
+    limit: number;
+  }`
+  - `buildEndpointUrl(targetUrl: string | undefined, resolved: ReturnType<typeof this.resolveParameters>): string`
+  - `parseResponse(action: "entry" | "search", html: string, endpoint: string, slug: string): InternetPhilActorResult`
+
 ### `src/actors/corpus/kap-actor.ts`
 
 **Sınıflar (Classes):**
@@ -692,6 +718,23 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `parseProblems(benchmark: string, json: Record<string, unknown>): MathReasoningItem[]`
   - `renderMarkdown(benchmark: string, subject: string | undefined, problems: MathReasoningItem[]): string`
 
+### `src/actors/corpus/metamath-actor.ts`
+
+**Sınıflar (Classes):**
+- `class MetamathActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<MetamathActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: MetamathActorTaskOptions): {
+    action: "theorem" | "search" | "axiom";
+    theorem?: string;
+    axiom?: string;
+    query?: string;
+    database: "set.mm" | "iset.mm" | "ql.mm";
+    includeProofSteps: boolean;
+    limit: number;
+  }`
+  - `buildEndpointUrl(targetUrl: string | undefined, resolved: ReturnType<typeof this.resolveParameters>): string`
+  - `parseResponse(action: "theorem" | "search" | "axiom", html: string, endpoint: string, symbol: string, database: string, includeProofSteps: boolean): MetamathActorResult`
+
 ### `src/actors/corpus/mit-ocw-actor.ts`
 
 **Sınıflar (Classes):**
@@ -745,6 +788,24 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `fetchChapterContent(task: ActorTask, options: OpenStaxActorTaskOptions, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<OpenStaxActorResult>>`
   - `renderBooksMarkdown(books: OpenStaxBookItem[], query: string | undefined, totalCount: number, action: string): string`
   - `renderBookDetailMarkdown(book: OpenStaxBookItem, detail: Record<string, unknown>): string`
+
+### `src/actors/corpus/philpapers-actor.ts`
+
+**Sınıflar (Classes):**
+- `class PhilPapersActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<PhilPapersActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: PhilPapersActorTaskOptions): {
+    action: "record" | "search" | "category";
+    id?: string;
+    query?: string;
+    category?: string;
+    filterSubject?: string;
+    startYear?: number;
+    endYear?: number;
+    limit: number;
+  }`
+  - `buildEndpointUrl(targetUrl: string | undefined, resolved: ReturnType<typeof this.resolveParameters>): string`
+  - `parseResponse(action: "record" | "search" | "category", html: string, endpoint: string, id: string, category: string): PhilPapersActorResult`
 
 ### `src/actors/corpus/proofwiki-actor.ts`
 
@@ -832,6 +893,23 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<StackExchangeActorResult>>`
   - `fetchAnswersForQuestions(questionIds: number[], site: string, apiKey: string | undefined, timeoutMs: number, allowLocalNetwork: boolean, baseApiUrl: string): Promise<Map<number, RawAnswer[]>>`
   - `buildSearchUrl(targetUrl: string | undefined, options: StackExchangeActorTaskOptions, site: string): string`
+
+### `src/actors/corpus/stanford-phil-actor.ts`
+
+**Sınıflar (Classes):**
+- `class StanfordPhilActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<StanfordPhilActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: StanfordPhilActorTaskOptions): {
+    action: "entry" | "search" | "contents";
+    slug: string;
+    query?: string;
+    letter?: string;
+    limit: number;
+    includeBibliography: boolean;
+    includeRelated: boolean;
+  }`
+  - `buildEndpointUrl(targetUrl: string | undefined, resolved: ReturnType<typeof this.resolveParameters>): string`
+  - `parseResponse(action: "entry" | "search" | "contents", html: string, endpoint: string, slug: string): StanfordPhilActorResult`
 
 ### `src/actors/corpus/wikibooks-actor.ts`
 
@@ -1353,6 +1431,28 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface WikidataSparqlBinding` (1 üye)
 - `interface WikidataActorTaskOptions` (9 üye)
 - `interface WikidataActorResult` (5 üye)
+- `interface StanfordPhilTableOfContentsItem` (3 üye)
+- `interface StanfordPhilSection` (3 üye)
+- `interface StanfordPhilSearchResultItem` (4 üye)
+- `interface StanfordPhilEntry` (12 üye)
+- `interface StanfordPhilActorTaskOptions` (8 üye)
+- `interface StanfordPhilActorResult` (7 üye)
+- `interface InternetPhilSection` (3 üye)
+- `interface InternetPhilSearchResultItem` (4 üye)
+- `interface InternetPhilEntry` (8 üye)
+- `interface InternetPhilActorTaskOptions` (5 üye)
+- `interface InternetPhilActorResult` (6 üye)
+- `interface MetamathHypothesis` (3 üye)
+- `interface MetamathProofStep` (4 üye)
+- `interface MetamathTheorem` (9 üye)
+- `interface MetamathSearchResultItem` (5 üye)
+- `interface MetamathActorTaskOptions` (8 üye)
+- `interface MetamathActorResult` (6 üye)
+- `interface PhilPapersRecord` (15 üye)
+- `interface PhilPapersSearchResultItem` (7 üye)
+- `interface PhilPapersCategoryDetails` (6 üye)
+- `interface PhilPapersActorTaskOptions` (9 üye)
+- `interface PhilPapersActorResult` (7 üye)
 - `interface OpenAlexWorkItem` (12 üye)
 - `interface OpenAlexActorTaskOptions` (11 üye)
 - `interface OpenAlexActorResult` (5 üye)
@@ -2287,24 +2387,24 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/ietf-rfc-actor.ts` |
 | `src/actors/corpus/index.ts` |
 | `src/actors/corpus/internet-archive-actor.ts` |
+| `src/actors/corpus/internet-phil-actor.ts` |
 | `src/actors/corpus/kap-actor.ts` |
 | `src/actors/corpus/ktb-ekitap-actor.ts` |
 | `src/actors/corpus/lean-mathlib-actor.ts` |
 | `src/actors/corpus/lesswrong-actor.ts` |
 | `src/actors/corpus/math-reasoning-actor.ts` |
+| `src/actors/corpus/metamath-actor.ts` |
 | `src/actors/corpus/mit-ocw-actor.ts` |
 | `src/actors/corpus/open-fda-actor.ts` |
 | `src/actors/corpus/openalex-actor.ts` |
 | `src/actors/corpus/openreview-actor.ts` |
 | `src/actors/corpus/openstax-actor.ts` |
+| `src/actors/corpus/philpapers-actor.ts` |
 | `src/actors/corpus/proofwiki-actor.ts` |
 | `src/actors/corpus/resmi-gazete-actor.ts` |
 | `src/actors/corpus/saglik-ekutuphane-actor.ts` |
 | `src/actors/corpus/sec-edgar-actor.ts` |
 | `src/actors/corpus/software-heritage-actor.ts` |
 | `src/actors/corpus/stack-exchange-actor.ts` |
-| `src/actors/corpus/wikibooks-actor.ts` |
-| `src/actors/corpus/wikidata-actor.ts` |
-| `src/actors/corpus/wikimedia-actor.ts` |
-| *... ve 211 dosya daha* |
+| *... ve 219 dosya daha* |
 

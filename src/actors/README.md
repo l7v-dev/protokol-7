@@ -598,4 +598,52 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 }
 ```
 
+#### 37. Stanford Encyclopedia of Philosophy Aktörü (`stanford-phil`)
+* **Ne Yapar?** Stanford Encyclopedia of Philosophy (SEP) üzerindeki hakemli felsefe maddelerini, kavramsal argüman dizilimlerini, önsözleri, ana hatları ve kaynakçaları çeker.
+* **REST:** `POST /api/v1/stanford-phil`
+* **MCP:** `query_stanford_phil`
+```json
+{
+  "slug": "goedel-incompleteness",
+  "action": "entry",
+  "includeBibliography": true
+}
+```
+
+#### 38. Internet Encyclopedia of Philosophy Aktörü (`internet-phil`)
+* **Ne Yapar?** Internet Encyclopedia of Philosophy (IEP) üzerindeki akademik felsefe rehberlerini, ontoloji, mantık ve epistemoloji makalelerini çeker.
+* **REST:** `POST /api/v1/internet-phil`
+* **MCP:** `query_internet_phil`
+```json
+{
+  "slug": "goedel",
+  "action": "entry"
+}
+```
+
+#### 39. Metamath Proof Explorer Aktörü (`metamath`)
+* **Ne Yapar?** Metamath Proof Explorer veritabanlarındaki (`set.mm`, `iset.mm`, `ql.mm`) 40.000'den fazla biçimsel matematik teorem ve aksiyomunu, hipotezleri ve adım adım doğrulama tablolarını çeker.
+* **REST:** `POST /api/v1/metamath`
+* **MCP:** `query_metamath`
+```json
+{
+  "theorem": "mpc2",
+  "database": "set.mm",
+  "action": "theorem",
+  "includeProofSteps": true
+}
+```
+
+#### 40. PhilPapers Archive Aktörü (`philpapers`)
+* **Ne Yapar?** 2.5 milyondan fazla akademik felsefe yayınını barındıran PhilPapers üzerindeki makale kayıtlarını, yazarları, özetleri, atıfları ve kategori taksonomilerini çeker.
+* **REST:** `POST /api/v1/philpapers`
+* **MCP:** `query_philpapers`
+```json
+{
+  "id": "CHADCO",
+  "action": "record"
+}
+```
+
+
 

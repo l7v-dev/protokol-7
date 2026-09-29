@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { PassThrough } from "node:stream";
 import { describe, it } from "node:test";
 import { ActorRegistry } from "../src/actors/actor-registry";
-import type { IActor } from "../src/api/types";
+import type { ActorTask, IActor } from "../src/api/types";
 import { ProtokolMcpServer } from "../src/mcp/protokol-mcp-server";
 
 describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () => {
@@ -64,7 +64,7 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 64);
+    assert.equal(result.tools.length, 68);
 
     const toolNames = result.tools.map((t) => t.name);
     assert.ok(toolNames.includes("wikipedia_query"));
@@ -78,6 +78,10 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.ok(toolNames.includes("query_wikinews"));
     assert.ok(toolNames.includes("query_wikispecies"));
     assert.ok(toolNames.includes("query_wikidata"));
+    assert.ok(toolNames.includes("query_stanford_phil"));
+    assert.ok(toolNames.includes("query_internet_phil"));
+    assert.ok(toolNames.includes("query_metamath"));
+    assert.ok(toolNames.includes("query_philpapers"));
     assert.ok(toolNames.includes("query_resmi_gazete"));
     assert.ok(toolNames.includes("query_yargitay"));
     assert.ok(toolNames.includes("query_kap"));
@@ -1081,5 +1085,107 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.ok(typedTask.options?.wikidataOptions);
     assert.equal(typedTask.options.wikidataOptions.entityId, "Q42");
     assert.equal(typedTask.options.wikidataOptions.action, "entity");
+  });
+
+  it("correctly maps query_stanford_phil parameters to stanfordPhilOptions", async () => {
+    let capturedTask: ActorTask | null = null;
+    const mockRegistry = new ActorRegistry();
+    const mockSep: IActor = {
+      actorType: "stanford-phil",
+      description: "mock stanford-phil",
+      run: async (task: ActorTask) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "stanford-phil",
+          status: "completed",
+          data: {
+            action: "entry",
+            queryUrl: "http://mock",
+          },
+          executionDurationMs: 10,
+        };
+      },
+    };
+    mockRegistry.register(mockSep);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "sep-test",
+      method: "tools/call",
+      params: {
+        name: "query_stanford_phil",
+        arguments: {
+          slug: "goedel-incompleteness",
+          action: "entry",
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        stanfordPhilOptions?: {
+          slug?: string;
+          action?: string;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.stanfordPhilOptions);
+    assert.equal(typedTask.options.stanfordPhilOptions.slug, "goedel-incompleteness");
+    assert.equal(typedTask.options.stanfordPhilOptions.action, "entry");
+  });
+
+  it("correctly maps query_metamath parameters to metamathOptions", async () => {
+    let capturedTask: ActorTask | null = null;
+    const mockRegistry = new ActorRegistry();
+    const mockMm: IActor = {
+      actorType: "metamath",
+      description: "mock metamath",
+      run: async (task: ActorTask) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "metamath",
+          status: "completed",
+          data: {
+            action: "theorem",
+            queryUrl: "http://mock",
+          },
+          executionDurationMs: 10,
+        };
+      },
+    };
+    mockRegistry.register(mockMm);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "mm-test",
+      method: "tools/call",
+      params: {
+        name: "query_metamath",
+        arguments: {
+          theorem: "mpc2",
+          database: "set.mm",
+          action: "theorem",
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        metamathOptions?: {
+          theorem?: string;
+          database?: string;
+          action?: string;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.metamathOptions);
+    assert.equal(typedTask.options.metamathOptions.theorem, "mpc2");
+    assert.equal(typedTask.options.metamathOptions.database, "set.mm");
   });
 });

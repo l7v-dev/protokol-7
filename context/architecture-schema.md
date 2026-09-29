@@ -96,6 +96,10 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/actors/corpus/wikinews-actor.ts` | `WikinewsActor` | Wikinews REST API v1 & Action API — collaborative journalism, news articles, historical dispatches, and event timelines across 35+ languages. |
 | `src/actors/corpus/wikispecies-actor.ts` | `WikispeciesActor` | Wikispecies REST API v1 & Action API on species.wikimedia.org — biological classifications, phylogenetic clades, and taxonomic nomenclature. |
 | `src/actors/corpus/wikidata-actor.ts` | `WikidataActor` | Wikidata Action API, EntityData, and SPARQL endpoint — structured knowledge graph entities, claims, labels, and semantic triples. |
+| `src/actors/corpus/stanford-phil-actor.ts` | `StanfordPhilActor` | Stanford Encyclopedia of Philosophy (SEP) — peer-reviewed treatises, outlines, bibliographies, and logic concepts. |
+| `src/actors/corpus/internet-phil-actor.ts` | `InternetPhilActor` | Internet Encyclopedia of Philosophy (IEP) — peer-reviewed academic philosophy articles, outlines, and references. |
+| `src/actors/corpus/metamath-actor.ts` | `MetamathActor` | Metamath Proof Explorer (set.mm, iset.mm, ql.mm) — formal mathematical proofs, axioms, hypotheses, and step-by-step verification chains. |
+| `src/actors/corpus/philpapers-actor.ts` | `PhilPapersActor` | PhilPapers Archive — academic philosophy citations, abstracts, publication metadata, and category taxonomies. |
 
 #### Document Actors (`src/actors/documents/`) — local file and archive extraction
 
@@ -320,6 +324,10 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/wikinews-actor.test.ts` | `WikinewsActor`, `src/api/server.ts` | Multi-language routing across 35+ domains, news dispatch extraction, Turndown GFM markdown, SSRF guard, and REST route. |
 | `tests/wikispecies-actor.test.ts` | `WikispeciesActor`, `src/api/server.ts` | Unified taxonomy database routing on species.wikimedia.org, clade extraction, Turndown GFM markdown, SSRF guard, and REST route. |
 | `tests/wikidata-actor.test.ts` | `WikidataActor`, `src/api/server.ts` | Structured entity parsing, claims extraction, wbsearchentities, SPARQL query handling, SSRF guard, and REST route. |
+| `tests/stanford-phil-actor.test.ts` | `StanfordPhilActor`, `src/api/server.ts` | Article slug routing, searcher.py query, contents.html index, outlines, bibliographies, SSRF guard, and REST route. |
+| `tests/internet-phil-actor.test.ts` | `InternetPhilActor`, `src/api/server.ts` | Article slug routing, WordPress search query, table of contents, references, SSRF guard, and REST route. |
+| `tests/metamath-actor.test.ts` | `MetamathActor`, `src/api/server.ts` | Formal theorem verification table parsing, axioms, hypotheses, assertion, cross-references, SSRF guard, and REST route. |
+| `tests/philpapers-actor.test.ts` | `PhilPapersActor`, `src/api/server.ts` | Publication record metadata, search query, category taxonomies, subcategories, SSRF guard, and REST route. |
 
 ---
 
@@ -352,7 +360,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `examples/pipelines/corpus-parquet-sample.yaml` | Pipeline Config | Sample pipeline configuration for corpus text datasets with zstd-compressed Parquet sharding. |
 | `examples/pipelines/wikimedia-sample.yaml` | Pipeline Config | Sample pipeline configuration for Wikimedia encyclopedic article extraction. |
 | `examples/actors/` | Example Configs | 35 standalone, runnable JSON configuration templates for all extraction actors. |
-| `src/actors/README.md` | Actor Catalog | Categorized 6-domain documentation of 47 actors with REST, MCP, and input/output contracts. |
+| `src/actors/README.md` | Actor Catalog | Categorized 6-domain documentation of 51 actors with REST, MCP, and input/output contracts. |
 | `context/schema.sql` | Database Schema | Canonical single source of truth ANSI/SQLite schema for datasets, shards, replicas, and audit ledger. |
 | `scripts/corpus_pipeline/schema.sql` | Database Schema | Mirrored ANSI/SQLite relational DDL for corpus pipeline components. |
 | `scripts/corpus_pipeline/metadata_catalog.py` | Catalog Manager | Corpus metadata manager, shard ledger, replica tracking, and manifest exporter. |
@@ -394,6 +402,14 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `docs/actors/wikispecies.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wikispecies actor. |
 | `examples/actors/wikidata.json` | Example Config | Standalone JSON configuration for Wikidata actor. |
 | `docs/actors/wikidata.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wikidata actor. |
+| `examples/actors/stanford-phil.json` | Example Config | Standalone JSON configuration for Stanford Encyclopedia of Philosophy actor. |
+| `docs/actors/stanford-phil.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Stanford Encyclopedia of Philosophy actor. |
+| `examples/actors/internet-phil.json` | Example Config | Standalone JSON configuration for Internet Encyclopedia of Philosophy actor. |
+| `docs/actors/internet-phil.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Internet Encyclopedia of Philosophy actor. |
+| `examples/actors/metamath.json` | Example Config | Standalone JSON configuration for Metamath Proof Explorer actor. |
+| `docs/actors/metamath.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Metamath Proof Explorer actor. |
+| `examples/actors/philpapers.json` | Example Config | Standalone JSON configuration for PhilPapers Archive actor. |
+| `docs/actors/philpapers.md` | Technical Wiki | Architectural specification with Mermaid diagrams for PhilPapers Archive actor. |
 | `Dockerfile` | Container Build | Multi-stage production container build with Node 22, Playwright Chromium libraries, and Python 3. |
 | `docker-compose.yml` | Container Orchestration | Docker compose deployment mapping port 4000, data volume, and healthcheck. |
 | `.github/workflows/ci.yml` | CI/CD Workflow | Continuous integration pipeline executing Biome lint, naming check, TypeScript build, test suite, and SCA audit. |
