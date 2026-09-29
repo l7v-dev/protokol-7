@@ -153,34 +153,53 @@ def _parse_rdf_ebook(content: bytes) -> Optional[Dict[str, Any]]:
     }
 
 
-def iter_catalog_from_rdf_dump(
-    chunk_size: int = 2 * 1024 * 1024,
-) -> Iterator[List[Dict[str, Any]]]:
+def iter_catalog_from_rdf_dump() -> Iterator[List[Dict[str, Any]]]:
     """
-    Primary catalog source: streams PG's official RDF dump tar.bz2
-    (~300 MB compressed, ~2 GB uncompressed). Parses each per-book
-    RDF/XML file and yields batches of 32 book dicts.
+    Primary catalog source: downloads PG's official RDF dump tar.bz2
+    (~300 MB compressed) to a temp file, then parses each per-book
+    RDF/XML entry with r:bz2 (non-streaming) mode.
 
-    No third-party services required. Resumable: caller filters by book_id
-    against the SQLite ledger.
+    Temp file is deleted on completion or failure. No third-party deps.
     """
-    print(f"[INFO] Streaming PG RDF catalog dump from {PG_RDF_DUMP_URL}...")
+    import tempfile
+
+    print(f"[INFO] Downloading PG RDF catalog dump from {PG_RDF_DUMP_URL}...")
     req = _make_request(PG_RDF_DUMP_URL)
-    batch: List[Dict[str, Any]] = []
+    tmp_fd, tmp_path = tempfile.mkstemp(suffix=".tar.bz2")
+    try:
+        # Stream-download in 4 MB chunks (~300 MB written to disk)
+        with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=300) as resp:
+            downloaded = 0
+            with os.fdopen(tmp_fd, "wb") as fout:
+                tmp_fd = -1  # ownership transferred to fdopen context
+                while True:
+                    chunk = resp.read(4 * 1024 * 1024)
+                    if not chunk:
+                        break
+                    fout.write(chunk)
+                    downloaded += len(chunk)
+                    mb = downloaded // (1024 * 1024)
+                    if mb % 50 == 0 and mb > 0:
+                        print(f"[INFO] RDF dump: {mb} MB downloaded...")
 
-    with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=120) as resp:
-        # tarfile can read from a streaming file-like object
-        with tarfile.open(fileobj=resp, mode="r|bz2") as tar:
+        print(f"[INFO] RDF dump ready ({downloaded // (1024*1024)} MB). Parsing entries...")
+        batch: List[Dict[str, Any]] = []
+
+        # r:bz2 — non-streaming, random-access member reads (reliable)
+        with tarfile.open(tmp_path, mode="r:bz2") as tar:
             for member in tar:
                 if not member.isfile():
                     continue
-                # Only process individual RDF files (cache/epub/<id>/pg<id>.rdf)
+                # Only per-book RDF files: cache/epub/<id>/pg<id>.rdf
                 if not member.name.endswith(".rdf"):
                     continue
-                f = tar.extractfile(member)
-                if f is None:
+                try:
+                    f = tar.extractfile(member)
+                    if f is None:
+                        continue
+                    content = f.read()
+                except Exception:
                     continue
-                content = f.read()
                 book = _parse_rdf_ebook(content)
                 if book is None:
                     continue
@@ -188,8 +207,19 @@ def iter_catalog_from_rdf_dump(
                 if len(batch) >= 32:
                     yield batch
                     batch = []
-    if batch:
-        yield batch
+        if batch:
+            yield batch
+    finally:
+        if tmp_fd != -1:
+            try:
+                os.close(tmp_fd)
+            except OSError:
+                pass
+        try:
+            os.unlink(tmp_path)
+            print("[INFO] RDF dump temp file deleted.")
+        except OSError:
+            pass
 
 
 def fetch_gutendex_page(page: int = 1, page_size: int = 32) -> Dict[str, Any]:
