@@ -4683,4 +4683,505 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+  "youtube-transcripts": {
+    actorType: "youtube-transcripts",
+    name: "youtube-transcripts",
+    title: "YouTube Transcripts & Captions Harvester",
+    category: "SCRAPING",
+    version: "1.0.0",
+    description:
+      "Extracts captions, transcripts, and metadata from YouTube videos and Shorts with LLM cleaning and multi-format export.",
+    author: "Protokol-7",
+    tags: ["youtube", "transcripts", "captions", "subtitles", "video", "llm-dataset", "audio-text"],
+    inputSchema: {
+      type: "object",
+      title: "YouTube Transcripts Input Schema",
+      description:
+        "Configuration parameters for extracting YouTube transcripts and video metadata.",
+      properties: {
+        urls: {
+          name: "urls",
+          type: "array",
+          title: "YouTube Video URLs or IDs",
+          description:
+            "List of YouTube video links (watch, youtu.be, shorts, embed) or 11-char video IDs.",
+          required: false,
+        },
+        videoId: {
+          name: "videoId",
+          type: "string",
+          title: "Video ID",
+          description: "Single YouTube 11-character video ID.",
+          required: false,
+        },
+        outputFormat: {
+          name: "outputFormat",
+          type: "string",
+          title: "Output Format",
+          description:
+            "Format of extracted captions: 'captions' (array of strings), 'textWithTimestamps' (segment objects), 'singleStringText' (plain cohesive paragraph), 'xmlWithoutTimestamps', or 'xmlWithTimestamps'.",
+          enum: [
+            "captions",
+            "textWithTimestamps",
+            "xmlWithoutTimestamps",
+            "xmlWithTimestamps",
+            "singleStringText",
+          ],
+          default: "captions",
+        },
+        languageCode: {
+          name: "languageCode",
+          type: "string",
+          title: "Preferred Language Code",
+          description: "Preferred caption language code (e.g. 'en', 'tr', 'es').",
+          default: "en",
+        },
+        cleanText: {
+          name: "cleanText",
+          type: "boolean",
+          title: "Clean LLM Text",
+          description:
+            "Strips acoustic cues ([Music], [Applause], [Laughter]), speaker markers, and unescapes HTML entities.",
+          default: true,
+        },
+        channelNameBoolean: {
+          name: "channelNameBoolean",
+          type: "boolean",
+          title: "Include Channel Name",
+          description: "Whether to extract publishing channel name.",
+          default: false,
+        },
+        channelIDBoolean: {
+          name: "channelIDBoolean",
+          type: "boolean",
+          title: "Include Channel ID",
+          description: "Whether to extract publishing channel stable ID.",
+          default: false,
+        },
+        datePublishedBoolean: {
+          name: "datePublishedBoolean",
+          type: "boolean",
+          title: "Include Publish Date",
+          description: "Whether to extract ISO 8601 publish date.",
+          default: false,
+        },
+        dateTextBoolean: {
+          name: "dateTextBoolean",
+          type: "boolean",
+          title: "Include Date Text",
+          description: "Whether to extract formatted human-readable date.",
+          default: false,
+        },
+        viewCountBoolean: {
+          name: "viewCountBoolean",
+          type: "boolean",
+          title: "Include View Count",
+          description: "Whether to extract video view count.",
+          default: false,
+        },
+        keywordsBoolean: {
+          name: "keywordsBoolean",
+          type: "boolean",
+          title: "Include Keywords / Tags",
+          description: "Whether to extract video tags/keywords.",
+          default: false,
+        },
+        thumbnailBoolean: {
+          name: "thumbnailBoolean",
+          type: "boolean",
+          title: "Include Thumbnail URL",
+          description: "Whether to extract video thumbnail URL.",
+          default: false,
+        },
+        descriptionBoolean: {
+          name: "descriptionBoolean",
+          type: "boolean",
+          title: "Include Description",
+          description: "Whether to extract video description text.",
+          default: false,
+        },
+        preferBrowser: {
+          name: "preferBrowser",
+          type: "boolean",
+          title: "Force Headless Browser Engine",
+          description: "Forces Playwright Chromium engine instead of lightweight HTTP.",
+          default: false,
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        totalProcessed: {
+          type: "number",
+          description: "Total number of video URLs processed.",
+        },
+        successfulCount: {
+          type: "number",
+          description: "Number of successfully harvested video transcripts.",
+        },
+        failedCount: {
+          type: "number",
+          description: "Number of failed or captionless videos.",
+        },
+        records: {
+          type: "array",
+          description: "List of processed video records containing captions and metadata.",
+        },
+        markdown: {
+          type: "string",
+          description: "Consolidated GFM Markdown report.",
+        },
+      },
+    },
+    exampleInput: {
+      urls: ["https://www.youtube.com/watch?v=aqz-KE-bpKQ"],
+      outputFormat: "captions",
+      cleanText: true,
+      channelNameBoolean: true,
+      datePublishedBoolean: true,
+    },
+    readme:
+      "# YouTube Transcripts & Captions Harvester\\n\\nExtracts captions, timestamped transcripts, and video metadata from YouTube videos and Shorts with LLM text cleaning, dual-engine HTTP/Playwright execution, and multi-format export.",
+    mcpTool: {
+      name: "query_youtube_transcripts",
+      description:
+        "Harvests transcripts, captions, and metadata from YouTube videos and Shorts with LLM noise cleaning and multi-format export.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          urls: {
+            type: "array",
+            items: { type: "string" },
+            description: "List of YouTube video URLs (watch, youtu.be, shorts) or video IDs.",
+          },
+          videoId: {
+            type: "string",
+            description: "Single YouTube 11-character video ID.",
+          },
+          outputFormat: {
+            type: "string",
+            enum: [
+              "captions",
+              "textWithTimestamps",
+              "xmlWithoutTimestamps",
+              "xmlWithTimestamps",
+              "singleStringText",
+            ],
+            description:
+              "Transcript format: 'captions' (array of lines), 'textWithTimestamps', 'singleStringText', or 'xml'.",
+          },
+          languageCode: {
+            type: "string",
+            description: "Preferred language code (e.g. 'en', 'tr'). Default: 'en'.",
+          },
+          cleanText: {
+            type: "boolean",
+            description:
+              "Whether to strip auditory markers ([Music], [Applause]) and speaker tags for clean LLM datasets.",
+          },
+          channelNameBoolean: {
+            type: "boolean",
+            description: "Whether to include publishing channel name.",
+          },
+          channelIDBoolean: {
+            type: "boolean",
+            description: "Whether to include publishing channel ID.",
+          },
+          datePublishedBoolean: {
+            type: "boolean",
+            description: "Whether to include publication date (ISO 8601).",
+          },
+          viewCountBoolean: {
+            type: "boolean",
+            description: "Whether to include view count text.",
+          },
+          keywordsBoolean: {
+            type: "boolean",
+            description: "Whether to include video tags and keywords.",
+          },
+          descriptionBoolean: {
+            type: "boolean",
+            description: "Whether to include video description.",
+          },
+          preferBrowser: {
+            type: "boolean",
+            description: "Whether to force Playwright Chromium engine.",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Direct YouTube URL or mock endpoint.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  wikisource: {
+    actorType: "wikisource",
+    name: "wikisource",
+    title: "Wikisource Historical & Literary Texts Harvester",
+    category: "API",
+    version: "1.0.0",
+    description:
+      "Harvests verified primary literary, historical, legal, and philosophical texts, speeches, and treaties across all 85+ language editions from official Wikisource REST and Action APIs.",
+    author: "Protokol-7",
+    tags: [
+      "wikisource",
+      "wikimedia",
+      "literature",
+      "history",
+      "primary-sources",
+      "llm-dataset",
+      "corpus",
+      "markdown",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Wikisource Harvester Input",
+      description: "Wikisource REST and Action API parameters across 85+ languages.",
+      properties: {
+        title: {
+          name: "title",
+          type: "string",
+          title: "Work or Chapter Title",
+          description: "Canonical title of the Wikisource page, book, poem, or speech.",
+          editor: "textfield",
+        },
+        lang: {
+          name: "lang",
+          type: "string",
+          title: "Language Code",
+          description:
+            "Language code (e.g. 'en', 'tr', 'la', 'sa', 'ang', 'de', 'fr', 'zh', 'ru', 'mul'). Defaults to 'en'.",
+          default: "en",
+          editor: "textfield",
+        },
+        action: {
+          name: "action",
+          type: "string",
+          title: "Action",
+          description:
+            "Extraction mode: summary, article (Parsoid HTML-to-GFM markdown), or search.",
+          default: "summary",
+          enum: ["summary", "article", "search"],
+          editor: "select",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Search expression for discovering primary works and authors.",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Max Results",
+          description: "Maximum search results to return.",
+          default: 10,
+          editor: "number",
+        },
+        fetchFullArticles: {
+          name: "fetchFullArticles",
+          type: "boolean",
+          title: "Fetch Full Articles",
+          description:
+            "When performing a search, fetch and convert full Parsoid HTML markdown for each result.",
+          default: false,
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        lang: { type: "string", description: "Target language code" },
+        action: { type: "string", description: "Executed extraction mode" },
+        items: {
+          type: "array",
+          description: "Array of extracted works, extracts, and full markdown texts",
+        },
+        queryUrl: { type: "string", description: "Constructed Wikisource API URL" },
+        markdown: { type: "string", description: "GFM markdown formatted summary report" },
+      },
+    },
+    exampleInput: {
+      title: "De bello Gallico",
+      lang: "la",
+      action: "summary",
+    },
+    readme: `# Wikisource Harvester\n\nHarvests verified primary literary, historical, legal, and philosophical texts, speeches, and treaties across all 85+ language editions from official Wikisource REST and Action APIs.`,
+    mcpTool: {
+      name: "query_wikisource",
+      description:
+        "Query official Wikimedia Wikisource REST APIs for historical documents, philosophical essays, speeches, and literary classics converted to clean GFM markdown.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          title: {
+            type: "string",
+            description: "Work or chapter title (e.g. 'De bello Gallico', 'Nutuk')",
+          },
+          lang: {
+            type: "string",
+            description: "Language code (e.g. 'la', 'tr', 'en', 'sa', 'ang', 'mul')",
+          },
+          action: {
+            type: "string",
+            enum: ["summary", "article", "search"],
+            description: "Extraction mode: summary, article, or search",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword for finding historical works",
+          },
+          limit: { type: "number", description: "Maximum search items to return" },
+          fetchFullArticles: {
+            type: "boolean",
+            description: "Fetch full article markdown for search hits",
+          },
+          targetUrl: { type: "string", description: "Direct Wikisource URL" },
+        },
+        required: [],
+      },
+    },
+  },
+  wiktionary: {
+    actorType: "wiktionary",
+    name: "wiktionary",
+    title: "Wiktionary Multi-Language Lexical Extractor",
+    category: "API",
+    version: "1.0.0",
+    description:
+      "Queries official Wikimedia Wiktionary REST and Action APIs across 198+ languages for lexical definitions, etymology, parts of speech, and translations.",
+    author: "Protokol-7",
+    tags: [
+      "wiktionary",
+      "wikimedia",
+      "dictionary",
+      "lexicon",
+      "etymology",
+      "nlp",
+      "llm-dataset",
+      "translations",
+      "markdown",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "WiktionaryActorOptions",
+      description: "Options for querying Wikimedia Wiktionary lexical API",
+      properties: {
+        word: {
+          name: "word",
+          type: "string",
+          title: "Word / Lemma",
+          description: "Target word, term, or idiom (e.g. 'algorithm', 'kitap', 'lingua')",
+          editor: "textfield",
+        },
+        lang: {
+          name: "lang",
+          type: "string",
+          title: "Language Code",
+          description: "Wiktionary language edition code (e.g. 'en', 'tr', 'la', 'fr', 'de')",
+          default: "en",
+          editor: "textfield",
+        },
+        action: {
+          name: "action",
+          type: "string",
+          title: "Action Mode",
+          description: "Extraction mode: definition, entry, search, or random",
+          default: "definition",
+          enum: ["definition", "entry", "search", "random"],
+          editor: "select",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Search Query",
+          description: "Search keyword for finding dictionary words",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "number",
+          title: "Result Limit",
+          description: "Maximum search or random items to return",
+          default: 10,
+          editor: "number",
+        },
+        extractMarkdown: {
+          name: "extractMarkdown",
+          type: "boolean",
+          title: "Extract Markdown",
+          description: "Convert HTML definitions and entries to clean GFM Markdown",
+          default: true,
+          editor: "checkbox",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Target URL",
+          description: "Direct Wiktionary URL to parse",
+          editor: "textfield",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        lang: { type: "string", description: "Target language code" },
+        action: { type: "string", description: "Executed extraction mode" },
+        items: {
+          type: "array",
+          description: "Array of extracted lexical entries, parts of speech, and definitions",
+        },
+        queryUrl: { type: "string", description: "Constructed Wiktionary API URL" },
+        markdown: { type: "string", description: "GFM markdown formatted summary report" },
+      },
+    },
+    exampleInput: {
+      word: "algorithm",
+      lang: "en",
+      action: "definition",
+    },
+    readme: `# Wiktionary Lexical Extractor\n\nHarvests dictionary definitions, parts of speech, examples, and etymology across 198+ language editions from official Wikimedia Wiktionary REST and Action APIs.`,
+    mcpTool: {
+      name: "query_wiktionary",
+      description:
+        "Query official Wikimedia Wiktionary REST APIs for dictionary definitions, etymologies, parts of speech, and translations converted to clean GFM markdown.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          word: {
+            type: "string",
+            description: "Word or phrase to define (e.g. 'algorithm', 'kitap')",
+          },
+          lang: {
+            type: "string",
+            description: "Language edition code (e.g. 'en', 'tr', 'la', 'fr', 'de')",
+          },
+          action: {
+            type: "string",
+            enum: ["definition", "entry", "search", "random"],
+            description: "Extraction mode: definition, entry, search, or random",
+          },
+          query: {
+            type: "string",
+            description: "Search keyword for finding dictionary words",
+          },
+          limit: { type: "number", description: "Maximum items to return" },
+          extractMarkdown: {
+            type: "boolean",
+            description: "Convert HTML to clean GFM markdown",
+          },
+          targetUrl: { type: "string", description: "Direct Wiktionary URL" },
+        },
+        required: [],
+      },
+    },
+  },
 };

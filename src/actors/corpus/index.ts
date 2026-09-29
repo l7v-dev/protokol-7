@@ -35,4 +35,7 @@ export * from "./software-heritage-actor";
 export * from "./stack-exchange-actor";
 export * from "./wikimedia-actor";
 export * from "./wikipedia-actor";
+export * from "./wikisource-actor";
+export * from "./wiktionary-actor";
 export * from "./yargitay-actor";
+export * from "./youtube-transcripts-actor";

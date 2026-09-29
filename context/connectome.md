@@ -1,6 +1,6 @@
 # Connectome — Otomatik Üretilen Sistem Haritası
 
-> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-28). Elle düzenlenmez.
+> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-29). Elle düzenlenmez.
 > Çözümleyici Motor: TypeScript Compiler API AST (v5.9.3)
 
 ## Çekirdek Modüller ve Mimari Düğümler (Centrality)
@@ -9,12 +9,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 93 | 154 | Yardımcı Modül |
-| `src/dataset/types.ts` | 93 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 93 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 93 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 42 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 39 | 3 | Yardımcı Modül |
+| `src/api/types.ts` | 99 | 167 | Yardımcı Modül |
+| `src/dataset/types.ts` | 99 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 99 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 99 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 45 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 42 | 3 | Yardımcı Modül |
 | `src/api/server.ts` | 18 | 1 | Giriş Noktası (Server) |
 | `src/server.ts` | 18 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
@@ -35,7 +35,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/vault/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/pipeline-runner.ts` | 9 | 4 | Yardımcı Modül |
 | `src/api/run-registry.ts` | 8 | 6 | Bileşen Tescili (Registry) |
-| `src/browser/browser-pool.ts` | 7 | 4 | Kaynak Yöneticisi (BrowserPool) |
+| `src/browser/browser-pool.ts` | 8 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/mcp/protokol-mcp-server.ts` | 7 | 3 | Giriş Noktası (Server) |
 | `src/actors/actor-registry.ts` | 6 | 2 | Bileşen Tescili (Registry) |
 | `src/api/context-guard.ts` | 6 | 4 | Yardımcı Modül |
@@ -93,7 +93,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/software-heritage-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/stack-exchange-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/wikipedia-actor.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wikisource-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wiktionary-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/yargitay-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/youtube-transcripts-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/documents/archive-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/documents/document-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/documents/epub-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -249,7 +252,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/telemetry-and-logs.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/wikimedia-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/wikipedia-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/wikisource-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/wiktionary-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/yargitay-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/youtube-transcripts-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 
 ## Kayıtlı API Rotaları
 
@@ -305,6 +311,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `lean-mathlib` | `LeanMathlibActor` |
 | `less-wrong` | `LessWrongActor` |
 | `open-review` | `OpenReviewActor` |
+| `youtube-transcripts` | `YoutubeTranscriptsActor` |
+| `wikisource` | `WikisourceActor` |
+| `wiktionary` | `WiktionaryActor` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
 | `mistral-ocr-connector` | `MistralOcrConnector` |
@@ -634,7 +643,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
     limit: number;
     view: string;
   }): { query: string; variables: Record<string, unknown> }`
-  - `parseGraphQLResponse(action: string, json: Record<string, unknown>): { posts: LessWrongPost[]; comments?: LessWrongComment[] }`
+  - `parseGraphQLResponse(_action: string, json: Record<string, unknown>): { posts: LessWrongPost[]; comments?: LessWrongComment[] }`
   - `fetchCommentsForPost(endpoint: string, postId: string, limit: number, headers: Record<string, string>, allowLocalNetwork: boolean): Promise<LessWrongComment[]>`
   - `renderMarkdown(platform: string, action: string, posts: LessWrongPost[], comments: LessWrongComment[]): string`
 
@@ -818,6 +827,36 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `stripHtmlTags(input: string): string`
 - `class WikimediaActor`
 
+### `src/actors/corpus/wikisource-actor.ts`
+
+**Sınıflar (Classes):**
+- `class WikisourceActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikisourceActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: WikisourceActorTaskOptions): {
+    lang: string;
+    title?: string;
+    action: "summary" | "article" | "search";
+    query?: string;
+  }`
+  - `buildApiUrl(targetUrl: string | undefined, lang: string, action: "summary" | "article" | "search", title: string, query: string, limit: number): string`
+  - `buildCanonicalWebUrl(lang: string, title: string): string`
+  - `stripHtmlTags(html: string): string`
+  - `renderMarkdownReport(items: WikisourceArticleItem[], lang: string, action: string): string`
+
+### `src/actors/corpus/wiktionary-actor.ts`
+
+**Sınıflar (Classes):**
+- `class WiktionaryActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WiktionaryActorResult>>`
+  - `cleanDefinitionHtml(html: string): string`
+  - `resolveParameters(targetUrl: string, options: WiktionaryActorTaskOptions): {
+    lang: string;
+    word: string;
+    action: "definition" | "entry" | "search" | "random";
+    query?: string;
+  }`
+  - `buildApiUrl(targetUrl: string, lang, action: "definition" | "entry" | "search" | "random", word, query: string, limit): string`
+
 ### `src/actors/corpus/yargitay-actor.ts`
 
 **Sınıflar (Classes):**
@@ -829,6 +868,21 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `parseHtmlDecisions(html: string, queryUrl: string, courtName: string, options: YargitayActorTaskOptions): YargitayActorResult`
   - `applyFilters(items: YargitayDecisionItem[], options: YargitayActorTaskOptions): YargitayDecisionItem[]`
   - `renderMarkdownSummary(courtName: string, decisions: YargitayDecisionItem[], queryUrl: string): string`
+
+### `src/actors/corpus/youtube-transcripts-actor.ts`
+
+**Sınıflar (Classes):**
+- `class YoutubeTranscriptsActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<YoutubeTranscriptsActorResult>>`
+  - `extractSingleVideo(videoId: string, watchUrl: string, options: YoutubeTranscriptsActorTaskOptions, outputFormat: YoutubeTranscriptOutputFormat, cleanText: boolean, preferredLang: string, timeoutMs: number, allowLocalNetwork: boolean): Promise<YoutubeTranscriptRecord>`
+  - `extractViaBrowser(_videoId: string, watchUrl: string, timeoutMs: number, allowLocalNetwork: boolean, options: YoutubeTranscriptsActorTaskOptions): Promise<{ segments: YoutubeTranscriptSegment[]; rawXml?: string } | null>`
+  - `parseTimedTextXml(xml: string): YoutubeTranscriptSegment[]`
+  - `cleanSegmentText(text: string): string`
+  - `extractVideoId(input: string): string | null`
+  - `extractPlayerResponse(html: string): Record<string, unknown> | null`
+  - `unescapeHtml(str: string): string`
+  - `escapeXml(str: string): string`
+  - `renderMarkdownSummary(records: YoutubeTranscriptRecord[], format: YoutubeTranscriptOutputFormat): string`
 
 ### `src/actors/documents/archive-extractor-actor.ts`
 
@@ -1137,6 +1191,14 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface WikimediaArticleItem` (9 üye)
 - `interface WikimediaActorTaskOptions` (8 üye)
 - `interface WikimediaActorResult` (4 üye)
+- `interface WikisourceArticleItem` (9 üye)
+- `interface WikisourceActorTaskOptions` (8 üye)
+- `interface WikisourceActorResult` (5 üye)
+- `interface WiktionarySenseItem` (3 üye)
+- `interface WiktionaryPartOfSpeechItem` (3 üye)
+- `interface WiktionaryEntryItem` (12 üye)
+- `interface WiktionaryActorTaskOptions` (8 üye)
+- `interface WiktionaryActorResult` (5 üye)
 - `interface OpenAlexWorkItem` (12 üye)
 - `interface OpenAlexActorTaskOptions` (11 üye)
 - `interface OpenAlexActorResult` (5 üye)
@@ -1220,6 +1282,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface LessWrongPost` (11 üye)
 - `interface LessWrongActorTaskOptions` (12 üye)
 - `interface LessWrongActorResult` (7 üye)
+- `interface YoutubeTranscriptSegment` (3 üye)
+- `interface YoutubeTranscriptRecord` (18 üye)
+- `interface YoutubeTranscriptsActorTaskOptions` (22 üye)
+- `interface YoutubeTranscriptsActorResult` (6 üye)
 - `interface ActorTask` (5 üye)
 - `interface ActorResult` (7 üye)
 - `interface ActorRunContext` (3 üye)
@@ -1241,6 +1307,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `type SaglikEkutuphaneAction`
 - `type KtbEkitapCategory`
 - `type KtbEkitapAction`
+- `type YoutubeTranscriptOutputFormat`
 
 ### `src/browser/browser-pool.ts`
 
@@ -2084,6 +2151,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/stack-exchange-actor.ts` |
 | `src/actors/corpus/wikimedia-actor.ts` |
 | `src/actors/corpus/wikipedia-actor.ts` |
-| `src/actors/corpus/yargitay-actor.ts` |
-| *... ve 191 dosya daha* |
+| `src/actors/corpus/wikisource-actor.ts` |
+| *... ve 197 dosya daha* |
 

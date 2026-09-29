@@ -1,0 +1,30 @@
+name: youtube-transcripts-drive-pipeline
+version: 1
+
+actor:
+  id: youtube-transcripts
+  config:
+    urls:
+      - "https://www.youtube.com/watch?v=aqz-KE-bpKQ"
+    outputFormat: "singleStringText"
+    cleanText: true
+    languageCode: "en"
+    channelNameBoolean: true
+    channelIDBoolean: true
+    datePublishedBoolean: true
+    viewCountBoolean: true
+    keywordsBoolean: true
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: parquet
+  compression: zstd
+
+storage:
+  backend: drive
+  folder_id: "${DRIVE_DATASET_FOLDER_ID}"

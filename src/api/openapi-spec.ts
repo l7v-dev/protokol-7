@@ -1742,6 +1742,227 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/youtube-transcripts": {
+      post: {
+        tags: ["Clean Datasets", "Scraping"],
+        summary: "YouTube Transcripts & Captions Harvester",
+        description:
+          "Extracts captions, timestamped transcripts, and video metadata from YouTube videos and Shorts with LLM text cleaning, dual-engine HTTP/Playwright execution, and multi-format export.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  urls: {
+                    type: "array",
+                    items: { type: "string" },
+                    description:
+                      "List of YouTube video URLs (watch, youtu.be, shorts) or video IDs",
+                    example: ["https://www.youtube.com/watch?v=aqz-KE-bpKQ"],
+                  },
+                  videoId: {
+                    type: "string",
+                    description: "Single YouTube 11-character video ID",
+                  },
+                  outputFormat: {
+                    type: "string",
+                    enum: [
+                      "captions",
+                      "textWithTimestamps",
+                      "xmlWithoutTimestamps",
+                      "xmlWithTimestamps",
+                      "singleStringText",
+                    ],
+                    default: "captions",
+                    description:
+                      "Transcript format: captions, textWithTimestamps, singleStringText, xml",
+                  },
+                  languageCode: {
+                    type: "string",
+                    default: "en",
+                    description: "Preferred caption language code (e.g. en, tr)",
+                  },
+                  cleanText: {
+                    type: "boolean",
+                    default: true,
+                    description:
+                      "Whether to strip auditory noise markers ([Music], [Applause]) for LLM dataset cleanliness",
+                  },
+                  channelNameBoolean: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to extract channel name",
+                  },
+                  channelIDBoolean: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to extract channel ID",
+                  },
+                  datePublishedBoolean: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to extract ISO 8601 publish date",
+                  },
+                  viewCountBoolean: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to extract view count",
+                  },
+                  keywordsBoolean: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to extract video keywords/tags",
+                  },
+                  descriptionBoolean: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to extract video description",
+                  },
+                  preferBrowser: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to force Playwright Chromium engine",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Target YouTube URL or mock endpoint",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured YouTube transcripts, video metadata, segment timestamps, and GFM Markdown report.",
+          },
+        },
+      },
+    },
+    "/api/v1/wikisource": {
+      post: {
+        tags: ["Corpus Extraction"],
+        summary: "Wikisource Primary Historical & Literary Sources Harvester",
+        description:
+          "Extracts verified primary historical documents, philosophical essays, speeches, and literary classics across 85+ languages from official Wikimedia Wikisource REST and Action APIs.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: {
+                    type: "string",
+                    description: "Work or chapter title (e.g. 'De bello Gallico', 'Nutuk')",
+                    example: "De bello Gallico",
+                  },
+                  lang: {
+                    type: "string",
+                    default: "en",
+                    description: "Language edition code (e.g. 'la', 'tr', 'en', 'sa', 'mul')",
+                    example: "la",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["summary", "article", "search"],
+                    default: "summary",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search expression for discovering primary works",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Maximum search results to return",
+                  },
+                  fetchFullArticles: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to fetch full markdown for each search result",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Wikisource URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured Wikisource items, metadata, full markdown texts, and query metadata.",
+          },
+        },
+      },
+    },
+    "/api/v1/wiktionary": {
+      post: {
+        tags: ["Corpus Extraction"],
+        summary: "Wiktionary Multi-Language Lexical & Etymological Extractor",
+        description:
+          "Queries official Wikimedia Wiktionary REST and Action APIs across 198+ languages for lexical definitions, etymology, parts of speech, and translations.",
+        operationId: "queryWiktionary",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  word: {
+                    type: "string",
+                    description: "Word or lemma to look up (e.g. 'algorithm', 'kitap')",
+                  },
+                  lang: {
+                    type: "string",
+                    default: "en",
+                    description: "Language edition code (e.g. 'en', 'tr', 'la', 'fr', 'de')",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["definition", "entry", "search", "random"],
+                    default: "definition",
+                    description: "Extraction mode: definition, entry, search, or random",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword for finding dictionary words",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Maximum search or random items to return",
+                  },
+                  extractMarkdown: {
+                    type: "boolean",
+                    default: true,
+                    description: "Convert HTML definitions and entries to clean GFM Markdown",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Wiktionary URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured dictionary entries, parts of speech, definitions, etymology, and GFM Markdown.",
+          },
+        },
+      },
+    },
     "/api/v1/sitemap": {
       post: {
         tags: ["Crawling"],

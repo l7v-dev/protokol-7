@@ -1,0 +1,11 @@
+{
+  "urls": [
+    "https://www.youtube.com/watch?v=aqz-KE-bpKQ"
+  ],
+  "outputFormat": "captions",
+  "cleanText": true,
+  "languageCode": "en",
+  "channelNameBoolean": true,
+  "datePublishedBoolean": true,
+  "viewCountBoolean": true
+}

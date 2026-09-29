@@ -1,6 +1,6 @@
 # Protokol-7 Aktörler Rehberi (Actor Catalog)
 
-Bu rehber, **protokol-7** bünyesindeki 44 veri çıkarma aktörünün ne işe yaradığını, nasıl çalıştığını ve nasıl çağrılacağını en sade biçimde açıklar.
+Bu rehber, **protokol-7** bünyesindeki 47 veri çıkarma aktörünün ne işe yaradığını, nasıl çalıştığını ve nasıl çağrılacağını en sade biçimde açıklar.
 
 Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 1. **HTTP REST API:** `http://localhost:4000/api/v1/<aktor-adi>` (veya `/api/v1/actors`)
@@ -56,6 +56,9 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 | 42 | `proofwiki` | Yapay Zeka & Korpus | `POST /api/v1/proofwiki` | `query_proofwiki` | ProofWiki teorem ifadelerini, çok adımlı biçimsel ispatlarını ve LaTeX matematik formüllerini çeker. |
 | 43 | `lean-mathlib` | Yapay Zeka & Korpus | `POST /api/v1/lean-mathlib` | `query_lean_mathlib` | Lean 4 ve Mathlib4 biçimsel teorem tanımlarını, lemmaları ve ispat taktik adımlarını çeker. |
 | 44 | `lesswrong` | Yapay Zeka & Korpus | `POST /api/v1/lesswrong` | `query_lesswrong` | LessWrong ve Alignment Forum rasyonalite, yapay zeka güvenliği ve epistemik muhakeme makaleleri ile yorum ağaçlarını çeker. |
+| 45 | `youtube-transcripts` | Yapay Zeka & Korpus | `POST /api/v1/youtube-transcripts` | `query_youtube_transcripts` | YouTube video altyazılarını ve transkriptlerini çeker, zaman damgalarını ve akustik gürültüleri temizler. |
+| 46 | `wikisource` | Kitap & Kültür | `POST /api/v1/wikisource` | `query_wikisource` | 85 dildeki Wikisource tarihi, edebi ve antik metinleri şiir ve dize formatını koruyarak Markdown olarak çeker. |
+| 47 | `wiktionary` | Kitap & Kültür | `POST /api/v1/wiktionary` | `query_wiktionary` | 198 dildeki Wiktionary leksikal tanımları, etimoloji, sözcük türleri ve çevirileri yapılandırılmış Markdown olarak çeker. |
 
 ---
 
@@ -554,6 +557,44 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
   "action": "posts",
   "view": "curated",
   "limit": 10
+}
+```
+
+#### 34. YouTube Transcripts Aktörü (`youtube-transcripts`)
+* **Ne Yapar?** YouTube video altyazılarını ve transkriptlerini çeker, zaman damgalarını ve akustik gürültüleri temizleyerek kesintisiz LLM eğitim metni üretir.
+* **REST:** `POST /api/v1/youtube-transcripts`
+* **MCP:** `query_youtube_transcripts`
+```json
+{
+  "videoId": "dQw4w9WgXcQ",
+  "language": "en",
+  "cleanAcousticNoise": true
+}
+```
+
+#### 35. Wikisource Aktörü (`wikisource`)
+* **Ne Yapar?** 85 dildeki Wikisource tarihi, edebi ve antik metinleri şiir, dize ve bölüm yapısını koruyarak temiz Markdown formatında çeker.
+* **REST:** `POST /api/v1/wikisource`
+* **MCP:** `query_wikisource`
+```json
+{
+  "lang": "la",
+  "action": "page",
+  "title": "De brevitate vitae",
+  "extractMarkdown": true
+}
+```
+
+#### 36. Wiktionary Aktörü (`wiktionary`)
+* **Ne Yapar?** 198 dildeki Wiktionary kelime tanımlarını, etimolojik kökenleri, sözcük türlerini ve diller arası çevirileri çeker.
+* **REST:** `POST /api/v1/wiktionary`
+* **MCP:** `query_wiktionary`
+```json
+{
+  "lang": "en",
+  "action": "definition",
+  "word": "algorithm",
+  "extractMarkdown": true
 }
 ```
 

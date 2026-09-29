@@ -52,7 +52,10 @@ export type ActorType =
   | "code-eval"
   | "proofwiki"
   | "lean-mathlib"
-  | "lesswrong";
+  | "lesswrong"
+  | "youtube-transcripts"
+  | "wikisource"
+  | "wiktionary";
 
 export interface ExtractedTable {
   id: string;
@@ -607,6 +610,83 @@ export interface WikimediaActorResult {
 export type WikipediaArticleItem = WikimediaArticleItem;
 export type WikipediaActorTaskOptions = WikimediaActorTaskOptions;
 export type WikipediaActorResult = WikimediaActorResult;
+
+export interface WikisourceArticleItem {
+  title: string;
+  url: string;
+  extract?: string;
+  description?: string;
+  fullMarkdown?: string;
+  rawHtml?: string;
+  thumbnailUrl?: string;
+  timestamp?: string;
+  lang: string;
+}
+
+export interface WikisourceActorTaskOptions {
+  lang?: string;
+  title?: string;
+  titles?: string[];
+  action?: "summary" | "article" | "search";
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+  fetchFullArticles?: boolean;
+}
+
+export interface WikisourceActorResult {
+  lang: string;
+  action: "summary" | "article" | "search";
+  items: WikisourceArticleItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface WiktionarySenseItem {
+  definition: string;
+  examples?: string[];
+  subdefinitions?: string[];
+}
+
+export interface WiktionaryPartOfSpeechItem {
+  partOfSpeech: string;
+  language: string;
+  definitions: WiktionarySenseItem[];
+}
+
+export interface WiktionaryEntryItem {
+  word: string;
+  url: string;
+  lang: string;
+  etymology?: string;
+  partsOfSpeech?: WiktionaryPartOfSpeechItem[];
+  pronunciations?: string[];
+  synonyms?: string[];
+  antonyms?: string[];
+  translations?: Record<string, string[]>;
+  fullMarkdown?: string;
+  rawHtml?: string;
+  timestamp?: string;
+}
+
+export interface WiktionaryActorTaskOptions {
+  lang?: string;
+  word?: string;
+  words?: string[];
+  action?: "definition" | "entry" | "search" | "random";
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+  extractMarkdown?: boolean;
+}
+
+export interface WiktionaryActorResult {
+  lang: string;
+  action: "definition" | "entry" | "search" | "random";
+  items: WiktionaryEntryItem[];
+  queryUrl: string;
+  markdown?: string;
+}
 
 export interface OpenAlexWorkItem {
   id: string;
@@ -1556,6 +1636,78 @@ export interface LessWrongActorResult {
   markdown?: string;
 }
 
+// ---------------------------------------------------------------------------
+// YouTube Transcripts
+// ---------------------------------------------------------------------------
+
+export type YoutubeTranscriptOutputFormat =
+  | "captions"
+  | "textWithTimestamps"
+  | "xmlWithoutTimestamps"
+  | "xmlWithTimestamps"
+  | "singleStringText";
+
+export interface YoutubeTranscriptSegment {
+  start: number;
+  end: number;
+  text: string;
+}
+
+export interface YoutubeTranscriptRecord {
+  videoId: string;
+  title: string;
+  captions: string[] | YoutubeTranscriptSegment[] | string | null;
+  channelName?: string | null;
+  channelID?: string | null;
+  datePublished?: string | null;
+  dateText?: string | null;
+  relativeDateText?: string | null;
+  viewCount?: string | null;
+  likes?: string | null;
+  comments?: string | null;
+  keywords?: string | null;
+  thumbnailUrl?: string | null;
+  description?: string | null;
+  status?: "completed" | "failed";
+  reason?: string | null;
+  processedBy?: "http-innertube" | "playwright-browser";
+  transcriptFound: boolean;
+}
+
+export interface YoutubeTranscriptsActorTaskOptions {
+  urls?: string[];
+  videoId?: string;
+  outputFormat?: YoutubeTranscriptOutputFormat;
+  languageCode?: string;
+  cleanText?: boolean;
+  maxRetries?: number;
+  preferBrowser?: boolean;
+  poToken?: string;
+  channelNameBoolean?: boolean;
+  channelIDBoolean?: boolean;
+  dateTextBoolean?: boolean;
+  relativeDateTextBoolean?: boolean;
+  datePublishedBoolean?: boolean;
+  viewCountBoolean?: boolean;
+  likesBoolean?: boolean;
+  commentsBoolean?: boolean;
+  keywordsBoolean?: boolean;
+  thumbnailBoolean?: boolean;
+  descriptionBoolean?: boolean;
+  targetUrl?: string;
+  timeoutMs?: number;
+  proxy?: ProxyConfig;
+}
+
+export interface YoutubeTranscriptsActorResult {
+  totalProcessed: number;
+  successfulCount: number;
+  failedCount: number;
+  records: YoutubeTranscriptRecord[];
+  queryUrl: string;
+  markdown: string;
+}
+
 export interface ActorTask {
   taskId: EntityId;
   actorType: ActorType;
@@ -1612,6 +1764,9 @@ export interface ActorTask {
     proofWikiOptions?: ProofWikiActorTaskOptions;
     leanMathlibOptions?: LeanMathlibActorTaskOptions;
     lessWrongOptions?: LessWrongActorTaskOptions;
+    youtubeTranscriptsOptions?: YoutubeTranscriptsActorTaskOptions;
+    wikisourceOptions?: WikisourceActorTaskOptions;
+    wiktionaryOptions?: WiktionaryActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

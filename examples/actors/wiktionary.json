@@ -1,0 +1,11 @@
+{
+  "actorType": "wiktionary",
+  "word": "algorithm",
+  "lang": "en",
+  "action": "definition",
+  "extractMarkdown": true,
+  "options": {
+    "timeoutMs": 15000,
+    "limit": 5
+  }
+}

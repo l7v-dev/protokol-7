@@ -18,7 +18,13 @@ import { JobRouter, type ScheduleJobRequestBody } from "./routers/job-router";
 import { PipelineRouter, type PipelineRunRequestBody } from "./routers/pipeline-router";
 import { StoreRouter } from "./routers/store-router";
 import { VaultRouter } from "./routers/vault-router";
-import type { ActorTask, ActorType, ArchiveFormat, SupportedDocumentFormat } from "./types";
+import type {
+  ActorTask,
+  ActorType,
+  ArchiveFormat,
+  SupportedDocumentFormat,
+  YoutubeTranscriptOutputFormat,
+} from "./types";
 
 const registry = createDefaultActorRegistry();
 const storeRouter = new StoreRouter(registry);
@@ -2486,6 +2492,185 @@ export function createServer(): http.Server {
         };
 
         const result = await lwActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // YouTube Transcripts Harvester (/youtube-transcripts or /api/v1/youtube-transcripts)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/youtube-transcripts" || pathname === "/youtube-transcripts")
+      ) {
+        const body = await parseBody<{
+          urls?: string[];
+          videoId?: string;
+          outputFormat?: YoutubeTranscriptOutputFormat;
+          languageCode?: string;
+          cleanText?: boolean;
+          maxRetries?: number;
+          preferBrowser?: boolean;
+          channelNameBoolean?: boolean;
+          channelIDBoolean?: boolean;
+          datePublishedBoolean?: boolean;
+          dateTextBoolean?: boolean;
+          viewCountBoolean?: boolean;
+          keywordsBoolean?: boolean;
+          thumbnailBoolean?: boolean;
+          descriptionBoolean?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const ytActor = registry.get("youtube-transcripts");
+        if (!ytActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "YouTube Transcripts actor is not available.",
+            "Ensure YoutubeTranscriptsActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `yt-${Date.now()}`,
+          actorType: "youtube-transcripts",
+          targetUrl: body.targetUrl || body.urls?.[0] || body.videoId || "",
+          options: {
+            ...body.options,
+            youtubeTranscriptsOptions: {
+              urls: body.urls,
+              videoId: body.videoId,
+              outputFormat: body.outputFormat,
+              languageCode: body.languageCode,
+              cleanText: body.cleanText,
+              maxRetries: body.maxRetries,
+              preferBrowser: body.preferBrowser,
+              channelNameBoolean: body.channelNameBoolean,
+              channelIDBoolean: body.channelIDBoolean,
+              datePublishedBoolean: body.datePublishedBoolean,
+              dateTextBoolean: body.dateTextBoolean,
+              viewCountBoolean: body.viewCountBoolean,
+              keywordsBoolean: body.keywordsBoolean,
+              thumbnailBoolean: body.thumbnailBoolean,
+              descriptionBoolean: body.descriptionBoolean,
+              targetUrl: body.targetUrl,
+              ...body.options?.youtubeTranscriptsOptions,
+            },
+          },
+        };
+
+        const result = await ytActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Wikisource Harvester (/wikisource or /api/v1/wikisource)
+      if (method === "POST" && (pathname === "/api/v1/wikisource" || pathname === "/wikisource")) {
+        const body = await parseBody<{
+          title?: string;
+          titles?: string[];
+          lang?: string;
+          action?: "summary" | "article" | "search";
+          query?: string;
+          limit?: number;
+          fetchFullArticles?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wsActor = registry.get("wikisource");
+        if (!wsActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Wikisource actor is not available.",
+            "Ensure WikisourceActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `ws-${Date.now()}`,
+          actorType: "wikisource",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wikisourceOptions: {
+              title: body.title,
+              titles: body.titles,
+              lang: body.lang,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              fetchFullArticles: body.fetchFullArticles,
+              ...body.options?.wikisourceOptions,
+            },
+          },
+        };
+
+        const result = await wsActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Wiktionary Lexical Extractor (/wiktionary or /api/v1/wiktionary)
+      if (method === "POST" && (pathname === "/api/v1/wiktionary" || pathname === "/wiktionary")) {
+        const body = await parseBody<{
+          word?: string;
+          words?: string[];
+          lang?: string;
+          action?: "definition" | "entry" | "search" | "random";
+          query?: string;
+          limit?: number;
+          extractMarkdown?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wtActor = registry.get("wiktionary");
+        if (!wtActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "WiktionaryActor is not registered in runtime registry.",
+            "Verify actor registration in createDefaultActorRegistry()."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `wt-${Date.now()}`,
+          actorType: "wiktionary",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wiktionaryOptions: {
+              word: body.word,
+              words: body.words,
+              lang: body.lang,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              extractMarkdown: body.extractMarkdown,
+              ...body.options?.wiktionaryOptions,
+            },
+          },
+        };
+
+        const result = await wtActor.run(task, { task, startTime: Date.now() });
         sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
           success: result.status === "completed",
           ...result,

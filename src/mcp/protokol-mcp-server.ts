@@ -56,7 +56,10 @@ import type {
   StackExchangeActorTaskOptions,
   WikimediaActorTaskOptions,
   WikipediaActorTaskOptions,
+  WikisourceActorTaskOptions,
+  WiktionaryActorTaskOptions,
   YargitayActorTaskOptions,
+  YoutubeTranscriptsActorTaskOptions,
 } from "../api/types";
 import { DatasetPublisher } from "../dataset/dataset-publisher";
 import type { PublishDatasetOptions, SplitRatios } from "../dataset/types";
@@ -1283,6 +1286,18 @@ export class ProtokolMcpServer {
             lessWrongOptions:
               manifest.actorType === "lesswrong"
                 ? (toolArgs as unknown as LessWrongActorTaskOptions)
+                : undefined,
+            youtubeTranscriptsOptions:
+              manifest.actorType === "youtube-transcripts"
+                ? (toolArgs as unknown as YoutubeTranscriptsActorTaskOptions)
+                : undefined,
+            wikisourceOptions:
+              manifest.actorType === "wikisource"
+                ? (toolArgs as unknown as WikisourceActorTaskOptions)
+                : undefined,
+            wiktionaryOptions:
+              manifest.actorType === "wiktionary"
+                ? (toolArgs as unknown as WiktionaryActorTaskOptions)
                 : undefined,
           },
         };

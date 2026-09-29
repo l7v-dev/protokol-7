@@ -64,10 +64,13 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 54);
+    assert.equal(result.tools.length, 57);
 
     const toolNames = result.tools.map((t) => t.name);
     assert.ok(toolNames.includes("wikipedia_query"));
+    assert.ok(toolNames.includes("query_youtube_transcripts"));
+    assert.ok(toolNames.includes("query_wikisource"));
+    assert.ok(toolNames.includes("query_wiktionary"));
     assert.ok(toolNames.includes("query_resmi_gazete"));
     assert.ok(toolNames.includes("query_yargitay"));
     assert.ok(toolNames.includes("query_kap"));
@@ -793,5 +796,177 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.equal(typedTask.options.lessWrongOptions.action, "posts");
     assert.equal(typedTask.options.lessWrongOptions.view, "curated");
     assert.equal(typedTask.options.lessWrongOptions.limit, 10);
+  });
+
+  it("correctly maps query_youtube_transcripts parameters to youtubeTranscriptsOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockYoutube: IActor = {
+      actorType: "youtube-transcripts",
+      description: "Mock YouTube",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "youtube-transcripts",
+          status: "completed",
+          statusCode: 200,
+          data: {
+            totalProcessed: 1,
+            successfulCount: 1,
+            failedCount: 0,
+            records: [],
+          },
+          executionDurationMs: 10,
+        };
+      },
+    };
+    mockRegistry.register(mockYoutube);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "youtube-test",
+      method: "tools/call",
+      params: {
+        name: "query_youtube_transcripts",
+        arguments: {
+          urls: ["https://www.youtube.com/watch?v=aqz-KE-bpKQ"],
+          outputFormat: "singleStringText",
+          cleanText: true,
+          channelNameBoolean: true,
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        youtubeTranscriptsOptions?: {
+          urls?: string[];
+          outputFormat?: string;
+          cleanText?: boolean;
+          channelNameBoolean?: boolean;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.youtubeTranscriptsOptions);
+    assert.deepEqual(typedTask.options.youtubeTranscriptsOptions.urls, [
+      "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+    ]);
+    assert.equal(typedTask.options.youtubeTranscriptsOptions.outputFormat, "singleStringText");
+    assert.equal(typedTask.options.youtubeTranscriptsOptions.cleanText, true);
+    assert.equal(typedTask.options.youtubeTranscriptsOptions.channelNameBoolean, true);
+  });
+
+  it("correctly maps query_wikisource parameters to wikisourceOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockWikisource: IActor = {
+      actorType: "wikisource",
+      description: "Mock Wikisource",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "wikisource",
+          status: "completed",
+          statusCode: 200,
+          data: {
+            lang: "la",
+            action: "summary",
+            items: [],
+            queryUrl: "https://la.wikisource.org/api/rest_v1/page/summary/De_bello_Gallico",
+          },
+          executionDurationMs: 10,
+        };
+      },
+    };
+    mockRegistry.register(mockWikisource);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "wikisource-test",
+      method: "tools/call",
+      params: {
+        name: "query_wikisource",
+        arguments: {
+          title: "De bello Gallico",
+          lang: "la",
+          action: "summary",
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        wikisourceOptions?: {
+          title?: string;
+          lang?: string;
+          action?: string;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.wikisourceOptions);
+    assert.equal(typedTask.options.wikisourceOptions.title, "De bello Gallico");
+    assert.equal(typedTask.options.wikisourceOptions.lang, "la");
+    assert.equal(typedTask.options.wikisourceOptions.action, "summary");
+  });
+
+  it("correctly maps query_wiktionary parameters to wiktionaryOptions", async () => {
+    let capturedTask: unknown;
+    const mockRegistry = new ActorRegistry();
+    const mockWiktionary: IActor = {
+      actorType: "wiktionary",
+      description: "Mock Wiktionary",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "wiktionary",
+          status: "completed",
+          data: {
+            lang: "en",
+            action: "definition",
+            items: [],
+            queryUrl: "http://mock",
+          },
+          executionDurationMs: 10,
+        };
+      },
+    };
+    mockRegistry.register(mockWiktionary);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "wiktionary-test",
+      method: "tools/call",
+      params: {
+        name: "query_wiktionary",
+        arguments: {
+          word: "algorithm",
+          lang: "en",
+          action: "definition",
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        wiktionaryOptions?: {
+          word?: string;
+          lang?: string;
+          action?: string;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.wiktionaryOptions);
+    assert.equal(typedTask.options.wiktionaryOptions.word, "algorithm");
+    assert.equal(typedTask.options.wiktionaryOptions.lang, "en");
+    assert.equal(typedTask.options.wiktionaryOptions.action, "definition");
   });
 });

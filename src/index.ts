@@ -35,7 +35,10 @@ export * from "./actors/corpus/software-heritage-actor";
 export * from "./actors/corpus/stack-exchange-actor";
 export * from "./actors/corpus/wikimedia-actor";
 export * from "./actors/corpus/wikipedia-actor";
+export * from "./actors/corpus/wikisource-actor";
+export * from "./actors/corpus/wiktionary-actor";
 export * from "./actors/corpus/yargitay-actor";
+export * from "./actors/corpus/youtube-transcripts-actor";
 
 export * from "./actors/documents/archive-extractor-actor";
 export * from "./actors/documents/document-extractor-actor";

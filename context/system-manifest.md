@@ -44,7 +44,7 @@ Bu dosya `protokol-7` mikroservisinin uretim (production) ve calisma zamani can 
 
 ## 4. Kayitli Aktor Envanteri (32 Aktor — `src/actors/actor-registry.ts`)
 
-- **Kulliyat (Corpus):** `wikipedia`, `arxiv`, `gutenberg`, `stack-exchange`, `openstax`, `mit-ocw`, `eur-lex`, `software-heritage`.
+- **Kulliyat (Corpus):** `wikipedia`, `wikisource`, `wiktionary`, `youtube-transcripts`, `arxiv`, `gutenberg`, `stack-exchange`, `openstax`, `mit-ocw`, `eur-lex`, `software-heritage`.
 - **Dokuman (Documents):** `document-extractor`, `archive-extractor`, `epub-reader`, `dergipark`, `internet-archive`.
 - **Tarayici (Browser):** `browser-crawler`, `session-manager`, `stealth-injector`, `dom-indexer`.
 - **Ag & Arama (Network):** `network-interceptor`, `serp-search`, `sitemap-xml`, `markdown-reader`.

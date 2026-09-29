@@ -33,7 +33,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/actors/actor-registry.ts` | `ActorRegistry` | Central registry for discovering, registering, and instantiating all actors across all categories. |
-| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 41 actors. |
+| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 47 actors. |
 | `src/actors/actor.template.ts` | `TemplateActor`, `TemplateActorResult` | Canonical reference implementation blueprint, contract template, and security scaffold for new actors. |
 
 #### Web Actors (`src/actors/web/`) — general-purpose HTTP and browser extraction
@@ -86,6 +86,9 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/actors/corpus/proofwiki-actor.ts` | `ProofWikiActor` | ProofWiki MediaWiki API — formal mathematical theorems, axioms, step-by-step proofs, definitions, sources, and normalized LaTeX math formulas. |
 | `src/actors/corpus/lean-mathlib-actor.ts` | `LeanMathlibActor` | Lean 4 & Mathlib4 — computer-verified formal theorems, lemmas, definitions, and proof tactic steps with GFM markdown. |
 | `src/actors/corpus/lesswrong-actor.ts` | `LessWrongActor` | LessWrong & Alignment Forum GraphQL API — Bayesian rationality, decision theory, AI alignment essays, vote scores, and dialectic comment trees with GFM markdown. |
+| `src/actors/corpus/youtube-transcripts-actor.ts` | `YoutubeTranscriptsActor` | YouTube Transcripts & Captions Harvester with dual-engine fallback (HTTP + Playwright) and LLM acoustic noise cleaning. |
+| `src/actors/corpus/wikisource-actor.ts` | `WikisourceActor` | Wikisource REST API v1 & Action API — historical, classical, and literary public domain texts across 85+ languages, poem/verse distillation. |
+| `src/actors/corpus/wiktionary-actor.ts` | `WiktionaryActor` | Wiktionary REST API v1 & Action API — lexical definitions, etymology, parts of speech, and translations across 198+ languages. |
 
 #### Document Actors (`src/actors/documents/`) — local file and archive extraction
 
@@ -300,6 +303,9 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/proofwiki-actor.test.ts` | `ProofWikiActor`, `src/api/server.ts` | URL resolution, action routing, SSRF guard, wikitext math normalization, multi-proof parsing, sources/categories extraction, and REST route. |
 | `tests/lean-mathlib-actor.test.ts` | `LeanMathlibActor`, `src/api/server.ts` | URL resolution, repo routing, SSRF guard, declaration parsing, docstrings, tactic sequence extraction, theorem filtering, and REST route. |
 | `tests/lesswrong-actor.test.ts` | `LessWrongActor`, `src/api/server.ts` | URL resolution, action routing, SSRF guard, post extraction, author attribution, vote scores, dialectic comment trees, and REST route. |
+| `tests/youtube-transcripts-actor.test.ts` | `YoutubeTranscriptsActor`, `src/api/server.ts` | URL resolution, 11-char ID extraction, timedtext XML parsing, LLM acoustic noise cleaning, SSRF guard, and REST route. |
+| `tests/wikisource-actor.test.ts` | `WikisourceActor`, `src/api/server.ts` | Multi-language routing across 85+ domains, Turndown GFM markdown, poem/verse preservation, scan navigation stripping, SSRF guard, and REST route. |
+| `tests/wiktionary-actor.test.ts` | `WiktionaryActor`, `src/api/server.ts` | Multi-language routing across 198+ domains, definition matrix extraction, Turndown HTML to markdown, search, random lemma discovery, SSRF guard, and REST route. |
 
 ---
 
@@ -331,8 +337,8 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `examples/pipelines/ktb-ekitap-sample.yaml` | Pipeline Config | Sample pipeline configuration for Turkish Ministry of Culture e-book scraping actor. |
 | `examples/pipelines/corpus-parquet-sample.yaml` | Pipeline Config | Sample pipeline configuration for corpus text datasets with zstd-compressed Parquet sharding. |
 | `examples/pipelines/wikimedia-sample.yaml` | Pipeline Config | Sample pipeline configuration for Wikimedia encyclopedic article extraction. |
-| `examples/actors/` | Example Configs | 34 standalone, runnable JSON configuration templates for all extraction actors. |
-| `src/actors/README.md` | Actor Catalog | Categorized 6-domain documentation of 41 actors with REST, MCP, and input/output contracts. |
+| `examples/actors/` | Example Configs | 35 standalone, runnable JSON configuration templates for all extraction actors. |
+| `src/actors/README.md` | Actor Catalog | Categorized 6-domain documentation of 47 actors with REST, MCP, and input/output contracts. |
 | `context/schema.sql` | Database Schema | Canonical single source of truth ANSI/SQLite schema for datasets, shards, replicas, and audit ledger. |
 | `scripts/corpus_pipeline/schema.sql` | Database Schema | Mirrored ANSI/SQLite relational DDL for corpus pipeline components. |
 | `scripts/corpus_pipeline/metadata_catalog.py` | Catalog Manager | Corpus metadata manager, shard ledger, replica tracking, and manifest exporter. |
@@ -346,6 +352,20 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `scripts/corpus_pipeline/orchestrator.py` | CLI Orchestrator | Master orchestrator CLI for corpus processing, storage replication, and zero-raw purge. |
 | `scripts/corpus_pipeline/test_corpus_pipeline.py` | Test Suite | Unit and integration tests for catalog, storage, cleaner, packer, gatekeeper, and purge. |
 | `scripts/corpus_pipeline/requirements.txt` | Package Dependencies | Production dependencies for corpus pipeline (blake3, tiktoken, duckdb, lingua, boto3). |
+| `scripts/wikisource_pipeline/orchestrator.py` | Multi-Language Harvest Orchestrator | 85-language dump harvest CLI, SQLite progress ledger, zero disk residue pipeline. |
+| `scripts/wikisource_pipeline/cleaner.py` | Cleaner & Parser | O(1) RAM XML streaming parser, poem/verse preservation, wikitext cleaner. |
+| `scripts/wikisource_pipeline/packer.py` | Parquet Sharder | StreamingParquetSharder with Zstandard compression and row-group flushing. |
+| `scripts/wikisource_pipeline/downloader.py` | Dump Downloader | Wikimedia dump stream downloader, mirror resolver, and file cleanup. |
+| `scripts/wikisource_pipeline/drive_sync.py` | Google Drive Sync | Google Drive v3 client with MD5 hash verification and instant local file deletion. |
+| `examples/actors/wikisource.json` | Example Config | Standalone JSON configuration for Wikisource actor. |
+| `docs/actors/wikisource.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wikisource actor. |
+| `scripts/wiktionary_pipeline/orchestrator.py` | Multi-Language Harvest Orchestrator | 198-language dump harvest CLI, SQLite progress ledger, zero disk residue pipeline. |
+| `scripts/wiktionary_pipeline/cleaner.py` | Cleaner & Parser | O(1) RAM XML streaming parser, definition and etymology extractor, wikitext cleaner. |
+| `scripts/wiktionary_pipeline/packer.py` | Parquet Sharder | StreamingParquetSharder with Zstandard compression and row-group flushing. |
+| `scripts/wiktionary_pipeline/downloader.py` | Dump Downloader | Wikimedia Wiktionary dump stream downloader, mirror resolver, and file cleanup. |
+| `scripts/wiktionary_pipeline/drive_sync.py` | Google Drive Sync | Google Drive v3 client with MD5 hash verification and instant local file deletion. |
+| `examples/actors/wiktionary.json` | Example Config | Standalone JSON configuration for Wiktionary actor. |
+| `docs/actors/wiktionary.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wiktionary actor. |
 | `Dockerfile` | Container Build | Multi-stage production container build with Node 22, Playwright Chromium libraries, and Python 3. |
 | `docker-compose.yml` | Container Orchestration | Docker compose deployment mapping port 4000, data volume, and healthcheck. |
 | `.github/workflows/ci.yml` | CI/CD Workflow | Continuous integration pipeline executing Biome lint, naming check, TypeScript build, test suite, and SCA audit. |

@@ -1409,3 +1409,113 @@ test("POST /api/v1/lesswrong routes correctly via server router", async () => {
     await new Promise<void>((resolve) => mockServer.close(() => resolve()));
   }
 });
+
+test("POST /api/v1/wikisource routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        title: "Nutuk",
+        extract: "1919 senesi Mayisinin 19'uncu gunu Samsun'a ciktim.",
+        description: "Mustafa Kemal Ataturk'un eseri",
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/wikisource`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lang: "tr",
+        action: "summary",
+        title: "Nutuk",
+        targetUrl: `http://127.0.0.1:${mockPort}/api/rest_v1/page/summary/Nutuk`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        lang: string;
+        action: string;
+        items: Array<{ title: string; extract: string }>;
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.lang, "tr");
+    assert.equal(json.data?.action, "summary");
+    assert.equal(json.data?.items?.[0]?.title, "Nutuk");
+    assert.ok(json.data?.items?.[0]?.extract?.includes("Samsun"));
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/wiktionary routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        en: [
+          {
+            partOfSpeech: "Noun",
+            language: "English",
+            definitions: [
+              {
+                definition: "A set of rules for solving a problem.",
+              },
+            ],
+          },
+        ],
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/wiktionary`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lang: "en",
+        action: "definition",
+        word: "algorithm",
+        targetUrl: `http://127.0.0.1:${mockPort}/api/rest_v1/page/definition/algorithm`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        lang: string;
+        action: string;
+        items: Array<{ word: string; partsOfSpeech?: Array<{ partOfSpeech: string }> }>;
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.lang, "en");
+    assert.equal(json.data?.action, "definition");
+    assert.equal(json.data?.items?.[0]?.word, "algorithm");
+    assert.equal(json.data?.items?.[0]?.partsOfSpeech?.[0]?.partOfSpeech, "Noun");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
