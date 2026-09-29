@@ -1,0 +1,21 @@
+name: "gutenberg-drive-pipeline"
+description: "Project Gutenberg Gutendex streaming pipeline -> Zstd Parquet shards -> Google Drive upload"
+actor: "gutenberg"
+version: "1.0.0"
+
+storage:
+  type: "google-drive"
+  folder: "Gutenberg"
+  rootFolderId: "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"
+
+processing:
+  format: "parquet"
+  compression: "zstd"
+  compressionLevel: 3
+  batchSize: 5000
+  maxPartBytes: 4294967296  # 4 GB
+
+options:
+  endpoint: "https://gutendex.com/books"
+  minWordCount: 50
+  zeroDiskResidue: true

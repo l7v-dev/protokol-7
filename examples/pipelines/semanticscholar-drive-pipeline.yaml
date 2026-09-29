@@ -1,0 +1,21 @@
+name: "semanticscholar-drive-pipeline"
+description: "Semantic Scholar Graph API bulk search streaming -> Field extraction & cleaning -> Zstd Parquet -> Google Drive upload"
+actor: "semantic-scholar"
+version: "1.0.0"
+
+storage:
+  type: "google-drive"
+  folder: "SemanticScholar"
+  rootFolderId: "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"
+
+processing:
+  format: "parquet"
+  compression: "zstd"
+  compressionLevel: 3
+  batchSize: 5000
+  maxPartBytes: 4294967296  # 4 GB
+
+options:
+  endpoint: "https://api.semanticscholar.org/graph/v1/paper/search/bulk"
+  minAbstractTokens: 20
+  zeroDiskResidue: true

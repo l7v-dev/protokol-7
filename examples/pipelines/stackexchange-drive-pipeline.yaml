@@ -1,0 +1,22 @@
+name: "stackexchange-drive-pipeline"
+description: "StackExchange 7z XML dump extraction -> Thread Q&A parsing -> Zstd Parquet -> Google Drive upload"
+actor: "stack-exchange"
+version: "1.0.0"
+
+storage:
+  type: "google-drive"
+  folder: "StackExchange"
+  rootFolderId: "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"
+
+processing:
+  format: "parquet"
+  compression: "zstd"
+  compressionLevel: 3
+  batchSize: 5000
+  maxPartBytes: 4294967296  # 4 GB
+
+options:
+  source: "archive.org"
+  cleanHtml: true
+  minAnswerScore: 0
+  zeroDiskResidue: true

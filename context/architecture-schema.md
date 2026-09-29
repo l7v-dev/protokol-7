@@ -428,6 +428,18 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `docs/actors/stanford-phil.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Stanford Encyclopedia of Philosophy actor. |
 | `examples/actors/internet-phil.json` | Example Config | Standalone JSON configuration for Internet Encyclopedia of Philosophy actor. |
 | `docs/actors/internet-phil.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Internet Encyclopedia of Philosophy actor. |
+| `examples/pipelines/gutenberg-drive-pipeline.yaml` | Pipeline Config | Sample pipeline configuration for Project Gutenberg streaming to Google Drive. |
+| `examples/pipelines/stackexchange-drive-pipeline.yaml` | Pipeline Config | Sample pipeline configuration for StackExchange dump extraction to Google Drive. |
+| `examples/pipelines/openalex-drive-pipeline.yaml` | Pipeline Config | Sample pipeline configuration for OpenAlex OA works to Google Drive. |
+| `examples/pipelines/semanticscholar-drive-pipeline.yaml` | Pipeline Config | Sample pipeline configuration for Semantic Scholar bulk search to Google Drive. |
+| `scripts/gutenberg_pipeline/orchestrator.py` | Gutenberg Pipeline Orchestrator | Gutendex API harvester, boilerplate cleaner, Zstd Parquet sharder, Google Drive sync. |
+| `scripts/gutenberg_pipeline/test_gutenberg_pipeline.py` | Test Suite | Unit tests for Gutenberg cleaner, sharder, and ledger idempotency. |
+| `scripts/stackexchange_pipeline/orchestrator.py` | StackExchange Harvest Orchestrator | Archive.org 7z dump processor, thread Q&A assembler, Zstd Parquet sharder, Drive sync. |
+| `scripts/stackexchange_pipeline/test_stackexchange_pipeline.py` | Test Suite | Unit tests for StackExchange HTML cleaner, thread assembler, and Parquet packer. |
+| `scripts/openalex_pipeline/orchestrator.py` | OpenAlex Harvest Orchestrator | Cursor pagination streamer, inverted index abstract reconstructor, Parquet sharder, Drive sync. |
+| `scripts/openalex_pipeline/test_openalex_pipeline.py` | Test Suite | Unit tests for OpenAlex abstract reconstruction, record cleaning, and Parquet sharder. |
+| `scripts/semanticscholar_pipeline/orchestrator.py` | Semantic Scholar Harvest Orchestrator | S2 bulk API streamer, metadata cleaner, Zstd Parquet sharder, Drive sync. |
+| `scripts/semanticscholar_pipeline/test_semanticscholar_pipeline.py` | Test Suite | Unit tests for Semantic Scholar cleaner, field extractor, and Parquet sharder. |
 | `examples/actors/metamath.json` | Example Config | Standalone JSON configuration for Metamath Proof Explorer actor. |
 | `docs/actors/metamath.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Metamath Proof Explorer actor. |
 | `examples/actors/philpapers.json` | Example Config | Standalone JSON configuration for PhilPapers Archive actor. |

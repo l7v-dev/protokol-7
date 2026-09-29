@@ -1,0 +1,21 @@
+name: "openalex-drive-pipeline"
+description: "OpenAlex OA works cursor streaming -> Inverted index abstract reconstruction -> Zstd Parquet -> Google Drive upload"
+actor: "openalex"
+version: "1.0.0"
+
+storage:
+  type: "google-drive"
+  folder: "OpenAlex"
+  rootFolderId: "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"
+
+processing:
+  format: "parquet"
+  compression: "zstd"
+  compressionLevel: 3
+  batchSize: 5000
+  maxPartBytes: 4294967296  # 4 GB
+
+options:
+  filter: "is_oa:true"
+  minAbstractTokens: 30
+  zeroDiskResidue: true
