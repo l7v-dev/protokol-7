@@ -118,10 +118,11 @@ class GutenbergDriveSync:
         self,
         local_path: str,
         max_retries: int = 3,
+        subfolder: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Uploads local Parquet file to Drive/Gutenberg/, verifies MD5,
-        deletes local file. Returns result dict.
+        Uploads local Parquet or TAR.GZ file to Drive/Gutenberg/ (or subfolder),
+        verifies MD5, deletes local file. Returns result dict.
         """
         if not os.path.exists(local_path):
             raise FileNotFoundError(local_path)
@@ -129,21 +130,32 @@ class GutenbergDriveSync:
         fname     = os.path.basename(local_path)
         size_mb   = os.path.getsize(local_path) / 1024**2
         local_md5 = _md5(local_path)
-        folder_id = self._ensure_gutenberg_folder()
+        parent_id = self._ensure_gutenberg_folder()
+        if subfolder:
+            parent_id = self._get_or_create_folder(parent_id, subfolder)
 
         print(f"[DRIVE SYNC] Uploading: {fname} ({size_mb:.2f} MB, MD5: {local_md5})")
 
+        is_tar = fname.endswith(".tar.gz") or fname.endswith(".tar")
+        mime = "application/gzip" if is_tar else "application/vnd.apache.parquet"
+        desc = (
+            "Project Gutenberg illustrations and images -- TAR.GZ shard -- protokol-7"
+            if is_tar else
+            "Project Gutenberg clean text corpus -- Zstd Parquet -- protokol-7"
+        )
+
         meta = {
             "name": fname,
-            "parents": [folder_id],
-            "description": "Project Gutenberg clean text corpus -- Zstd Parquet -- protokol-7",
+            "parents": [parent_id],
+            "description": desc,
         }
         media = MediaFileUpload(
             local_path,
-            mimetype="application/vnd.apache.parquet",
+            mimetype=mime,
             chunksize=64 * 1024 * 1024,
             resumable=True,
         )
+
 
         for attempt in range(1, max_retries + 1):
             try:

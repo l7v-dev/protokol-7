@@ -35,12 +35,13 @@ from typing import Dict, Any, List, Optional
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from cleaner import build_entry
-from downloader import iter_catalog_pages, pick_text_url, stream_book_text
+from downloader import iter_catalog_pages, pick_text_url, stream_book_text, fetch_book_images
 from drive_sync import GutenbergDriveSync
-from packer import GutenbergParquetSharder
+from packer import GutenbergParquetSharder, GutenbergImageTarSharder
 
 DEFAULT_DB_PATH   = "data/gutenberg_catalog.sqlite"
 DEFAULT_OUT_DIR   = "data/temp_gutenberg"
+
 
 
 # ------------------------------------------------------------------
@@ -74,6 +75,7 @@ class GutenbergLedger:
                     status         TEXT DEFAULT 'pending',
                     word_count     INTEGER DEFAULT 0,
                     char_count     INTEGER DEFAULT 0,
+                    image_count    INTEGER DEFAULT 0,
                     parquet_shard  TEXT,
                     drive_file_id  TEXT,
                     error_message  TEXT,
@@ -81,6 +83,7 @@ class GutenbergLedger:
                     updated_at     TEXT
                 )
             """)
+
 
     def close(self) -> None:
         self.conn.close()
@@ -106,6 +109,7 @@ class GutenbergLedger:
         status: str,
         word_count: int = 0,
         char_count: int = 0,
+        image_count: int = 0,
         parquet_shard: Optional[str] = None,
         drive_file_id: Optional[str] = None,
         error_message: Optional[str] = None,
@@ -116,6 +120,7 @@ class GutenbergLedger:
         for col, val in [
             ("word_count", word_count),
             ("char_count", char_count),
+            ("image_count", image_count),
             ("parquet_shard", parquet_shard),
             ("drive_file_id", drive_file_id),
             ("error_message", error_message),
@@ -123,6 +128,7 @@ class GutenbergLedger:
             if val is not None:
                 fields.append(f"{col} = ?")
                 params.append(val)
+
         params.append(book_id)
         with self.conn:
             self.conn.execute(
@@ -220,13 +226,31 @@ class GutenbergOrchestrator:
             else:
                 print(f"[INFO] Drive disabled -- file kept at: {fpath}")
 
+    def _commit_images(self, image_sharder: GutenbergImageTarSharder) -> None:
+        """Close image sharder, upload produced TAR shards to Drive/Gutenberg/Images/, delete local."""
+        tar_files = image_sharder.close()
+        if not tar_files:
+            return
+        for fpath in tar_files:
+            size_mb = os.path.getsize(fpath) / 1024**2
+            print(f"[IMAGE SHARD] Produced {os.path.basename(fpath)} ({size_mb:.2f} MB)")
+            if self.enable_drive and self.drive:
+                self.drive.upload_and_clean(fpath, subfolder="Images")
+            else:
+                print(f"[INFO] Drive disabled -- image TAR kept at: {fpath}")
+
     def run(self, limit: int = 0) -> None:
-        print("[INIT] Starting Gutenberg full-corpus harvest...")
+        print("[INIT] Starting Gutenberg full-corpus harvest with text and image sharding...")
         total_processed = 0
         total_skipped   = 0
         total_failed    = 0
+        total_images    = 0
         shard_idx       = 0
         sharder         = self._new_sharder(shard_idx)
+        image_sharder   = GutenbergImageTarSharder(
+            output_dir=self.out_dir,
+            on_part_ready=lambda p, cnt: self.drive.upload_and_clean(p, subfolder="Images") if (self.enable_drive and self.drive) else None,
+        )
         books_in_shard  = 0
         t_start         = time.time()
 
@@ -273,6 +297,13 @@ class GutenbergOrchestrator:
                         total_failed += 1
                         continue
 
+                    # Extract illustrations/images from EPUB/Zip/Cover
+                    images = fetch_book_images(book_id, formats)
+                    image_shard = ""
+                    if images:
+                        image_shard = image_sharder.append_images(book_id, images)
+                        total_images += len(images)
+
                     # Build clean entry
                     entry = build_entry(
                         book_id=book_id,
@@ -283,6 +314,8 @@ class GutenbergOrchestrator:
                         download_count=dl_count,
                         text_url=text_url,
                         raw_bytes=raw_bytes,
+                        image_count=len(images),
+                        image_archive_shard=image_shard,
                     )
                     if entry is None:
                         self.ledger.mark_status(book_id, "skipped", error_message="below quality threshold")
@@ -299,6 +332,7 @@ class GutenbergOrchestrator:
                         book_id, "completed",
                         word_count=entry["word_count"],
                         char_count=entry["char_count"],
+                        image_count=len(images),
                         parquet_shard=shard_name,
                     )
 
@@ -306,7 +340,7 @@ class GutenbergOrchestrator:
                         elapsed = time.time() - t_start
                         rate = total_processed / max(1, elapsed)
                         print(
-                            f"[PROGRESS] {total_processed:,} books processed "
+                            f"[PROGRESS] {total_processed:,} books | {total_images:,} images "
                             f"({rate:.1f} books/s) | skipped: {total_skipped} | failed: {total_failed}"
                         )
 
@@ -329,8 +363,10 @@ class GutenbergOrchestrator:
                     break
 
         finally:
-            # Always commit remaining shard
+            # Always commit remaining shards (both text Parquet and image TAR)
             self._commit_shard(sharder, shard_idx)
+            self._commit_images(image_sharder)
+
 
         elapsed_total = time.time() - t_start
         print(

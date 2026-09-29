@@ -127,6 +127,8 @@ def build_entry(
     download_count: int,
     text_url: str,
     raw_bytes: bytes,
+    image_count: int = 0,
+    image_archive_shard: str = "",
 ) -> Optional[Dict[str, Any]]:
     """
     Cleans raw book bytes and assembles a Parquet-ready entry dict.
@@ -147,4 +149,8 @@ def build_entry(
         "text": clean_text,
         "char_count": len(clean_text),
         "word_count": len(clean_text.split()),
+        "has_images": 1 if image_count > 0 else 0,
+        "image_count": image_count,
+        "image_archive_shard": image_archive_shard,
     }
+

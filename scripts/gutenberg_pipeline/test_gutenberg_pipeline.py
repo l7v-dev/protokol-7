@@ -12,7 +12,8 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from cleaner import clean_gutenberg_text, strip_pg_envelope, build_entry
-from packer import GutenbergParquetSharder
+from downloader import pick_image_source_url
+from packer import GutenbergParquetSharder, GutenbergImageTarSharder
 
 # ------------------------------------------------------------------
 # Sample fixtures
@@ -170,9 +171,66 @@ class TestGutenbergParquetSharder(unittest.TestCase):
             expected_cols = {
                 "book_id", "title", "authors", "subjects", "languages",
                 "download_count", "text_url", "text", "char_count", "word_count",
+                "has_images", "image_count", "image_archive_shard",
             }
             self.assertTrue(expected_cols.issubset(set(tbl.schema.names)))
 
 
+class TestGutenbergImageTarSharder(unittest.TestCase):
+    def test_packs_images_into_tar_gz(self):
+        import tarfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            sharder = GutenbergImageTarSharder(
+                output_dir=tmpdir,
+                corpus_prefix="test_images",
+            )
+            images = [
+                {"name": "cover.jpg", "bytes": b"\xff\xd8\xff" + b"\x00" * 100},
+                {"name": "fig1.png", "bytes": b"\x89PNG" + b"\x00" * 200},
+            ]
+            shard_name = sharder.append_images(book_id=11, images=images)
+            self.assertIn("test_images", shard_name)
+            files = sharder.close()
+            self.assertEqual(len(files), 1)
+            tar_path = files[0]
+            self.assertTrue(os.path.exists(tar_path))
+            self.assertTrue(tar_path.endswith(".tar.gz"))
+
+            # Verify contents inside TAR
+            with tarfile.open(tar_path, "r:gz") as tar:
+                names = tar.getnames()
+                self.assertIn("11/cover.jpg", names)
+                self.assertIn("11/fig1.png", names)
+
+    def test_empty_images_returns_empty_string(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            sharder = GutenbergImageTarSharder(output_dir=tmpdir)
+            shard_name = sharder.append_images(book_id=99, images=[])
+            self.assertEqual(shard_name, "")
+            files = sharder.close()
+            self.assertEqual(len(files), 0)
+
+
+class TestImageDetection(unittest.TestCase):
+    def test_picks_epub_images(self):
+        formats = {
+            "application/epub+zip": "https://www.gutenberg.org/ebooks/11.epub.images",
+            "text/plain; charset=utf-8": "https://www.gutenberg.org/files/11/11-0.txt",
+        }
+        url = pick_image_source_url(formats)
+        self.assertIsNotNone(url)
+        self.assertIn("epub.images", url)
+
+    def test_picks_html_zip_fallback(self):
+        formats = {
+            "application/zip": "https://www.gutenberg.org/files/11/11-h.zip",
+            "text/plain": "https://www.gutenberg.org/files/11/11.txt",
+        }
+        url = pick_image_source_url(formats)
+        self.assertIsNotNone(url)
+        self.assertIn("11-h.zip", url)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
