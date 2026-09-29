@@ -29,7 +29,7 @@ OPENALEX_SCHEMA = pa.schema([
 ])
 
 DEFAULT_BATCH_SIZE     = 5_000
-DEFAULT_MAX_PART_BYTES = 4 * 1024**3
+DEFAULT_MAX_PART_BYTES = 10 * 1024**3   # 10 GB part ceiling
 
 
 class OpenAlexParquetSharder:

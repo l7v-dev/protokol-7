@@ -6,10 +6,10 @@ Dört büyük metin ve akademik kaynak için Google Drive v3 entegrasyonlu, sıf
 
 | Pipeline | Kaynak | Veri Tipi | Sıkıştırma / Çıktı | Drive Hedef Klasörü | Durum |
 |---|---|---|---|---|---|
-| **Gutenberg** | Gutendex API | ~70.000 Tam Metin Kitap | Zstd Parquet (4 GB Shard) | `Gutenberg/` | Hazır, Testler Tam (10/10) |
-| **StackExchange** | archive.org 7z Dumps | ~100M+ Soru/Cevap Konusu | Zstd Parquet (4 GB Shard) | `StackExchange/<site>/` | Hazır, Testler Tam (12/12) |
-| **OpenAlex** | OpenAlex API Works | OA Akademik Çalışmalar | Zstd Parquet (4 GB Shard) | `OpenAlex/` | Hazır, Testler Tam (18/18) |
-| **Semantic Scholar** | S2 Graph API Bulk | S2ORC / S2AG Makaleler | Zstd Parquet (4 GB Shard) | `SemanticScholar/` | Hazır, Testler Tam (24/24) |
+| **Gutenberg** | Gutendex API | ~70.000 Tam Metin Kitap | Zstd Parquet (10 GB Shard) | `Gutenberg/` | Hazır, Testler Tam (10/10) |
+| **StackExchange** | archive.org 7z Dumps | ~100M+ Soru/Cevap Konusu | Zstd Parquet (10 GB Shard) | `StackExchange/<site>/` | Hazır, Testler Tam (12/12) |
+| **OpenAlex** | OpenAlex API Works | OA Akademik Çalışmalar | Zstd Parquet (10 GB Shard) | `OpenAlex/` | Hazır, Testler Tam (18/18) |
+| **Semantic Scholar** | S2 Graph API Bulk | S2ORC / S2AG Makaleler | Zstd Parquet (10 GB Shard) | `SemanticScholar/` | Hazır, Testler Tam (24/24) |
 
 ---
 

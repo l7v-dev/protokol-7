@@ -13,7 +13,7 @@ processing:
   compression: "zstd"
   compressionLevel: 3
   batchSize: 5000
-  maxPartBytes: 4294967296  # 4 GB
+  maxPartBytes: 10737418240  # 10 GB
 
 options:
   endpoint: "https://gutendex.com/books"

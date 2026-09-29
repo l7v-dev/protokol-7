@@ -31,7 +31,7 @@ GUTENBERG_SCHEMA = pa.schema([
 ])
 
 DEFAULT_BATCH_SIZE    = 2_000             # books per Arrow row-group
-DEFAULT_MAX_PART_BYTES = 4 * 1024**3     # 4 GB part ceiling
+DEFAULT_MAX_PART_BYTES = 10 * 1024**3    # 10 GB part ceiling
 
 
 class GutenbergParquetSharder:
