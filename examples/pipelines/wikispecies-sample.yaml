@@ -1,0 +1,22 @@
+name: wikispecies-sample
+version: 1
+
+actor:
+  id: wikispecies
+  config:
+    taxon: "Panthera leo"
+    action: summary
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: local
+  prefix: "samples/wikispecies"

@@ -1,0 +1,24 @@
+name: wikinews-drive-pipeline
+version: 1
+
+actor:
+  id: wikinews
+  config:
+    query: "technology"
+    lang: en
+    action: search
+    limit: 10
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: drive
+  folder_id: "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"

@@ -1,0 +1,23 @@
+name: wikiquote-sample
+version: 1
+
+actor:
+  id: wikiquote
+  config:
+    title: "Mustafa Kemal Atatürk"
+    lang: "tr"
+    action: "article"
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: local
+  prefix: "samples/wikiquote"

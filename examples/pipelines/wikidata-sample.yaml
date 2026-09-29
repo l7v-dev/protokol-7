@@ -1,0 +1,23 @@
+name: wikidata-sample
+version: 1
+
+actor:
+  id: wikidata
+  config:
+    entityId: "Q42"
+    lang: en
+    action: entity
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: local
+  prefix: "samples/wikidata"

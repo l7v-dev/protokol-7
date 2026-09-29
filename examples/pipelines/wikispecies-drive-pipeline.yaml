@@ -1,0 +1,22 @@
+name: wikispecies-drive-pipeline
+version: 1
+
+actor:
+  id: wikispecies
+  config:
+    taxon: "Panthera leo"
+    action: summary
+
+schedule:
+  type: one-time
+
+execution:
+  target: local
+
+output:
+  format: jsonl
+  compression: none
+
+storage:
+  backend: drive
+  folder_id: "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"

@@ -1,0 +1,164 @@
+[
+  {
+    "db": "bnwikivoyage",
+    "lang": "bn",
+    "url": "https://bn.wikivoyage.org",
+    "name": "বাংলা"
+  },
+  {
+    "db": "cswikivoyage",
+    "lang": "cs",
+    "url": "https://cs.wikivoyage.org",
+    "name": "čeština"
+  },
+  {
+    "db": "dewikivoyage",
+    "lang": "de",
+    "url": "https://de.wikivoyage.org",
+    "name": "Deutsch"
+  },
+  {
+    "db": "elwikivoyage",
+    "lang": "el",
+    "url": "https://el.wikivoyage.org",
+    "name": "Ελληνικά"
+  },
+  {
+    "db": "enwikivoyage",
+    "lang": "en",
+    "url": "https://en.wikivoyage.org",
+    "name": "English"
+  },
+  {
+    "db": "eowikivoyage",
+    "lang": "eo",
+    "url": "https://eo.wikivoyage.org",
+    "name": "Esperanto"
+  },
+  {
+    "db": "eswikivoyage",
+    "lang": "es",
+    "url": "https://es.wikivoyage.org",
+    "name": "español"
+  },
+  {
+    "db": "fawikivoyage",
+    "lang": "fa",
+    "url": "https://fa.wikivoyage.org",
+    "name": "فارسی"
+  },
+  {
+    "db": "fiwikivoyage",
+    "lang": "fi",
+    "url": "https://fi.wikivoyage.org",
+    "name": "suomi"
+  },
+  {
+    "db": "frwikivoyage",
+    "lang": "fr",
+    "url": "https://fr.wikivoyage.org",
+    "name": "français"
+  },
+  {
+    "db": "hewikivoyage",
+    "lang": "he",
+    "url": "https://he.wikivoyage.org",
+    "name": "עברית"
+  },
+  {
+    "db": "hiwikivoyage",
+    "lang": "hi",
+    "url": "https://hi.wikivoyage.org",
+    "name": "हिन्दी"
+  },
+  {
+    "db": "idwikivoyage",
+    "lang": "id",
+    "url": "https://id.wikivoyage.org",
+    "name": "Bahasa Indonesia"
+  },
+  {
+    "db": "itwikivoyage",
+    "lang": "it",
+    "url": "https://it.wikivoyage.org",
+    "name": "italiano"
+  },
+  {
+    "db": "jawikivoyage",
+    "lang": "ja",
+    "url": "https://ja.wikivoyage.org",
+    "name": "日本語"
+  },
+  {
+    "db": "nlwikivoyage",
+    "lang": "nl",
+    "url": "https://nl.wikivoyage.org",
+    "name": "Nederlands"
+  },
+  {
+    "db": "plwikivoyage",
+    "lang": "pl",
+    "url": "https://pl.wikivoyage.org",
+    "name": "polski"
+  },
+  {
+    "db": "pswikivoyage",
+    "lang": "ps",
+    "url": "https://ps.wikivoyage.org",
+    "name": "پښتو"
+  },
+  {
+    "db": "ptwikivoyage",
+    "lang": "pt",
+    "url": "https://pt.wikivoyage.org",
+    "name": "português"
+  },
+  {
+    "db": "rowikivoyage",
+    "lang": "ro",
+    "url": "https://ro.wikivoyage.org",
+    "name": "română"
+  },
+  {
+    "db": "ruwikivoyage",
+    "lang": "ru",
+    "url": "https://ru.wikivoyage.org",
+    "name": "русский"
+  },
+  {
+    "db": "shnwikivoyage",
+    "lang": "shn",
+    "url": "https://shn.wikivoyage.org",
+    "name": "တႆး"
+  },
+  {
+    "db": "svwikivoyage",
+    "lang": "sv",
+    "url": "https://sv.wikivoyage.org",
+    "name": "svenska"
+  },
+  {
+    "db": "trwikivoyage",
+    "lang": "tr",
+    "url": "https://tr.wikivoyage.org",
+    "name": "Türkçe"
+  },
+  {
+    "db": "ukwikivoyage",
+    "lang": "uk",
+    "url": "https://uk.wikivoyage.org",
+    "name": "українська"
+  },
+  {
+    "db": "viwikivoyage",
+    "lang": "vi",
+    "url": "https://vi.wikivoyage.org",
+    "name": "Tiếng Việt"
+  },
+  {
+    "db": "zhwikivoyage",
+    "lang": "zh",
+    "url": "https://zh.wikivoyage.org",
+    "name": "中文"
+  }
+]
