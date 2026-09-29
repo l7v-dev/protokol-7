@@ -89,6 +89,13 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/actors/corpus/youtube-transcripts-actor.ts` | `YoutubeTranscriptsActor` | YouTube Transcripts & Captions Harvester with dual-engine fallback (HTTP + Playwright) and LLM acoustic noise cleaning. |
 | `src/actors/corpus/wikisource-actor.ts` | `WikisourceActor` | Wikisource REST API v1 & Action API — historical, classical, and literary public domain texts across 85+ languages, poem/verse distillation. |
 | `src/actors/corpus/wiktionary-actor.ts` | `WiktionaryActor` | Wiktionary REST API v1 & Action API — lexical definitions, etymology, parts of speech, and translations across 198+ languages. |
+| `src/actors/corpus/wikiquote-actor.ts` | `WikiquoteActor` | Wikiquote REST API v1 & Action API — verified quotations, speeches, aphorisms, and literary dialogue across 90+ languages. |
+| `src/actors/corpus/wikibooks-actor.ts` | `WikibooksActor` | Wikibooks REST API v1 & Action API — open textbooks, pedagogical modules, and technical manuals across 120+ languages. |
+| `src/actors/corpus/wikiversity-actor.ts` | `WikiversityActor` | Wikiversity REST API v1 & Action API — university course modules, academic study guides, and research outlines across 17+ languages. |
+| `src/actors/corpus/wikivoyage-actor.ts` | `WikivoyageActor` | Wikivoyage REST API v1 & Action API — travel guides, geographical routes, and cultural destination profiles across 30+ languages. |
+| `src/actors/corpus/wikinews-actor.ts` | `WikinewsActor` | Wikinews REST API v1 & Action API — collaborative journalism, news articles, historical dispatches, and event timelines across 35+ languages. |
+| `src/actors/corpus/wikispecies-actor.ts` | `WikispeciesActor` | Wikispecies REST API v1 & Action API on species.wikimedia.org — biological classifications, phylogenetic clades, and taxonomic nomenclature. |
+| `src/actors/corpus/wikidata-actor.ts` | `WikidataActor` | Wikidata Action API, EntityData, and SPARQL endpoint — structured knowledge graph entities, claims, labels, and semantic triples. |
 
 #### Document Actors (`src/actors/documents/`) — local file and archive extraction
 
@@ -306,6 +313,13 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/youtube-transcripts-actor.test.ts` | `YoutubeTranscriptsActor`, `src/api/server.ts` | URL resolution, 11-char ID extraction, timedtext XML parsing, LLM acoustic noise cleaning, SSRF guard, and REST route. |
 | `tests/wikisource-actor.test.ts` | `WikisourceActor`, `src/api/server.ts` | Multi-language routing across 85+ domains, Turndown GFM markdown, poem/verse preservation, scan navigation stripping, SSRF guard, and REST route. |
 | `tests/wiktionary-actor.test.ts` | `WiktionaryActor`, `src/api/server.ts` | Multi-language routing across 198+ domains, definition matrix extraction, Turndown HTML to markdown, search, random lemma discovery, SSRF guard, and REST route. |
+| `tests/wikiquote-actor.test.ts` | `WikiquoteActor`, `src/api/server.ts` | Multi-language routing across 90+ domains, quotebox format, Turndown GFM markdown, SSRF guard, and REST route. |
+| `tests/wikibooks-actor.test.ts` | `WikibooksActor`, `src/api/server.ts` | Multi-language routing across 120+ domains, chapter extraction, Turndown GFM markdown, SSRF guard, and REST route. |
+| `tests/wikiversity-actor.test.ts` | `WikiversityActor`, `src/api/server.ts` | Multi-language routing across 17+ domains, course module extraction, Turndown GFM markdown, SSRF guard, and REST route. |
+| `tests/wikivoyage-actor.test.ts` | `WikivoyageActor`, `src/api/server.ts` | Multi-language routing across 30+ domains, destination listings, Turndown GFM markdown, SSRF guard, and REST route. |
+| `tests/wikinews-actor.test.ts` | `WikinewsActor`, `src/api/server.ts` | Multi-language routing across 35+ domains, news dispatch extraction, Turndown GFM markdown, SSRF guard, and REST route. |
+| `tests/wikispecies-actor.test.ts` | `WikispeciesActor`, `src/api/server.ts` | Unified taxonomy database routing on species.wikimedia.org, clade extraction, Turndown GFM markdown, SSRF guard, and REST route. |
+| `tests/wikidata-actor.test.ts` | `WikidataActor`, `src/api/server.ts` | Structured entity parsing, claims extraction, wbsearchentities, SPARQL query handling, SSRF guard, and REST route. |
 
 ---
 
@@ -366,6 +380,20 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `scripts/wiktionary_pipeline/drive_sync.py` | Google Drive Sync | Google Drive v3 client with MD5 hash verification and instant local file deletion. |
 | `examples/actors/wiktionary.json` | Example Config | Standalone JSON configuration for Wiktionary actor. |
 | `docs/actors/wiktionary.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wiktionary actor. |
+| `examples/actors/wikiquote.json` | Example Config | Standalone JSON configuration for Wikiquote actor. |
+| `docs/actors/wikiquote.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wikiquote actor. |
+| `examples/actors/wikibooks.json` | Example Config | Standalone JSON configuration for Wikibooks actor. |
+| `docs/actors/wikibooks.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wikibooks actor. |
+| `examples/actors/wikiversity.json` | Example Config | Standalone JSON configuration for Wikiversity actor. |
+| `docs/actors/wikiversity.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wikiversity actor. |
+| `examples/actors/wikivoyage.json` | Example Config | Standalone JSON configuration for Wikivoyage actor. |
+| `docs/actors/wikivoyage.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wikivoyage actor. |
+| `examples/actors/wikinews.json` | Example Config | Standalone JSON configuration for Wikinews actor. |
+| `docs/actors/wikinews.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wikinews actor. |
+| `examples/actors/wikispecies.json` | Example Config | Standalone JSON configuration for Wikispecies actor. |
+| `docs/actors/wikispecies.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wikispecies actor. |
+| `examples/actors/wikidata.json` | Example Config | Standalone JSON configuration for Wikidata actor. |
+| `docs/actors/wikidata.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Wikidata actor. |
 | `Dockerfile` | Container Build | Multi-stage production container build with Node 22, Playwright Chromium libraries, and Python 3. |
 | `docker-compose.yml` | Container Orchestration | Docker compose deployment mapping port 4000, data volume, and healthcheck. |
 | `.github/workflows/ci.yml` | CI/CD Workflow | Continuous integration pipeline executing Biome lint, naming check, TypeScript build, test suite, and SCA audit. |

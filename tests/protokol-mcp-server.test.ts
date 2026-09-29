@@ -64,13 +64,20 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 57);
+    assert.equal(result.tools.length, 64);
 
     const toolNames = result.tools.map((t) => t.name);
     assert.ok(toolNames.includes("wikipedia_query"));
     assert.ok(toolNames.includes("query_youtube_transcripts"));
     assert.ok(toolNames.includes("query_wikisource"));
     assert.ok(toolNames.includes("query_wiktionary"));
+    assert.ok(toolNames.includes("query_wikiquote"));
+    assert.ok(toolNames.includes("query_wikibooks"));
+    assert.ok(toolNames.includes("query_wikiversity"));
+    assert.ok(toolNames.includes("query_wikivoyage"));
+    assert.ok(toolNames.includes("query_wikinews"));
+    assert.ok(toolNames.includes("query_wikispecies"));
+    assert.ok(toolNames.includes("query_wikidata"));
     assert.ok(toolNames.includes("query_resmi_gazete"));
     assert.ok(toolNames.includes("query_yargitay"));
     assert.ok(toolNames.includes("query_kap"));
@@ -968,5 +975,111 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.equal(typedTask.options.wiktionaryOptions.word, "algorithm");
     assert.equal(typedTask.options.wiktionaryOptions.lang, "en");
     assert.equal(typedTask.options.wiktionaryOptions.action, "definition");
+  });
+
+  it("correctly maps query_wikiquote parameters to wikiquoteOptions", async () => {
+    let capturedTask: ActorTask | null = null;
+    const mockRegistry = new ActorRegistry();
+    const mockWikiquote: IActor = {
+      actorType: "wikiquote",
+      description: "mock wikiquote",
+      run: async (task: ActorTask) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "wikiquote",
+          status: "completed",
+          data: {
+            lang: "en",
+            action: "summary",
+            items: [],
+            queryUrl: "http://mock",
+          },
+          executionDurationMs: 10,
+        };
+      },
+    };
+    mockRegistry.register(mockWikiquote);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "wikiquote-test",
+      method: "tools/call",
+      params: {
+        name: "query_wikiquote",
+        arguments: {
+          title: "Albert Einstein",
+          lang: "en",
+          action: "summary",
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        wikiquoteOptions?: {
+          title?: string;
+          lang?: string;
+          action?: string;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.wikiquoteOptions);
+    assert.equal(typedTask.options.wikiquoteOptions.title, "Albert Einstein");
+    assert.equal(typedTask.options.wikiquoteOptions.lang, "en");
+  });
+
+  it("correctly maps query_wikidata parameters to wikidataOptions", async () => {
+    let capturedTask: ActorTask | null = null;
+    const mockRegistry = new ActorRegistry();
+    const mockWikidata: IActor = {
+      actorType: "wikidata",
+      description: "mock wikidata",
+      run: async (task: ActorTask) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "wikidata",
+          status: "completed",
+          data: {
+            action: "entity",
+            queryUrl: "http://mock",
+          },
+          executionDurationMs: 10,
+        };
+      },
+    };
+    mockRegistry.register(mockWikidata);
+
+    const server = new ProtokolMcpServer(mockRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "wikidata-test",
+      method: "tools/call",
+      params: {
+        name: "query_wikidata",
+        arguments: {
+          entityId: "Q42",
+          action: "entity",
+          lang: "en",
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        wikidataOptions?: {
+          entityId?: string;
+          action?: string;
+          lang?: string;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.wikidataOptions);
+    assert.equal(typedTask.options.wikidataOptions.entityId, "Q42");
+    assert.equal(typedTask.options.wikidataOptions.action, "entity");
   });
 });

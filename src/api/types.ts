@@ -55,7 +55,14 @@ export type ActorType =
   | "lesswrong"
   | "youtube-transcripts"
   | "wikisource"
-  | "wiktionary";
+  | "wiktionary"
+  | "wikiquote"
+  | "wikibooks"
+  | "wikiversity"
+  | "wikivoyage"
+  | "wikinews"
+  | "wikispecies"
+  | "wikidata";
 
 export interface ExtractedTable {
   id: string;
@@ -685,6 +692,234 @@ export interface WiktionaryActorResult {
   action: "definition" | "entry" | "search" | "random";
   items: WiktionaryEntryItem[];
   queryUrl: string;
+  markdown?: string;
+}
+
+export interface WikiquoteArticleItem {
+  title: string;
+  url: string;
+  extract?: string;
+  description?: string;
+  fullMarkdown?: string;
+  rawHtml?: string;
+  thumbnailUrl?: string;
+  timestamp?: string;
+  lang: string;
+}
+
+export interface WikiquoteActorTaskOptions {
+  lang?: string;
+  title?: string;
+  titles?: string[];
+  action?: "summary" | "article" | "search";
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+  fetchFullArticles?: boolean;
+}
+
+export interface WikiquoteActorResult {
+  lang: string;
+  action: "summary" | "article" | "search";
+  items: WikiquoteArticleItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface WikibooksArticleItem {
+  title: string;
+  url: string;
+  extract?: string;
+  description?: string;
+  fullMarkdown?: string;
+  rawHtml?: string;
+  thumbnailUrl?: string;
+  timestamp?: string;
+  lang: string;
+}
+
+export interface WikibooksActorTaskOptions {
+  lang?: string;
+  title?: string;
+  titles?: string[];
+  action?: "summary" | "article" | "search";
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+  fetchFullArticles?: boolean;
+}
+
+export interface WikibooksActorResult {
+  lang: string;
+  action: "summary" | "article" | "search";
+  items: WikibooksArticleItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface WikiversityArticleItem {
+  title: string;
+  url: string;
+  extract?: string;
+  description?: string;
+  fullMarkdown?: string;
+  rawHtml?: string;
+  thumbnailUrl?: string;
+  timestamp?: string;
+  lang: string;
+}
+
+export interface WikiversityActorTaskOptions {
+  lang?: string;
+  title?: string;
+  titles?: string[];
+  action?: "summary" | "article" | "search";
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+  fetchFullArticles?: boolean;
+}
+
+export interface WikiversityActorResult {
+  lang: string;
+  action: "summary" | "article" | "search";
+  items: WikiversityArticleItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface WikivoyageArticleItem {
+  title: string;
+  url: string;
+  extract?: string;
+  description?: string;
+  fullMarkdown?: string;
+  rawHtml?: string;
+  thumbnailUrl?: string;
+  timestamp?: string;
+  lang: string;
+}
+
+export interface WikivoyageActorTaskOptions {
+  lang?: string;
+  title?: string;
+  titles?: string[];
+  action?: "summary" | "article" | "search";
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+  fetchFullArticles?: boolean;
+}
+
+export interface WikivoyageActorResult {
+  lang: string;
+  action: "summary" | "article" | "search";
+  items: WikivoyageArticleItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface WikinewsArticleItem {
+  title: string;
+  url: string;
+  extract?: string;
+  description?: string;
+  fullMarkdown?: string;
+  rawHtml?: string;
+  thumbnailUrl?: string;
+  timestamp?: string;
+  lang: string;
+}
+
+export interface WikinewsActorTaskOptions {
+  lang?: string;
+  title?: string;
+  titles?: string[];
+  action?: "summary" | "article" | "search";
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+  fetchFullArticles?: boolean;
+}
+
+export interface WikinewsActorResult {
+  lang: string;
+  action: "summary" | "article" | "search";
+  items: WikinewsArticleItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface WikispeciesTaxonItem {
+  taxon: string;
+  url: string;
+  extract?: string;
+  description?: string;
+  fullMarkdown?: string;
+  rawHtml?: string;
+  thumbnailUrl?: string;
+  timestamp?: string;
+}
+
+export interface WikispeciesActorTaskOptions {
+  taxon?: string;
+  title?: string;
+  titles?: string[];
+  action?: "summary" | "article" | "search";
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+  fetchFullArticles?: boolean;
+}
+
+export interface WikispeciesActorResult {
+  action: "summary" | "article" | "search";
+  items: WikispeciesTaxonItem[];
+  queryUrl: string;
+  markdown?: string;
+}
+
+export interface WikidataEntityItem {
+  id: string;
+  title?: string;
+  url: string;
+  label?: string;
+  description?: string;
+  aliases?: string[];
+  claims?: Record<string, Array<{ property: string; value: unknown; datatype?: string }>>;
+  sitelinks?: Record<string, { site: string; title: string; url?: string }>;
+  rawJson?: Record<string, unknown>;
+}
+
+export interface WikidataSparqlBinding {
+  [variable: string]: {
+    type: string;
+    value: string;
+    datatype?: string;
+    "xml:lang"?: string;
+  };
+}
+
+export interface WikidataActorTaskOptions {
+  action?: "entity" | "search" | "sparql" | "claims";
+  entityId?: string;
+  entityIds?: string[];
+  query?: string;
+  sparql?: string;
+  propertyId?: string;
+  lang?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface WikidataActorResult {
+  action: "entity" | "search" | "sparql" | "claims";
+  queryUrl: string;
+  items?: WikidataEntityItem[];
+  sparqlResults?: {
+    head: { vars: string[] };
+    results: { bindings: WikidataSparqlBinding[] };
+  };
   markdown?: string;
 }
 
@@ -1767,6 +2002,13 @@ export interface ActorTask {
     youtubeTranscriptsOptions?: YoutubeTranscriptsActorTaskOptions;
     wikisourceOptions?: WikisourceActorTaskOptions;
     wiktionaryOptions?: WiktionaryActorTaskOptions;
+    wikiquoteOptions?: WikiquoteActorTaskOptions;
+    wikibooksOptions?: WikibooksActorTaskOptions;
+    wikiversityOptions?: WikiversityActorTaskOptions;
+    wikivoyageOptions?: WikivoyageActorTaskOptions;
+    wikinewsOptions?: WikinewsActorTaskOptions;
+    wikispeciesOptions?: WikispeciesActorTaskOptions;
+    wikidataOptions?: WikidataActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

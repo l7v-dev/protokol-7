@@ -1519,3 +1519,105 @@ test("POST /api/v1/wiktionary routes correctly via server router", async () => {
     await new Promise<void>((resolve) => mockServer.close(() => resolve()));
   }
 });
+
+test("POST /api/v1/wikiquote routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        title: "Albert Einstein",
+        extract: "Albert Einstein was a theoretical physicist.",
+        content_urls: { desktop: { page: "https://en.wikiquote.org/wiki/Albert_Einstein" } },
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/wikiquote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lang: "en",
+        action: "summary",
+        title: "Albert Einstein",
+        targetUrl: `http://127.0.0.1:${mockPort}/api/rest_v1/page/summary/Albert_Einstein`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        lang: string;
+        action: string;
+        items: Array<{ title: string; extract?: string }>;
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.lang, "en");
+    assert.equal(json.data?.items?.[0]?.title, "Albert Einstein");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/wikidata routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        entities: {
+          Q42: {
+            id: "Q42",
+            labels: { en: { value: "Douglas Adams" } },
+            descriptions: { en: { value: "English author" } },
+            claims: {},
+          },
+        },
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/wikidata`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        entityId: "Q42",
+        lang: "en",
+        action: "entity",
+        targetUrl: `http://127.0.0.1:${mockPort}/w/api.php?action=wbgetentities&ids=Q42`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        items: Array<{ id: string; label?: string }>;
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.items?.[0]?.id, "Q42");
+    assert.equal(json.data?.items?.[0]?.label, "Douglas Adams");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});

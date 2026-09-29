@@ -33,8 +33,15 @@ import { SaglikEkutuphaneActor } from "./corpus/saglik-ekutuphane-actor";
 import { SecEdgarActor } from "./corpus/sec-edgar-actor";
 import { SoftwareHeritageActor } from "./corpus/software-heritage-actor";
 import { StackExchangeActor } from "./corpus/stack-exchange-actor";
+import { WikibooksActor } from "./corpus/wikibooks-actor";
+import { WikidataActor } from "./corpus/wikidata-actor";
+import { WikinewsActor } from "./corpus/wikinews-actor";
 import { WikimediaActor, WikipediaActor } from "./corpus/wikipedia-actor";
+import { WikiquoteActor } from "./corpus/wikiquote-actor";
 import { WikisourceActor } from "./corpus/wikisource-actor";
+import { WikispeciesActor } from "./corpus/wikispecies-actor";
+import { WikiversityActor } from "./corpus/wikiversity-actor";
+import { WikivoyageActor } from "./corpus/wikivoyage-actor";
 import { WiktionaryActor } from "./corpus/wiktionary-actor";
 import { YargitayActor } from "./corpus/yargitay-actor";
 import { YoutubeTranscriptsActor } from "./corpus/youtube-transcripts-actor";
@@ -123,5 +130,12 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new YoutubeTranscriptsActor());
   registry.register(new WikisourceActor());
   registry.register(new WiktionaryActor());
+  registry.register(new WikiquoteActor());
+  registry.register(new WikibooksActor());
+  registry.register(new WikiversityActor());
+  registry.register(new WikivoyageActor());
+  registry.register(new WikinewsActor());
+  registry.register(new WikispeciesActor());
+  registry.register(new WikidataActor());
   return registry;
 }

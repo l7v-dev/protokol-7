@@ -2678,6 +2678,385 @@ export function createServer(): http.Server {
         return;
       }
 
+      // Wikiquote Harvester (/wikiquote or /api/v1/wikiquote)
+      if (method === "POST" && (pathname === "/api/v1/wikiquote" || pathname === "/wikiquote")) {
+        const body = await parseBody<{
+          title?: string;
+          titles?: string[];
+          lang?: string;
+          action?: "summary" | "article" | "search";
+          query?: string;
+          limit?: number;
+          fetchFullArticles?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wqActor = registry.get("wikiquote");
+        if (!wqActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Wikiquote actor is not available.",
+            "Ensure WikiquoteActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `wq-${Date.now()}`,
+          actorType: "wikiquote",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wikiquoteOptions: {
+              title: body.title,
+              titles: body.titles,
+              lang: body.lang,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              fetchFullArticles: body.fetchFullArticles,
+              ...body.options?.wikiquoteOptions,
+            },
+          },
+        };
+
+        const result = await wqActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Wikibooks Harvester (/wikibooks or /api/v1/wikibooks)
+      if (method === "POST" && (pathname === "/api/v1/wikibooks" || pathname === "/wikibooks")) {
+        const body = await parseBody<{
+          title?: string;
+          titles?: string[];
+          lang?: string;
+          action?: "summary" | "article" | "search";
+          query?: string;
+          limit?: number;
+          fetchFullArticles?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wbActor = registry.get("wikibooks");
+        if (!wbActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Wikibooks actor is not available.",
+            "Ensure WikibooksActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `wb-${Date.now()}`,
+          actorType: "wikibooks",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wikibooksOptions: {
+              title: body.title,
+              titles: body.titles,
+              lang: body.lang,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              fetchFullArticles: body.fetchFullArticles,
+              ...body.options?.wikibooksOptions,
+            },
+          },
+        };
+
+        const result = await wbActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Wikiversity Harvester (/wikiversity or /api/v1/wikiversity)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/wikiversity" || pathname === "/wikiversity")
+      ) {
+        const body = await parseBody<{
+          title?: string;
+          titles?: string[];
+          lang?: string;
+          action?: "summary" | "article" | "search";
+          query?: string;
+          limit?: number;
+          fetchFullArticles?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wvActor = registry.get("wikiversity");
+        if (!wvActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Wikiversity actor is not available.",
+            "Ensure WikiversityActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `wv-${Date.now()}`,
+          actorType: "wikiversity",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wikiversityOptions: {
+              title: body.title,
+              titles: body.titles,
+              lang: body.lang,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              fetchFullArticles: body.fetchFullArticles,
+              ...body.options?.wikiversityOptions,
+            },
+          },
+        };
+
+        const result = await wvActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Wikivoyage Harvester (/wikivoyage or /api/v1/wikivoyage)
+      if (method === "POST" && (pathname === "/api/v1/wikivoyage" || pathname === "/wikivoyage")) {
+        const body = await parseBody<{
+          title?: string;
+          titles?: string[];
+          lang?: string;
+          action?: "summary" | "article" | "search";
+          query?: string;
+          limit?: number;
+          fetchFullArticles?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wvyActor = registry.get("wikivoyage");
+        if (!wvyActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Wikivoyage actor is not available.",
+            "Ensure WikivoyageActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `wvy-${Date.now()}`,
+          actorType: "wikivoyage",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wikivoyageOptions: {
+              title: body.title,
+              titles: body.titles,
+              lang: body.lang,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              fetchFullArticles: body.fetchFullArticles,
+              ...body.options?.wikivoyageOptions,
+            },
+          },
+        };
+
+        const result = await wvyActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Wikinews Harvester (/wikinews or /api/v1/wikinews)
+      if (method === "POST" && (pathname === "/api/v1/wikinews" || pathname === "/wikinews")) {
+        const body = await parseBody<{
+          title?: string;
+          titles?: string[];
+          lang?: string;
+          action?: "summary" | "article" | "search";
+          query?: string;
+          limit?: number;
+          fetchFullArticles?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wnActor = registry.get("wikinews");
+        if (!wnActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Wikinews actor is not available.",
+            "Ensure WikinewsActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `wn-${Date.now()}`,
+          actorType: "wikinews",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wikinewsOptions: {
+              title: body.title,
+              titles: body.titles,
+              lang: body.lang,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              fetchFullArticles: body.fetchFullArticles,
+              ...body.options?.wikinewsOptions,
+            },
+          },
+        };
+
+        const result = await wnActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Wikispecies Harvester (/wikispecies or /api/v1/wikispecies)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/wikispecies" || pathname === "/wikispecies")
+      ) {
+        const body = await parseBody<{
+          title?: string;
+          taxon?: string;
+          titles?: string[];
+          action?: "summary" | "article" | "search";
+          query?: string;
+          limit?: number;
+          fetchFullArticles?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wspActor = registry.get("wikispecies");
+        if (!wspActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Wikispecies actor is not available.",
+            "Ensure WikispeciesActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `wsp-${Date.now()}`,
+          actorType: "wikispecies",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wikispeciesOptions: {
+              title: body.title,
+              taxon: body.taxon,
+              titles: body.titles,
+              action: body.action,
+              query: body.query,
+              limit: body.limit,
+              fetchFullArticles: body.fetchFullArticles,
+              ...body.options?.wikispeciesOptions,
+            },
+          },
+        };
+
+        const result = await wspActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Wikidata Harvester (/wikidata or /api/v1/wikidata)
+      if (method === "POST" && (pathname === "/api/v1/wikidata" || pathname === "/wikidata")) {
+        const body = await parseBody<{
+          entityId?: string;
+          entityIds?: string[];
+          action?: "entity" | "search" | "sparql" | "claims";
+          query?: string;
+          sparql?: string;
+          propertyId?: string;
+          lang?: string;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const wdActor = registry.get("wikidata");
+        if (!wdActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Wikidata actor is not available.",
+            "Ensure WikidataActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `wd-${Date.now()}`,
+          actorType: "wikidata",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            wikidataOptions: {
+              entityId: body.entityId,
+              entityIds: body.entityIds,
+              action: body.action,
+              query: body.query,
+              sparql: body.sparql,
+              propertyId: body.propertyId,
+              lang: body.lang,
+              limit: body.limit,
+              ...body.options?.wikidataOptions,
+            },
+          },
+        };
+
+        const result = await wdActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

@@ -9,12 +9,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 99 | 167 | Yardımcı Modül |
-| `src/dataset/types.ts` | 99 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 99 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 99 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 45 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 42 | 3 | Yardımcı Modül |
+| `src/api/types.ts` | 113 | 189 | Yardımcı Modül |
+| `src/dataset/types.ts` | 113 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 113 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 113 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 52 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 49 | 3 | Yardımcı Modül |
 | `src/api/server.ts` | 18 | 1 | Giriş Noktası (Server) |
 | `src/server.ts` | 18 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
@@ -92,8 +92,15 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/sec-edgar-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/software-heritage-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/stack-exchange-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wikibooks-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wikidata-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wikinews-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/wikipedia-actor.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wikiquote-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/wikisource-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wikispecies-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wikiversity-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/wikivoyage-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/wiktionary-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/yargitay-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/youtube-transcripts-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -250,9 +257,16 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/structured-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/tabular-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/telemetry-and-logs.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/wikibooks-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/wikidata-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/wikimedia-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/wikinews-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/wikipedia-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/wikiquote-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/wikisource-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/wikispecies-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/wikiversity-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/wikivoyage-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/wiktionary-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/yargitay-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/youtube-transcripts-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -314,6 +328,13 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `youtube-transcripts` | `YoutubeTranscriptsActor` |
 | `wikisource` | `WikisourceActor` |
 | `wiktionary` | `WiktionaryActor` |
+| `wikiquote` | `WikiquoteActor` |
+| `wikibooks` | `WikibooksActor` |
+| `wikiversity` | `WikiversityActor` |
+| `wikivoyage` | `WikivoyageActor` |
+| `wikinews` | `WikinewsActor` |
+| `wikispecies` | `WikispeciesActor` |
+| `wikidata` | `WikidataActor` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
 | `mistral-ocr-connector` | `MistralOcrConnector` |
@@ -812,6 +833,54 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `fetchAnswersForQuestions(questionIds: number[], site: string, apiKey: string | undefined, timeoutMs: number, allowLocalNetwork: boolean, baseApiUrl: string): Promise<Map<number, RawAnswer[]>>`
   - `buildSearchUrl(targetUrl: string | undefined, options: StackExchangeActorTaskOptions, site: string): string`
 
+### `src/actors/corpus/wikibooks-actor.ts`
+
+**Sınıflar (Classes):**
+- `class WikibooksActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikibooksActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: WikibooksActorTaskOptions): {
+    lang: string;
+    title?: string;
+    action: "summary" | "article" | "search";
+    query?: string;
+  }`
+  - `buildApiUrl(targetUrl: string | undefined, lang: string, action: "summary" | "article" | "search", title: string, query: string, limit: number): string`
+  - `buildCanonicalWebUrl(lang: string, title: string): string`
+  - `stripHtmlTags(html: string): string`
+  - `renderMarkdownReport(items: WikibooksArticleItem[], lang: string, action: string): string`
+
+### `src/actors/corpus/wikidata-actor.ts`
+
+**Sınıflar (Classes):**
+- `class WikidataActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikidataActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: WikidataActorTaskOptions): {
+    action: "entity" | "search" | "sparql" | "claims";
+    entityId?: string;
+    query?: string;
+    sparql?: string;
+    lang: string;
+  }`
+  - `buildApiUrl(targetUrl: string | undefined, action: "entity" | "search" | "sparql" | "claims", entityId: string, query: string, sparql: string, lang, limit: number): string`
+  - `renderEntityListMarkdown(items: WikidataEntityItem[], title: string, lang: string): string`
+  - `renderSparqlMarkdown(sparqlData: { head: { vars: string[] }; results: { bindings: WikidataSparqlBinding[] } }, query: string): string`
+
+### `src/actors/corpus/wikinews-actor.ts`
+
+**Sınıflar (Classes):**
+- `class WikinewsActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikinewsActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: WikinewsActorTaskOptions): {
+    lang: string;
+    title?: string;
+    action: "summary" | "article" | "search";
+    query?: string;
+  }`
+  - `buildApiUrl(targetUrl: string | undefined, lang: string, action: "summary" | "article" | "search", title: string, query: string, limit: number): string`
+  - `buildCanonicalWebUrl(lang: string, title: string): string`
+  - `stripHtmlTags(html: string): string`
+  - `renderMarkdownReport(items: WikinewsArticleItem[], lang: string, action: string): string`
+
 ### `src/actors/corpus/wikipedia-actor.ts`
 
 **Sınıflar (Classes):**
@@ -826,6 +895,22 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `buildApiUrl(targetUrl: string | undefined, lang: string, action: "summary" | "article" | "search", title: string, query: string, limit: number): string`
   - `stripHtmlTags(input: string): string`
 - `class WikimediaActor`
+
+### `src/actors/corpus/wikiquote-actor.ts`
+
+**Sınıflar (Classes):**
+- `class WikiquoteActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikiquoteActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: WikiquoteActorTaskOptions): {
+    lang: string;
+    title?: string;
+    action: "summary" | "article" | "search";
+    query?: string;
+  }`
+  - `buildApiUrl(targetUrl: string | undefined, lang: string, action: "summary" | "article" | "search", title: string, query: string, limit: number): string`
+  - `buildCanonicalWebUrl(lang: string, title: string): string`
+  - `stripHtmlTags(html: string): string`
+  - `renderMarkdownReport(items: WikiquoteArticleItem[], lang: string, action: string): string`
 
 ### `src/actors/corpus/wikisource-actor.ts`
 
@@ -842,6 +927,53 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `buildCanonicalWebUrl(lang: string, title: string): string`
   - `stripHtmlTags(html: string): string`
   - `renderMarkdownReport(items: WikisourceArticleItem[], lang: string, action: string): string`
+
+### `src/actors/corpus/wikispecies-actor.ts`
+
+**Sınıflar (Classes):**
+- `class WikispeciesActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikispeciesActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: WikispeciesActorTaskOptions): {
+    title?: string;
+    action: "summary" | "article" | "search";
+    query?: string;
+  }`
+  - `buildApiUrl(targetUrl: string | undefined, action: "summary" | "article" | "search", title: string, query: string, limit: number): string`
+  - `buildCanonicalWebUrl(title: string): string`
+  - `stripHtmlTags(html: string): string`
+  - `renderMarkdownReport(items: WikispeciesTaxonItem[], action: string): string`
+
+### `src/actors/corpus/wikiversity-actor.ts`
+
+**Sınıflar (Classes):**
+- `class WikiversityActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikiversityActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: WikiversityActorTaskOptions): {
+    lang: string;
+    title?: string;
+    action: "summary" | "article" | "search";
+    query?: string;
+  }`
+  - `buildApiUrl(targetUrl: string | undefined, lang: string, action: "summary" | "article" | "search", title: string, query: string, limit: number): string`
+  - `buildCanonicalWebUrl(lang: string, title: string): string`
+  - `stripHtmlTags(html: string): string`
+  - `renderMarkdownReport(items: WikiversityArticleItem[], lang: string, action: string): string`
+
+### `src/actors/corpus/wikivoyage-actor.ts`
+
+**Sınıflar (Classes):**
+- `class WikivoyageActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<WikivoyageActorResult>>`
+  - `resolveParameters(targetUrl: string | undefined, options: WikivoyageActorTaskOptions): {
+    lang: string;
+    title?: string;
+    action: "summary" | "article" | "search";
+    query?: string;
+  }`
+  - `buildApiUrl(targetUrl: string | undefined, lang: string, action: "summary" | "article" | "search", title: string, query: string, limit: number): string`
+  - `buildCanonicalWebUrl(lang: string, title: string): string`
+  - `stripHtmlTags(html: string): string`
+  - `renderMarkdownReport(items: WikivoyageArticleItem[], lang: string, action: string): string`
 
 ### `src/actors/corpus/wiktionary-actor.ts`
 
@@ -1199,6 +1331,28 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface WiktionaryEntryItem` (12 üye)
 - `interface WiktionaryActorTaskOptions` (8 üye)
 - `interface WiktionaryActorResult` (5 üye)
+- `interface WikiquoteArticleItem` (9 üye)
+- `interface WikiquoteActorTaskOptions` (8 üye)
+- `interface WikiquoteActorResult` (5 üye)
+- `interface WikibooksArticleItem` (9 üye)
+- `interface WikibooksActorTaskOptions` (8 üye)
+- `interface WikibooksActorResult` (5 üye)
+- `interface WikiversityArticleItem` (9 üye)
+- `interface WikiversityActorTaskOptions` (8 üye)
+- `interface WikiversityActorResult` (5 üye)
+- `interface WikivoyageArticleItem` (9 üye)
+- `interface WikivoyageActorTaskOptions` (8 üye)
+- `interface WikivoyageActorResult` (5 üye)
+- `interface WikinewsArticleItem` (9 üye)
+- `interface WikinewsActorTaskOptions` (8 üye)
+- `interface WikinewsActorResult` (5 üye)
+- `interface WikispeciesTaxonItem` (8 üye)
+- `interface WikispeciesActorTaskOptions` (8 üye)
+- `interface WikispeciesActorResult` (4 üye)
+- `interface WikidataEntityItem` (9 üye)
+- `interface WikidataSparqlBinding` (1 üye)
+- `interface WikidataActorTaskOptions` (9 üye)
+- `interface WikidataActorResult` (5 üye)
 - `interface OpenAlexWorkItem` (12 üye)
 - `interface OpenAlexActorTaskOptions` (11 üye)
 - `interface OpenAlexActorResult` (5 üye)
@@ -2149,8 +2303,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/sec-edgar-actor.ts` |
 | `src/actors/corpus/software-heritage-actor.ts` |
 | `src/actors/corpus/stack-exchange-actor.ts` |
+| `src/actors/corpus/wikibooks-actor.ts` |
+| `src/actors/corpus/wikidata-actor.ts` |
 | `src/actors/corpus/wikimedia-actor.ts` |
-| `src/actors/corpus/wikipedia-actor.ts` |
-| `src/actors/corpus/wikisource-actor.ts` |
-| *... ve 197 dosya daha* |
+| *... ve 211 dosya daha* |
 

@@ -1963,6 +1963,424 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/wikiquote": {
+      post: {
+        tags: ["Corpus Extraction"],
+        summary: "Wikiquote Quotations & Aphorisms Harvester",
+        description:
+          "Extracts verified quotations, speeches, aphorisms, and literary dialogue across 90+ languages from official Wikiquote REST and Action APIs.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: {
+                    type: "string",
+                    description: "Author, work, or topic title",
+                    example: "Albert Einstein",
+                  },
+                  lang: {
+                    type: "string",
+                    default: "en",
+                    description: "Language edition code",
+                    example: "en",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["summary", "article", "search"],
+                    default: "summary",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search expression",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Max results",
+                  },
+                  fetchFullArticles: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to fetch full article markdown for search hits",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Wikiquote URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Structured quotations, metadata, and GFM Markdown report.",
+          },
+        },
+      },
+    },
+    "/api/v1/wikibooks": {
+      post: {
+        tags: ["Corpus Extraction"],
+        summary: "Wikibooks Open Textbooks Harvester",
+        description:
+          "Extracts open-access textbooks, pedagogical modules, and technical manuals across 120+ languages from official Wikibooks REST and Action APIs.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: {
+                    type: "string",
+                    description: "Textbook or chapter title",
+                    example: "Python Programming",
+                  },
+                  lang: {
+                    type: "string",
+                    default: "en",
+                    description: "Language edition code",
+                    example: "en",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["summary", "article", "search"],
+                    default: "summary",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search expression",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Max results",
+                  },
+                  fetchFullArticles: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to fetch full chapter markdown for search hits",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Wikibooks URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Structured textbook chapters, metadata, and GFM Markdown report.",
+          },
+        },
+      },
+    },
+    "/api/v1/wikiversity": {
+      post: {
+        tags: ["Corpus Extraction"],
+        summary: "Wikiversity Academic Courses Harvester",
+        description:
+          "Extracts university course modules, academic study guides, and research outlines across 17+ languages from official Wikiversity REST and Action APIs.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: {
+                    type: "string",
+                    description: "Course or module title",
+                    example: "Introduction to Computer Science",
+                  },
+                  lang: {
+                    type: "string",
+                    default: "en",
+                    description: "Language edition code",
+                    example: "en",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["summary", "article", "search"],
+                    default: "summary",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search expression",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Max results",
+                  },
+                  fetchFullArticles: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to fetch full module markdown for search hits",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Wikiversity URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Structured academic course modules, metadata, and GFM Markdown report.",
+          },
+        },
+      },
+    },
+    "/api/v1/wikivoyage": {
+      post: {
+        tags: ["Corpus Extraction"],
+        summary: "Wikivoyage Travel & Geographic Harvester",
+        description:
+          "Extracts geographic guides, destination profiles, cultural itineraries, and landmarks across 30+ languages from official Wikivoyage REST and Action APIs.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: {
+                    type: "string",
+                    description: "Destination or guide title",
+                    example: "Istanbul",
+                  },
+                  lang: {
+                    type: "string",
+                    default: "en",
+                    description: "Language edition code",
+                    example: "en",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["summary", "article", "search"],
+                    default: "summary",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search expression",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Max results",
+                  },
+                  fetchFullArticles: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to fetch full destination markdown for search hits",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Wikivoyage URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Structured destination guides, listings, and GFM Markdown report.",
+          },
+        },
+      },
+    },
+    "/api/v1/wikinews": {
+      post: {
+        tags: ["Corpus Extraction"],
+        summary: "Wikinews Journalism & News Harvester",
+        description:
+          "Extracts collaborative journalism dispatches, event timelines, and news articles across 35+ languages from official Wikinews REST and Action APIs.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: {
+                    type: "string",
+                    description: "News article or dispatch title",
+                    example: "James Webb Space Telescope",
+                  },
+                  lang: {
+                    type: "string",
+                    default: "en",
+                    description: "Language edition code",
+                    example: "en",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["summary", "article", "search"],
+                    default: "summary",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search expression",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Max results",
+                  },
+                  fetchFullArticles: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to fetch full article markdown for search hits",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Wikinews URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured journalism articles, event timelines, and GFM Markdown report.",
+          },
+        },
+      },
+    },
+    "/api/v1/wikispecies": {
+      post: {
+        tags: ["Corpus Extraction"],
+        summary: "Wikispecies Taxonomic Nomenclature Harvester",
+        description:
+          "Extracts biological classifications, phylogenetic clades, and nomenclature from official Wikispecies APIs on species.wikimedia.org.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  taxon: {
+                    type: "string",
+                    description: "Taxon or scientific name",
+                    example: "Panthera leo",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["summary", "article", "search"],
+                    default: "summary",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search expression",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Max results",
+                  },
+                  fetchFullArticles: {
+                    type: "boolean",
+                    default: false,
+                    description: "Whether to fetch full profile markdown for search hits",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Wikispecies URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Structured taxonomic profiles, classifications, and GFM Markdown report.",
+          },
+        },
+      },
+    },
+    "/api/v1/wikidata": {
+      post: {
+        tags: ["Corpus Extraction"],
+        summary: "Wikidata Structured Knowledge Graph Harvester",
+        description:
+          "Extracts structured knowledge graph entities, claims, statements, and executes SPARQL queries against official Wikidata APIs.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  entityId: {
+                    type: "string",
+                    description: "Wikidata entity identifier (QID or PID)",
+                    example: "Q42",
+                  },
+                  action: {
+                    type: "string",
+                    enum: ["entity", "search", "sparql", "claims"],
+                    default: "entity",
+                    description: "Extraction mode",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword for entity lookup",
+                  },
+                  sparql: {
+                    type: "string",
+                    description: "SPARQL query string",
+                  },
+                  propertyId: {
+                    type: "string",
+                    description: "Filter specific claims property (e.g. P31)",
+                  },
+                  lang: {
+                    type: "string",
+                    default: "en",
+                    description: "Language for labels and descriptions",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Max results",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Wikidata URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured entity claims, labels, SPARQL bindings, and GFM Markdown report.",
+          },
+        },
+      },
+    },
     "/api/v1/sitemap": {
       post: {
         tags: ["Crawling"],

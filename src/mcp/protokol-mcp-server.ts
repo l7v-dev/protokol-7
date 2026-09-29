@@ -54,9 +54,16 @@ import type {
   SerpSearchTaskOptions,
   SoftwareHeritageActorTaskOptions,
   StackExchangeActorTaskOptions,
+  WikibooksActorTaskOptions,
+  WikidataActorTaskOptions,
   WikimediaActorTaskOptions,
+  WikinewsActorTaskOptions,
   WikipediaActorTaskOptions,
+  WikiquoteActorTaskOptions,
   WikisourceActorTaskOptions,
+  WikispeciesActorTaskOptions,
+  WikiversityActorTaskOptions,
+  WikivoyageActorTaskOptions,
   WiktionaryActorTaskOptions,
   YargitayActorTaskOptions,
   YoutubeTranscriptsActorTaskOptions,
@@ -1298,6 +1305,34 @@ export class ProtokolMcpServer {
             wiktionaryOptions:
               manifest.actorType === "wiktionary"
                 ? (toolArgs as unknown as WiktionaryActorTaskOptions)
+                : undefined,
+            wikiquoteOptions:
+              manifest.actorType === "wikiquote"
+                ? (toolArgs as unknown as WikiquoteActorTaskOptions)
+                : undefined,
+            wikibooksOptions:
+              manifest.actorType === "wikibooks"
+                ? (toolArgs as unknown as WikibooksActorTaskOptions)
+                : undefined,
+            wikiversityOptions:
+              manifest.actorType === "wikiversity"
+                ? (toolArgs as unknown as WikiversityActorTaskOptions)
+                : undefined,
+            wikivoyageOptions:
+              manifest.actorType === "wikivoyage"
+                ? (toolArgs as unknown as WikivoyageActorTaskOptions)
+                : undefined,
+            wikinewsOptions:
+              manifest.actorType === "wikinews"
+                ? (toolArgs as unknown as WikinewsActorTaskOptions)
+                : undefined,
+            wikispeciesOptions:
+              manifest.actorType === "wikispecies"
+                ? (toolArgs as unknown as WikispeciesActorTaskOptions)
+                : undefined,
+            wikidataOptions:
+              manifest.actorType === "wikidata"
+                ? (toolArgs as unknown as WikidataActorTaskOptions)
                 : undefined,
           },
         };
