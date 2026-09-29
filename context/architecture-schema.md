@@ -33,7 +33,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/actors/actor-registry.ts` | `ActorRegistry` | Central registry for discovering, registering, and instantiating all actors across all categories. |
-| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 57 actors. |
+| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 60 actors. |
 | `src/actors/actor.template.ts` | `TemplateActor`, `TemplateActorResult` | Canonical reference implementation blueprint, contract template, and security scaffold for new actors. |
 
 #### Web Actors (`src/actors/web/`) — general-purpose HTTP and browser extraction
@@ -106,6 +106,9 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/actors/corpus/libretexts-actor.ts` | `LibreTextsActor` | LibreTexts Global — open-access STEM and engineering textbooks, course chapters, LaTeX formula preservation, and table of contents. |
 | `src/actors/corpus/open-textbook-actor.ts` | `OpenTextbookActor` | Open Textbook Library (UMN) — peer-reviewed university textbooks, multi-format download links, and faculty peer reviews. |
 | `src/actors/corpus/semantic-scholar-actor.ts` | `SemanticScholarActor` | Semantic Scholar Academic Graph (S2AG) API — scientific literature, AI TLDR summaries, citation graphs, and author profiles. |
+| `src/actors/corpus/anayasa-mahkemesi-actor.ts` | `AnayasaMahkemesiActor` | T.C. Anayasa Mahkemesi Kararlar Bilgi Bankası — norm denetimi (iptal/itiraz), bireysel başvuru hak ihlali hükümleri, gerekçeli kararlar ve karşı oy yazıları. |
+| `src/actors/corpus/danistay-actor.ts` | `DanistayActor` | T.C. Danıştay Başkanlığı Emsal Karar Sistemi — idare ve vergi dava daireleri (1-13), İDDK, VDDK ve İBK emsal kararları, tetkik hakimi ve savcı düşünceleri. |
+| `src/actors/corpus/google-patents-actor.ts` | `GooglePatentsActor` | Google Patents & USPTO/EPO Public Data — küresel patentler, bağımsız/bağımlı teknik iddialar (claims) hiyerarşisi, tarifnameler, CPC kodları ve önceki teknik atıfları. |
 
 #### Document Actors (`src/actors/documents/`) — local file and archive extraction
 
@@ -340,6 +343,9 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/libretexts-actor.test.ts` | `LibreTextsActor`, `src/api/server.ts` | Library resolution, Deki query search, MathJax formula preservation, subpages TOC, SSRF guard, and REST route. |
 | `tests/open-textbook-actor.test.ts` | `OpenTextbookActor`, `src/api/server.ts` | Keyword search, textbook detail extraction, formats, table of contents, peer reviews, SSRF guard, and REST route. |
 | `tests/semantic-scholar-actor.test.ts` | `SemanticScholarActor`, `src/api/server.ts` | S2AG paper retrieval, literature search, author profiles, citation graph traversal, SSRF guard, and REST route. |
+| `tests/anayasa-mahkemesi-actor.test.ts` | `AnayasaMahkemesiActor`, `src/api/server.ts` | AYM bireysel başvuru, norm denetimi, gerekçeli karar detayları, karşı oy ayrıştırma, SSRF denetimi ve REST rotası. |
+| `tests/danistay-actor.test.ts` | `DanistayActor`, `src/api/server.ts` | Danıştay emsal karar arama, daire filtreleme, tetkik hakimi/savcı düşünceleri, SSRF denetimi ve REST rotası. |
+| `tests/google-patents-actor.test.ts` | `GooglePatentsActor`, `src/api/server.ts` | Google Patents künye, bağımsız/bağımlı iddia hiyerarşisi (claims), tarifname, SSRF denetimi ve REST rotası. |
 
 ---
 

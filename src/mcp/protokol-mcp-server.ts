@@ -18,12 +18,14 @@ import { globalRunRegistry } from "../api/run-registry";
 import type {
   ActorTask,
   ActorType,
+  AnayasaMahkemesiActorTaskOptions,
   ApiExtractorTaskOptions,
   ArchiveExtractorTaskOptions,
   ArxivActorTaskOptions,
   ClinicalTrialsActorTaskOptions,
   CodeEvalActorTaskOptions,
   CourtListenerActorTaskOptions,
+  DanistayActorTaskOptions,
   DergiParkActorTaskOptions,
   DevDocsActorTaskOptions,
   DocumentExtractorTaskOptions,
@@ -31,6 +33,7 @@ import type {
   EurLexActorTaskOptions,
   EuropePmcActorTaskOptions,
   GithubActorTaskOptions,
+  GooglePatentsActorTaskOptions,
   GutenbergActorTaskOptions,
   HackerNewsActorTaskOptions,
   HuggingFaceDatasetsActorTaskOptions,
@@ -1383,6 +1386,18 @@ export class ProtokolMcpServer {
             semanticScholarOptions:
               manifest.actorType === "semantic-scholar"
                 ? (toolArgs as unknown as SemanticScholarActorTaskOptions)
+                : undefined,
+            anayasaMahkemesiOptions:
+              manifest.actorType === "anayasa-mahkemesi"
+                ? (toolArgs as unknown as AnayasaMahkemesiActorTaskOptions)
+                : undefined,
+            danistayOptions:
+              manifest.actorType === "danistay"
+                ? (toolArgs as unknown as DanistayActorTaskOptions)
+                : undefined,
+            googlePatentsOptions:
+              manifest.actorType === "google-patents"
+                ? (toolArgs as unknown as GooglePatentsActorTaskOptions)
                 : undefined,
           },
         };

@@ -76,6 +76,9 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 | 62 | `libretexts` | STEM & Ders Kitapları | `POST /api/v1/libretexts` | `query_libretexts` | Açık üniversite STEM ve mühendislik ders kitaplarını, içindekiler tablosunu ve formülleri çeker. |
 | 63 | `open-textbook` | STEM & Ders Kitapları | `POST /api/v1/open-textbook` | `query_open_textbook` | Hakemli açık ders kitaplarını, indirme linklerini ve akademik değerlendirmeleri çeker. |
 | 64 | `semantic-scholar` | Bilim & Akademi | `POST /api/v1/semantic-scholar` | `query_semantic_scholar` | 200M+ akademik makale grafiğini, yapay zeka TLDR özetlerini ve atıf ağını çeker. |
+| 65 | `anayasa-mahkemesi` | Hukuk & Emsal Karar | `POST /api/v1/anayasa-mahkemesi` | `query_anayasa_mahkemesi` | T.C. Anayasa Mahkemesi norm denetimi kararlarını, bireysel başvuru hak ihlali hükümlerini ve karşı oyları çeker. |
+| 66 | `danistay` | Hukuk & Emsal Karar | `POST /api/v1/danistay` | `query_danistay` | T.C. Danıştay Başkanlığı idari ve vergi dava daireleri emsal kararlarını ve gerekçeli hükümleri çeker. |
+| 67 | `google-patents` | Buluş & Patent | `POST /api/v1/google-patents` | `query_google_patents` | Dünya patent teknik iddialarını (claims), tarifnameleri, CPC kodlarını ve önceki teknik atıflarını çeker. |
 
 ---
 
@@ -730,3 +733,38 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
   "action": "paper"
 }
 ```
+
+#### 47. Anayasa Mahkemesi Aktörü (`anayasa-mahkemesi`)
+* **Ne Yapar?** T.C. Anayasa Mahkemesi (AYM) norm denetimi iptal/itiraz kararlarını, bireysel başvuru hak ihlali hükümlerini, olayları, gerekçeli kararları ve karşı oy yazılarını çeker.
+* **REST:** `POST /api/v1/anayasa-mahkemesi`
+* **MCP:** `query_anayasa_mahkemesi`
+```json
+{
+  "applicationNumber": "2019/12345",
+  "action": "individual_application"
+}
+```
+
+#### 48. Danıştay Aktörü (`danistay`)
+* **Ne Yapar?** T.C. Danıştay Başkanlığı idari ve vergi dava daireleri (1-13), İDDK, VDDK ve İBK emsal kararlarını, ilk derece mahkemesi bilgilerini, tetkik hakimi ve savcı düşüncelerini çeker.
+* **REST:** `POST /api/v1/danistay`
+* **MCP:** `query_danistay`
+```json
+{
+  "chamber": "iddk",
+  "query": "kamulaştırmasız el atma",
+  "action": "search"
+}
+```
+
+#### 49. Google Patents Aktörü (`google-patents`)
+* **Ne Yapar?** Google Patents ve küresel patent ofislerinden teknik buluş iddialarını (claims) hiyerarşik bağımsız/bağımlı yapıda, detaylı tarifnameleri, CPC/IPC kodlarını ve önceki teknik atıflarını çeker.
+* **REST:** `POST /api/v1/google-patents`
+* **MCP:** `query_google_patents`
+```json
+{
+  "patentId": "US10123456B2",
+  "action": "claims"
+}
+```
+

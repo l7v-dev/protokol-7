@@ -9,12 +9,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 133 | 237 | Yardımcı Modül |
-| `src/dataset/types.ts` | 133 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 133 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 133 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 62 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 59 | 3 | Yardımcı Modül |
+| `src/api/types.ts` | 139 | 253 | Yardımcı Modül |
+| `src/dataset/types.ts` | 139 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 139 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 139 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 65 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 62 | 3 | Yardımcı Modül |
 | `src/api/server.ts` | 18 | 1 | Giriş Noktası (Server) |
 | `src/server.ts` | 18 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
@@ -63,15 +63,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/storage/r2-storage.ts` | 3 | 2 | Yardımcı Modül |
 | `src/utils/terminal-theme.ts` | 3 | 8 | Yardımcı Modül |
 | `src/vault/cold-vault-exporter.ts` | 3 | 1 | Yardımcı Modül |
+| `src/actors/corpus/anayasa-mahkemesi-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/clinical-trials-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/code-eval-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/court-listener-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/danistay-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/dergipark-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/devdocs-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/eur-lex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/europe-pmc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/github-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/google-patents-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/gutenberg-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/hacker-news-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/huggingface-datasets-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -183,6 +186,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/cli.ts` | 0 | 0 | Yardımcı Modül |
 | `src/types/node-sqlite.d.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/actor-resolver.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/anayasa-mahkemesi-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/api-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/archive-extractor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/archive-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -197,6 +201,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/court-listener-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/crawl-frontier.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/crawler-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/danistay-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/dataset-publisher-and-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/dergipark-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/devdocs-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -208,6 +213,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/eur-lex-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/europe-pmc-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/github-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/google-patents-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/gutenberg-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/hacker-news-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/huggingface-datasets-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -365,6 +371,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `libre-texts` | `LibreTextsActor` |
 | `open-textbook` | `OpenTextbookActor` |
 | `semantic-scholar` | `SemanticScholarActor` |
+| `anayasa-mahkemesi` | `AnayasaMahkemesiActor` |
+| `danistay` | `DanistayActor` |
+| `google-patents` | `GooglePatentsActor` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
 | `mistral-ocr-connector` | `MistralOcrConnector` |
@@ -438,6 +447,22 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface TemplateActorTaskOptions` (4 üye)
 - `interface TemplateActorResult` (3 üye)
 
+### `src/actors/corpus/anayasa-mahkemesi-actor.ts`
+
+**Sınıflar (Classes):**
+- `class AnayasaMahkemesiActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<AnayasaMahkemesiActorResult>>`
+  - `resolveAction(targetUrl: string, specifiedAction: AnayasaMahkemesiAction): AnayasaMahkemesiAction`
+  - `buildEndpointUrl(targetUrl: string, action: AnayasaMahkemesiAction, options: AnayasaMahkemesiActorTaskOptions): string`
+  - `parseResponse(rawText: string, queryUrl: string, action: AnayasaMahkemesiAction, options: AnayasaMahkemesiActorTaskOptions): AnayasaMahkemesiActorResult`
+  - `parseJsonDecisions(rawItems: Record<string, unknown>[], queryUrl: string, action: AnayasaMahkemesiAction, explicitTotal: number): AnayasaMahkemesiActorResult`
+  - `parseJsonDecisionDetail(data: Record<string, unknown>, queryUrl: string): AnayasaMahkemesiActorResult`
+  - `parseHtmlDecisions(html: string, queryUrl: string, action: AnayasaMahkemesiAction, options: AnayasaMahkemesiActorTaskOptions): AnayasaMahkemesiActorResult`
+  - `parseHtmlDecisionDetail(html: string, queryUrl: string): AnayasaMahkemesiActorResult`
+  - `normalizeCategory(cat: unknown): "individual" | "norm" | "party" | "yuce_divan"`
+  - `renderDecisionsMarkdown(decisions: AnayasaMahkemesiDecisionItem[], action: AnayasaMahkemesiAction, queryUrl: string): string`
+  - `renderDetailMarkdown(detail: AnayasaMahkemesiDecisionDetail): string`
+
 ### `src/actors/corpus/arxiv-actor.ts`
 
 **Sınıflar (Classes):**
@@ -494,6 +519,21 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `normalizeItem(raw: RawCourtListenerItem): CourtListenerDocumentItem`
   - `synthesizeMarkdown(items: CourtListenerDocumentItem[], totalCount: number, options: CourtListenerActorTaskOptions): string`
 
+### `src/actors/corpus/danistay-actor.ts`
+
+**Sınıflar (Classes):**
+- `class DanistayActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<DanistayActorResult>>`
+  - `resolveAction(targetUrl: string, specifiedAction: DanistayAction): DanistayAction`
+  - `buildEndpointUrl(targetUrl: string, action: DanistayAction, options: DanistayActorTaskOptions): string`
+  - `parseResponse(rawText: string, queryUrl: string, action: DanistayAction, options: DanistayActorTaskOptions): DanistayActorResult`
+  - `parseJsonDecisions(rawItems: Record<string, unknown>[], queryUrl: string, action: DanistayAction, explicitTotal: number): DanistayActorResult`
+  - `parseJsonDecisionDetail(data: Record<string, unknown>, queryUrl: string): DanistayActorResult`
+  - `parseHtmlDecisions(html: string, queryUrl: string, action: DanistayAction, options: DanistayActorTaskOptions): DanistayActorResult`
+  - `parseHtmlDecisionDetail(html: string, queryUrl: string): DanistayActorResult`
+  - `renderDecisionsMarkdown(decisions: DanistayDecisionItem[], queryUrl: string): string`
+  - `renderDetailMarkdown(detail: DanistayDecisionDetail): string`
+
 ### `src/actors/corpus/dergipark-actor.ts`
 
 **Sınıflar (Classes):**
@@ -538,6 +578,23 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `resolveRepoAndAction(targetUrl: string, options: GithubActorTaskOptions): { owner: string; repo: string; action: string }`
   - `buildEndpointUrl(targetUrl: string | undefined, owner: string, repo: string, action: string, options: GithubActorTaskOptions): string`
   - `renderMarkdown(owner: string, repo: string, action: string, data: Record<string, unknown> | Array<Record<string, unknown>>, endpointUrl: string): string`
+
+### `src/actors/corpus/google-patents-actor.ts`
+
+**Sınıflar (Classes):**
+- `class GooglePatentsActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<GooglePatentsActorResult>>`
+  - `resolveAction(targetUrl: string, specifiedAction: GooglePatentsAction): GooglePatentsAction`
+  - `resolvePatentId(targetUrl: string, specifiedPatentId: string): string`
+  - `buildEndpointUrl(targetUrl: string, action: GooglePatentsAction, options: GooglePatentsActorTaskOptions): string`
+  - `parseResponse(rawText: string, queryUrl: string, action: GooglePatentsAction, options: GooglePatentsActorTaskOptions): GooglePatentsActorResult`
+  - `parseJsonPatent(data: Record<string, unknown>, queryUrl: string, action: GooglePatentsAction): GooglePatentsActorResult`
+  - `parseJsonSearchResults(data: unknown, queryUrl: string): GooglePatentsActorResult`
+  - `parseHtmlPatent(html: string, queryUrl: string, action: GooglePatentsAction, options: GooglePatentsActorTaskOptions): GooglePatentsActorResult`
+  - `parseHtmlSearch(html: string, queryUrl: string, _options: GooglePatentsActorTaskOptions): GooglePatentsActorResult`
+  - `renderClaimsMarkdown(claims: GooglePatentClaimItem[], patentId: string, queryUrl: string): string`
+  - `renderPatentMarkdown(patent: GooglePatentItem): string`
+  - `renderSearchMarkdown(patents: GooglePatentItem[], queryUrl: string): string`
 
 ### `src/actors/corpus/gutenberg-actor.ts`
 
@@ -1561,6 +1618,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface SemanticScholarAuthorItem` (9 üye)
 - `interface SemanticScholarActorTaskOptions` (10 üye)
 - `interface SemanticScholarActorResult` (10 üye)
+- `interface AnayasaMahkemesiDecisionItem` (15 üye)
+- `interface AnayasaMahkemesiDecisionDetail` (6 üye)
+- `interface AnayasaMahkemesiActorTaskOptions` (15 üye)
+- `interface AnayasaMahkemesiActorResult` (7 üye)
+- `interface DanistayDecisionItem` (10 üye)
+- `interface DanistayDecisionDetail` (10 üye)
+- `interface DanistayActorTaskOptions` (12 üye)
+- `interface DanistayActorResult` (7 üye)
+- `interface GooglePatentClaimItem` (5 üye)
+- `interface GooglePatentItem` (18 üye)
+- `interface GooglePatentsActorTaskOptions` (11 üye)
+- `interface GooglePatentsActorResult` (7 üye)
 - `interface OpenAlexWorkItem` (12 üye)
 - `interface OpenAlexActorTaskOptions` (11 üye)
 - `interface OpenAlexActorResult` (5 üye)
@@ -1665,6 +1734,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `type WikipediaArticleItem`
 - `type WikipediaActorTaskOptions`
 - `type WikipediaActorResult`
+- `type AnayasaMahkemesiAction`
+- `type AnayasaMahkemesiCategory`
+- `type DanistayAction`
+- `type GooglePatentsAction`
 - `type SaglikEkutuphaneCategory`
 - `type SaglikEkutuphaneAction`
 - `type KtbEkitapCategory`
@@ -2481,15 +2554,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/actor-manifests.ts` |
 | `src/actors/actor-registry.ts` |
 | `src/actors/actor.template.ts` |
+| `src/actors/corpus/anayasa-mahkemesi-actor.ts` |
 | `src/actors/corpus/arxiv-actor.ts` |
 | `src/actors/corpus/clinical-trials-actor.ts` |
 | `src/actors/corpus/code-eval-actor.ts` |
 | `src/actors/corpus/court-listener-actor.ts` |
+| `src/actors/corpus/danistay-actor.ts` |
 | `src/actors/corpus/dergipark-actor.ts` |
 | `src/actors/corpus/devdocs-actor.ts` |
 | `src/actors/corpus/eur-lex-actor.ts` |
 | `src/actors/corpus/europe-pmc-actor.ts` |
 | `src/actors/corpus/github-actor.ts` |
+| `src/actors/corpus/google-patents-actor.ts` |
 | `src/actors/corpus/gutenberg-actor.ts` |
 | `src/actors/corpus/hacker-news-actor.ts` |
 | `src/actors/corpus/huggingface-datasets-actor.ts` |
@@ -2511,8 +2587,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/openreview-actor.ts` |
 | `src/actors/corpus/openstax-actor.ts` |
 | `src/actors/corpus/papers-with-code-actor.ts` |
-| `src/actors/corpus/philpapers-actor.ts` |
-| `src/actors/corpus/proofwiki-actor.ts` |
-| `src/actors/corpus/resmi-gazete-actor.ts` |
-| *... ve 231 dosya daha* |
+| *... ve 237 dosya daha* |
 

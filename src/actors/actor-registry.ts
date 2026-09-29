@@ -4,15 +4,18 @@
 
 import type { ActorType, IActor } from "../api/types";
 // corpus: LLM training data source actors
+import { AnayasaMahkemesiActor } from "./corpus/anayasa-mahkemesi-actor";
 import { ArxivActor } from "./corpus/arxiv-actor";
 import { ClinicalTrialsActor } from "./corpus/clinical-trials-actor";
 import { CodeEvalActor } from "./corpus/code-eval-actor";
 import { CourtListenerActor } from "./corpus/court-listener-actor";
+import { DanistayActor } from "./corpus/danistay-actor";
 import { DergiParkActor } from "./corpus/dergipark-actor";
 import { DevDocsActor } from "./corpus/devdocs-actor";
 import { EurLexActor } from "./corpus/eur-lex-actor";
 import { EuropePmcActor } from "./corpus/europe-pmc-actor";
 import { GithubActor } from "./corpus/github-actor";
+import { GooglePatentsActor } from "./corpus/google-patents-actor";
 import { GutenbergActor } from "./corpus/gutenberg-actor";
 import { HackerNewsActor } from "./corpus/hacker-news-actor";
 import { HuggingFaceDatasetsActor } from "./corpus/huggingface-datasets-actor";
@@ -157,5 +160,8 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new LibreTextsActor());
   registry.register(new OpenTextbookActor());
   registry.register(new SemanticScholarActor());
+  registry.register(new AnayasaMahkemesiActor());
+  registry.register(new DanistayActor());
+  registry.register(new GooglePatentsActor());
   return registry;
 }

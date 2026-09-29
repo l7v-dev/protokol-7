@@ -4,15 +4,18 @@
  * legal, governmental, and cultural data sources for LLM pre-training.
  */
 
+export * from "./anayasa-mahkemesi-actor";
 export * from "./arxiv-actor";
 export * from "./clinical-trials-actor";
 export * from "./code-eval-actor";
 export * from "./court-listener-actor";
+export * from "./danistay-actor";
 export * from "./dergipark-actor";
 export * from "./devdocs-actor";
 export * from "./eur-lex-actor";
 export * from "./europe-pmc-actor";
 export * from "./github-actor";
+export * from "./google-patents-actor";
 export * from "./gutenberg-actor";
 export * from "./hacker-news-actor";
 export * from "./huggingface-datasets-actor";

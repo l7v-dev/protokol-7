@@ -4,15 +4,18 @@
 
 // Actors
 export * from "./actors/actor-registry";
+export * from "./actors/corpus/anayasa-mahkemesi-actor";
 export * from "./actors/corpus/arxiv-actor";
 export * from "./actors/corpus/clinical-trials-actor";
 export * from "./actors/corpus/code-eval-actor";
 export * from "./actors/corpus/court-listener-actor";
+export * from "./actors/corpus/danistay-actor";
 export * from "./actors/corpus/dergipark-actor";
 export * from "./actors/corpus/devdocs-actor";
 export * from "./actors/corpus/eur-lex-actor";
 export * from "./actors/corpus/europe-pmc-actor";
 export * from "./actors/corpus/github-actor";
+export * from "./actors/corpus/google-patents-actor";
 export * from "./actors/corpus/gutenberg-actor";
 export * from "./actors/corpus/hacker-news-actor";
 export * from "./actors/corpus/huggingface-datasets-actor";

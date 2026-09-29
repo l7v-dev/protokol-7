@@ -2940,6 +2940,245 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/anayasa-mahkemesi": {
+      post: {
+        tags: ["Corpus - Legal & Patent"],
+        summary: "T.C. Anayasa Mahkemesi (AYM) Kararlar ve Norm Denetimi Çıkarıcı",
+        description:
+          "T.C. Anayasa Mahkemesi norm denetimi kararları, bireysel başvuru hak ihlali hükümleri, gerekçeli kararlar ve karşı oy yazılarını çıkaran aktör.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["individual_application", "norm_review", "search", "decision"],
+                    default: "search",
+                    description: "Eylem modu",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Arama anahtar kelimeleri",
+                  },
+                  category: {
+                    type: "string",
+                    enum: ["individual", "norm", "party", "yuce_divan", "all"],
+                    default: "all",
+                    description: "Karar alanı",
+                  },
+                  applicationNumber: {
+                    type: "string",
+                    description: "Bireysel başvuru numarası",
+                  },
+                  caseNumber: {
+                    type: "string",
+                    description: "Esas numarası",
+                  },
+                  decisionNumber: {
+                    type: "string",
+                    description: "Karar numarası",
+                  },
+                  decisionId: {
+                    type: "string",
+                    description: "Tekil karar ID",
+                  },
+                  right: {
+                    type: "string",
+                    description: "İncelenen hak",
+                  },
+                  outcome: {
+                    type: "string",
+                    description: "Karar sonucu filtresi",
+                  },
+                  year: {
+                    type: "integer",
+                    description: "Karar yılı",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Maksimum karar sayısı",
+                  },
+                  offset: {
+                    type: "integer",
+                    default: 0,
+                    description: "Sayfalama offset değeri",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Doğrudan AYM karar veya arama bağlantısı",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Yapılandırılmış AYM kararları, norm denetimi incelemeleri, gerekçeler, karşı oylar ve GFM Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/danistay": {
+      post: {
+        tags: ["Corpus - Legal & Patent"],
+        summary: "T.C. Danıştay Başkanlığı Emsal Karar Çıkarıcı",
+        description:
+          "T.C. Danıştay Başkanlığı idari ve vergi dava daireleri, İDDK, VDDK ve İçtihatları Birleştirme Kurulu emsal kararlarını, tetkik hakimi/savcı düşüncelerini ve gerekçeli hükümleri çıkarır.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["search", "decision"],
+                    default: "search",
+                    description: "Eylem modu",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Arama anahtar kelimeleri",
+                  },
+                  chamber: {
+                    type: "string",
+                    description: "Daire veya kurul adı",
+                  },
+                  caseNumber: {
+                    type: "string",
+                    description: "Esas numarası",
+                  },
+                  decisionNumber: {
+                    type: "string",
+                    description: "Karar numarası",
+                  },
+                  decisionId: {
+                    type: "string",
+                    description: "Karar ID",
+                  },
+                  year: {
+                    type: "integer",
+                    description: "Karar yılı",
+                  },
+                  legalArea: {
+                    type: "string",
+                    enum: ["idare", "vergi", "all"],
+                    default: "all",
+                    description: "Hukuk alanı",
+                  },
+                  decisionType: {
+                    type: "string",
+                    description: "Karar sonucu filtresi",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Maksimum karar sayısı",
+                  },
+                  offset: {
+                    type: "integer",
+                    default: 0,
+                    description: "Sayfalama offset değeri",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Doğrudan Danıştay karar bağlantısı",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Yapılandırılmış Danıştay emsal kararları, daire hükümleri, tetkik hakimi/savcı düşünceleri ve GFM Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/google-patents": {
+      post: {
+        tags: ["Corpus - Legal & Patent"],
+        summary: "Google Patents Global Patent Claims & Engineering Harvester",
+        description:
+          "Queries Google Patents and USPTO/EPO public databases for patent claims hierarchy, technical specifications, CPC/IPC classifications, and prior art citations.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["patent", "search", "claims"],
+                    default: "patent",
+                    description: "Action mode",
+                  },
+                  patentId: {
+                    type: "string",
+                    description: "Patent identifier (e.g. US10123456B2, EP3123456A1)",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Keywords or boolean query",
+                  },
+                  inventor: {
+                    type: "string",
+                    description: "Inventor name",
+                  },
+                  assignee: {
+                    type: "string",
+                    description: "Assignee / applicant name",
+                  },
+                  country: {
+                    type: "string",
+                    description: "Patent jurisdiction (US, EP, WO, TR, etc.)",
+                  },
+                  status: {
+                    type: "string",
+                    enum: ["grant", "application", "all"],
+                    default: "all",
+                    description: "Patent grant or application status",
+                  },
+                  before: {
+                    type: "string",
+                    description: "Priority date upper bound (YYYYMMDD)",
+                  },
+                  after: {
+                    type: "string",
+                    description: "Priority date lower bound (YYYYMMDD)",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Maximum patents to return",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Google Patents URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured patent specification, claims hierarchy, engineering description, CPC classifications, and GFM Markdown.",
+          },
+        },
+      },
+    },
     "/api/v1/sitemap": {
       post: {
         tags: ["Crawling"],

@@ -2019,3 +2019,162 @@ test("POST /api/v1/semantic-scholar routes correctly via server router", async (
     await new Promise<void>((resolve) => mockServer.close(() => resolve()));
   }
 });
+
+test("POST /api/v1/anayasa-mahkemesi routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        total: 1,
+        data: [
+          {
+            id: "aym-test-1",
+            basvuruNo: "2020/9999",
+            sonuc: "İhlal",
+          },
+        ],
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/anayasa-mahkemesi`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "individual_application",
+        applicationNumber: "2020/9999",
+        targetUrl: `http://127.0.0.1:${mockPort}/arama?kategori=bireysel`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        decisions: Array<{ applicationNumber?: string; outcome: string }>;
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "individual_application");
+    assert.equal(json.data?.decisions?.[0]?.applicationNumber, "2020/9999");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/danistay routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        total: 1,
+        data: [
+          {
+            id: "danistay-test-1",
+            daire: "İDDK",
+            esasNo: "2022/111",
+            kararNo: "2023/222",
+            kararTuru: "Bozma",
+          },
+        ],
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/danistay`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "search",
+        chamber: "iddk",
+        targetUrl: `http://127.0.0.1:${mockPort}/arama`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        decisions: Array<{ caseNumber: string; decisionType: string }>;
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "search");
+    assert.equal(json.data?.decisions?.[0]?.caseNumber, "2022/111");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/google-patents routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        patentId: "US12345678B1",
+        title: "Photonic Neuromorphic Processing Engine",
+        claims: [
+          {
+            number: 1,
+            text: "An optical matrix multiplier comprising silicon waveguides.",
+            isIndependent: true,
+          },
+        ],
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/google-patents`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "patent",
+        patentId: "US12345678B1",
+        targetUrl: `http://127.0.0.1:${mockPort}/patent/US12345678B1/en`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        patent?: { patentId: string; title: string };
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "patent");
+    assert.equal(json.data?.patent?.patentId, "US12345678B1");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});

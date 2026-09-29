@@ -72,7 +72,10 @@ export type ActorType =
   | "papers-with-code"
   | "libretexts"
   | "open-textbook"
-  | "semantic-scholar";
+  | "semantic-scholar"
+  | "anayasa-mahkemesi"
+  | "danistay"
+  | "google-patents";
 
 export interface ExtractedTable {
   id: string;
@@ -1456,6 +1459,200 @@ export interface SemanticScholarActorResult {
   markdown?: string;
 }
 
+// ---------------------------------------------------------------------------
+// T.C. Anayasa Mahkemesi (AYM - Constitutional Court of Turkey)
+// ---------------------------------------------------------------------------
+
+export type AnayasaMahkemesiAction =
+  | "individual_application"
+  | "norm_review"
+  | "search"
+  | "decision";
+
+export type AnayasaMahkemesiCategory = "individual" | "norm" | "party" | "yuce_divan" | "all";
+
+export interface AnayasaMahkemesiDecisionItem {
+  id: string;
+  category: "individual" | "norm" | "party" | "yuce_divan";
+  caseNumber?: string;
+  decisionNumber?: string;
+  applicationNumber?: string;
+  applicationDate?: string;
+  decisionDate: string;
+  officialGazetteDate?: string;
+  officialGazetteNumber?: string;
+  title: string;
+  applicant?: string;
+  violatedRights?: string[];
+  outcome: string;
+  summary?: string;
+  url: string;
+}
+
+export interface AnayasaMahkemesiDecisionDetail extends AnayasaMahkemesiDecisionItem {
+  examinedNorm?: string;
+  facts?: string;
+  legalAssessment?: string;
+  verdict?: string;
+  dissentingOpinions?: Array<{
+    judgeName: string;
+    type: "karsi_oy" | "farkli_gerekce";
+    text: string;
+  }>;
+  fullTextMarkdown: string;
+}
+
+export interface AnayasaMahkemesiActorTaskOptions {
+  action?: AnayasaMahkemesiAction;
+  query?: string;
+  category?: AnayasaMahkemesiCategory;
+  applicationNumber?: string;
+  caseNumber?: string;
+  decisionNumber?: string;
+  decisionId?: string;
+  right?: string;
+  outcome?: string;
+  year?: number;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+  offset?: number;
+  timeoutMs?: number;
+}
+
+export interface AnayasaMahkemesiActorResult {
+  action: AnayasaMahkemesiAction;
+  queryUrl: string;
+  totalResults: number;
+  offset?: number;
+  decisions: AnayasaMahkemesiDecisionItem[];
+  decision?: AnayasaMahkemesiDecisionDetail;
+  markdown?: string;
+}
+
+// ---------------------------------------------------------------------------
+// T.C. Danıştay Başkanlığı (Council of State of Turkey - Administrative Supreme Court)
+// ---------------------------------------------------------------------------
+
+export type DanistayAction = "search" | "decision";
+
+export interface DanistayDecisionItem {
+  id: string;
+  chamber: string;
+  caseNumber: string;
+  decisionNumber: string;
+  decisionDate: string;
+  legalArea: string;
+  decisionType?: string;
+  subject?: string;
+  summary?: string;
+  url: string;
+}
+
+export interface DanistayDecisionDetail extends DanistayDecisionItem {
+  lowerCourt?: string;
+  appellant?: string;
+  appellee?: string;
+  reporterOpinion?: string;
+  prosecutorOpinion?: string;
+  facts?: string;
+  legalReasoning?: string;
+  verdict?: string;
+  dissentingOpinions?: Array<{
+    member: string;
+    text: string;
+  }>;
+  fullTextMarkdown: string;
+}
+
+export interface DanistayActorTaskOptions {
+  action?: DanistayAction;
+  query?: string;
+  chamber?: string;
+  caseNumber?: string;
+  decisionNumber?: string;
+  decisionId?: string;
+  year?: number;
+  legalArea?: string;
+  decisionType?: string;
+  limit?: number;
+  offset?: number;
+  timeoutMs?: number;
+}
+
+export interface DanistayActorResult {
+  action: DanistayAction;
+  queryUrl: string;
+  totalResults: number;
+  offset?: number;
+  decisions: DanistayDecisionItem[];
+  decision?: DanistayDecisionDetail;
+  markdown?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Google Patents (Global Patent Engineering & Claims)
+// ---------------------------------------------------------------------------
+
+export type GooglePatentsAction = "patent" | "search" | "claims";
+
+export interface GooglePatentClaimItem {
+  number: number;
+  claimId: string;
+  text: string;
+  isIndependent: boolean;
+  dependentOn?: number;
+}
+
+export interface GooglePatentItem {
+  patentId: string;
+  title: string;
+  abstract?: string;
+  url: string;
+  publicationDate?: string;
+  filingDate?: string;
+  priorityDate?: string;
+  grantDate?: string;
+  inventors?: string[];
+  assignees?: string[];
+  jurisdiction?: string;
+  kindCode?: string;
+  cpcClassifications?: string[];
+  ipcClassifications?: string[];
+  claimsCount?: number;
+  claims?: GooglePatentClaimItem[];
+  descriptionMarkdown?: string;
+  priorArtCitations?: Array<{
+    patentId: string;
+    title?: string;
+    filingDate?: string;
+  }>;
+}
+
+export interface GooglePatentsActorTaskOptions {
+  action?: GooglePatentsAction;
+  patentId?: string;
+  query?: string;
+  inventor?: string;
+  assignee?: string;
+  country?: string;
+  status?: "grant" | "application" | "all";
+  before?: string;
+  after?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface GooglePatentsActorResult {
+  action: GooglePatentsAction;
+  queryUrl: string;
+  totalResults: number;
+  patent?: GooglePatentItem;
+  claims?: GooglePatentClaimItem[];
+  patents?: GooglePatentItem[];
+  markdown?: string;
+}
+
 export interface OpenAlexWorkItem {
   id: string;
   doi?: string;
@@ -2552,6 +2749,9 @@ export interface ActorTask {
     libretextsOptions?: LibreTextsActorTaskOptions;
     openTextbookOptions?: OpenTextbookActorTaskOptions;
     semanticScholarOptions?: SemanticScholarActorTaskOptions;
+    anayasaMahkemesiOptions?: AnayasaMahkemesiActorTaskOptions;
+    danistayOptions?: DanistayActorTaskOptions;
+    googlePatentsOptions?: GooglePatentsActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

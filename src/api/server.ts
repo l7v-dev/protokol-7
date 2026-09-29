@@ -3591,6 +3591,195 @@ export function createServer(): http.Server {
         return;
       }
 
+      // Anayasa Mahkemesi (/anayasa-mahkemesi or /api/v1/anayasa-mahkemesi)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/anayasa-mahkemesi" || pathname === "/anayasa-mahkemesi")
+      ) {
+        const body = await parseBody<{
+          action?: "individual_application" | "norm_review" | "search" | "decision";
+          query?: string;
+          category?: "individual" | "norm" | "party" | "yuce_divan" | "all";
+          applicationNumber?: string;
+          caseNumber?: string;
+          decisionNumber?: string;
+          decisionId?: string;
+          right?: string;
+          outcome?: string;
+          year?: number;
+          limit?: number;
+          offset?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const aymActor = registry.get("anayasa-mahkemesi");
+        if (!aymActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Anayasa Mahkemesi actor is not available.",
+            "Ensure AnayasaMahkemesiActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `aym-${Date.now()}`,
+          actorType: "anayasa-mahkemesi",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            anayasaMahkemesiOptions: {
+              action: body.action,
+              query: body.query,
+              category: body.category,
+              applicationNumber: body.applicationNumber,
+              caseNumber: body.caseNumber,
+              decisionNumber: body.decisionNumber,
+              decisionId: body.decisionId,
+              right: body.right,
+              outcome: body.outcome,
+              year: body.year,
+              limit: body.limit,
+              offset: body.offset,
+              ...body.options?.anayasaMahkemesiOptions,
+            },
+          },
+        };
+
+        const result = await aymActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Danıştay (/danistay or /api/v1/danistay)
+      if (method === "POST" && (pathname === "/api/v1/danistay" || pathname === "/danistay")) {
+        const body = await parseBody<{
+          action?: "search" | "decision";
+          query?: string;
+          chamber?: string;
+          caseNumber?: string;
+          decisionNumber?: string;
+          decisionId?: string;
+          year?: number;
+          legalArea?: string;
+          decisionType?: string;
+          limit?: number;
+          offset?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const danistayActor = registry.get("danistay");
+        if (!danistayActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Danıştay actor is not available.",
+            "Ensure DanistayActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `danistay-${Date.now()}`,
+          actorType: "danistay",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            danistayOptions: {
+              action: body.action,
+              query: body.query,
+              chamber: body.chamber,
+              caseNumber: body.caseNumber,
+              decisionNumber: body.decisionNumber,
+              decisionId: body.decisionId,
+              year: body.year,
+              legalArea: body.legalArea,
+              decisionType: body.decisionType,
+              limit: body.limit,
+              offset: body.offset,
+              ...body.options?.danistayOptions,
+            },
+          },
+        };
+
+        const result = await danistayActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Google Patents (/google-patents or /api/v1/google-patents)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/google-patents" || pathname === "/google-patents")
+      ) {
+        const body = await parseBody<{
+          action?: "patent" | "search" | "claims";
+          patentId?: string;
+          query?: string;
+          inventor?: string;
+          assignee?: string;
+          country?: string;
+          status?: "grant" | "application" | "all";
+          before?: string;
+          after?: string;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const patentsActor = registry.get("google-patents");
+        if (!patentsActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Google Patents actor is not available.",
+            "Ensure GooglePatentsActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `patents-${Date.now()}`,
+          actorType: "google-patents",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            googlePatentsOptions: {
+              action: body.action,
+              patentId: body.patentId,
+              query: body.query,
+              inventor: body.inventor,
+              assignee: body.assignee,
+              country: body.country,
+              status: body.status,
+              before: body.before,
+              after: body.after,
+              limit: body.limit,
+              ...body.options?.googlePatentsOptions,
+            },
+          },
+        };
+
+        const result = await patentsActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&
