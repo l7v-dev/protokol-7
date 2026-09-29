@@ -9,7 +9,8 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- [/] **Wikiquote 100 Dilli Sıfır Disk Artığı Dump ETL Boru Hattı (scripts/wikiquote_pipeline/)** — `Tier: 2` — Wikiquote'un 100 dünya dili için XML bz2 dump akışı, wikitext vecize ve aforizma temizleyici, Zstandard Parquet paketleyici, Google Drive v3 yükleme ve MD5 doğrulama ile sıfır disk artığı ETL hattının inşası ve arka planda çalıştırılması.
+
+- *(Şu an aktif görev bulunmuyor — yeni talimat bekleniyor)*
 
 ## Bekleyen (Blok var)
 
@@ -21,13 +22,15 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Son tamamlananlar (son 3-5, eskiler ledger/'a taşınır)
 
+- [x] **Wikibooks, Wikiversity ve Wikivoyage Sıfır Disk Artığı Dump ETL Boru Hatları (scripts/wikibooks_pipeline/, scripts/wikiversity_pipeline/, scripts/wikivoyage_pipeline/)** — `Tier: 2` — Wikibooks (121 dil, 388.413 madde, 635.98 MB Parquet), Wikiversity (17 dil, 101.370 madde, 161.22 MB Parquet) ve Wikivoyage (27 dil, 149.950 madde, 276.84 MB Parquet) için 4 GB RAM mimarisi, Zstandard Parquet akışı, Google Drive v3 yükleme ve MD5 doğrulama ile sıfır disk artığı ETL boru hatları inşa edildi ve tamamlandı; toplam 639.733 madde doğrudan Google Drive'a mühürlendi; 15 birim testi eksiksiz geçti.
+
+- [x] **Wikiquote 100 Dilli Sıfır Disk Artığı Dump ETL Boru Hattı (scripts/wikiquote_pipeline/)** — `Tier: 2` — Wikiquote'un 100 dünya dili için XML bz2 dump akışı, wikitext vecize ve aforizma temizleyici, Zstandard Parquet paketleyici, Google Drive v3 yükleme ve MD5 doğrulama ile sıfır disk artığı ETL hattı inşa edildi; 4 GB RAM bellek tamponlarıyla optimize edilen boru hattı 99 aktif dünya dilini (Türkçe `tr` 6.372 madde, İngilizce `en` 69.128 madde, İtalyanca `it` 56.662 madde vb.) işleyerek toplam 419.975 maddeyi 505.34 MB Zstd Parquet halinde doğrudan Google Drive'a mühürledi; geçici dosyalar anında silinerek yerel diskte sıfır artık garanti edildi; 5 birim testi eksiksiz geçti.
+
+- [x] **Gutenberg, StackExchange, OpenAlex ve Semantic Scholar Drive Entegrasyonlu Sıfır Disk Artığı ETL Boru Hatları (scripts/*_pipeline/)** — `Tier: 2` — Project Gutenberg (~70.000 kitap), StackExchange (~100M+ Soru/Cevap konusu), OpenAlex (OA akademik çalışmalar) ve Semantic Scholar (S2AG/S2ORC) için streaming ingestion, cleaner, Zstd Parquet sharding, Google Drive v3 yükleme, MD5 sağlama doğrulaması ve anında yerel disk temizliği mimarisi tamamlandı; 64 birim testi eksiksiz geçti; 4 adet deklaratif YAML manifest ve detaylı walkthrough dokümanı mühürlendi.
+
+- [x] **OpenAlex ve SemanticScholar Pipeline Birim Testleri (scripts/openalex_pipeline/test_openalex_pipeline.py, scripts/semanticscholar_pipeline/test_semanticscholar_pipeline.py)** — `Tier: 2` — OpenAlex için 18 test (reconstruct_abstract kalite kapısı, build_record alan çıkarma, OpenAlexParquetSharder şema/boş/callback) ve SemanticScholar için 24 test (_clean yardımcı, build_record kalite kapısı, alan çıkarma, S2ParquetSharder şema/tip doğrulama) yazıldı; npm run test:corpus-pipelines ile 64 testin tamamı (Gutenberg 10, StackExchange 12, OpenAlex 18, S2 24) geçti. package.json'a dört pipeline ve test script'i eklendi.
+
 - [x] **Klasik Filoloji, Antik Metinler & Dünya Mirası Paketi (Set 6: Perseus-DL, Sacred-Texts)** — `Tier: 2` — Tufts Perseus Digital Library (`perseus-dl`) ve Internet Sacred Text Archive (`sacred-texts`) aktör sınıfları, REST uç noktaları (`POST /api/v1/<name>`), MCP araçları (`query_*`, toplam 79 araç), Zod/JSON şemaları, OpenAPI 3.1.0 tanımları, 23 birim/entegrasyon testi, teknik wikileri, örnek yapılandırmaları ve walkthrough dokümanı ile eksiksiz tamamlandı; 868 test ve 6 aşamalı doğrulama hattı başarıyla geçti.
-
-- [x] **Türk Hukuku & Küresel Patent Mühendisliği Paketi (Set 4: Anayasa-Mahkemesi, Danistay, Google-Patents)** — `Tier: 2` — T.C. Anayasa Mahkemesi kararları (`anayasa-mahkemesi`), T.C. Danıştay kararları (`danistay`) ve Google Patents / USPTO (`google-patents`) aktör sınıfları, REST uç noktaları (`POST /api/v1/<name>`), MCP araçları (`query_*`, toplam 77 araç), Zod/JSON şemaları, OpenAPI 3.1.0 tanımları, 34 birim/entegrasyon testi (`tests/*-actor.test.ts`), teknik wikileri (`docs/actors/*.md`), örnek yapılandırmaları (`examples/actors/*.json`) ve walkthrough dokümanı ile eksiksiz tamamlandı; 860 test ve 6 aşamalı doğrulama hattı başarıyla geçti.
-
-- [x] **Açık Üniversite & STEM Ders Kitapları Aktörleri (Set 3: LibreTexts, Open-Textbook, Semantic-Scholar)** — `Tier: 2` — LibreTexts STEM ders kitapları ve formül çıkarıcı (`libretexts`), University of Minnesota Açık Ders Kitaplığı ve hakemli değerlendirme çıkarıcı (`open-textbook`), ve Semantic Scholar 200M+ akademik yayın ve atıf grafı çıkarıcı (`semantic-scholar`) aktör sınıfları, REST uç noktaları (`POST /api/v1/<name>`), MCP araçları (`query_*`, toplam 74 araç), Zod/JSON şemaları, OpenAPI 3.1.0 tanımları, 43 birim/entegrasyon testi (`tests/*-actor.test.ts`), teknik wikileri (`docs/actors/*.md`), örnek yapılandırmaları (`examples/actors/*.json`) ve walkthrough dokümanı ile eksiksiz tamamlandı; 826 test ve 6 aşamalı doğrulama hattı başarıyla geçti.
-
-- [x] **Geliştirici Bilgi Tabanı ve Çok Dilli Kodlama Aktörleri (Set 5: DevDocs, Rosetta-Code, Papers-With-Code)** — `Tier: 2` — DevDocs API ve doküman çıkarıcı (`devdocs`), Rosetta Code çok dilli algoritma karşılaştırıcı (`rosetta-code`), ve Papers With Code / Hugging Face Papers makale ve kod deposu çıkarıcı (`papers-with-code`) aktör sınıfları, REST uç noktaları (`POST /api/v1/<name>`), MCP araçları (`query_*`, toplam 71 araç), Zod/JSON şemaları, OpenAPI 3.1.0 tanımları, birim/entegrasyon testleri (`tests/*-actor.test.ts`), teknik wikileri (`docs/actors/*.md`) ve örnek yapılandırmalarıyla eksiksiz tamamlandı; 806 test ve 6 aşamalı doğrulama hattı başarıyla geçti.
 
 ---
 
