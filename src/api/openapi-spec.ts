@@ -2763,6 +2763,183 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/libretexts": {
+      post: {
+        tags: ["Corpus - Academic & Open Textbooks"],
+        summary: "LibreTexts Open STEM & Engineering Textbook Harvester",
+        description:
+          "Harvests open-access STEM and engineering textbooks, course chapters, hierarchical table of contents, and formulas from LibreTexts discipline libraries.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["page", "search", "subpages", "toc"],
+                    default: "page",
+                    description: "Action mode",
+                  },
+                  library: {
+                    type: "string",
+                    default: "chem",
+                    description: "Discipline library (chem, phys, math, bio, eng, etc.)",
+                  },
+                  pageId: {
+                    type: "string",
+                    description: "Page ID or numeric identifier",
+                  },
+                  path: {
+                    type: "string",
+                    description: "Relative page path",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword query",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Max results to return",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct LibreTexts chapter or book URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured chapter text, breadcrumbs, formulas, subpages, and GFM Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/open-textbook": {
+      post: {
+        tags: ["Corpus - Academic & Open Textbooks"],
+        summary: "Open Textbook Library (UMN) Harvester",
+        description:
+          "Harvests peer-reviewed open textbooks, multi-format download links (PDF, EPUB, Online), table of contents, academic peer reviews, and curricular subject categories from Open Textbook Library (UMN).",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["book", "search", "subjects"],
+                    default: "book",
+                    description: "Action mode",
+                  },
+                  bookId: {
+                    type: "string",
+                    description: "Textbook identifier or slug (e.g. 'calculus-volume-1')",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search keyword expression",
+                  },
+                  subject: {
+                    type: "string",
+                    description: "Subject category slug (e.g. 'mathematics')",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Max textbooks to return",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Open Textbook Library URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured textbook details, download links, TOC, academic reviews, and GFM Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/semantic-scholar": {
+      post: {
+        tags: ["Corpus - Academic & Open Textbooks"],
+        summary: "Semantic Scholar Academic Knowledge Graph Harvester",
+        description:
+          "Queries scientific literature, citations, AI-generated TLDR summaries, author profiles, and paper graphs from Semantic Scholar Graph API (S2AG).",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["paper", "search", "author", "author_search", "citations", "references"],
+                    default: "paper",
+                    description: "Action mode",
+                  },
+                  paperId: {
+                    type: "string",
+                    description: "Paper ID, DOI, arXiv ID (e.g. 'ARXIV:1706.03762'), or PubMed ID",
+                  },
+                  authorId: {
+                    type: "string",
+                    description: "Author ID",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Literature search query",
+                  },
+                  fields: {
+                    type: "string",
+                    description: "Comma-separated fields to request",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 10,
+                    description: "Max items to return",
+                  },
+                  offset: {
+                    type: "integer",
+                    default: 0,
+                    description: "Pagination offset",
+                  },
+                  year: {
+                    type: "string",
+                    description: "Publication year filter",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Semantic Scholar paper or author URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured paper record, abstract, TLDR, citation graphs, author profiles, and GFM Markdown.",
+          },
+        },
+      },
+    },
     "/api/v1/sitemap": {
       post: {
         tags: ["Crawling"],

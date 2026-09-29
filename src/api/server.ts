@@ -3426,6 +3426,171 @@ export function createServer(): http.Server {
         return;
       }
 
+      // LibreTexts STEM Textbooks (/libretexts or /api/v1/libretexts)
+      if (method === "POST" && (pathname === "/api/v1/libretexts" || pathname === "/libretexts")) {
+        const body = await parseBody<{
+          action?: "page" | "search" | "subpages" | "toc";
+          library?: string;
+          pageId?: number | string;
+          path?: string;
+          query?: string;
+          limit?: number;
+          includeHtml?: boolean;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const ltActor = registry.get("libretexts");
+        if (!ltActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "LibreTexts actor is not available.",
+            "Ensure LibreTextsActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `libretexts-${Date.now()}`,
+          actorType: "libretexts",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            libretextsOptions: {
+              action: body.action,
+              library: body.library,
+              pageId: body.pageId,
+              path: body.path,
+              query: body.query,
+              limit: body.limit,
+              includeHtml: body.includeHtml,
+              ...body.options?.libretextsOptions,
+            },
+          },
+        };
+
+        const result = await ltActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Open Textbook Library (/open-textbook or /api/v1/open-textbook)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/open-textbook" || pathname === "/open-textbook")
+      ) {
+        const body = await parseBody<{
+          action?: "book" | "search" | "subjects";
+          bookId?: number | string;
+          query?: string;
+          subject?: string;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const otActor = registry.get("open-textbook");
+        if (!otActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Open Textbook actor is not available.",
+            "Ensure OpenTextbookActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `opentextbook-${Date.now()}`,
+          actorType: "open-textbook",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            openTextbookOptions: {
+              action: body.action,
+              bookId: body.bookId,
+              query: body.query,
+              subject: body.subject,
+              limit: body.limit,
+              ...body.options?.openTextbookOptions,
+            },
+          },
+        };
+
+        const result = await otActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Semantic Scholar Graph API (/semantic-scholar or /api/v1/semantic-scholar)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/semantic-scholar" || pathname === "/semantic-scholar")
+      ) {
+        const body = await parseBody<{
+          action?: "paper" | "search" | "author" | "author_search" | "citations" | "references";
+          paperId?: string;
+          authorId?: string;
+          query?: string;
+          fields?: string;
+          limit?: number;
+          offset?: number;
+          year?: string;
+          apiKey?: string;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const s2Actor = registry.get("semantic-scholar");
+        if (!s2Actor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Semantic Scholar actor is not available.",
+            "Ensure SemanticScholarActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `semanticscholar-${Date.now()}`,
+          actorType: "semantic-scholar",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            semanticScholarOptions: {
+              action: body.action,
+              paperId: body.paperId,
+              authorId: body.authorId,
+              query: body.query,
+              fields: body.fields,
+              limit: body.limit,
+              offset: body.offset,
+              year: body.year,
+              apiKey: body.apiKey,
+              ...body.options?.semanticScholarOptions,
+            },
+          },
+        };
+
+        const result = await s2Actor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

@@ -64,7 +64,7 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 71);
+    assert.equal(result.tools.length, 74);
 
     const toolNames = result.tools.map((t) => t.name);
     assert.ok(toolNames.includes("wikipedia_query"));
@@ -85,6 +85,9 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.ok(toolNames.includes("query_devdocs"));
     assert.ok(toolNames.includes("query_rosetta_code"));
     assert.ok(toolNames.includes("query_papers_with_code"));
+    assert.ok(toolNames.includes("query_libretexts"));
+    assert.ok(toolNames.includes("query_open_textbook"));
+    assert.ok(toolNames.includes("query_semantic_scholar"));
     assert.ok(toolNames.includes("query_resmi_gazete"));
     assert.ok(toolNames.includes("query_yargitay"));
     assert.ok(toolNames.includes("query_kap"));
@@ -1190,5 +1193,160 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.ok(typedTask.options?.metamathOptions);
     assert.equal(typedTask.options.metamathOptions.theorem, "mpc2");
     assert.equal(typedTask.options.metamathOptions.database, "set.mm");
+  });
+
+  it("handles query_libretexts tool call and routes options correctly", async () => {
+    let capturedTask: unknown;
+    const customRegistry = new ActorRegistry();
+    customRegistry.register({
+      actorType: "libretexts",
+      description: "Mock LibreTexts",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "libretexts",
+          status: "completed",
+          executionDurationMs: 5,
+          data: {
+            action: "search",
+            library: "phys",
+            queryUrl: "http://example.com",
+            totalResults: 1,
+            pages: [],
+          },
+        };
+      },
+    });
+
+    const server = new ProtokolMcpServer(customRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "call-libretexts",
+      method: "tools/call",
+      params: {
+        name: "query_libretexts",
+        arguments: {
+          action: "search",
+          library: "phys",
+          query: "quantum",
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        libretextsOptions?: {
+          action?: string;
+          library?: string;
+          query?: string;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.libretextsOptions);
+    assert.equal(typedTask.options.libretextsOptions.action, "search");
+    assert.equal(typedTask.options.libretextsOptions.library, "phys");
+    assert.equal(typedTask.options.libretextsOptions.query, "quantum");
+  });
+
+  it("handles query_open_textbook tool call and routes options correctly", async () => {
+    let capturedTask: unknown;
+    const customRegistry = new ActorRegistry();
+    customRegistry.register({
+      actorType: "open-textbook",
+      description: "Mock Open Textbook",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "open-textbook",
+          status: "completed",
+          executionDurationMs: 5,
+          data: {
+            action: "book",
+            queryUrl: "http://example.com",
+            totalResults: 1,
+          },
+        };
+      },
+    });
+
+    const server = new ProtokolMcpServer(customRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "call-open-textbook",
+      method: "tools/call",
+      params: {
+        name: "query_open_textbook",
+        arguments: {
+          action: "book",
+          bookId: "calculus-vol-1",
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        openTextbookOptions?: {
+          action?: string;
+          bookId?: string;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.openTextbookOptions);
+    assert.equal(typedTask.options.openTextbookOptions.action, "book");
+    assert.equal(typedTask.options.openTextbookOptions.bookId, "calculus-vol-1");
+  });
+
+  it("handles query_semantic_scholar tool call and routes options correctly", async () => {
+    let capturedTask: unknown;
+    const customRegistry = new ActorRegistry();
+    customRegistry.register({
+      actorType: "semantic-scholar",
+      description: "Mock Semantic Scholar",
+      run: async (task) => {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "semantic-scholar",
+          status: "completed",
+          executionDurationMs: 5,
+          data: {
+            action: "paper",
+            queryUrl: "http://example.com",
+            totalResults: 1,
+          },
+        };
+      },
+    });
+
+    const server = new ProtokolMcpServer(customRegistry);
+    await server.processRequest({
+      jsonrpc: "2.0",
+      id: "call-semantic-scholar",
+      method: "tools/call",
+      params: {
+        name: "query_semantic_scholar",
+        arguments: {
+          action: "paper",
+          paperId: "ARXIV:1706.03762",
+        },
+      },
+    });
+
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        semanticScholarOptions?: {
+          action?: string;
+          paperId?: string;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.semanticScholarOptions);
+    assert.equal(typedTask.options.semanticScholarOptions.action, "paper");
+    assert.equal(typedTask.options.semanticScholarOptions.paperId, "ARXIV:1706.03762");
   });
 });

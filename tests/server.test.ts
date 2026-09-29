@@ -1868,3 +1868,154 @@ test("POST /api/v1/papers-with-code routes correctly via server router", async (
     await new Promise<void>((resolve) => mockServer.close(() => resolve()));
   }
 });
+
+test("POST /api/v1/libretexts routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        page: [
+          {
+            id: 101,
+            title: "Quantum Mechanics",
+            "uri.ui": "http://127.0.0.1/Bookshelves/Physics/QM",
+            summary: "Principles of quantum physics.",
+          },
+        ],
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/libretexts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "search",
+        query: "quantum",
+        library: "phys",
+        targetUrl: `http://127.0.0.1:${mockPort}/@api/deki/site/query?q=quantum`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        pages?: Array<{ title: string }>;
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "search");
+    assert.equal(json.data?.pages?.[0]?.title, "Quantum Mechanics");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/open-textbook routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(`
+      <html>
+        <body>
+          <article class="textbook">
+            <h2><a href="/opentextbooks/textbooks/101">Calculus Volume 1</a></h2>
+            <p class="author">By: Edwin Herman</p>
+          </article>
+        </body>
+      </html>
+    `);
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/open-textbook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "search",
+        query: "calculus",
+        targetUrl: `http://127.0.0.1:${mockPort}/opentextbooks/textbooks?term=calculus`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        books?: Array<{ title: string }>;
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "search");
+    assert.equal(json.data?.books?.[0]?.title, "Calculus Volume 1");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/semantic-scholar routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        paperId: "649def34f8be52c8b66281af98ae884c09aef38b",
+        title: "Attention Is All You Need",
+        year: 2017,
+        citationCount: 120000,
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/semantic-scholar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "paper",
+        paperId: "649def34f8be52c8b66281af98ae884c09aef38b",
+        targetUrl: `http://127.0.0.1:${mockPort}/paper/649def34f8be52c8b66281af98ae884c09aef38b`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        paper?: { title: string; year: number };
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "paper");
+    assert.equal(json.data?.paper?.title, "Attention Is All You Need");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});

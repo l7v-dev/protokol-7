@@ -249,6 +249,7 @@ print([i + 1 for i, d in enumerate(doors) if d])</code></pre>
       const task: ActorTask = {
         taskId: "test-e2e-langs",
         actorType: "rosetta-code",
+        targetUrl: "",
         options: {
           rosettaCodeOptions: {
             action: "languages",

@@ -69,7 +69,10 @@ export type ActorType =
   | "philpapers"
   | "devdocs"
   | "rosetta-code"
-  | "papers-with-code";
+  | "papers-with-code"
+  | "libretexts"
+  | "open-textbook"
+  | "semantic-scholar";
 
 export interface ExtractedTable {
   id: string;
@@ -1297,6 +1300,162 @@ export interface PapersWithCodeActorResult {
   markdown?: string;
 }
 
+// ---------------------------------------------------------------------------
+// LibreTexts (STEM & Engineering Open Textbooks)
+// ---------------------------------------------------------------------------
+
+export interface LibreTextsPageItem {
+  id?: number | string;
+  title: string;
+  url: string;
+  library: string;
+  path?: string;
+  contentMarkdown?: string;
+  contentHtml?: string;
+  summary?: string;
+  breadcrumbs?: string[];
+  subpages?: Array<{ id?: number | string; title: string; url: string }>;
+}
+
+export interface LibreTextsActorTaskOptions {
+  action?: "page" | "search" | "subpages" | "toc";
+  library?: string;
+  pageId?: number | string;
+  path?: string;
+  query?: string;
+  limit?: number;
+  includeHtml?: boolean;
+  timeoutMs?: number;
+}
+
+export interface LibreTextsActorResult {
+  action: "page" | "search" | "subpages" | "toc";
+  library: string;
+  queryUrl: string;
+  totalResults: number;
+  page?: LibreTextsPageItem;
+  pages?: LibreTextsPageItem[];
+  subpages?: Array<{ id?: number | string; title: string; url: string }>;
+  markdown?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Open Textbook Library (UMN Curricular Textbooks)
+// ---------------------------------------------------------------------------
+
+export interface OpenTextbookReview {
+  reviewer: string;
+  institution?: string;
+  rating?: number;
+  reviewDate?: string;
+  commentsMarkdown: string;
+}
+
+export interface OpenTextbookItem {
+  id?: number | string;
+  title: string;
+  url: string;
+  authors?: string[];
+  publisher?: string;
+  publicationDate?: string;
+  license?: string;
+  isbn?: string;
+  formats?: Array<{ format: string; url: string }>;
+  descriptionMarkdown?: string;
+  tableOfContents?: string[];
+  subjects?: string[];
+  rating?: number;
+  reviewCount?: number;
+  reviews?: OpenTextbookReview[];
+}
+
+export interface OpenTextbookSubject {
+  name: string;
+  slug: string;
+  bookCount?: number;
+  url: string;
+}
+
+export interface OpenTextbookActorTaskOptions {
+  action?: "book" | "search" | "subjects";
+  bookId?: number | string;
+  query?: string;
+  subject?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface OpenTextbookActorResult {
+  action: "book" | "search" | "subjects";
+  queryUrl: string;
+  totalResults: number;
+  book?: OpenTextbookItem;
+  books?: OpenTextbookItem[];
+  subjects?: OpenTextbookSubject[];
+  markdown?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Semantic Scholar (Academic Knowledge Graph API)
+// ---------------------------------------------------------------------------
+
+export interface SemanticScholarPaperItem {
+  paperId: string;
+  corpusId?: number;
+  title: string;
+  url: string;
+  abstract?: string;
+  tldr?: string;
+  venue?: string;
+  year?: number;
+  publicationDate?: string;
+  authors?: Array<{ authorId?: string; name: string }>;
+  citationCount?: number;
+  referenceCount?: number;
+  isOpenAccess?: boolean;
+  openAccessPdfUrl?: string;
+  fieldsOfStudy?: string[];
+  externalIds?: Record<string, string>;
+}
+
+export interface SemanticScholarAuthorItem {
+  authorId: string;
+  name: string;
+  aliases?: string[];
+  affiliations?: string[];
+  homepage?: string;
+  paperCount?: number;
+  citationCount?: number;
+  hIndex?: number;
+  papers?: Array<{ paperId: string; title: string; year?: number }>;
+}
+
+export interface SemanticScholarActorTaskOptions {
+  action?: "paper" | "search" | "author" | "author_search" | "citations" | "references";
+  paperId?: string;
+  authorId?: string;
+  query?: string;
+  fields?: string;
+  limit?: number;
+  offset?: number;
+  year?: string;
+  apiKey?: string;
+  timeoutMs?: number;
+}
+
+export interface SemanticScholarActorResult {
+  action: "paper" | "search" | "author" | "author_search" | "citations" | "references";
+  queryUrl: string;
+  totalResults: number;
+  offset?: number;
+  next?: number;
+  paper?: SemanticScholarPaperItem;
+  papers?: SemanticScholarPaperItem[];
+  author?: SemanticScholarAuthorItem;
+  authors?: SemanticScholarAuthorItem[];
+  markdown?: string;
+}
+
 export interface OpenAlexWorkItem {
   id: string;
   doi?: string;
@@ -2390,6 +2549,9 @@ export interface ActorTask {
     devdocsOptions?: DevDocsActorTaskOptions;
     rosettaCodeOptions?: RosettaCodeActorTaskOptions;
     papersWithCodeOptions?: PapersWithCodeActorTaskOptions;
+    libretextsOptions?: LibreTextsActorTaskOptions;
+    openTextbookOptions?: OpenTextbookActorTaskOptions;
+    semanticScholarOptions?: SemanticScholarActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

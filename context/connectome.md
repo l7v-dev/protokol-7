@@ -9,12 +9,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 127 | 225 | Yardımcı Modül |
-| `src/dataset/types.ts` | 127 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 127 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 127 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 59 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 56 | 3 | Yardımcı Modül |
+| `src/api/types.ts` | 133 | 237 | Yardımcı Modül |
+| `src/dataset/types.ts` | 133 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 133 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 133 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 62 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 59 | 3 | Yardımcı Modül |
 | `src/api/server.ts` | 18 | 1 | Giriş Noktası (Server) |
 | `src/server.ts` | 18 | 0 | Giriş Noktası (Server) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
@@ -82,10 +82,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/ktb-ekitap-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/lean-mathlib-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/lesswrong-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/libretexts-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/math-reasoning-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/metamath-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/mit-ocw-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/open-fda-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/open-textbook-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/openalex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/openreview-actor.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/openstax-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -96,6 +98,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/rosetta-code-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/saglik-ekutuphane-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/sec-edgar-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/semantic-scholar-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/software-heritage-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/stack-exchange-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/stanford-phil-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -217,6 +220,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/ktb-ekitap-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/lean-mathlib-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/lesswrong-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/libretexts-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/markdown-reader-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/math-reasoning-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/mcp-http-transport.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -227,6 +231,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/ocr-connectors.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/office-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/open-fda-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/open-textbook-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/openalex-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/openreview-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/openstax-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -257,6 +262,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/scheduler-and-remote.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/scraping-actors.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/sec-edgar-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/semantic-scholar-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/serp-search-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/server.test.ts` | 0 | 0 | Giriş Noktası (Server) |
 | `tests/session-vault.test.ts` | 0 | 0 | Oturum Denetleyicisi |
@@ -356,6 +362,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `dev-docs` | `DevDocsActor` |
 | `rosetta-code` | `RosettaCodeActor` |
 | `papers-with-code` | `PapersWithCodeActor` |
+| `libre-texts` | `LibreTextsActor` |
+| `open-textbook` | `OpenTextbookActor` |
+| `semantic-scholar` | `SemanticScholarActor` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
 | `mistral-ocr-connector` | `MistralOcrConnector` |
@@ -709,6 +718,20 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `fetchCommentsForPost(endpoint: string, postId: string, limit: number, headers: Record<string, string>, allowLocalNetwork: boolean): Promise<LessWrongComment[]>`
   - `renderMarkdown(platform: string, action: string, posts: LessWrongPost[], comments: LessWrongComment[]): string`
 
+### `src/actors/corpus/libretexts-actor.ts`
+
+**Sınıflar (Classes):**
+- `class LibreTextsActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<LibreTextsActorResult>>`
+  - `resolveLibrary(targetUrl: string, specifiedLibrary: string): string`
+  - `resolveBaseUrl(targetUrl: string, library): string`
+  - `resolveAction(task: ActorTask, options: LibreTextsActorTaskOptions): "page" | "search" | "subpages" | "toc"`
+  - `handleSearch(task: ActorTask, options: LibreTextsActorTaskOptions, library: string, baseUrl: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<LibreTextsActorResult>>`
+  - `handlePage(task: ActorTask, options: LibreTextsActorTaskOptions, library: string, baseUrl: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<LibreTextsActorResult>>`
+  - `handleSubpages(task: ActorTask, options: LibreTextsActorTaskOptions, library: string, baseUrl: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<LibreTextsActorResult>>`
+  - `renderSearchMarkdown(query: string, library: string, pages: LibreTextsPageItem[]): string`
+  - `renderPageMarkdown(page: LibreTextsPageItem): string`
+
 ### `src/actors/corpus/math-reasoning-actor.ts`
 
 **Sınıflar (Classes):**
@@ -768,6 +791,19 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `buildRequestUrl(task: ActorTask, options: OpenFdaActorTaskOptions, endpoint: string): string`
   - `synthesizeMarkdown(endpoint: string, results: Array<Record<string, unknown>>, total: number): string`
   - `getFirstStringArray(val: unknown): string | undefined`
+
+### `src/actors/corpus/open-textbook-actor.ts`
+
+**Sınıflar (Classes):**
+- `class OpenTextbookActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<OpenTextbookActorResult>>`
+  - `resolveAction(task: ActorTask, options: OpenTextbookActorTaskOptions): "book" | "search" | "subjects"`
+  - `resolveBaseUrl(targetUrl: string): string`
+  - `handleSearch(task: ActorTask, options: OpenTextbookActorTaskOptions, baseUrl: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<OpenTextbookActorResult>>`
+  - `handleBook(task: ActorTask, options: OpenTextbookActorTaskOptions, baseUrl: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<OpenTextbookActorResult>>`
+  - `handleSubjects(task: ActorTask, _options: OpenTextbookActorTaskOptions, baseUrl: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<OpenTextbookActorResult>>`
+  - `renderSearchMarkdown(query: string, books: OpenTextbookItem[]): string`
+  - `renderBookMarkdown(book: OpenTextbookItem): string`
 
 ### `src/actors/corpus/openalex-actor.ts`
 
@@ -897,6 +933,25 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `parseRecentFilings(cik: string, recent: RawRecentFilings): SecFilingItem[]`
   - `filterFilings(filings: SecFilingItem[], options: SecEdgarActorTaskOptions): SecFilingItem[]`
   - `synthesizeMarkdown(entityName: string, cik: string, sic: string, sicDescription: string, filings: SecFilingItem[], totalFilings): string`
+
+### `src/actors/corpus/semantic-scholar-actor.ts`
+
+**Sınıflar (Classes):**
+- `class SemanticScholarActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<SemanticScholarActorResult>>`
+  - `resolveAction(task: ActorTask, options: SemanticScholarActorTaskOptions): "paper" | "search" | "author" | "author_search" | "citations" | "references"`
+  - `resolveApiBase(targetUrl: string): string`
+  - `resolvePaperId(targetUrl: string, specifiedPaperId: string): string`
+  - `getAuthHeaders(apiKey: string): Record<string, string>`
+  - `normalizePaper(raw: RawS2Paper): SemanticScholarPaperItem`
+  - `handlePaper(task: ActorTask, options: SemanticScholarActorTaskOptions, apiBase: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<SemanticScholarActorResult>>`
+  - `handleSearch(task: ActorTask, options: SemanticScholarActorTaskOptions, apiBase: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<SemanticScholarActorResult>>`
+  - `handleAuthor(task: ActorTask, options: SemanticScholarActorTaskOptions, apiBase: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<SemanticScholarActorResult>>`
+  - `handleAuthorSearch(task: ActorTask, options: SemanticScholarActorTaskOptions, apiBase: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<SemanticScholarActorResult>>`
+  - `handleCitationsOrReferences(task: ActorTask, options: SemanticScholarActorTaskOptions, action: "citations" | "references", apiBase: string, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<SemanticScholarActorResult>>`
+  - `renderPaperMarkdown(paper: SemanticScholarPaperItem): string`
+  - `renderSearchMarkdown(query: string, papers: SemanticScholarPaperItem[], totalResults: number): string`
+  - `renderAuthorMarkdown(author: SemanticScholarAuthorItem): string`
 
 ### `src/actors/corpus/software-heritage-actor.ts`
 
@@ -1494,6 +1549,18 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface PapersWithCodeSearchResultItem` (8 üye)
 - `interface PapersWithCodeActorTaskOptions` (6 üye)
 - `interface PapersWithCodeActorResult` (7 üye)
+- `interface LibreTextsPageItem` (10 üye)
+- `interface LibreTextsActorTaskOptions` (8 üye)
+- `interface LibreTextsActorResult` (8 üye)
+- `interface OpenTextbookReview` (5 üye)
+- `interface OpenTextbookItem` (15 üye)
+- `interface OpenTextbookSubject` (4 üye)
+- `interface OpenTextbookActorTaskOptions` (6 üye)
+- `interface OpenTextbookActorResult` (7 üye)
+- `interface SemanticScholarPaperItem` (16 üye)
+- `interface SemanticScholarAuthorItem` (9 üye)
+- `interface SemanticScholarActorTaskOptions` (10 üye)
+- `interface SemanticScholarActorResult` (10 üye)
 - `interface OpenAlexWorkItem` (12 üye)
 - `interface OpenAlexActorTaskOptions` (11 üye)
 - `interface OpenAlexActorResult` (5 üye)
@@ -2434,10 +2501,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/ktb-ekitap-actor.ts` |
 | `src/actors/corpus/lean-mathlib-actor.ts` |
 | `src/actors/corpus/lesswrong-actor.ts` |
+| `src/actors/corpus/libretexts-actor.ts` |
 | `src/actors/corpus/math-reasoning-actor.ts` |
 | `src/actors/corpus/metamath-actor.ts` |
 | `src/actors/corpus/mit-ocw-actor.ts` |
 | `src/actors/corpus/open-fda-actor.ts` |
+| `src/actors/corpus/open-textbook-actor.ts` |
 | `src/actors/corpus/openalex-actor.ts` |
 | `src/actors/corpus/openreview-actor.ts` |
 | `src/actors/corpus/openstax-actor.ts` |
@@ -2445,7 +2514,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/philpapers-actor.ts` |
 | `src/actors/corpus/proofwiki-actor.ts` |
 | `src/actors/corpus/resmi-gazete-actor.ts` |
-| `src/actors/corpus/rosetta-code-actor.ts` |
-| `src/actors/corpus/saglik-ekutuphane-actor.ts` |
-| *... ve 225 dosya daha* |
+| *... ve 231 dosya daha* |
 

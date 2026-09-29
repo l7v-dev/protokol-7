@@ -1,6 +1,6 @@
 # Protokol-7 Aktörler Rehberi (Actor Catalog)
 
-Bu rehber, **protokol-7** bünyesindeki 47 veri çıkarma aktörünün ne işe yaradığını, nasıl çalıştığını ve nasıl çağrılacağını en sade biçimde açıklar.
+Bu rehber, **protokol-7** bünyesindeki 57 veri çıkarma aktörünün ne işe yaradığını, nasıl çalıştığını ve nasıl çağrılacağını en sade biçimde açıklar.
 
 Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 1. **HTTP REST API:** `http://localhost:4000/api/v1/<aktor-adi>` (veya `/api/v1/actors`)
@@ -73,6 +73,9 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 | 59 | `devdocs` | Kod & Standartlar | `POST /api/v1/devdocs` | `query_devdocs` | 100+ teknolojinin resmi API dokümantasyonunu ve arama dizinlerini çeker. |
 | 60 | `rosetta-code` | Kod & Standartlar | `POST /api/v1/rosetta-code` | `query_rosetta_code` | 800+ dildeki çok dilli algoritma çözümlerini ve kod karşılaştırmalarını çeker. |
 | 61 | `papers-with-code` | Yapay Zeka & Korpus | `POST /api/v1/papers-with-code` | `query_papers_with_code` | Makine öğrenimi makalelerini, resmi GitHub kod ambarlarını ve kıyaslamaları çeker. |
+| 62 | `libretexts` | STEM & Ders Kitapları | `POST /api/v1/libretexts` | `query_libretexts` | Açık üniversite STEM ve mühendislik ders kitaplarını, içindekiler tablosunu ve formülleri çeker. |
+| 63 | `open-textbook` | STEM & Ders Kitapları | `POST /api/v1/open-textbook` | `query_open_textbook` | Hakemli açık ders kitaplarını, indirme linklerini ve akademik değerlendirmeleri çeker. |
+| 64 | `semantic-scholar` | Bilim & Akademi | `POST /api/v1/semantic-scholar` | `query_semantic_scholar` | 200M+ akademik makale grafiğini, yapay zeka TLDR özetlerini ve atıf ağını çeker. |
 
 ---
 
@@ -694,6 +697,36 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 }
 ```
 
+#### 44. LibreTexts Aktörü (`libretexts`)
+* **Ne Yapar?** LibreTexts kütüphanelerindeki (kimya, fizik, matematik, biyoloji, mühendislik vb.) açık üniversite ders kitaplarını, bölüm içeriklerini, LaTeX formüllerini ve alt sayfa hiyerarşisini çeker.
+* **REST:** `POST /api/v1/libretexts`
+* **MCP:** `query_libretexts`
+```json
+{
+  "library": "phys",
+  "query": "quantum mechanics",
+  "action": "search"
+}
+```
 
+#### 45. Open Textbook Library Aktörü (`open-textbook`)
+* **Ne Yapar?** Minnesota Üniversitesi öncülüğündeki Open Textbook Library kataloğundan hakemli açık ders kitaplarını, PDF/EPUB indirme linklerini, içindekiler tablosunu ve akademik değerlendirmeleri çeker.
+* **REST:** `POST /api/v1/open-textbook`
+* **MCP:** `query_open_textbook`
+```json
+{
+  "query": "calculus",
+  "action": "search"
+}
+```
 
-
+#### 46. Semantic Scholar Aktörü (`semantic-scholar`)
+* **Ne Yapar?** 200 milyondan fazla bilimsel makaleyi kapsayan Semantic Scholar Graph API (S2AG) üzerinden makale özetlerini, yapay zeka TLDR özetlerini, yazar profillerini, atıf ve referans ağlarını çeker.
+* **REST:** `POST /api/v1/semantic-scholar`
+* **MCP:** `query_semantic_scholar`
+```json
+{
+  "paperId": "ARXIV:1706.03762",
+  "action": "paper"
+}
+```

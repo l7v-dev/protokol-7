@@ -33,7 +33,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/actors/actor-registry.ts` | `ActorRegistry` | Central registry for discovering, registering, and instantiating all actors across all categories. |
-| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 54 actors. |
+| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 57 actors. |
 | `src/actors/actor.template.ts` | `TemplateActor`, `TemplateActorResult` | Canonical reference implementation blueprint, contract template, and security scaffold for new actors. |
 
 #### Web Actors (`src/actors/web/`) — general-purpose HTTP and browser extraction
@@ -103,6 +103,9 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/actors/corpus/devdocs-actor.ts` | `DevDocsActor` | DevDocs (`devdocs.io` & `documents.devdocs.io`) — official API documentation, search index lookups, and guides across 100+ technologies. |
 | `src/actors/corpus/rosetta-code-actor.ts` | `RosettaCodeActor` | Rosetta Code MediaWiki API — multi-language algorithm implementations, code comparisons, and language catalogs across 800+ programming languages. |
 | `src/actors/corpus/papers-with-code-actor.ts` | `PapersWithCodeActor` | Papers With Code & Hugging Face Papers — machine learning research papers, canonical arXiv abstracts, and official GitHub code repositories. |
+| `src/actors/corpus/libretexts-actor.ts` | `LibreTextsActor` | LibreTexts Global — open-access STEM and engineering textbooks, course chapters, LaTeX formula preservation, and table of contents. |
+| `src/actors/corpus/open-textbook-actor.ts` | `OpenTextbookActor` | Open Textbook Library (UMN) — peer-reviewed university textbooks, multi-format download links, and faculty peer reviews. |
+| `src/actors/corpus/semantic-scholar-actor.ts` | `SemanticScholarActor` | Semantic Scholar Academic Graph (S2AG) API — scientific literature, AI TLDR summaries, citation graphs, and author profiles. |
 
 #### Document Actors (`src/actors/documents/`) — local file and archive extraction
 
@@ -331,6 +334,12 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/internet-phil-actor.test.ts` | `InternetPhilActor`, `src/api/server.ts` | Article slug routing, WordPress search query, table of contents, references, SSRF guard, and REST route. |
 | `tests/metamath-actor.test.ts` | `MetamathActor`, `src/api/server.ts` | Formal theorem verification table parsing, axioms, hypotheses, assertion, cross-references, SSRF guard, and REST route. |
 | `tests/philpapers-actor.test.ts` | `PhilPapersActor`, `src/api/server.ts` | Publication record metadata, search query, category taxonomies, subcategories, SSRF guard, and REST route. |
+| `tests/devdocs-actor.test.ts` | `DevDocsActor`, `src/api/server.ts` | Docset list, index JSON search, HTML entry extraction, GFM markdown, SSRF guard, and REST route. |
+| `tests/rosetta-code-actor.test.ts` | `RosettaCodeActor`, `src/api/server.ts` | Multi-language task extraction, code blocks, language catalog, SSRF guard, and REST route. |
+| `tests/papers-with-code-actor.test.ts` | `PapersWithCodeActor`, `src/api/server.ts` | Paper record parsing, Hugging Face Papers API fallback, GitHub repo extraction, SSRF guard, and REST route. |
+| `tests/libretexts-actor.test.ts` | `LibreTextsActor`, `src/api/server.ts` | Library resolution, Deki query search, MathJax formula preservation, subpages TOC, SSRF guard, and REST route. |
+| `tests/open-textbook-actor.test.ts` | `OpenTextbookActor`, `src/api/server.ts` | Keyword search, textbook detail extraction, formats, table of contents, peer reviews, SSRF guard, and REST route. |
+| `tests/semantic-scholar-actor.test.ts` | `SemanticScholarActor`, `src/api/server.ts` | S2AG paper retrieval, literature search, author profiles, citation graph traversal, SSRF guard, and REST route. |
 
 ---
 

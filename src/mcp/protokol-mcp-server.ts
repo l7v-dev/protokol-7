@@ -41,6 +41,7 @@ import type {
   KtbEkitapTaskOptions,
   LeanMathlibActorTaskOptions,
   LessWrongActorTaskOptions,
+  LibreTextsActorTaskOptions,
   MathReasoningActorTaskOptions,
   MetamathActorTaskOptions,
   MitOcwActorTaskOptions,
@@ -49,6 +50,7 @@ import type {
   OpenFdaActorTaskOptions,
   OpenReviewActorTaskOptions,
   OpenStaxActorTaskOptions,
+  OpenTextbookActorTaskOptions,
   PapersWithCodeActorTaskOptions,
   PdfDocumentTaskOptions,
   PhilPapersActorTaskOptions,
@@ -57,6 +59,7 @@ import type {
   RosettaCodeActorTaskOptions,
   SaglikEkutuphaneTaskOptions,
   SecEdgarActorTaskOptions,
+  SemanticScholarActorTaskOptions,
   SerpSearchTaskOptions,
   SoftwareHeritageActorTaskOptions,
   StackExchangeActorTaskOptions,
@@ -1368,6 +1371,18 @@ export class ProtokolMcpServer {
             papersWithCodeOptions:
               manifest.actorType === "papers-with-code"
                 ? (toolArgs as unknown as PapersWithCodeActorTaskOptions)
+                : undefined,
+            libretextsOptions:
+              manifest.actorType === "libretexts"
+                ? (toolArgs as unknown as LibreTextsActorTaskOptions)
+                : undefined,
+            openTextbookOptions:
+              manifest.actorType === "open-textbook"
+                ? (toolArgs as unknown as OpenTextbookActorTaskOptions)
+                : undefined,
+            semanticScholarOptions:
+              manifest.actorType === "semantic-scholar"
+                ? (toolArgs as unknown as SemanticScholarActorTaskOptions)
                 : undefined,
           },
         };
