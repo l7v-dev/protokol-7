@@ -9,8 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-
-- [/] **Klasik Filoloji, Antik Metinler & Dünya Mirası Paketi (Set 6: Perseus-DL, Sacred-Texts)** — `Tier: 2` — `docs/plans/wikimedia-kardesleri-ve-yeni-aktor-setleri-plani.md` kapsamındaki Tufts Perseus Digital Library (`perseus-dl`) ve Internet Sacred Text Archive (`sacred-texts`) aktörlerinin inşası, REST uç noktaları, MCP araçları, testleri ve dokümantasyonu.
+- [/] **Wikiquote 100 Dilli Sıfır Disk Artığı Dump ETL Boru Hattı (scripts/wikiquote_pipeline/)** — `Tier: 2` — Wikiquote'un 100 dünya dili için XML bz2 dump akışı, wikitext vecize ve aforizma temizleyici, Zstandard Parquet paketleyici, Google Drive v3 yükleme ve MD5 doğrulama ile sıfır disk artığı ETL hattının inşası ve arka planda çalıştırılması.
 
 ## Bekleyen (Blok var)
 
@@ -21,6 +20,8 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 - *(Yeni fikirler burada bekler)*
 
 ## Son tamamlananlar (son 3-5, eskiler ledger/'a taşınır)
+
+- [x] **Klasik Filoloji, Antik Metinler & Dünya Mirası Paketi (Set 6: Perseus-DL, Sacred-Texts)** — `Tier: 2` — Tufts Perseus Digital Library (`perseus-dl`) ve Internet Sacred Text Archive (`sacred-texts`) aktör sınıfları, REST uç noktaları (`POST /api/v1/<name>`), MCP araçları (`query_*`, toplam 79 araç), Zod/JSON şemaları, OpenAPI 3.1.0 tanımları, 23 birim/entegrasyon testi, teknik wikileri, örnek yapılandırmaları ve walkthrough dokümanı ile eksiksiz tamamlandı; 868 test ve 6 aşamalı doğrulama hattı başarıyla geçti.
 
 - [x] **Türk Hukuku & Küresel Patent Mühendisliği Paketi (Set 4: Anayasa-Mahkemesi, Danistay, Google-Patents)** — `Tier: 2` — T.C. Anayasa Mahkemesi kararları (`anayasa-mahkemesi`), T.C. Danıştay kararları (`danistay`) ve Google Patents / USPTO (`google-patents`) aktör sınıfları, REST uç noktaları (`POST /api/v1/<name>`), MCP araçları (`query_*`, toplam 77 araç), Zod/JSON şemaları, OpenAPI 3.1.0 tanımları, 34 birim/entegrasyon testi (`tests/*-actor.test.ts`), teknik wikileri (`docs/actors/*.md`), örnek yapılandırmaları (`examples/actors/*.json`) ve walkthrough dokümanı ile eksiksiz tamamlandı; 860 test ve 6 aşamalı doğrulama hattı başarıyla geçti.
 

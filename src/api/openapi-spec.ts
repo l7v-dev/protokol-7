@@ -3179,6 +3179,125 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/perseus-dl": {
+      post: {
+        tags: ["Corpus - Classical Heritage"],
+        summary: "Tufts Perseus Digital Library Classical Texts & Philology Harvester",
+        description:
+          "Harvests classical Greek, Latin, Hebrew, and Arabic texts, bilingual parallel editions, CTS-URN passage references, morphological lemmatization, and catalog search from Tufts Perseus Digital Library.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["text", "morph", "search"],
+                    default: "text",
+                    description: "Extraction mode",
+                  },
+                  doc: {
+                    type: "string",
+                    description:
+                      "Perseus document or CTS-URN ID (e.g. Perseus:text:1999.01.0133:book=1:card=1)",
+                  },
+                  subReference: {
+                    type: "string",
+                    description: "Sub-reference or card",
+                  },
+                  word: {
+                    type: "string",
+                    description: "Word to analyze morphologically (e.g. logos, arma)",
+                  },
+                  language: {
+                    type: "string",
+                    enum: ["greek", "latin", "hebrew", "arabic"],
+                    default: "greek",
+                    description: "Classical language code",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Catalog search query",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Maximum search items to return",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Perseus Hopper URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured classical passage, morphological grammatical analysis, or catalog search results with GFM Markdown.",
+          },
+        },
+      },
+    },
+    "/api/v1/sacred-texts": {
+      post: {
+        tags: ["Corpus - Classical Heritage"],
+        summary: "Internet Sacred Text Archive (ISTA) Harvester",
+        description:
+          "Harvests comparative religion, classical mythology, folklore, mysticism, and alchemy across 1,700+ full-text books from the Internet Sacred Text Archive.",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["text", "catalog", "search"],
+                    default: "text",
+                    description: "Extraction mode",
+                  },
+                  tradition: {
+                    type: "string",
+                    default: "hin",
+                    description:
+                      "Tradition code (hin, isl, chr, jud, bud, tao, cla, egy, ane, neu, celt, alc)",
+                  },
+                  path: {
+                    type: "string",
+                    description: "Book or chapter path (e.g. /hin/sbe01/sbe01003.htm)",
+                  },
+                  query: {
+                    type: "string",
+                    description: "Search query",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 30,
+                    description: "Maximum books to return in catalog",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct sacred-texts.com URL",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured sacred text passage with footnotes, book catalog, or search results with GFM Markdown.",
+          },
+        },
+      },
+    },
     "/api/v1/sitemap": {
       post: {
         tags: ["Crawling"],

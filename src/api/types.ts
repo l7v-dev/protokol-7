@@ -75,7 +75,9 @@ export type ActorType =
   | "semantic-scholar"
   | "anayasa-mahkemesi"
   | "danistay"
-  | "google-patents";
+  | "google-patents"
+  | "perseus-dl"
+  | "sacred-texts";
 
 export interface ExtractedTable {
   id: string;
@@ -1653,6 +1655,129 @@ export interface GooglePatentsActorResult {
   markdown?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Perseus Digital Library (Tufts)
+// ---------------------------------------------------------------------------
+
+export type PerseusDlAction = "text" | "morph" | "search";
+
+export interface PerseusMorphAnalysis {
+  lemma: string;
+  pos: string;
+  parsedForm?: string;
+  dialect?: string;
+  features?: {
+    case?: string;
+    gender?: string;
+    number?: string;
+    tense?: string;
+    voice?: string;
+    mood?: string;
+    person?: string;
+  };
+  shortDefinition?: string;
+}
+
+export interface PerseusTextPassage {
+  urn?: string;
+  docId: string;
+  author?: string;
+  work?: string;
+  edition?: string;
+  language: "greek" | "latin" | "hebrew" | "arabic" | "english" | string;
+  subReference?: string;
+  originalText?: string;
+  translationText?: string;
+  sections?: Array<{
+    id: string;
+    label?: string;
+    text: string;
+  }>;
+}
+
+export interface PerseusSearchResultItem {
+  docId: string;
+  title: string;
+  author?: string;
+  language?: string;
+  snippet?: string;
+  url: string;
+}
+
+export interface PerseusDlActorTaskOptions {
+  action?: PerseusDlAction;
+  doc?: string;
+  subReference?: string;
+  word?: string;
+  language?: "greek" | "latin" | "hebrew" | "arabic" | string;
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface PerseusDlActorResult {
+  action: PerseusDlAction;
+  queryUrl: string;
+  totalResults: number;
+  passage?: PerseusTextPassage;
+  morphAnalysis?: PerseusMorphAnalysis[];
+  searchResults?: PerseusSearchResultItem[];
+  markdown?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Internet Sacred Text Archive (ISTA)
+// ---------------------------------------------------------------------------
+
+export type SacredTextsAction = "text" | "catalog" | "search";
+
+export interface SacredTextsBookItem {
+  title: string;
+  author?: string;
+  translator?: string;
+  year?: string;
+  url: string;
+  tradition?: string;
+  description?: string;
+}
+
+export interface SacredTextsFootnote {
+  id: string;
+  number?: number;
+  text: string;
+}
+
+export interface SacredTextsPassage {
+  title: string;
+  bookTitle?: string;
+  author?: string;
+  translator?: string;
+  tradition: string;
+  subPath?: string;
+  content: string;
+  footnotes?: SacredTextsFootnote[];
+  nextUrl?: string;
+  prevUrl?: string;
+}
+
+export interface SacredTextsActorTaskOptions {
+  action?: SacredTextsAction;
+  tradition?: string;
+  path?: string;
+  query?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface SacredTextsActorResult {
+  action: SacredTextsAction;
+  queryUrl: string;
+  totalResults: number;
+  passage?: SacredTextsPassage;
+  books?: SacredTextsBookItem[];
+  markdown?: string;
+}
+
 export interface OpenAlexWorkItem {
   id: string;
   doi?: string;
@@ -2752,6 +2877,8 @@ export interface ActorTask {
     anayasaMahkemesiOptions?: AnayasaMahkemesiActorTaskOptions;
     danistayOptions?: DanistayActorTaskOptions;
     googlePatentsOptions?: GooglePatentsActorTaskOptions;
+    perseusDlOptions?: PerseusDlActorTaskOptions;
+    sacredTextsOptions?: SacredTextsActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

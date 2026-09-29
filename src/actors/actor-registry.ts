@@ -36,10 +36,12 @@ import { OpenAlexActor } from "./corpus/openalex-actor";
 import { OpenReviewActor } from "./corpus/openreview-actor";
 import { OpenStaxActor } from "./corpus/openstax-actor";
 import { PapersWithCodeActor } from "./corpus/papers-with-code-actor";
+import { PerseusDlActor } from "./corpus/perseus-dl-actor";
 import { PhilPapersActor } from "./corpus/philpapers-actor";
 import { ProofWikiActor } from "./corpus/proofwiki-actor";
 import { ResmiGazeteActor } from "./corpus/resmi-gazete-actor";
 import { RosettaCodeActor } from "./corpus/rosetta-code-actor";
+import { SacredTextsActor } from "./corpus/sacred-texts-actor";
 import { SaglikEkutuphaneActor } from "./corpus/saglik-ekutuphane-actor";
 import { SecEdgarActor } from "./corpus/sec-edgar-actor";
 import { SemanticScholarActor } from "./corpus/semantic-scholar-actor";
@@ -163,5 +165,7 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new AnayasaMahkemesiActor());
   registry.register(new DanistayActor());
   registry.register(new GooglePatentsActor());
+  registry.register(new PerseusDlActor());
+  registry.register(new SacredTextsActor());
   return registry;
 }

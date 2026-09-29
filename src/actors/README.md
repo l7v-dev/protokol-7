@@ -79,6 +79,8 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 | 65 | `anayasa-mahkemesi` | Hukuk & Emsal Karar | `POST /api/v1/anayasa-mahkemesi` | `query_anayasa_mahkemesi` | T.C. Anayasa Mahkemesi norm denetimi kararlarını, bireysel başvuru hak ihlali hükümlerini ve karşı oyları çeker. |
 | 66 | `danistay` | Hukuk & Emsal Karar | `POST /api/v1/danistay` | `query_danistay` | T.C. Danıştay Başkanlığı idari ve vergi dava daireleri emsal kararlarını ve gerekçeli hükümleri çeker. |
 | 67 | `google-patents` | Buluş & Patent | `POST /api/v1/google-patents` | `query_google_patents` | Dünya patent teknik iddialarını (claims), tarifnameleri, CPC kodlarını ve önceki teknik atıflarını çeker. |
+| 68 | `perseus-dl` | Klasik Filoloji & Antik Metinler | `POST /api/v1/perseus-dl` | `query_perseus_dl` | Tufts Perseus Antik Yunanca, Latince metinlerini, paralel çevirileri, morfolojik analizleri ve CTS-URN pasajlarını çeker. |
+| 69 | `sacred-texts` | Karşılaştırmalı Din & Mitoloji | `POST /api/v1/sacred-texts` | `query_sacred_texts` | Internet Sacred Text Archive üzerinden 1.700+ tam metin kutsal kitap, mitoloji, simya ve folklor eserini çeker. |
 
 ---
 
@@ -767,4 +769,28 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
   "action": "claims"
 }
 ```
+
+#### 50. Tufts Perseus Digital Library Aktörü (`perseus-dl`)
+* **Ne Yapar?** Antik Yunanca, Klasik Latince, Eski İbranice ve Arapça metinleri, paralel çevirileri, morfolojik kelime tahlillerini (fiil çekimi, isim hali, kip) ve CTS-URN pasajlarını çeker.
+* **REST:** `POST /api/v1/perseus-dl`
+* **MCP:** `query_perseus_dl`
+```json
+{
+  "doc": "Perseus:text:1999.01.0133:book=1:card=1",
+  "action": "text"
+}
+```
+
+#### 51. Internet Sacred Text Archive Aktörü (`sacred-texts`)
+* **Ne Yapar?** Dünya dinleri (Hinduizm, Budizm, İslam, Hristiyanlık, Taoizm), antik mitoloji (Yunan, Roma, Mısır, Kelt, İskandinav), simya ve folklor alanında 1.700+ tam metin kitabı ve dipnotlarını çeker.
+* **REST:** `POST /api/v1/sacred-texts`
+* **MCP:** `query_sacred_texts`
+```json
+{
+  "tradition": "hin",
+  "path": "/hin/sbe01/sbe01003.htm",
+  "action": "text"
+}
+```
+
 

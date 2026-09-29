@@ -56,10 +56,12 @@ import type {
   OpenTextbookActorTaskOptions,
   PapersWithCodeActorTaskOptions,
   PdfDocumentTaskOptions,
+  PerseusDlActorTaskOptions,
   PhilPapersActorTaskOptions,
   ProofWikiActorTaskOptions,
   ResmiGazeteActorTaskOptions,
   RosettaCodeActorTaskOptions,
+  SacredTextsActorTaskOptions,
   SaglikEkutuphaneTaskOptions,
   SecEdgarActorTaskOptions,
   SemanticScholarActorTaskOptions,
@@ -1398,6 +1400,14 @@ export class ProtokolMcpServer {
             googlePatentsOptions:
               manifest.actorType === "google-patents"
                 ? (toolArgs as unknown as GooglePatentsActorTaskOptions)
+                : undefined,
+            perseusDlOptions:
+              manifest.actorType === "perseus-dl"
+                ? (toolArgs as unknown as PerseusDlActorTaskOptions)
+                : undefined,
+            sacredTextsOptions:
+              manifest.actorType === "sacred-texts"
+                ? (toolArgs as unknown as SacredTextsActorTaskOptions)
                 : undefined,
           },
         };

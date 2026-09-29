@@ -2178,3 +2178,102 @@ test("POST /api/v1/google-patents routes correctly via server router", async () 
     await new Promise<void>((resolve) => mockServer.close(() => resolve()));
   }
 });
+
+test("POST /api/v1/perseus-dl routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(`
+      <html>
+        <head><title>Odyssey</title></head>
+        <body>
+          <div class="header_text"><span class="title">Odyssey</span><span class="author">Homer</span></div>
+          <div class="text_main"><p class="line">Tell me, O Muse, of the man of many resources</p></div>
+        </body>
+      </html>
+    `);
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/perseus-dl`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "text",
+        doc: "Perseus:text:1999.01.0135",
+        targetUrl: `http://127.0.0.1:${mockPort}/hopper/text?doc=Perseus:text:1999.01.0135`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        passage?: { work?: string; author?: string };
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "text");
+    assert.equal(json.data?.passage?.author, "Homer");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});
+
+test("POST /api/v1/sacred-texts routes correctly via server router", async () => {
+  const mockServer = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(`
+      <html>
+        <head><title>Tao Te Ching</title></head>
+        <body>
+          <h1>Tao Te Ching</h1>
+          <p>The Tao that can be trodden is not the enduring and unchanging Tao.</p>
+        </body>
+      </html>
+    `);
+  });
+
+  await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", resolve));
+  const mockPort = (mockServer.address() as { port: number }).port;
+
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/v1/sacred-texts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "text",
+        tradition: "tao",
+        path: "/tao/taote.htm",
+        targetUrl: `http://127.0.0.1:${mockPort}/tao/taote.htm`,
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: {
+        action: string;
+        passage?: { title: string; tradition: string };
+      };
+    };
+    assert.equal(json.success, true);
+    assert.equal(json.data?.action, "text");
+    assert.equal(json.data?.passage?.tradition, "tao");
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+  }
+});

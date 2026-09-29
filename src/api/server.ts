@@ -3780,6 +3780,111 @@ export function createServer(): http.Server {
         return;
       }
 
+      // Perseus Digital Library (/perseus-dl or /api/v1/perseus-dl)
+      if (method === "POST" && (pathname === "/api/v1/perseus-dl" || pathname === "/perseus-dl")) {
+        const body = await parseBody<{
+          action?: "text" | "morph" | "search";
+          doc?: string;
+          subReference?: string;
+          word?: string;
+          language?: string;
+          query?: string;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const perseusActor = registry.get("perseus-dl");
+        if (!perseusActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Perseus Digital Library actor is not available.",
+            "Ensure PerseusDlActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `perseus-${Date.now()}`,
+          actorType: "perseus-dl",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            perseusDlOptions: {
+              action: body.action,
+              doc: body.doc,
+              subReference: body.subReference,
+              word: body.word,
+              language: body.language,
+              query: body.query,
+              limit: body.limit,
+              ...body.options?.perseusDlOptions,
+            },
+          },
+        };
+
+        const result = await perseusActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Sacred Texts (/sacred-texts or /api/v1/sacred-texts)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/sacred-texts" || pathname === "/sacred-texts")
+      ) {
+        const body = await parseBody<{
+          action?: "text" | "catalog" | "search";
+          tradition?: string;
+          path?: string;
+          query?: string;
+          limit?: number;
+          targetUrl?: string;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const sacredTextsActor = registry.get("sacred-texts");
+        if (!sacredTextsActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Internet Sacred Text Archive actor is not available.",
+            "Ensure SacredTextsActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `sacred-texts-${Date.now()}`,
+          actorType: "sacred-texts",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            sacredTextsOptions: {
+              action: body.action,
+              tradition: body.tradition,
+              path: body.path,
+              query: body.query,
+              limit: body.limit,
+              ...body.options?.sacredTextsOptions,
+            },
+          },
+        };
+
+        const result = await sacredTextsActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

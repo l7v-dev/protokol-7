@@ -109,6 +109,8 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/actors/corpus/anayasa-mahkemesi-actor.ts` | `AnayasaMahkemesiActor` | T.C. Anayasa Mahkemesi Kararlar Bilgi Bankası — norm denetimi (iptal/itiraz), bireysel başvuru hak ihlali hükümleri, gerekçeli kararlar ve karşı oy yazıları. |
 | `src/actors/corpus/danistay-actor.ts` | `DanistayActor` | T.C. Danıştay Başkanlığı Emsal Karar Sistemi — idare ve vergi dava daireleri (1-13), İDDK, VDDK ve İBK emsal kararları, tetkik hakimi ve savcı düşünceleri. |
 | `src/actors/corpus/google-patents-actor.ts` | `GooglePatentsActor` | Google Patents & USPTO/EPO Public Data — küresel patentler, bağımsız/bağımlı teknik iddialar (claims) hiyerarşisi, tarifnameler, CPC kodları ve önceki teknik atıfları. |
+| `src/actors/corpus/perseus-dl-actor.ts` | `PerseusDlActor` | Tufts Perseus Digital Library — Antik Yunanca, Klasik Latince, Eski İbranice ve Arapça metinler, paralel çeviriler, CTS-URN adresleme ve morfolojik analiz. |
+| `src/actors/corpus/sacred-texts-actor.ts` | `SacredTextsActor` | Internet Sacred Text Archive (ISTA) — 1.700+ tam metin kutsal kitap, antik mitoloji, dünya folkloru, simya ve teoloji eserleri. |
 
 #### Document Actors (`src/actors/documents/`) — local file and archive extraction
 
@@ -346,6 +348,8 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/anayasa-mahkemesi-actor.test.ts` | `AnayasaMahkemesiActor`, `src/api/server.ts` | AYM bireysel başvuru, norm denetimi, gerekçeli karar detayları, karşı oy ayrıştırma, SSRF denetimi ve REST rotası. |
 | `tests/danistay-actor.test.ts` | `DanistayActor`, `src/api/server.ts` | Danıştay emsal karar arama, daire filtreleme, tetkik hakimi/savcı düşünceleri, SSRF denetimi ve REST rotası. |
 | `tests/google-patents-actor.test.ts` | `GooglePatentsActor`, `src/api/server.ts` | Google Patents künye, bağımsız/bağımlı iddia hiyerarşisi (claims), tarifname, SSRF denetimi ve REST rotası. |
+| `tests/perseus-dl-actor.test.ts` | `PerseusDlActor`, `src/api/server.ts` | Tufts Perseus metin pasajı, kart/dize yapısı, morfolojik analiz, katalog arama, SSRF denetimi ve REST rotası. |
+| `tests/sacred-texts-actor.test.ts` | `SacredTextsActor`, `src/api/server.ts` | Internet Sacred Text Archive kitap pasajı, çevirmen, dipnotlar, gelenek kataloğu, SSRF denetimi ve REST rotası. |
 
 ---
 
