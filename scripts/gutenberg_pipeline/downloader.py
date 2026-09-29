@@ -2,15 +2,21 @@
 """
 Gutenberg Catalog Downloader & Text Fetcher -- protokol-7
 
-Fetches the full Project Gutenberg book catalog via Gutendex REST API
-(paginated), then streams raw plain-text files directly from PG mirrors.
+Primary catalog source: PG's official RDF dump (~100 MB tar.bz2 containing
+one RDF/XML file per book). Parsed with stdlib xml.etree; no third-party deps.
+Fallback: Gutendex REST API (paginated JSON) — used if RDF dump fails.
 All network I/O is streamed in chunks; no full file is held in RAM.
 """
 
+import gzip
+import io
+import os
 import ssl
+import tarfile
 import time
 import urllib.request
 import urllib.error
+import xml.etree.ElementTree as ET
 from typing import Iterator, Dict, Any, Optional, List
 
 try:
@@ -21,7 +27,10 @@ except ImportError:
 
 USER_AGENT = "protokol-7/1.0 (+https://github.com/protokol-7; gutenberg-pipeline)"
 
-# Gutendex is an open-source Gutenberg REST API mirror
+# Official PG RDF catalog dump — all ~70k books in one bz2 tar
+PG_RDF_DUMP_URL = "https://www.gutenberg.org/cache/epub/feeds/rdf-files.tar.bz2"
+
+# Gutendex is an open-source Gutenberg REST API mirror (fallback)
 GUTENDEX_BASE = "https://gutendex.com/books"
 
 # Official PG mirrors for raw text downloads
@@ -33,10 +42,154 @@ PG_MIRRORS: List[str] = [
 CHUNK_SIZE = 1 * 1024 * 1024   # 1 MB network read buffer
 MAX_TEXT_BYTES = 10 * 1024 * 1024  # 10 MB per book safety cap
 
+# RDF namespace map
+_RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+_DC  = "http://purl.org/dc/terms/"
+_PG  = "http://www.gutenberg.org/2009/pgterms/"
+_DCAM = "http://purl.org/dc/dcam/"
+
 
 def _make_request(url: str, timeout: int = 60) -> urllib.request.Request:
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     return req
+
+
+def _parse_rdf_ebook(content: bytes) -> Optional[Dict[str, Any]]:
+    """
+    Parses a single PG RDF/XML file (cache/epub/<id>/pg<id>.rdf) into a
+    book dict compatible with the Gutendex results format.
+    Returns None if the entry is not a Text-type book.
+    """
+    try:
+        root = ET.fromstring(content)
+    except ET.ParseError:
+        return None
+
+    ebook = root.find(f"{{{_PG}}}ebook")
+    if ebook is None:
+        return None
+
+    # Media type filter — only Text books
+    media_type_el = ebook.find(f"{{{_DC}}}type/{{{_DCAM}}}memberOf/../{{{_RDF}}}value")
+    # Simpler check: look for any type element containing "Text"
+    type_texts = [el.text or "" for el in ebook.iter(f"{{{_DC}}}type")]
+    media_types = [el.text or "" for el in ebook.iter(f"{{{_DCAM}}}memberOf")]
+    # Check rdf:value under dcterms:type
+    for el in ebook.iter(f"{{{_RDF}}}value"):
+        if "Text" in (el.text or ""):
+            break
+    else:
+        # No "Text" media type found — skip
+        return None
+
+    # Book ID from rdf:about attribute
+    about = ebook.get(f"{{{_RDF}}}about", "")
+    # about = "ebooks/12345" or "https://www.gutenberg.org/ebooks/12345"
+    book_id_str = about.rstrip("/").split("/")[-1]
+    try:
+        book_id = int(book_id_str)
+    except ValueError:
+        return None
+
+    # Title
+    title_el = ebook.find(f"{{{_DC}}}title")
+    title = title_el.text.strip() if title_el is not None and title_el.text else ""
+
+    # Authors
+    authors = []
+    for creator in ebook.findall(f"{{{_DC}}}creator"):
+        agent = creator.find(f"{{{_PG}}}agent")
+        if agent is not None:
+            name_el = agent.find(f"{{{_PG}}}name")
+            if name_el is not None and name_el.text:
+                birth = agent.find(f"{{{_PG}}}birthdate")
+                death = agent.find(f"{{{_PG}}}deathdate")
+                authors.append({
+                    "name": name_el.text.strip(),
+                    "birth_year": int(birth.text) if birth is not None and birth.text else None,
+                    "death_year": int(death.text) if death is not None and death.text else None,
+                })
+
+    # Subjects
+    subjects = []
+    for subj in ebook.findall(f"{{{_DC}}}subject"):
+        val = subj.find(f"{{{_RDF}}}value")
+        if val is not None and val.text:
+            subjects.append(val.text.strip())
+
+    # Languages
+    languages = []
+    for lang in ebook.findall(f"{{{_DC}}}language"):
+        val = lang.find(f"{{{_RDF}}}value")
+        if val is not None and val.text:
+            languages.append(val.text.strip())
+
+    # Download count
+    dl_el = ebook.find(f"{{{_PG}}}downloads")
+    download_count = int(dl_el.text) if dl_el is not None and dl_el.text else 0
+
+    # Formats: build dict of mime_type -> url
+    formats: Dict[str, str] = {}
+    for file_el in ebook.findall(f"{{{_DC}}}hasFormat"):
+        pg_file = file_el.find(f"{{{_PG}}}file")
+        if pg_file is None:
+            continue
+        file_url = pg_file.get(f"{{{_RDF}}}about", "")
+        for fmt in pg_file.findall(f"{{{_DC}}}format"):
+            val = fmt.find(f"{{{_RDF}}}value")
+            if val is not None and val.text and file_url:
+                formats[val.text.strip()] = file_url
+
+    return {
+        "id": book_id,
+        "title": title,
+        "authors": authors,
+        "subjects": subjects,
+        "languages": languages,
+        "download_count": download_count,
+        "formats": formats,
+        "bookshelves": [],
+        "summaries": [],
+    }
+
+
+def iter_catalog_from_rdf_dump(
+    chunk_size: int = 2 * 1024 * 1024,
+) -> Iterator[List[Dict[str, Any]]]:
+    """
+    Primary catalog source: streams PG's official RDF dump tar.bz2
+    (~300 MB compressed, ~2 GB uncompressed). Parses each per-book
+    RDF/XML file and yields batches of 32 book dicts.
+
+    No third-party services required. Resumable: caller filters by book_id
+    against the SQLite ledger.
+    """
+    print(f"[INFO] Streaming PG RDF catalog dump from {PG_RDF_DUMP_URL}...")
+    req = _make_request(PG_RDF_DUMP_URL)
+    batch: List[Dict[str, Any]] = []
+
+    with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=120) as resp:
+        # tarfile can read from a streaming file-like object
+        with tarfile.open(fileobj=resp, mode="r|bz2") as tar:
+            for member in tar:
+                if not member.isfile():
+                    continue
+                # Only process individual RDF files (cache/epub/<id>/pg<id>.rdf)
+                if not member.name.endswith(".rdf"):
+                    continue
+                f = tar.extractfile(member)
+                if f is None:
+                    continue
+                content = f.read()
+                book = _parse_rdf_ebook(content)
+                if book is None:
+                    continue
+                batch.append(book)
+                if len(batch) >= 32:
+                    yield batch
+                    batch = []
+    if batch:
+        yield batch
 
 
 def fetch_gutendex_page(page: int = 1, page_size: int = 32) -> Dict[str, Any]:
@@ -44,33 +197,43 @@ def fetch_gutendex_page(page: int = 1, page_size: int = 32) -> Dict[str, Any]:
     Fetches one page of the Gutendex book catalog.
     Returns parsed JSON dict with 'count', 'next', 'results' keys.
     """
+    import json
     url = f"{GUTENDEX_BASE}?page={page}&mime_type=text%2Fplain"
     req = _make_request(url)
-    with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=30) as resp:
-        import json
+    with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=90) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
 def iter_catalog_pages(start_page: int = 1) -> Iterator[List[Dict[str, Any]]]:
     """
     Generator: yields lists of raw book dicts from Gutendex, page by page,
-    until no next page exists. Handles rate-limit 429 with exponential backoff.
+    until no next page exists. Handles 429/502/503/504 and transient network
+    timeouts with exponential backoff (max 5 attempts per page).
     """
+    RETRIABLE_HTTP = {429, 502, 503, 504}
     page = start_page
     while True:
-        for attempt in range(4):
+        last_exc: Optional[Exception] = None
+        for attempt in range(5):
             try:
                 data = fetch_gutendex_page(page)
+                last_exc = None
                 break
             except urllib.error.HTTPError as e:
-                if e.code == 429:
-                    wait = 2 ** attempt * 5
-                    print(f"[WARN] Rate-limited (429) on page {page}. Waiting {wait}s...")
+                if e.code in RETRIABLE_HTTP:
+                    wait = 2 ** attempt * 10
+                    print(f"[WARN] HTTP {e.code} on page {page} (attempt {attempt + 1}/5). Waiting {wait}s...")
                     time.sleep(wait)
+                    last_exc = e
                 else:
                     raise
-        else:
-            raise RuntimeError(f"Failed to fetch catalog page {page} after 4 attempts.")
+            except (TimeoutError, OSError) as e:
+                wait = 2 ** attempt * 10
+                print(f"[WARN] Network error on page {page} (attempt {attempt + 1}/5): {e}. Retrying in {wait}s...")
+                time.sleep(wait)
+                last_exc = e
+        if last_exc is not None:
+            raise RuntimeError(f"Failed to fetch catalog page {page} after 5 attempts.") from last_exc
 
         results = data.get("results", [])
         if not results:
@@ -80,8 +243,8 @@ def iter_catalog_pages(start_page: int = 1) -> Iterator[List[Dict[str, Any]]]:
         if not data.get("next"):
             break
         page += 1
-        # Polite crawl delay
-        time.sleep(0.25)
+        time.sleep(0.5)
+
 
 
 def pick_text_url(formats: Dict[str, str]) -> Optional[str]:

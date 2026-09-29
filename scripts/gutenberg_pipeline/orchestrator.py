@@ -35,7 +35,13 @@ from typing import Dict, Any, List, Optional
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from cleaner import build_entry
-from downloader import iter_catalog_pages, pick_text_url, stream_book_text, fetch_book_images
+from downloader import (
+    iter_catalog_from_rdf_dump,
+    iter_catalog_pages,
+    pick_text_url,
+    stream_book_text,
+    fetch_book_images,
+)
 from drive_sync import GutenbergDriveSync
 from packer import GutenbergParquetSharder, GutenbergImageTarSharder
 
@@ -255,7 +261,7 @@ class GutenbergOrchestrator:
         t_start         = time.time()
 
         try:
-            for page_books in iter_catalog_pages():
+            for page_books in iter_catalog_from_rdf_dump():
                 for raw_book in page_books:
                     book_id = raw_book.get("id") or 0
                     if not book_id:
