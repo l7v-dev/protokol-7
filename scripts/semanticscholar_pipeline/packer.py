@@ -30,6 +30,10 @@ S2_SCHEMA = pa.schema([
     ("text",              pa.string()),
     ("char_count",        pa.int32()),
     ("word_count",        pa.int32()),
+    # PDF extraction columns (Stage 1: pdfminer, Stage 2/3: Colab OCR)
+    ("pdf_text",          pa.string()),
+    ("pdf_ocr_needed",    pa.int8()),
+    ("pdf_char_count",    pa.int32()),
 ])
 
 DEFAULT_BATCH_SIZE     = 5_000
@@ -113,6 +117,9 @@ class S2ParquetSharder:
             "text":              pa.array(_s("text"),              type=pa.string()),
             "char_count":        pa.array(_i("char_count"),        type=pa.int32()),
             "word_count":        pa.array(_i("word_count"),        type=pa.int32()),
+            "pdf_text":          pa.array(_s("pdf_text"),          type=pa.string()),
+            "pdf_ocr_needed":    pa.array(_i8("pdf_ocr_needed"),   type=pa.int8()),
+            "pdf_char_count":    pa.array(_i("pdf_char_count"),    type=pa.int32()),
         }, schema=S2_SCHEMA)
 
         assert self._writer is not None

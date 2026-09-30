@@ -319,5 +319,175 @@ class TestS2ParquetSharder(unittest.TestCase):
             self.assertEqual(field.type, pa.int8())
 
 
+
+# ------------------------------------------------------------------
+# pdf_extractor
+# ------------------------------------------------------------------
+
+class TestPdfExtractor(unittest.TestCase):
+    """
+    Unit tests for pdf_extractor.enrich_record_with_pdf.
+    Network calls are avoided by testing only logic branches that
+    do not require a live PDF URL.
+    """
+
+    def _make_record_oa(self) -> dict:
+        """Minimal cleaner-output record with is_open_access=1 and a URL."""
+        return {
+            "paper_id":          "oa_paper_001",
+            "doi":               "10.0/oa",
+            "arxiv_id":          "2301.00001",
+            "pubmed_id":         "",
+            "title":             "OA Research Paper",
+            "abstract":          "abstract content " * 15,
+            "authors":           "Alice Smith",
+            "year":              2023,
+            "publication_date":  "2023-01-01",
+            "citation_count":    10,
+            "reference_count":   5,
+            "is_open_access":    1,
+            "oa_pdf_url":        "https://arxiv.org/pdf/2301.00001",
+            "fields_of_study":   "Computer Science",
+            "publication_types": "JournalArticle",
+            "journal":           "Nature",
+            "text":              "title and abstract",
+            "char_count":        18,
+            "word_count":        4,
+        }
+
+    def _make_record_closed(self) -> dict:
+        """Minimal record with is_open_access=0 and no PDF URL."""
+        rec = self._make_record_oa()
+        rec["is_open_access"] = 0
+        rec["oa_pdf_url"]     = ""
+        return rec
+
+    def test_non_oa_record_gets_zero_pdf_fields(self):
+        """Non-OA papers must never trigger a PDF fetch."""
+        from pdf_extractor import enrich_record_with_pdf
+        rec = enrich_record_with_pdf(self._make_record_closed())
+        self.assertEqual(rec["pdf_text"],       "")
+        self.assertEqual(rec["pdf_ocr_needed"], 0)
+        self.assertEqual(rec["pdf_char_count"], 0)
+
+    def test_empty_oa_pdf_url_gets_zero_pdf_fields(self):
+        """OA paper with empty oa_pdf_url must not attempt fetch."""
+        from pdf_extractor import enrich_record_with_pdf
+        rec = self._make_record_oa()
+        rec["oa_pdf_url"] = ""
+        result = enrich_record_with_pdf(rec)
+        self.assertEqual(result["pdf_text"],       "")
+        self.assertEqual(result["pdf_ocr_needed"], 0)
+        self.assertEqual(result["pdf_char_count"], 0)
+
+    def test_pdf_fields_present_in_output(self):
+        """enrich_record_with_pdf always adds all three pdf columns."""
+        from pdf_extractor import enrich_record_with_pdf
+        rec = enrich_record_with_pdf(self._make_record_closed())
+        self.assertIn("pdf_text",       rec)
+        self.assertIn("pdf_ocr_needed", rec)
+        self.assertIn("pdf_char_count", rec)
+
+    def test_extract_pdf_empty_url_returns_no_ocr(self):
+        """extract_pdf with empty URL returns (empty, 0, 0) without network call."""
+        from pdf_extractor import extract_pdf
+        text, ocr_needed, char_count = extract_pdf("")
+        self.assertEqual(text,       "")
+        self.assertEqual(ocr_needed, 0)
+        self.assertEqual(char_count, 0)
+
+    def test_enrich_preserves_existing_record_fields(self):
+        """enrich_record_with_pdf must not alter any pre-existing record fields."""
+        from pdf_extractor import enrich_record_with_pdf
+        rec      = self._make_record_closed()
+        original = dict(rec)
+        result   = enrich_record_with_pdf(rec)
+        for key, val in original.items():
+            self.assertEqual(result[key], val, f"Field '{key}' was altered.")
+
+
+# ------------------------------------------------------------------
+# S2ParquetSharder -- PDF schema columns
+# ------------------------------------------------------------------
+
+class TestS2ParquetSharderPdfColumns(unittest.TestCase):
+    """Verifies that the three new PDF columns are present in produced Parquet files."""
+
+    def _make_full_record(self, i: int) -> dict:
+        return {
+            "paper_id":          f"paper{i:05d}",
+            "doi":               f"10.0/{i}",
+            "arxiv_id":          f"2301.{i:05d}",
+            "pubmed_id":         "",
+            "title":             f"Research Paper {i}",
+            "abstract":          "abstract content " * 10,
+            "authors":           "Alice Smith; Bob Jones",
+            "year":              2020,
+            "publication_date":  "2020-01-01",
+            "citation_count":    10,
+            "reference_count":   5,
+            "is_open_access":    1,
+            "oa_pdf_url":        f"https://arxiv.org/pdf/{i}",
+            "fields_of_study":   "Computer Science",
+            "publication_types": "JournalArticle",
+            "journal":           "Nature",
+            "text":              "title and abstract combined " * 10,
+            "char_count":        300,
+            "word_count":        50,
+            "pdf_text":          "Full PDF text content goes here." if i % 2 == 0 else "",
+            "pdf_ocr_needed":    0 if i % 2 == 0 else 1,
+            "pdf_char_count":    32 if i % 2 == 0 else 0,
+        }
+
+    def test_pdf_columns_in_schema(self):
+        import pyarrow.parquet as pq
+        with tempfile.TemporaryDirectory() as tmpdir:
+            sharder = S2ParquetSharder(
+                output_dir=tmpdir,
+                corpus_prefix="pdf_schema_s2",
+                batch_size=5,
+            )
+            for i in range(5):
+                sharder.append(self._make_full_record(i))
+            files = sharder.close()
+            self.assertGreaterEqual(len(files), 1)
+            tbl = pq.read_table(files[0])
+            self.assertIn("pdf_text",       tbl.schema.names)
+            self.assertIn("pdf_ocr_needed", tbl.schema.names)
+            self.assertIn("pdf_char_count", tbl.schema.names)
+
+    def test_pdf_ocr_needed_stored_as_int8(self):
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        with tempfile.TemporaryDirectory() as tmpdir:
+            sharder = S2ParquetSharder(
+                output_dir=tmpdir,
+                corpus_prefix="pdf_type_s2",
+                batch_size=5,
+            )
+            for i in range(5):
+                sharder.append(self._make_full_record(i))
+            files = sharder.close()
+            tbl   = pq.read_table(files[0])
+            self.assertEqual(tbl.schema.field("pdf_ocr_needed").type, pa.int8())
+
+    def test_pdf_text_values_roundtrip(self):
+        import pyarrow.parquet as pq
+        with tempfile.TemporaryDirectory() as tmpdir:
+            sharder = S2ParquetSharder(
+                output_dir=tmpdir,
+                corpus_prefix="pdf_val_s2",
+                batch_size=10,
+            )
+            for i in range(4):
+                sharder.append(self._make_full_record(i))
+            files = sharder.close()
+            tbl   = pq.read_table(files[0])
+            pdf_texts = tbl.column("pdf_text").to_pylist()
+            # Even indices have pdf_text, odd indices have empty string
+            self.assertIn("Full PDF text content goes here.", pdf_texts)
+            self.assertIn("", pdf_texts)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

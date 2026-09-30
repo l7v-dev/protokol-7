@@ -40,6 +40,7 @@ from cleaner import build_record
 from downloader import iter_papers_bulk
 from drive_sync import S2DriveSync
 from packer import S2ParquetSharder
+from pdf_extractor import enrich_record_with_pdf
 
 DEFAULT_DB_PATH = "data/semanticscholar_catalog.sqlite"
 DEFAULT_OUT_DIR = "data/temp_semanticscholar"
@@ -139,11 +140,13 @@ class S2Orchestrator:
         out_dir: str = DEFAULT_OUT_DIR,
         enable_drive: bool = True,
         dry_run: bool = False,
+        fetch_pdf: bool = False,
     ):
         self.ledger       = ledger
         self.out_dir      = out_dir
         self.enable_drive = enable_drive
         self.dry_run      = dry_run
+        self.fetch_pdf    = fetch_pdf
         self.drive: Optional[S2DriveSync] = None
 
         if enable_drive:
@@ -217,6 +220,22 @@ class S2Orchestrator:
                         total_skipped += 1
                         continue
 
+                    if self.fetch_pdf:
+                        try:
+                            record = enrich_record_with_pdf(record)
+                        except Exception as pdf_err:
+                            print(
+                                f"[WARN] PDF enrichment error for {record.get('paper_id')}: {pdf_err}",
+                                file=sys.stderr,
+                            )
+                            record["pdf_text"]       = ""
+                            record["pdf_ocr_needed"] = 0
+                            record["pdf_char_count"] = 0
+                    else:
+                        record["pdf_text"]       = ""
+                        record["pdf_ocr_needed"] = 0
+                        record["pdf_char_count"] = 0
+
                     sharder.append(record)
                     papers_in_shard += 1
                     total_processed += 1
@@ -277,6 +296,7 @@ def main() -> None:
     parser.add_argument("--limit",          type=int, default=0,   help="Stop after N papers")
     parser.add_argument("--dry-run",        action="store_true",   help="Process first 2000 papers only")
     parser.add_argument("--no-drive",       action="store_true",   help="Skip Drive upload")
+    parser.add_argument("--fetch-pdf",      action="store_true",   help="Download and extract PDF text (Stage 1: pdfminer)")
     parser.add_argument("--status",         action="store_true",   help="Print summary and exit")
     args = parser.parse_args()
 
@@ -294,6 +314,7 @@ def main() -> None:
         ledger=ledger,
         enable_drive=not args.no_drive,
         dry_run=args.dry_run,
+        fetch_pdf=args.fetch_pdf,
     )
     orch.run(
         query=args.query,
