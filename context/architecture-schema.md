@@ -186,6 +186,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/ocr/connectors/local-llm-vision-connector.ts` | `LocalLlmVisionOcrConnector` | Connects to local multimodal vision LLM endpoints (Ollama, llama.cpp, vLLM, LocalAI) supporting models like llama3.2-vision, qwen2.5-vl, minicpm-v. |
 | `src/ocr/connectors/cloud-vision-connector.ts` | `CloudVisionOcrConnector` | Google Cloud Vision API connector utilizing DOCUMENT_TEXT_DETECTION. |
 | `src/ocr/connectors/mistral-ocr-connector.ts` | `MistralOcrConnector` | Mistral AI Document OCR API connector extracting structured markdown. |
+| `src/ocr/connectors/unlimited-ocr-connector.ts` | `UnlimitedOcrConnector` | Connects to vLLM or OpenAI-compatible endpoint serving baidu/Unlimited-OCR for long-horizon multi-page PDF document and table parsing. |
 | `src/ocr/connectors/local-tesseract-connector.ts` | `LocalTesseractOcrConnector` | Local system Tesseract CLI bridge executed via child_process. |
 | `src/ocr/connectors/generic-http-connector.ts` | `GenericHttpOcrConnector` | Configurable HTTP POST connector for enterprise and third-party OCR microservices. |
 | `src/ocr/index.ts` | OCR Barrel | Re-exports all OCR connectors, registry, and rasterizer. |

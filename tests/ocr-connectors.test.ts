@@ -13,6 +13,7 @@ import {
   MistralOcrConnector,
   NoAvailableOcrConnectorError,
   OcrConnectorRegistry,
+  UnlimitedOcrConnector,
 } from "../src/ocr";
 
 describe("OCR Subsystem - Connectors and Registry", () => {
@@ -422,6 +423,75 @@ describe("OCR Subsystem - Connectors and Registry", () => {
       assert.strictEqual(multiResult.pages[2].pageNumber, 3);
       assert.ok(multiResult.text.includes("Page content 1"));
       assert.ok(multiResult.text.includes("Page content 3"));
+    });
+  });
+
+  describe("UnlimitedOcrConnector", () => {
+    it("initializes with default options", () => {
+      const connector = new UnlimitedOcrConnector();
+      assert.strictEqual(connector.name, "unlimited-ocr");
+    });
+
+    it("detects availability when vLLM /v1/models responds with 200 OK", async () => {
+      globalThis.fetch = async () =>
+        new Response(JSON.stringify({ data: [{ id: "baidu/Unlimited-OCR" }] }), { status: 200 });
+
+      const connector = new UnlimitedOcrConnector({ endpoint: "http://127.0.0.1:8000" });
+      const available = await connector.isAvailable();
+      assert.strictEqual(available, true);
+    });
+
+    it("detects unavailability when endpoint throws connection error", async () => {
+      globalThis.fetch = async () => {
+        throw new Error("ECONNREFUSED");
+      };
+
+      const connector = new UnlimitedOcrConnector({ endpoint: "http://127.0.0.1:8000" });
+      const available = await connector.isAvailable();
+      assert.strictEqual(available, false);
+    });
+
+    it("extracts document text via OpenAI-compatible chat completions API", async () => {
+      globalThis.fetch = async (_url, init) => {
+        const body = JSON.parse(init?.body as string);
+        assert.strictEqual(body.model, "baidu/Unlimited-OCR");
+        assert.ok(Array.isArray(body.messages));
+        assert.strictEqual(body.messages[0].content[0].text, "<image>document parsing.");
+
+        return new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content: "# Scholarly Article\n\nAbstract: Deep learning for mathematical reasoning.",
+                },
+              },
+            ],
+          }),
+          { status: 200 }
+        );
+      };
+
+      const connector = new UnlimitedOcrConnector({
+        endpoint: "http://127.0.0.1:8000",
+        model: "baidu/Unlimited-OCR",
+      });
+
+      const result = await connector.extract({
+        imageBuffer: Buffer.from("fake-png-data"),
+      });
+
+      assert.strictEqual(result.connectorName, "unlimited-ocr");
+      assert.ok(result.text.includes("Deep learning for mathematical reasoning"));
+      assert.strictEqual(result.pages.length, 1);
+      assert.strictEqual(result.metadata?.model, "baidu/Unlimited-OCR");
+    });
+
+    it("is registered by default in OcrConnectorRegistry", () => {
+      const registry = new OcrConnectorRegistry();
+      const connector = registry.get("unlimited-ocr");
+      assert.ok(connector);
+      assert.strictEqual(connector.name, "unlimited-ocr");
     });
   });
 });

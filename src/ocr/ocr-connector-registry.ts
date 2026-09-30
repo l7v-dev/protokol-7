@@ -9,6 +9,7 @@ import { GenericHttpOcrConnector } from "./connectors/generic-http-connector";
 import { LocalLlmVisionOcrConnector } from "./connectors/local-llm-vision-connector";
 import { LocalTesseractOcrConnector } from "./connectors/local-tesseract-connector";
 import { MistralOcrConnector } from "./connectors/mistral-ocr-connector";
+import { UnlimitedOcrConnector } from "./connectors/unlimited-ocr-connector";
 import type { IOcrConnector, OcrPageResult, OcrRequest, OcrResult } from "./types";
 
 export class NoAvailableOcrConnectorError extends Error {
@@ -22,6 +23,7 @@ export class OcrConnectorRegistry {
   private readonly connectors = new Map<string, IOcrConnector>();
 
   private readonly defaultFallbackOrder: string[] = [
+    "unlimited-ocr",
     "local-llm",
     "cloud-vision",
     "mistral",
@@ -34,6 +36,7 @@ export class OcrConnectorRegistry {
   }
 
   private registerDefaults(): void {
+    this.register(new UnlimitedOcrConnector());
     this.register(new LocalLlmVisionOcrConnector());
     this.register(new CloudVisionOcrConnector());
     this.register(new MistralOcrConnector());
