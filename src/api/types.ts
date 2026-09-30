@@ -523,6 +523,20 @@ export interface InternetArchiveActorTaskOptions {
   maxResults?: number;
   /** For action="text": maximum characters to return from OCR text stream. */
   maxTextChars?: number;
+  /**
+   * Specific item identifiers to exclude from search/ingestion.
+   */
+  excludeIdentifiers?: string[];
+  /**
+   * Specific collection identifiers to exclude from search (e.g. ["stackexchange"]).
+   */
+  excludeCollections?: string[];
+  /**
+   * Whether to exclude specialized relational dataset corpora (defaults to true).
+   * When true, excludes items like 'stackexchange' which are harvested by
+   * dedicated ETL pipelines (e.g. scripts/stackexchange_pipeline/).
+   */
+  excludeSpecializedCorpora?: boolean;
   timeoutMs?: number;
 }
 
@@ -1436,7 +1450,7 @@ export interface SemanticScholarAuthorItem {
 }
 
 export interface SemanticScholarActorTaskOptions {
-  action?: "paper" | "search" | "author" | "author_search" | "citations" | "references";
+  action?: "paper" | "search" | "author" | "author_search" | "citations" | "references" | "pdf_ocr";
   paperId?: string;
   authorId?: string;
   query?: string;
@@ -1446,10 +1460,28 @@ export interface SemanticScholarActorTaskOptions {
   year?: string;
   apiKey?: string;
   timeoutMs?: number;
+  /** pdf_ocr action: preferred OCR connector name (e.g. "local-llm", "tesseract"). */
+  ocrConnector?: string;
+  /** pdf_ocr action: maximum number of PDF pages to process. Defaults to 50. */
+  maxPages?: number;
+  /** pdf_ocr action: direct PDF URL (optional if paperId or targetUrl provided). */
+  pdfUrl?: string;
+}
+
+export interface SemanticScholarPdfExtractionResult {
+  pdfUrl: string;
+  fullText: string;
+  totalCharacters: number;
+  totalWords: number;
+  totalPages: number;
+  ocrApplied: boolean;
+  ocrConnectorUsed?: string;
+  anomalyStatus: string;
+  ocrRecommended: boolean;
 }
 
 export interface SemanticScholarActorResult {
-  action: "paper" | "search" | "author" | "author_search" | "citations" | "references";
+  action: "paper" | "search" | "author" | "author_search" | "citations" | "references" | "pdf_ocr";
   queryUrl: string;
   totalResults: number;
   offset?: number;
@@ -1458,6 +1490,7 @@ export interface SemanticScholarActorResult {
   papers?: SemanticScholarPaperItem[];
   author?: SemanticScholarAuthorItem;
   authors?: SemanticScholarAuthorItem[];
+  pdfExtraction?: SemanticScholarPdfExtractionResult;
   markdown?: string;
 }
 

@@ -7264,9 +7264,9 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           type: "string",
           title: "Action Mode",
           description:
-            "Action mode: 'paper' (retrieve paper by S2 ID, DOI, arXiv, or URL), 'search' (paper search), 'author' (author profile), 'author_search' (search authors), 'citations', 'references'.",
+            "Action mode: 'paper' (retrieve paper by S2 ID, DOI, arXiv, or URL), 'search' (paper search), 'author' (author profile), 'author_search' (search authors), 'citations', 'references', 'pdf_ocr' (extract and OCR open-access PDF).",
           default: "paper",
-          enum: ["paper", "search", "author", "author_search", "citations", "references"],
+          enum: ["paper", "search", "author", "author_search", "citations", "references", "pdf_ocr"],
           editor: "select",
         },
         paperId: {
@@ -7328,6 +7328,28 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           description: "Direct Semantic Scholar paper or author URL.",
           editor: "textfield",
         },
+        ocrConnector: {
+          name: "ocrConnector",
+          type: "string",
+          title: "OCR Connector",
+          description: "Preferred OCR connector (e.g. 'local-llm', 'tesseract').",
+          editor: "textfield",
+        },
+        maxPages: {
+          name: "maxPages",
+          type: "integer",
+          title: "Max Pages",
+          description: "Maximum PDF pages to process in pdf_ocr action.",
+          default: 50,
+          editor: "number",
+        },
+        pdfUrl: {
+          name: "pdfUrl",
+          type: "string",
+          title: "PDF URL",
+          description: "Direct URL to PDF for pdf_ocr action (optional if paperId or targetUrl provided).",
+          editor: "textfield",
+        },
       },
       required: [],
     },
@@ -7346,6 +7368,10 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
         papers: { type: "array", description: "List of paper items" },
         author: { type: "object", description: "Author profile, affiliations, and metrics" },
         authors: { type: "array", description: "List of authors" },
+        pdfExtraction: {
+          type: "object",
+          description: "PDF extraction and OCR results, character/word counts, and anomaly status",
+        },
         markdown: { type: "string", description: "GFM markdown formatted literature report" },
       },
     },
@@ -7364,8 +7390,8 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
         properties: {
           action: {
             type: "string",
-            enum: ["paper", "search", "author", "author_search", "citations", "references"],
-            description: "Action: paper, search, author, author_search, citations, or references",
+            enum: ["paper", "search", "author", "author_search", "citations", "references", "pdf_ocr"],
+            description: "Action: paper, search, author, author_search, citations, references, or pdf_ocr",
           },
           paperId: {
             type: "string",
@@ -7378,6 +7404,9 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           offset: { type: "number", description: "Pagination offset" },
           year: { type: "string", description: "Publication year filter (e.g. '2023')" },
           targetUrl: { type: "string", description: "Direct Semantic Scholar URL" },
+          ocrConnector: { type: "string", description: "Preferred OCR connector (e.g. 'local-llm', 'tesseract')" },
+          maxPages: { type: "number", description: "Maximum PDF pages to process" },
+          pdfUrl: { type: "string", description: "Direct PDF URL for pdf_ocr action" },
         },
         required: [],
       },

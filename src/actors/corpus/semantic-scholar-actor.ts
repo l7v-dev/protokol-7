@@ -15,9 +15,14 @@ import type {
   SemanticScholarActorTaskOptions,
   SemanticScholarAuthorItem,
   SemanticScholarPaperItem,
+  SemanticScholarPdfExtractionResult,
 } from "../../api/types";
+import { ContextGuard } from "../../api/context-guard";
+import { PdfAnomalyDetector } from "../../extractors/pdf-anomaly-detector";
 import { safeRedirectFetch } from "../../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../../network/ssrf-guard";
+import { globalOcrRegistry, PdfRasterizer } from "../../ocr";
+import { extractText, getDocumentProxy } from "unpdf";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const USER_AGENT = "Mozilla/5.0 (compatible; Protokol7Scraper/1.0; +https://protokol-7.local)";
@@ -155,6 +160,14 @@ export class SemanticScholarActor implements IActor<SemanticScholarActorResult> 
             timeoutMs,
             allowLocalNetwork
           );
+        case "pdf_ocr":
+          return await this.handlePdfOcr(
+            task,
+            options,
+            startTime,
+            timeoutMs,
+            allowLocalNetwork
+          );
         default:
           return await this.handlePaper(
             task,
@@ -181,7 +194,7 @@ export class SemanticScholarActor implements IActor<SemanticScholarActorResult> 
   private resolveAction(
     task: ActorTask,
     options: SemanticScholarActorTaskOptions
-  ): "paper" | "search" | "author" | "author_search" | "citations" | "references" {
+  ): "paper" | "search" | "author" | "author_search" | "citations" | "references" | "pdf_ocr" {
     if (options.action) {
       return options.action;
     }
@@ -874,5 +887,249 @@ export class SemanticScholarActor implements IActor<SemanticScholarActorResult> 
     }
 
     return lines.join("\n").trim();
+  }
+
+  /**
+   * Resolves the open-access PDF URL for a paper, downloads, and extracts full text.
+   * Routes to native text extraction (born-digital) or OCR (scanned/encoding-error).
+   *
+   * Resolution order for PDF URL:
+   *   1. options.pdfUrl (caller-supplied direct URL)
+   *   2. Fetch paper metadata first, use openAccessPdfUrl from the response
+   *   3. targetUrl itself if it ends in .pdf
+   */
+  private async handlePdfOcr(
+    task: ActorTask,
+    options: SemanticScholarActorTaskOptions,
+    startTime: number,
+    timeoutMs: number,
+    allowLocalNetwork: boolean
+  ): Promise<ActorResult<SemanticScholarActorResult>> {
+    const MAX_PDF_BYTES = 20 * 1024 * 1024; // 20 MB
+    const MAX_PAGES = options.maxPages ?? 50;
+
+    // --- 1. Resolve PDF URL ---
+    let pdfUrl: string | undefined = options.pdfUrl;
+
+    if (!pdfUrl) {
+      // Try to fetch paper metadata to get openAccessPdfUrl
+      const paperId = this.resolvePaperId(task.targetUrl, options.paperId);
+      if (paperId) {
+        const metaUrl = `${this.resolveApiBase(task.targetUrl)}/paper/${encodeURIComponent(paperId)}?fields=isOpenAccess,openAccessPdf`;
+        const ssrfMeta = await SSRFGuard.validateUrlWithDns(metaUrl, { allowLocalNetwork });
+        if (ssrfMeta.valid) {
+          try {
+            const metaResp = await safeRedirectFetch(metaUrl, {
+              method: "GET",
+              headers: this.getAuthHeaders(options.apiKey),
+              timeoutMs,
+              allowLocalNetwork,
+            });
+            if (metaResp.ok) {
+              const metaJson = (await metaResp.json()) as { openAccessPdf?: { url?: string } };
+              pdfUrl = metaJson.openAccessPdf?.url ?? undefined;
+            }
+          } catch {
+            // metadata fetch failure — fall through
+          }
+        }
+      }
+    }
+
+    if (!pdfUrl && task.targetUrl?.toLowerCase().endsWith(".pdf")) {
+      pdfUrl = task.targetUrl;
+    }
+
+    if (!pdfUrl) {
+      return {
+        taskId: task.taskId,
+        actorType: this.actorType,
+        status: "failed",
+        statusCode: 404,
+        errorMessage:
+          "pdf_ocr action requires an open-access PDF URL. " +
+          "Provide options.pdfUrl, a paperId with an OA PDF, or a direct .pdf targetUrl.",
+        executionDurationMs: Date.now() - startTime,
+      };
+    }
+
+    // --- 2. SSRF check on resolved PDF URL ---
+    const ssrfCheck = await SSRFGuard.validateUrlWithDns(pdfUrl, { allowLocalNetwork });
+    if (!ssrfCheck.valid) {
+      return {
+        taskId: task.taskId,
+        actorType: this.actorType,
+        status: "failed",
+        statusCode: 403,
+        errorMessage: `SSRF validation failed for PDF URL: ${ssrfCheck.reason}`,
+        executionDurationMs: Date.now() - startTime,
+      };
+    }
+
+    // --- 3. Download PDF ---
+    let pdfResponse: Response;
+    try {
+      pdfResponse = await safeRedirectFetch(pdfUrl, {
+        method: "GET",
+        headers: { "User-Agent": USER_AGENT, Accept: "application/pdf,*/*" },
+        timeoutMs,
+        allowLocalNetwork,
+      });
+    } catch (fetchErr) {
+      return {
+        taskId: task.taskId,
+        actorType: this.actorType,
+        status: "failed",
+        statusCode: 502,
+        errorMessage: `PDF download failed: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`,
+        executionDurationMs: Date.now() - startTime,
+      };
+    }
+
+    if (!pdfResponse.ok) {
+      return {
+        taskId: task.taskId,
+        actorType: this.actorType,
+        status: "failed",
+        statusCode: pdfResponse.status,
+        errorMessage: `PDF download returned HTTP ${pdfResponse.status}: ${pdfResponse.statusText}`,
+        executionDurationMs: Date.now() - startTime,
+      };
+    }
+
+    const contentLength = pdfResponse.headers.get("content-length");
+    if (contentLength && parseInt(contentLength, 10) > MAX_PDF_BYTES) {
+      return {
+        taskId: task.taskId,
+        actorType: this.actorType,
+        status: "failed",
+        statusCode: 413,
+        errorMessage: `PDF exceeds ${MAX_PDF_BYTES} byte limit (content-length: ${contentLength}).`,
+        executionDurationMs: Date.now() - startTime,
+      };
+    }
+
+    const arrayBuffer = await pdfResponse.arrayBuffer();
+    if (arrayBuffer.byteLength > MAX_PDF_BYTES) {
+      return {
+        taskId: task.taskId,
+        actorType: this.actorType,
+        status: "failed",
+        statusCode: 413,
+        errorMessage: `PDF body (${arrayBuffer.byteLength} bytes) exceeds ${MAX_PDF_BYTES} byte limit.`,
+        executionDurationMs: Date.now() - startTime,
+      };
+    }
+
+    const uint8Data = new Uint8Array(arrayBuffer);
+
+    // --- 4. Anomaly detection ---
+    let extractedPages: string[] = [];
+    let totalPages = 0;
+    let parseError: Error | undefined;
+
+    try {
+      const doc = await getDocumentProxy(uint8Data.slice());
+      totalPages = doc.numPages;
+      const extracted = await extractText(doc);
+      const rawPages = Array.isArray(extracted.text) ? extracted.text : [extracted.text];
+      const pagesToUse = MAX_PAGES > 0 ? rawPages.slice(0, MAX_PAGES) : rawPages;
+      extractedPages = pagesToUse.map((t) => ContextGuard.stripInvisibleUnicode((t || "").trim()));
+    } catch (err) {
+      parseError = err instanceof Error ? err : new Error(String(err));
+    }
+
+    const anomaly = PdfAnomalyDetector.detect({
+      uint8Data,
+      totalPages,
+      rawPageTexts: extractedPages,
+      parseError,
+    });
+
+    // --- 5. Route: native text vs OCR ---
+    let fullText = "";
+    let ocrApplied = false;
+    let ocrConnectorUsed: string | undefined;
+
+    if (!anomaly.ocrRecommended && extractedPages.length > 0) {
+      // Born-digital: use extracted text directly
+      fullText = extractedPages.join("\n\n");
+    } else if (anomaly.ocrRecommended) {
+      // Scanned or encoding-error: rasterize and OCR
+      try {
+        let pageImages = await PdfRasterizer.extractEmbeddedImages(uint8Data, 1);
+        if (pageImages.length === 0) {
+          pageImages = await PdfRasterizer.rasterizeAllPages(uint8Data, {
+            maxPages: MAX_PAGES,
+            timeoutMs,
+          });
+        }
+
+        if (pageImages.length > 0) {
+          const ocrResult = await globalOcrRegistry.executeMultiPageOcr(
+            pageImages,
+            options.ocrConnector
+          );
+          fullText = ocrResult.text;
+          ocrApplied = ocrResult.text.length > 0;
+          ocrConnectorUsed = ocrResult.connectorName;
+        }
+      } catch (ocrErr) {
+        // OCR failed — return anomaly info, not hard failure
+        fullText = "";
+      }
+    }
+
+    const totalCharacters = fullText.length;
+    const totalWords = fullText.length > 0 ? fullText.split(/\s+/).length : 0;
+
+    const pdfExtraction: SemanticScholarPdfExtractionResult = {
+      pdfUrl,
+      fullText,
+      totalCharacters,
+      totalWords,
+      totalPages,
+      ocrApplied,
+      ocrConnectorUsed,
+      anomalyStatus: anomaly.status,
+      ocrRecommended: anomaly.ocrRecommended,
+    };
+
+    // --- 6. Render markdown ---
+    const mdLines: string[] = [
+      `# PDF Extraction: ${pdfUrl}`,
+      "",
+      `- **Total Pages:** ${totalPages}`,
+      `- **Total Characters:** ${totalCharacters.toLocaleString()}`,
+      `- **Total Words:** ${totalWords.toLocaleString()}`,
+      `- **Anomaly Status:** \`${anomaly.status}\``,
+      `- **OCR Applied:** ${ocrApplied ? `Yes (connector: \`${ocrConnectorUsed ?? "unknown"}\`)` : "No"}`,
+      "",
+      "---",
+      "",
+    ];
+
+    if (fullText.length > 0) {
+      // Truncate to 8000 chars for markdown preview — full text in pdfExtraction.fullText
+      const preview = fullText.length > 8000 ? `${fullText.slice(0, 8000)}\n\n_[truncated — full text in pdfExtraction.fullText]_` : fullText;
+      mdLines.push("## Extracted Text", "", preview);
+    } else {
+      mdLines.push(`_No text extracted. Anomaly: ${anomaly.reason ?? anomaly.status}_`);
+    }
+
+    return {
+      taskId: task.taskId,
+      actorType: this.actorType,
+      status: "completed",
+      statusCode: 200,
+      data: {
+        action: "pdf_ocr",
+        queryUrl: pdfUrl,
+        totalResults: 1,
+        pdfExtraction,
+        markdown: mdLines.join("\n").trim(),
+      },
+      executionDurationMs: Date.now() - startTime,
+    };
   }
 }

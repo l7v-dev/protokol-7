@@ -9,6 +9,32 @@ import { after, before, describe, it } from "node:test";
 import { SemanticScholarActor } from "../src/actors/corpus/semantic-scholar-actor";
 import type { ActorTask } from "../src/api/types";
 
+const MINIMAL_PDF_RAW = `%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj
+3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj
+4 0 obj<</Length 51>>stream
+BT
+/F1 12 Tf
+72 712 Td
+(Hello Protokol-7 PDF Document) Tj
+ET
+endstream
+endobj
+5 0 obj<</Title (Protokol Spec)/Author (Architect)>>endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000052 00000 n 
+0000000101 00000 n 
+0000000195 00000 n 
+0000000296 00000 n 
+trailer<</Size 6/Root 1 0 R/Info 5 0 R>>
+startxref
+355
+%%EOF`;
+
 describe("SemanticScholarActor Unit & Integration Tests", () => {
   let mockServer: http.Server;
   let mockServerPort: number;
@@ -18,6 +44,15 @@ describe("SemanticScholarActor Unit & Integration Tests", () => {
     mockServer = http.createServer((req, res) => {
       const parsedUrl = new URL(req.url || "/", "http://localhost");
       const path = parsedUrl.pathname;
+
+      if (path.endsWith("/sample.pdf")) {
+        res.writeHead(200, {
+          "Content-Type": "application/pdf",
+          "Content-Length": Buffer.byteLength(MINIMAL_PDF_RAW),
+        });
+        res.end(MINIMAL_PDF_RAW);
+        return;
+      }
 
       if (path.includes("/paper/search")) {
         const _query = parsedUrl.searchParams.get("query") || "";
@@ -274,6 +309,53 @@ describe("SemanticScholarActor Unit & Integration Tests", () => {
         "BERT: Pre-training of Deep Bidirectional Transformers"
       );
       assert.match(result.data.markdown || "", /# Semantic Scholar Paper Citations/);
+    });
+
+    it("extracts and parses PDF text via pdf_ocr action", async () => {
+      const actor = new SemanticScholarActor();
+      const task: ActorTask = {
+        taskId: "test-pdf-ocr",
+        actorType: "semantic-scholar",
+        targetUrl: "",
+        options: {
+          semanticScholarOptions: {
+            action: "pdf_ocr",
+            pdfUrl: `${mockServerUrl}/sample.pdf`,
+          },
+        },
+      };
+
+      const result = await actor.run(task, { task, startTime: Date.now() });
+      assert.strictEqual(result.status, "completed");
+      assert.strictEqual(result.statusCode, 200);
+      assert.ok(result.data);
+      assert.strictEqual(result.data.action, "pdf_ocr");
+      assert.ok(result.data.pdfExtraction);
+      assert.strictEqual(result.data.pdfExtraction.anomalyStatus, "EXTRACTABLE");
+      assert.strictEqual(result.data.pdfExtraction.ocrApplied, false);
+      assert.ok(result.data.pdfExtraction.totalCharacters > 0);
+      assert.ok(result.data.pdfExtraction.fullText.includes("Hello Protokol-7 PDF Document"));
+      assert.match(result.data.markdown || "", /# PDF Extraction:/);
+      assert.match(result.data.markdown || "", /Hello Protokol-7 PDF Document/);
+    });
+
+    it("rejects pdf_ocr action when no PDF URL can be resolved", async () => {
+      const actor = new SemanticScholarActor();
+      const task: ActorTask = {
+        taskId: "test-pdf-ocr-missing",
+        actorType: "semantic-scholar",
+        targetUrl: "",
+        options: {
+          semanticScholarOptions: {
+            action: "pdf_ocr",
+          },
+        },
+      };
+
+      const result = await actor.run(task, { task, startTime: Date.now() });
+      assert.strictEqual(result.status, "failed");
+      assert.strictEqual(result.statusCode, 404);
+      assert.match(result.errorMessage || "", /requires an open-access PDF URL/);
     });
   });
 });
