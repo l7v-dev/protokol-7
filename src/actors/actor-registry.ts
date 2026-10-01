@@ -20,6 +20,7 @@ import { GutenbergActor } from "./corpus/gutenberg-actor";
 import { HackerNewsActor } from "./corpus/hacker-news-actor";
 import { HuggingFaceDatasetsActor } from "./corpus/huggingface-datasets-actor";
 import { IetfRfcActor } from "./corpus/ietf-rfc-actor";
+import { InstagramActor } from "./corpus/instagram-actor";
 import { InternetArchiveActor } from "./corpus/internet-archive-actor";
 import { InternetPhilActor } from "./corpus/internet-phil-actor";
 import { KapActor } from "./corpus/kap-actor";
@@ -167,5 +168,6 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new GooglePatentsActor());
   registry.register(new PerseusDlActor());
   registry.register(new SacredTextsActor());
+  registry.register(new InstagramActor());
   return registry;
 }

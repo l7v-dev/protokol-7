@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { PassThrough } from "node:stream";
 import { describe, it } from "node:test";
 import { ActorRegistry } from "../src/actors/actor-registry";
+import { RegistryDatabase } from "../src/api/registry-database";
 import type { ActorTask, IActor } from "../src/api/types";
 import { ProtokolMcpServer } from "../src/mcp/protokol-mcp-server";
 
@@ -64,9 +65,10 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 79);
+    assert.equal(result.tools.length, 80);
 
     const toolNames = result.tools.map((t) => t.name);
+    assert.ok(toolNames.includes("query_instagram"));
     assert.ok(toolNames.includes("wikipedia_query"));
     assert.ok(toolNames.includes("query_youtube_transcripts"));
     assert.ok(toolNames.includes("query_wikisource"));
@@ -1353,5 +1355,39 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.ok(typedTask.options?.semanticScholarOptions);
     assert.equal(typedTask.options.semanticScholarOptions.action, "paper");
     assert.equal(typedTask.options.semanticScholarOptions.paperId, "ARXIV:1706.03762");
+  });
+
+  it("accepts an injected RegistryDatabase and queries datasets via list_datasets", async () => {
+    const customDb = new RegistryDatabase({ inMemory: true });
+    customDb.upsertDataset({
+      datasetId: "ds-mcp-injected",
+      name: "Injected DB Dataset",
+      sourcePlatform: "test",
+      licenseGroup: "permissive_commercial",
+      defaultLanguage: "en",
+      description: "Dataset for MCP DI test",
+      createdAt: new Date().toISOString(),
+    });
+
+    const server = new ProtokolMcpServer(undefined, customDb);
+    const res = await server.processRequest({
+      jsonrpc: "2.0",
+      id: "call-list-datasets",
+      method: "tools/call",
+      params: {
+        name: "list_datasets",
+        arguments: {},
+      },
+    });
+
+    assert.ok(res);
+    const result = res.result as { content: Array<{ type: string; text: string }> };
+    const parsed = JSON.parse(result.content[0].text) as {
+      count: number;
+      datasets: Array<{ datasetId: string }>;
+    };
+    assert.equal(parsed.count, 1);
+    assert.equal(parsed.datasets[0].datasetId, "ds-mcp-injected");
+    customDb.close();
   });
 });

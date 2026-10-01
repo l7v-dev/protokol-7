@@ -1,0 +1,8 @@
+{
+  "actorType": "instagram",
+  "action": "profile",
+  "username": "natgeo",
+  "limit": 12,
+  "useBrowser": false,
+  "extractMarkdown": true
+}

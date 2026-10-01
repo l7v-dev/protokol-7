@@ -3885,6 +3885,64 @@ export function createServer(): http.Server {
         return;
       }
 
+      // Instagram Public Harvester (/instagram or /api/v1/instagram)
+      if (method === "POST" && (pathname === "/api/v1/instagram" || pathname === "/instagram")) {
+        const body = await parseBody<{
+          action?: "profile" | "post" | "recent_posts" | "hashtag";
+          username?: string;
+          shortcode?: string;
+          hashtag?: string;
+          limit?: number;
+          targetUrl?: string;
+          useBrowser?: boolean;
+          renderJavaScript?: boolean;
+          sessionCookies?: Array<{ name: string; value: string; domain?: string; path?: string }>;
+          extractMarkdown?: boolean;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const instagramActor = registry.get("instagram");
+        if (!instagramActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Instagram harvester actor is not available.",
+            "Ensure InstagramActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `instagram-${Date.now()}`,
+          actorType: "instagram",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            instagramOptions: {
+              action: body.action,
+              username: body.username,
+              shortcode: body.shortcode,
+              hashtag: body.hashtag,
+              limit: body.limit,
+              targetUrl: body.targetUrl,
+              useBrowser: body.useBrowser,
+              renderJavaScript: body.renderJavaScript,
+              sessionCookies: body.sessionCookies,
+              extractMarkdown: body.extractMarkdown,
+              ...body.options?.instagramOptions,
+            },
+          },
+        };
+
+        const result = await instagramActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

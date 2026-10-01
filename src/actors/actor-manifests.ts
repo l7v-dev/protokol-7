@@ -7266,7 +7266,15 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           description:
             "Action mode: 'paper' (retrieve paper by S2 ID, DOI, arXiv, or URL), 'search' (paper search), 'author' (author profile), 'author_search' (search authors), 'citations', 'references', 'pdf_ocr' (extract and OCR open-access PDF).",
           default: "paper",
-          enum: ["paper", "search", "author", "author_search", "citations", "references", "pdf_ocr"],
+          enum: [
+            "paper",
+            "search",
+            "author",
+            "author_search",
+            "citations",
+            "references",
+            "pdf_ocr",
+          ],
           editor: "select",
         },
         paperId: {
@@ -7347,7 +7355,8 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           name: "pdfUrl",
           type: "string",
           title: "PDF URL",
-          description: "Direct URL to PDF for pdf_ocr action (optional if paperId or targetUrl provided).",
+          description:
+            "Direct URL to PDF for pdf_ocr action (optional if paperId or targetUrl provided).",
           editor: "textfield",
         },
       },
@@ -7390,8 +7399,17 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
         properties: {
           action: {
             type: "string",
-            enum: ["paper", "search", "author", "author_search", "citations", "references", "pdf_ocr"],
-            description: "Action: paper, search, author, author_search, citations, references, or pdf_ocr",
+            enum: [
+              "paper",
+              "search",
+              "author",
+              "author_search",
+              "citations",
+              "references",
+              "pdf_ocr",
+            ],
+            description:
+              "Action: paper, search, author, author_search, citations, references, or pdf_ocr",
           },
           paperId: {
             type: "string",
@@ -7404,7 +7422,10 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           offset: { type: "number", description: "Pagination offset" },
           year: { type: "string", description: "Publication year filter (e.g. '2023')" },
           targetUrl: { type: "string", description: "Direct Semantic Scholar URL" },
-          ocrConnector: { type: "string", description: "Preferred OCR connector (e.g. 'local-llm', 'tesseract')" },
+          ocrConnector: {
+            type: "string",
+            description: "Preferred OCR connector (e.g. 'local-llm', 'tesseract')",
+          },
           maxPages: { type: "number", description: "Maximum PDF pages to process" },
           pdfUrl: { type: "string", description: "Direct PDF URL for pdf_ocr action" },
         },
@@ -8142,6 +8163,145 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           query: { type: "string", description: "Search query" },
           limit: { type: "number", description: "Maximum books returned" },
           targetUrl: { type: "string", description: "Direct sacred-texts.com URL" },
+        },
+        required: [],
+      },
+    },
+  },
+  instagram: {
+    actorType: "instagram",
+    name: "instagram",
+    title: "Instagram Public Media & Profile Harvester",
+    category: "GENERAL",
+    version: "1.0.0",
+    description:
+      "Kamuya acik Instagram profilleri, gonderiler, reels videolari, son medya akislari ve etiketleri cift motorlu (HTTP API ve Playwright Stealth) mimariyle ayiklayan mikro-aktor.",
+    author: "protokol-7",
+    tags: ["instagram", "social-media", "reels", "profiles", "multimodal", "stealth"],
+    inputSchema: {
+      type: "object",
+      title: "Instagram Harvester Input",
+      description: "Instagram veri toplama girdi parametreleri",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "Operasyonel Eylem",
+          description: "profile, post, recent_posts veya hashtag",
+          enum: ["profile", "post", "recent_posts", "hashtag"],
+          default: "profile",
+          editor: "select",
+        },
+        username: {
+          name: "username",
+          type: "string",
+          title: "Kullanıcı Adı",
+          description: "Hedef Instagram kullanici adi (orn: natgeo)",
+          editor: "textfield",
+        },
+        shortcode: {
+          name: "shortcode",
+          type: "string",
+          title: "Kısa Kod (Shortcode)",
+          description: "Hedef gonderi veya reel kisa kodu (orn: C_abc123)",
+          editor: "textfield",
+        },
+        hashtag: {
+          name: "hashtag",
+          type: "string",
+          title: "Hashtag",
+          description: "Hedef etiket adi (orn: nature)",
+          editor: "textfield",
+        },
+        limit: {
+          name: "limit",
+          type: "integer",
+          title: "Maksimum Kayıt",
+          description: "Dondurulecek maksimum gonderi sayisi (varsayilan: 12)",
+          default: 12,
+          editor: "number",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Hedef URL",
+          description: "Dogrudan Instagram profil, post veya hashtag web adresi",
+          editor: "textfield",
+        },
+        useBrowser: {
+          name: "useBrowser",
+          type: "boolean",
+          title: "Tarayıcı Motorunu Zorla",
+          description: "HTTP API yerine dogrudan Playwright Chromium havuzunu calistirir",
+          default: false,
+          editor: "checkbox",
+        },
+        extractMarkdown: {
+          name: "extractMarkdown",
+          type: "boolean",
+          title: "Markdown Sentezi",
+          description: "LLM egitimine hazir GFM Markdown tablolari ve ozetleri uretir",
+          default: true,
+          editor: "checkbox",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Yurutulen eylem modu" },
+        query: { type: "string", description: "Sorgulanan hedef deger" },
+        profile: { type: "object", description: "Profil detaylari ve etkilesim metrikleri" },
+        posts: { type: "array", description: "Gonderi ve video kayitlari listesi" },
+        hashtag: { type: "object", description: "Etiket istatistikleri ve populer gonderiler" },
+        markdown: { type: "string", description: "LLM hazir GFM Markdown sentezi" },
+        engineUsed: { type: "string", description: "Kullanilan motor: http veya browser" },
+      },
+    },
+    exampleInput: {
+      action: "profile",
+      username: "natgeo",
+      extractMarkdown: true,
+    },
+    readme:
+      "# Instagram Harvester\n\nKamuya acik Instagram profilleri, gonderiler, reels ve etiket verilerini ikili motor (HTTP + Playwright Chromium Stealth) mimarisiyle ayiklar.",
+    mcpTool: {
+      name: "query_instagram",
+      description:
+        "Harvests public Instagram profiles, posts, reels, recent media timeline, and hashtags with engagement metrics and GFM markdown synthesis.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["profile", "post", "recent_posts", "hashtag"],
+            description: "Action mode: profile, post, recent_posts, or hashtag",
+          },
+          username: {
+            type: "string",
+            description: "Target Instagram handle (e.g. 'natgeo')",
+          },
+          shortcode: {
+            type: "string",
+            description: "Post or Reel shortcode identifier (e.g. 'C_abc123')",
+          },
+          hashtag: {
+            type: "string",
+            description: "Hashtag name without hash sign (e.g. 'wildlife')",
+          },
+          limit: {
+            type: "number",
+            description: "Maximum media records to return (default: 12)",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Direct Instagram URL (profile, post, or tag)",
+          },
+          useBrowser: {
+            type: "boolean",
+            description: "Forces headless Chromium browser pool execution",
+          },
         },
         required: [],
       },

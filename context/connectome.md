@@ -1,6 +1,6 @@
 # Connectome — Otomatik Üretilen Sistem Haritası
 
-> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-09-29). Elle düzenlenmez.
+> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-10-01). Elle düzenlenmez.
 > Çözümleyici Motor: TypeScript Compiler API AST (v5.9.3)
 
 ## Çekirdek Modüller ve Mimari Düğümler (Centrality)
@@ -9,16 +9,16 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 143 | 265 | Yardımcı Modül |
-| `src/dataset/types.ts` | 143 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 143 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 143 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 67 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 64 | 3 | Yardımcı Modül |
-| `src/api/server.ts` | 18 | 1 | Giriş Noktası (Server) |
-| `src/server.ts` | 18 | 0 | Giriş Noktası (Server) |
+| `src/api/types.ts` | 146 | 274 | Yardımcı Modül |
+| `src/dataset/types.ts` | 146 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 146 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 146 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 68 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 65 | 3 | Yardımcı Modül |
+| `src/api/server.ts` | 19 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 19 | 0 | Giriş Noktası (Server) |
+| `src/api/registry-database.ts` | 15 | 9 | Bileşen Tescili (Registry) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
-| `src/api/registry-database.ts` | 13 | 8 | Bileşen Tescili (Registry) |
 | `src/actors/corpus/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/actors/documents/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
@@ -33,17 +33,17 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/processors/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/vault/index.ts` | 10 | 0 | Yardımcı Modül |
+| `src/browser/browser-pool.ts` | 9 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/pipeline/pipeline-runner.ts` | 9 | 4 | Yardımcı Modül |
 | `src/api/run-registry.ts` | 8 | 6 | Bileşen Tescili (Registry) |
-| `src/browser/browser-pool.ts` | 8 | 4 | Kaynak Yöneticisi (BrowserPool) |
+| `src/actors/actor-registry.ts` | 7 | 2 | Bileşen Tescili (Registry) |
+| `src/api/context-guard.ts` | 7 | 4 | Yardımcı Modül |
 | `src/mcp/protokol-mcp-server.ts` | 7 | 3 | Giriş Noktası (Server) |
-| `src/actors/actor-registry.ts` | 6 | 2 | Bileşen Tescili (Registry) |
-| `src/api/context-guard.ts` | 6 | 4 | Yardımcı Modül |
+| `src/pipeline/schedule-broker.ts` | 6 | 5 | Yardımcı Modül |
 | `src/pipeline/storage/s3-storage.ts` | 6 | 4 | Yardımcı Modül |
+| `src/actors/actor-manifests.ts` | 5 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/structured-extractor.ts` | 5 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
-| `src/pipeline/schedule-broker.ts` | 5 | 5 | Yardımcı Modül |
-| `src/actors/actor-manifests.ts` | 4 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
@@ -51,6 +51,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/terminal-theme.mjs` | 3 | 7 | Yardımcı Modül |
 | `src/actors/documents/pdf-document-actor.ts` | 3 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/dataset/dataset-publisher.ts` | 3 | 2 | Yardımcı Modül |
+| `src/extractors/pdf-anomaly-detector.ts` | 3 | 2 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/readability-extractor.ts` | 3 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/integrations/pipedream-connect.ts` | 3 | 6 | Yardımcı Modül |
 | `src/network/retry-handler.ts` | 3 | 4 | Yardımcı Modül |
@@ -79,6 +80,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/hacker-news-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/huggingface-datasets-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/ietf-rfc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/instagram-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/internet-archive-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/internet-phil-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/kap-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -124,12 +126,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/documents/epub-extractor-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/cheerio-scraper-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/playwright-browser-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/api/routers/job-router.ts` | 2 | 2 | Yardımcı Modül |
 | `src/api/run-logger.ts` | 2 | 2 | Yardımcı Modül |
 | `src/browser/stealth-manager.ts` | 2 | 2 | Yardımcı Modül |
 | `src/extractors/epub-extractor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/multi-column-layout-resolver.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/office-extractor.ts` | 2 | 4 | Etki Alanı Aktörü (Actor) |
-| `src/extractors/pdf-anomaly-detector.ts` | 2 | 2 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/tabular-extractor.ts` | 2 | 3 | Etki Alanı Aktörü (Actor) |
 | `src/mcp/auth-guard.ts` | 2 | 1 | Yardımcı Modül |
 | `src/network/crawl-frontier.ts` | 2 | 4 | Yardımcı Modül |
@@ -153,7 +155,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/web/sitemap-xml-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/api/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
 | `src/api/routers/dataset-router.ts` | 1 | 1 | Yardımcı Modül |
-| `src/api/routers/job-router.ts` | 1 | 2 | Yardımcı Modül |
 | `src/api/routers/pipeline-router.ts` | 1 | 2 | Yardımcı Modül |
 | `src/api/routers/store-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/api/routers/vault-router.ts` | 1 | 1 | Yardımcı Modül |
@@ -169,6 +170,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/ocr/connectors/local-llm-vision-connector.ts` | 1 | 2 | Yardımcı Modül |
 | `src/ocr/connectors/local-tesseract-connector.ts` | 1 | 2 | Yardımcı Modül |
 | `src/ocr/connectors/mistral-ocr-connector.ts` | 1 | 2 | Yardımcı Modül |
+| `src/ocr/connectors/unlimited-ocr-connector.ts` | 1 | 2 | Yardımcı Modül |
 | `src/ocr/pdf-rasterizer.ts` | 1 | 2 | Yardımcı Modül |
 | `src/telemetry/anomalies.ts` | 1 | 4 | Yardımcı Modül |
 | `scripts/checkpoint.mjs` | 0 | 3 | Yardımcı Modül |
@@ -220,6 +222,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/hacker-news-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/huggingface-datasets-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/ietf-rfc-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/instagram-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/interactive-browser-controller.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/internet-archive-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/internet-phil-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -380,6 +383,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `google-patents` | `GooglePatentsActor` |
 | `perseus-dl` | `PerseusDlActor` |
 | `sacred-texts` | `SacredTextsActor` |
+| `instagram` | `InstagramActor` |
+| `unlimited-ocr-connector` | `UnlimitedOcrConnector` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
 | `mistral-ocr-connector` | `MistralOcrConnector` |
@@ -677,6 +682,32 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `resolveRfcNumber(targetUrl: string | undefined, options: IetfRfcActorTaskOptions): number | undefined`
   - `buildRfcTextUrl(targetUrl: string | undefined, rfcNumber: number): string`
   - `buildDatatrackerSearchUrl(targetUrl: string | undefined, options: IetfRfcActorTaskOptions): string`
+
+### `src/actors/corpus/instagram-actor.ts`
+
+**Sınıflar (Classes):**
+- `class InstagramActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<InstagramActorResult>>`
+  - `resolveTarget(targetUrl: string, options: InstagramActorTaskOptions): TargetResolution | null`
+  - `executeHttpExtraction(target: TargetResolution, options: InstagramActorTaskOptions, timeoutMs: number, allowLocalNetwork: boolean): Promise<InstagramActorResult>`
+  - `executeBrowserExtraction(target: TargetResolution, options: InstagramActorTaskOptions, timeoutMs: number, allowLocalNetwork: boolean): Promise<InstagramActorResult>`
+  - `extractFromPageDom(page: import("playwright").Page, target: TargetResolution, _options: InstagramActorTaskOptions): Promise<InstagramActorResult>`
+  - `parseJsonResponse(target: TargetResolution, json: Record<string, unknown>, _options: InstagramActorTaskOptions): InstagramActorResult`
+  - `normalizeProfile(raw: Record<string, unknown>): InstagramProfileRecord`
+  - `normalizeMedia(raw: Record<string, unknown>): InstagramMediaRecord`
+  - `normalizeHashtag(raw: Record<string, unknown>, tagName: string): InstagramHashtagRecord`
+  - `synthesizeMarkdown(result: InstagramActorResult): string`
+  - `buildApiEndpoint(target: TargetResolution): string`
+  - `buildWebUrl(target: TargetResolution): string`
+  - `buildCookieHeader(options: InstagramActorTaskOptions): string | undefined`
+  - `parseProfileStatsFromDescription(desc: string): {
+    followers: number;
+    following: number;
+    posts: number;
+  }`
+  - `parseNumericKmb(val: string): number`
+  - `extractHashtags(text: string): string[]`
+  - `extractMentions(text: string): string[]`
 
 ### `src/actors/corpus/internet-archive-actor.ts`
 
@@ -1046,7 +1077,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Sınıflar (Classes):**
 - `class SemanticScholarActor`
   - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<SemanticScholarActorResult>>`
-  - `resolveAction(task: ActorTask, options: SemanticScholarActorTaskOptions): "paper" | "search" | "author" | "author_search" | "citations" | "references"`
+  - `resolveAction(task: ActorTask, options: SemanticScholarActorTaskOptions): "paper" | "search" | "author" | "author_search" | "citations" | "references" | "pdf_ocr"`
   - `resolveApiBase(targetUrl: string): string`
   - `resolvePaperId(targetUrl: string, specifiedPaperId: string): string`
   - `getAuthHeaders(apiKey: string): Record<string, string>`
@@ -1059,6 +1090,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `renderPaperMarkdown(paper: SemanticScholarPaperItem): string`
   - `renderSearchMarkdown(query: string, papers: SemanticScholarPaperItem[], totalResults: number): string`
   - `renderAuthorMarkdown(author: SemanticScholarAuthorItem): string`
+  - `handlePdfOcr(task: ActorTask, options: SemanticScholarActorTaskOptions, startTime: number, timeoutMs: number, allowLocalNetwork: boolean): Promise<ActorResult<SemanticScholarActorResult>>`
 
 ### `src/actors/corpus/software-heritage-actor.ts`
 
@@ -1413,19 +1445,25 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `listPipelineExecutions(limit): PipelineRunResult[]`
   - `upsertScheduledJob(job: ScheduledJobInfo): void`
   - `updateScheduledJobRun(id: string, lastRunAt: string, runCount: number): void`
+  - `updateScheduledJobFailure(id: string, lastRunAt: string, errorMessage: string): void`
   - `setScheduledJobRunning(id: string, running: boolean): void`
+  - `mapJobRow(row: Record<string, unknown>): ScheduledJobInfo`
   - `listScheduledJobs(): ScheduledJobInfo[]`
   - `getScheduledJob(id: string): ScheduledJobInfo | undefined`
+  - `deleteScheduledJob(id: string): boolean`
   - `recordDatasetShard(shard: DatasetShardRecord): void`
   - `listDatasetShards(datasetName: string, limit): DatasetShardRecord[]`
   - `getDatasetShard(shardId: string): DatasetShardRecord | undefined`
+  - `deleteDatasetShard(shardId: string): boolean`
   - `upsertDataset(dataset: DatasetRecord): void`
   - `getDataset(datasetId: string): DatasetRecord | undefined`
   - `listDatasets(): DatasetRecord[]`
+  - `deleteDataset(datasetId: string): boolean`
   - `recordDatasetSnapshot(snapshot: DatasetSnapshotRecord): void`
   - `listDatasetSnapshots(datasetName: string, limit): DatasetSnapshotRecord[]`
   - `getDatasetSnapshot(snapshotId: string): DatasetSnapshotRecord | undefined`
   - `getLatestDatasetSnapshot(datasetName: string): DatasetSnapshotRecord | undefined`
+  - `deleteDatasetSnapshot(snapshotId: string): boolean`
   - `recordStorageReplica(replica: StorageReplicaRecord): void`
   - `listStorageReplicas(shardId: string): StorageReplicaRecord[]`
   - `recordVerificationAudit(audit: VerificationAuditRecord): void`
@@ -1433,6 +1471,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `close(): void`
 **Fonksiyonlar (Functions):**
 - `getDefaultRegistryDatabase(): RegistryDatabase`
+- `resetDefaultRegistryDatabase(): void`
 **Arayüzler (Interfaces):**
 - `interface DatasetShardRecord` (11 üye)
 - `interface DatasetSnapshotRecord` (11 üye)
@@ -1457,6 +1496,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 **Sınıflar (Classes):**
 - `class JobRouter`
+  - `restoreActiveJobs(): void`
+  - `createExecutionHandler(pipeline: ScheduleJobRequestBody["pipeline"], actor: ScheduleJobRequestBody["actor"], explicitFilePath: string): () => Promise<void>`
   - `getBroker(): ScheduleBroker`
   - `handleScheduleJob(res: http.ServerResponse, body: ScheduleJobRequestBody): Promise<void>`
   - `handleListJobs(res: http.ServerResponse): void`
@@ -1579,7 +1620,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface DergiParkActorTaskOptions` (7 üye)
 - `interface DergiParkArticle` (12 üye)
 - `interface DergiParkActorResult` (6 üye)
-- `interface InternetArchiveActorTaskOptions` (7 üye)
+- `interface InternetArchiveActorTaskOptions` (10 üye)
 - `interface InternetArchiveFile` (4 üye)
 - `interface InternetArchiveItem` (12 üye)
 - `interface InternetArchiveActorResult` (5 üye)
@@ -1666,8 +1707,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface OpenTextbookActorResult` (7 üye)
 - `interface SemanticScholarPaperItem` (16 üye)
 - `interface SemanticScholarAuthorItem` (9 üye)
-- `interface SemanticScholarActorTaskOptions` (10 üye)
-- `interface SemanticScholarActorResult` (10 üye)
+- `interface SemanticScholarActorTaskOptions` (13 üye)
+- `interface SemanticScholarPdfExtractionResult` (9 üye)
+- `interface SemanticScholarActorResult` (11 üye)
 - `interface AnayasaMahkemesiDecisionItem` (15 üye)
 - `interface AnayasaMahkemesiDecisionDetail` (6 üye)
 - `interface AnayasaMahkemesiActorTaskOptions` (15 üye)
@@ -1690,6 +1732,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface SacredTextsPassage` (10 üye)
 - `interface SacredTextsActorTaskOptions` (6 üye)
 - `interface SacredTextsActorResult` (6 üye)
+- `interface InstagramMediaChild` (5 üye)
+- `interface InstagramMediaRecord` (17 üye)
+- `interface InstagramProfileRecord` (12 üye)
+- `interface InstagramHashtagRecord` (4 üye)
+- `interface InstagramActorTaskOptions` (12 üye)
+- `interface InstagramActorResult` (7 üye)
 - `interface OpenAlexWorkItem` (12 üye)
 - `interface OpenAlexActorTaskOptions` (11 üye)
 - `interface OpenAlexActorResult` (5 üye)
@@ -1800,6 +1848,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `type GooglePatentsAction`
 - `type PerseusDlAction`
 - `type SacredTextsAction`
+- `type InstagramAction`
+- `type InstagramMediaType`
 - `type SaglikEkutuphaneCategory`
 - `type SaglikEkutuphaneAction`
 - `type KtbEkitapCategory`
@@ -2265,6 +2315,16 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Arayüzler (Interfaces):**
 - `interface MistralOcrOptions` (4 üye)
 
+### `src/ocr/connectors/unlimited-ocr-connector.ts`
+
+**Sınıflar (Classes):**
+- `class UnlimitedOcrConnector`
+  - `isAvailable(): Promise<boolean>`
+  - `extract(request: OcrRequest): Promise<OcrResult>`
+  - `resolveImageBase64(request: OcrRequest): string | undefined`
+**Arayüzler (Interfaces):**
+- `interface UnlimitedOcrOptions` (4 üye)
+
 ### `src/ocr/ocr-connector-registry.ts`
 
 **Sınıflar (Classes):**
@@ -2479,7 +2539,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 **Sınıflar (Classes):**
 - `class ScheduleBroker`
-  - `scheduleJob(id: string, cronExpression: string, handler: () => Promise<unknown> | unknown, checkIntervalMs): { stop: () => void }`
+  - `scheduleJob(id: string, cronExpression: string, handler: () => Promise<unknown> | unknown, checkIntervalMs, jobConfig: {
+      pipelineConfig?: ScheduledJobInfo["pipelineConfig"];
+      actorConfig?: ScheduledJobInfo["actorConfig"];
+    }): { stop: () => void }`
   - `stopJob(id: string): boolean`
   - `stopAll(): void`
   - `hasJob(id: string): boolean`
@@ -2488,7 +2551,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `matchCronField(pattern: string, value: number, min: number, max: number): boolean`
 - `isCronMatch(cronExpression: string, date: Date): boolean`
 **Arayüzler (Interfaces):**
-- `interface ScheduledJobInfo` (5 üye)
+- `interface ScheduledJobInfo` (9 üye)
 - `interface ScheduleBrokerOptions` (1 üye)
 
 ### `src/pipeline/schema.ts`
@@ -2633,6 +2696,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/huggingface-datasets-actor.ts` |
 | `src/actors/corpus/ietf-rfc-actor.ts` |
 | `src/actors/corpus/index.ts` |
+| `src/actors/corpus/instagram-actor.ts` |
 | `src/actors/corpus/internet-archive-actor.ts` |
 | `src/actors/corpus/internet-phil-actor.ts` |
 | `src/actors/corpus/kap-actor.ts` |
@@ -2648,6 +2712,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/openalex-actor.ts` |
 | `src/actors/corpus/openreview-actor.ts` |
 | `src/actors/corpus/openstax-actor.ts` |
-| `src/actors/corpus/papers-with-code-actor.ts` |
-| *... ve 241 dosya daha* |
+| *... ve 244 dosya daha* |
 

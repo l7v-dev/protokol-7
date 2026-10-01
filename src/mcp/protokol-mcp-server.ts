@@ -13,7 +13,7 @@ import { join, resolve } from "node:path";
 import readline from "node:readline";
 import { ACTOR_MANIFESTS, type ActorManifest } from "../actors/actor-manifests";
 import { ActorRegistry, createDefaultActorRegistry } from "../actors/actor-registry";
-import { getDefaultRegistryDatabase } from "../api/registry-database";
+import { getDefaultRegistryDatabase, type RegistryDatabase } from "../api/registry-database";
 import { globalRunRegistry } from "../api/run-registry";
 import type {
   ActorTask,
@@ -38,6 +38,7 @@ import type {
   HackerNewsActorTaskOptions,
   HuggingFaceDatasetsActorTaskOptions,
   IetfRfcActorTaskOptions,
+  InstagramActorTaskOptions,
   InternetArchiveActorTaskOptions,
   InternetPhilActorTaskOptions,
   KapActorTaskOptions,
@@ -114,11 +115,13 @@ export class ProtokolMcpServer {
   private readonly registry: ActorRegistry;
   private readonly toolToManifestMap = new Map<string, ActorManifest>();
   private readonly scheduleBroker: ScheduleBroker;
+  private readonly db: RegistryDatabase;
   private rl?: readline.Interface;
 
-  constructor(registry?: ActorRegistry) {
+  constructor(registry?: ActorRegistry, db?: RegistryDatabase) {
     this.registry = registry || createDefaultActorRegistry();
-    this.scheduleBroker = new ScheduleBroker();
+    this.db = db ?? getDefaultRegistryDatabase();
+    this.scheduleBroker = new ScheduleBroker({ db: this.db });
     for (const manifest of Object.values(ACTOR_MANIFESTS)) {
       if (manifest.mcpTool?.name) {
         this.toolToManifestMap.set(manifest.mcpTool.name, manifest);
@@ -551,7 +554,7 @@ export class ProtokolMcpServer {
               ...readdirSync(pipelinesDir).filter((f) => f.endsWith(".yaml") || f.endsWith(".yml"))
             );
           }
-          const db = getDefaultRegistryDatabase();
+          const db = this.db;
           const runs = db ? db.listPipelineExecutions(Number(toolArgs.limit) || 20) : [];
 
           return {
@@ -618,7 +621,7 @@ export class ProtokolMcpServer {
         }
 
         if (toolName === "list_datasets") {
-          const db = getDefaultRegistryDatabase();
+          const db = this.db;
           const datasets = db ? db.listDatasets() : [];
           const enriched = datasets.map((ds) => {
             const shards = db ? db.listDatasetShards(ds.name, 500) : [];
@@ -880,7 +883,7 @@ export class ProtokolMcpServer {
             activeMap.set(j.id, j);
           }
 
-          const db = getDefaultRegistryDatabase();
+          const db = this.db;
           const dbJobs = db ? db.listScheduledJobs() : [];
           const combined: unknown[] = [];
           const seenIds = new Set<string>();
@@ -937,7 +940,7 @@ export class ProtokolMcpServer {
           }
 
           const stopped = this.scheduleBroker.stopJob(jobId);
-          const db = getDefaultRegistryDatabase();
+          const db = this.db;
           if (!stopped) {
             const dbJob = db?.getScheduledJob(jobId);
             if (!dbJob) {
@@ -1408,6 +1411,10 @@ export class ProtokolMcpServer {
             sacredTextsOptions:
               manifest.actorType === "sacred-texts"
                 ? (toolArgs as unknown as SacredTextsActorTaskOptions)
+                : undefined,
+            instagramOptions:
+              manifest.actorType === "instagram"
+                ? (toolArgs as unknown as InstagramActorTaskOptions)
                 : undefined,
           },
         };

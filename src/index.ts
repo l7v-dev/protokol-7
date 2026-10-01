@@ -20,6 +20,7 @@ export * from "./actors/corpus/gutenberg-actor";
 export * from "./actors/corpus/hacker-news-actor";
 export * from "./actors/corpus/huggingface-datasets-actor";
 export * from "./actors/corpus/ietf-rfc-actor";
+export * from "./actors/corpus/instagram-actor";
 export * from "./actors/corpus/internet-archive-actor";
 export * from "./actors/corpus/internet-phil-actor";
 export * from "./actors/corpus/kap-actor";

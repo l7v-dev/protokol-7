@@ -33,7 +33,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/actors/actor-registry.ts` | `ActorRegistry` | Central registry for discovering, registering, and instantiating all actors across all categories. |
-| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 60 actors. |
+| `src/actors/actor-manifests.ts` | `ACTOR_MANIFESTS`, `ActorManifest` | Zod/JSON input schemas, metadata, example inputs, and MCP tool declarations for all 70 actors. |
 | `src/actors/actor.template.ts` | `TemplateActor`, `TemplateActorResult` | Canonical reference implementation blueprint, contract template, and security scaffold for new actors. |
 
 #### Web Actors (`src/actors/web/`) — general-purpose HTTP and browser extraction
@@ -111,6 +111,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/actors/corpus/google-patents-actor.ts` | `GooglePatentsActor` | Google Patents & USPTO/EPO Public Data — küresel patentler, bağımsız/bağımlı teknik iddialar (claims) hiyerarşisi, tarifnameler, CPC kodları ve önceki teknik atıfları. |
 | `src/actors/corpus/perseus-dl-actor.ts` | `PerseusDlActor` | Tufts Perseus Digital Library — Antik Yunanca, Klasik Latince, Eski İbranice ve Arapça metinler, paralel çeviriler, CTS-URN adresleme ve morfolojik analiz. |
 | `src/actors/corpus/sacred-texts-actor.ts` | `SacredTextsActor` | Internet Sacred Text Archive (ISTA) — 1.700+ tam metin kutsal kitap, antik mitoloji, dünya folkloru, simya ve teoloji eserleri. |
+| `src/actors/corpus/instagram-actor.ts` | `InstagramActor` | Public Instagram profiles, posts, reels, carousel child slides, engagement metrics, and hashtags using dual-engine HTTP API and Playwright Chromium stealth fallback. |
 
 #### Document Actors (`src/actors/documents/`) — local file and archive extraction
 
@@ -249,6 +250,18 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/vault/cold-vault-exporter.ts` | `ColdVaultExporter` | Offline packaging engine, self-describing directory layout manager, streaming SHA-256 validator, SHA256SUMS ledger builder, and SQLite storage_replicas recorder. |
 | `src/vault/index.ts` | Vault Barrel | Re-exports cold vault engine and types. |
 
+### 1.12 Telemetry Subsystem (`src/telemetry/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/telemetry/anomalies.ts` | `recordAnomaly`, `AnomalyEvent`, `AnomalyCode` | System stall, rate limit backoff, circuit breaker, memory pressure, and retry exhaustion telemetry logger with structured JSONL persistence. |
+
+### 1.13 Utility Subsystem (`src/utils/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/utils/terminal-theme.ts` | `TerminalTheme`, `badge`, `banner`, `divider`, `panel`, `table` | Zero-emoji deterministic ASCII formatting engine for console banners, status badges, structured panels, and tables. |
+
 ---
 
 ## 2. Test Suite Inventory (`tests/`)
@@ -275,39 +288,39 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/serp-search-actor.test.ts` | `SerpSearchActor` | SERP HTML parsing, redirect decoding, ranking, snippet extraction, and SSRF guard. |
 | `tests/pdf-document-actor.test.ts` | `PdfDocumentActor` | Binary PDF text extraction, metadata parsing, base64 payload, maxPages limit, and SSRF guard. |
 | `tests/safe-redirect-fetcher.test.ts` | `safeRedirectFetch` | Safe iterative redirect handling, max hops enforcement, loop detection, and SSRF rebinding defenses. |
-| `tests/store-api.test.ts` | `src/core/store-router.ts` | Store catalog, actor manifest, input validation, MCP tools, quarantine inspector, and headless service info. |
+| `tests/store-api.test.ts` | `src/api/routers/store-router.ts` | Store catalog, actor manifest, input validation, MCP tools, quarantine inspector, and headless service info. |
 | `tests/proxy-manager.test.ts` | `ProxyManager` | Proxy pool rotation, round-robin, random, sticky domain affinity, and health tracking. |
 | `tests/retry-handler.test.ts` | `withRetry` | Exponential backoff with jitter, retry status code triggers, non-retryable error handling, and terminal error throwing. |
 | `tests/session-vault.test.ts` | `SessionVault` | Playwright storageState save, load, directory creation, corrupted JSON recovery, and state existence verification. |
 | `tests/crawl-frontier.test.ts` | `CrawlFrontier` | FIFO disk queueing, URL deduplication, JSONL page streaming, and checkpoint resume. |
-| `tests/pipedream-connect.test.ts` | `PipedreamConnectService`, `src/core/server.ts` | Pipedream defaults, MCP config generator, token guards, and `/api/v1/pipedream/*` REST endpoints. |
-| `tests/arxiv-actor.test.ts` | `ArxivActor`, `src/core/server.ts` | arXiv Export API Atom XML parsing, searchQuery/idList param building, URL ID parsing, PDF extraction, SSRF protection, and REST routes. |
+| `tests/pipedream-connect.test.ts` | `PipedreamConnectService`, `src/api/server.ts` | Pipedream defaults, MCP config generator, token guards, and `/api/v1/pipedream/*` REST endpoints. |
+| `tests/arxiv-actor.test.ts` | `ArxivActor`, `src/api/server.ts` | arXiv Export API Atom XML parsing, searchQuery/idList param building, URL ID parsing, PDF extraction, SSRF protection, and REST routes. |
 | `tests/protokol-mcp-server.test.ts` | `ProtokolMcpServer` | Model Context Protocol JSON-RPC 2.0 handshake, tools/list inspection, actor execution via tools/call, and stream error handling. |
-| `tests/wikimedia-actor.test.ts` | `WikimediaActor`, `src/core/server.ts` | Page summaries, full article Parsoid HTML to Markdown, search parsing, SSRF guard, and REST route. |
+| `tests/wikimedia-actor.test.ts` | `WikimediaActor`, `src/api/server.ts` | Page summaries, full article Parsoid HTML to Markdown, search parsing, SSRF guard, and REST route. |
 | `tests/wikipedia-actor.test.ts` | `WikipediaActor`, `WikimediaActor` | Wikipedia and Wikimedia actor test suite verifying summaries, GFM conversion, search parsing, and SSRF guard. |
 
-| `tests/openalex-actor.test.ts` | `OpenAlexActor`, `src/core/server.ts` | Inverted index abstract reconstruction, citation and open access filters, SSRF guard, and REST route. |
-| `tests/stack-exchange-actor.test.ts` | `StackExchangeActor`, `src/core/server.ts` | Questions and answers retrieval, instruction-tuning pair formatting, score filters, SSRF guard, and REST route. |
-| `tests/gutenberg-actor.test.ts` | `GutenbergActor`, `src/core/server.ts` | Gutendex search and book metadata, plain text download, license delimiter stripping, SSRF guard, and REST route. |
-| `tests/europe-pmc-actor.test.ts` | `EuropePmcActor`, `src/core/server.ts` | Europe PMC search, abstract parsing, open-access query filtering, SSRF guard, and REST route. |
-| `tests/ietf-rfc-actor.test.ts` | `IetfRfcActor`, `src/core/server.ts` | RFC text retrieval, running page headers & form feed stripping, Datatracker search, SSRF guard, and REST route. |
+| `tests/openalex-actor.test.ts` | `OpenAlexActor`, `src/api/server.ts` | Inverted index abstract reconstruction, citation and open access filters, SSRF guard, and REST route. |
+| `tests/stack-exchange-actor.test.ts` | `StackExchangeActor`, `src/api/server.ts` | Questions and answers retrieval, instruction-tuning pair formatting, score filters, SSRF guard, and REST route. |
+| `tests/gutenberg-actor.test.ts` | `GutenbergActor`, `src/api/server.ts` | Gutendex search and book metadata, plain text download, license delimiter stripping, SSRF guard, and REST route. |
+| `tests/europe-pmc-actor.test.ts` | `EuropePmcActor`, `src/api/server.ts` | Europe PMC search, abstract parsing, open-access query filtering, SSRF guard, and REST route. |
+| `tests/ietf-rfc-actor.test.ts` | `IetfRfcActor`, `src/api/server.ts` | RFC text retrieval, running page headers & form feed stripping, Datatracker search, SSRF guard, and REST route. |
 | `tests/pipeline-schema.test.ts` | `parsePipelineYaml`, `PipelineConfigSchema` | Zod validation, YAML parsing, required fields, and credential env var enforcement. |
 | `tests/actor-resolver.test.ts` | `ActorResolver` | Catalog discovery, registered actor verification, and missing config parameter rejection. |
 | `tests/pipeline-runner.test.ts` | `PipelineRunner`, `LocalExecutor`, `LocalStorage` | End-to-end execution, sink buffering, processor transformations, storage receipts, and error recovery. |
 | `tests/storage-router.test.ts` | `ConnectorRegistry`, `S3Storage`, `R2Storage`, `B2Storage` | Environment variable resolution, connector lookup, S3/R2/B2 driver uploads, and pipeline cloud storage integration. |
 | `tests/scheduler-and-remote.test.ts` | `ScheduleBroker`, `RemoteHttpExecutor`, `PipedreamExecutor`, `GoogleDriveStorage` | Cron matching engine, scheduler lifecycle, remote HTTP execution, Pipedream webhooks, and Google Drive upload. |
-| `tests/mcp-http-transport.test.ts` | `HttpMcpTransport`, `verifyMcpToken`, `src/core/server.ts` | Unit and HTTP server integration tests for initialize, tools/list, tools/call, auth guard, and SSE events. |
+| `tests/mcp-http-transport.test.ts` | `HttpMcpTransport`, `verifyMcpToken`, `src/api/server.ts` | Unit and HTTP server integration tests for initialize, tools/list, tools/call, auth guard, and SSE events. |
 | `tests/epub-extractor.test.ts` | `EpubExtractor` | EPUB 2/3 container parsing, Dublin Core metadata, spine ordering, TOC trees (nav.xhtml, toc.ncx), Zip Slip defense. |
-| `tests/epub-extractor-actor.test.ts` | `EpubExtractorActor`, `src/core/server.ts` | EPUB base64 payloads, remote downloads, SSRF validation, chapter limits, and REST route. |
+| `tests/epub-extractor-actor.test.ts` | `EpubExtractorActor`, `src/api/server.ts` | EPUB base64 payloads, remote downloads, SSRF validation, chapter limits, and REST route. |
 | `tests/multi-column-layout-resolver.test.ts` | `MultiColumnLayoutResolver`, `HeaderFooterStripper` | Coordinate-based column gutter detection, column sorting, and recurring header/footer stripping. |
-| `tests/dergipark-actor.test.ts` | `DergiParkActor`, `src/core/server.ts` | OAI-PMH 2.0 harvesting, ListRecords, GetRecord, ListSets, keyword filters, and REST route. |
-| `tests/internet-archive-actor.test.ts` | `InternetArchiveActor`, `src/core/server.ts` | Archive.org metadata JSON, Scraping API search, DjVuTXT / Abbyy GZ OCR decompression, and REST route. |
-| `tests/clinical-trials-actor.test.ts` | `ClinicalTrialsActor`, `src/core/server.ts` | Studies search, NCT ID direct lookup, status/condition filters, SSRF protection, and REST route. |
-| `tests/open-fda-actor.test.ts` | `OpenFdaActor`, `src/core/server.ts` | Drug label search, device 510(k) clearances, 404 empty result handling, SSRF protection, and REST route. |
-| `tests/sec-edgar-actor.test.ts` | `SecEdgarActor`, `src/core/server.ts` | CIK resolution, ticker lookup, 10-K form filtering, custom SEC user-agent, SSRF guard, and REST route. |
-| `tests/court-listener-actor.test.ts` | `CourtListenerActor`, `src/core/server.ts` | Opinions search, court/judge filters, direct opinion ID retrieval, SSRF guard, and REST route. |
-| `tests/software-heritage-actor.test.ts` | `SoftwareHeritageActor`, `src/core/server.ts` | SWHID code blob extraction, directory traversal, origin snapshot lookup, SSRF guard, and REST route. |
-| `tests/eur-lex-actor.test.ts` | `EurLexActor`, `src/core/server.ts` | CELEX EU regulation retrieval, CELLAR SPARQL query, document type classification, SSRF guard, and REST route. |
+| `tests/dergipark-actor.test.ts` | `DergiParkActor`, `src/api/server.ts` | OAI-PMH 2.0 harvesting, ListRecords, GetRecord, ListSets, keyword filters, and REST route. |
+| `tests/internet-archive-actor.test.ts` | `InternetArchiveActor`, `src/api/server.ts` | Archive.org metadata JSON, Scraping API search, DjVuTXT / Abbyy GZ OCR decompression, and REST route. |
+| `tests/clinical-trials-actor.test.ts` | `ClinicalTrialsActor`, `src/api/server.ts` | Studies search, NCT ID direct lookup, status/condition filters, SSRF protection, and REST route. |
+| `tests/open-fda-actor.test.ts` | `OpenFdaActor`, `src/api/server.ts` | Drug label search, device 510(k) clearances, 404 empty result handling, SSRF protection, and REST route. |
+| `tests/sec-edgar-actor.test.ts` | `SecEdgarActor`, `src/api/server.ts` | CIK resolution, ticker lookup, 10-K form filtering, custom SEC user-agent, SSRF guard, and REST route. |
+| `tests/court-listener-actor.test.ts` | `CourtListenerActor`, `src/api/server.ts` | Opinions search, court/judge filters, direct opinion ID retrieval, SSRF guard, and REST route. |
+| `tests/software-heritage-actor.test.ts` | `SoftwareHeritageActor`, `src/api/server.ts` | SWHID code blob extraction, directory traversal, origin snapshot lookup, SSRF guard, and REST route. |
+| `tests/eur-lex-actor.test.ts` | `EurLexActor`, `src/api/server.ts` | CELEX EU regulation retrieval, CELLAR SPARQL query, document type classification, SSRF guard, and REST route. |
 | `tests/pipeline-quality-and-dedup.test.ts` | `TextNormalizer`, `QualityFilter`, `DedupFilter`, `PipelineRunner` | Normalization (NFKC, control chars, whitespace), FineWeb/Gopher quality gates, exact SHA-256 and SimHash near-dedup, and SQLite audit ledger integration. |
 | `tests/pipeline-api-and-mcp.test.ts` | `PipelineRouter`, `ProtokolMcpServer` | Integration tests for YAML pipeline execution REST endpoints and run_pipeline/list_pipelines MCP tools. |
 | `tests/dataset-publisher-and-api.test.ts` | `DatasetPublisher`, `DatasetRouter`, `ProtokolMcpServer` | Integration tests for dataset snapshot creation, manifest.json sealing, split partitioning, REST endpoints, and MCP tools. |
@@ -351,6 +364,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/google-patents-actor.test.ts` | `GooglePatentsActor`, `src/api/server.ts` | Google Patents künye, bağımsız/bağımlı iddia hiyerarşisi (claims), tarifname, SSRF denetimi ve REST rotası. |
 | `tests/perseus-dl-actor.test.ts` | `PerseusDlActor`, `src/api/server.ts` | Tufts Perseus metin pasajı, kart/dize yapısı, morfolojik analiz, katalog arama, SSRF denetimi ve REST rotası. |
 | `tests/sacred-texts-actor.test.ts` | `SacredTextsActor`, `src/api/server.ts` | Internet Sacred Text Archive kitap pasajı, çevirmen, dipnotlar, gelenek kataloğu, SSRF denetimi ve REST rotası. |
+| `tests/instagram-actor.test.ts` | `InstagramActor`, `src/api/server.ts` | Instagram profile normalization, post/reel media extraction, hashtag feed, dual-engine fallback, SSRF defense, and REST route. |
 
 ---
 
@@ -364,7 +378,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `AGENTS.md` | Agent Context | Operational rules, naming discipline, neuro-ergonomic communication rules. |
 | `GEMINI.md` | Agent Context | Project rules and architectural integrity instructions. |
 | `.agents/skills/` | Skill Library | Curated technical skill definitions (naming discipline, code review, tdd, etc.) with symlink at `skills/`. |
-| `context/system-manifest.md` | System Map | Ultra-compact single-page operational runtime manifest (DB paths, routers, storage, actors). |
+| `context/system-manifest.md` | System Map | Compact single-page operational runtime manifest (DB paths, routers, storage, actors). |
 | `ledger/` | Append-Only Ledger | Immutable task ledger (`index.jsonl`), gzipped session checkpoints (`sessions/`), and telemetry. |
 | `docs/git-commit-convention.md` | Engineering Standard | Git Commit Convention v1.0 specification and agent attribution rules. |
 | `docs/developer-onboarding.md` | Documentation | Getting started guide, environment variables, command references. |
@@ -442,6 +456,13 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `scripts/stackexchange_pipeline/test_stackexchange_pipeline.py` | Test Suite | Unit tests for StackExchange HTML cleaner, thread assembler, and Parquet packer. |
 | `scripts/openalex_pipeline/orchestrator.py` | OpenAlex Harvest Orchestrator | Cursor pagination streamer, inverted index abstract reconstructor, Parquet sharder, Drive sync. |
 | `scripts/openalex_pipeline/test_openalex_pipeline.py` | Test Suite | Unit tests for OpenAlex abstract reconstruction, record cleaning, and Parquet sharder. |
+| `scripts/openalex_snapshot_pipeline/orchestrator.py` | OpenAlex S3 Snapshot Orchestrator | AWS S3 Parquet snapshot streamer, 10-50 GB Zstd sharder, Google Drive uploader, SQLite ledger, zero disk residue. |
+| `scripts/openalex_snapshot_pipeline/cleaner.py` | OpenAlex Snapshot Cleaner | Quality gate filtering paratext/retractions, abstract reconstruction from inverted index, LLM markdown synthesis. |
+| `scripts/openalex_snapshot_pipeline/packer.py` | OpenAlex Snapshot Sharder | `OpenAlexSnapshotSharder` producing compact `oa_w_YYYYMMDD_p00000.parquet` files with SHA-256 and MD5 hashing. |
+| `scripts/openalex_snapshot_pipeline/downloader.py` | OpenAlex S3 Downloader | Manifest extractor and partition streamer via AWS CLI and HTTPS with retry logic and instant cleanup. |
+| `scripts/openalex_snapshot_pipeline/drive_sync.py` | OpenAlex Drive Sync | Resumable Google Drive v3 uploader under `OpenAlex/Snapshots/`, MD5 validator, and local file cleaner. |
+| `scripts/openalex_snapshot_pipeline/ledger.py` | OpenAlex Snapshot Ledger | SQLite transactional catalog (`data/openalex_snapshot_catalog.sqlite`) tracking S3 parts and dual-syncing with `data/catalog.sqlite`. |
+| `scripts/openalex_snapshot_pipeline/test_snapshot_pipeline.py` | Test Suite | Unit tests for cleaner quality gate, sharder rotation, downloader, and transactional ledger. |
 | `scripts/semanticscholar_pipeline/orchestrator.py` | Semantic Scholar Harvest Orchestrator | S2 bulk API streamer, metadata cleaner, Zstd Parquet sharder, Drive sync. |
 | `scripts/semanticscholar_pipeline/test_semanticscholar_pipeline.py` | Test Suite | Unit tests for Semantic Scholar cleaner, field extractor, and Parquet sharder. |
 | `scripts/wikibooks_pipeline/orchestrator.py` | Wikibooks Harvest Orchestrator | 121-language XML bz2 streaming ETL, code-block preservation, Zstd Parquet sharding, Drive sync, SQLite ledger. |
@@ -456,7 +477,11 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `scripts/wikiversity_pipeline/test_wikiversity_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
 | `scripts/wikivoyage_pipeline/orchestrator.py` | Wikivoyage Harvest Orchestrator | 27-language travel guide ETL, geo-coordinate and listing extraction, Parquet sharding, Drive sync, SQLite ledger. |
 | `scripts/wikivoyage_pipeline/test_wikivoyage_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
-| `scripts/run_all_wikimedia_pipelines.py` | Master Coordinator | Sequential coordinator for all 6 Wikimedia dump pipelines (Wikibooks, Wikinews, Wikiquote, Wikispecies, Wikiversity, Wikivoyage). |
+| `scripts/wikisource_pipeline/orchestrator.py` | Wikisource Harvest Orchestrator | 85-language historical/classical text ETL, poetry/verse layout preservation, Parquet sharding, Drive sync, SQLite ledger. |
+| `scripts/wikisource_pipeline/test_wikisource_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
+| `scripts/wiktionary_pipeline/orchestrator.py` | Wiktionary Harvest Orchestrator | 198-language lexical definition ETL, POS/etymology extraction, Parquet sharding, Drive sync, SQLite ledger. |
+| `scripts/wiktionary_pipeline/test_wiktionary_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
+| `scripts/run_all_wikimedia_pipelines.py` | Master Coordinator | Sequential coordinator for all 8 Wikimedia dump pipelines (Wikibooks, Wikinews, Wikiquote, Wikispecies, Wikisource, Wiktionary, Wikiversity, Wikivoyage). |
 | `scripts/run_news_and_species_pipelines.py` | Partial Coordinator | Lightweight runner for Wikinews and Wikispecies pipelines. |
 | `examples/actors/metamath.json` | Example Config | Standalone JSON configuration for Metamath Proof Explorer actor. |
 | `docs/actors/metamath.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Metamath Proof Explorer actor. |

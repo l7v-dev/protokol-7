@@ -1,6 +1,6 @@
 # Protokol-7 Aktörler Rehberi (Actor Catalog)
 
-Bu rehber, **protokol-7** bünyesindeki 57 veri çıkarma aktörünün ne işe yaradığını, nasıl çalıştığını ve nasıl çağrılacağını en sade biçimde açıklar.
+Bu rehber, **protokol-7** bünyesindeki 70 veri çıkarma aktörünün ne işe yaradığını, nasıl çalıştığını ve nasıl çağrılacağını en sade biçimde açıklar.
 
 Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 1. **HTTP REST API:** `http://localhost:4000/api/v1/<aktor-adi>` (veya `/api/v1/actors`)
@@ -81,6 +81,7 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
 | 67 | `google-patents` | Buluş & Patent | `POST /api/v1/google-patents` | `query_google_patents` | Dünya patent teknik iddialarını (claims), tarifnameleri, CPC kodlarını ve önceki teknik atıflarını çeker. |
 | 68 | `perseus-dl` | Klasik Filoloji & Antik Metinler | `POST /api/v1/perseus-dl` | `query_perseus_dl` | Tufts Perseus Antik Yunanca, Latince metinlerini, paralel çevirileri, morfolojik analizleri ve CTS-URN pasajlarını çeker. |
 | 69 | `sacred-texts` | Karşılaştırmalı Din & Mitoloji | `POST /api/v1/sacred-texts` | `query_sacred_texts` | Internet Sacred Text Archive üzerinden 1.700+ tam metin kutsal kitap, mitoloji, simya ve folklor eserini çeker. |
+| 70 | `instagram` | Sosyal Medya & Multimodal | `POST /api/v1/instagram` | `query_instagram` | Kamuya açık Instagram profillerini, gönderi/reel detaylarını ve etiket akışlarını çeker. |
 
 ---
 
@@ -790,6 +791,18 @@ Tüm aktörler iki ana kanal üzerinden tetiklenebilir:
   "tradition": "hin",
   "path": "/hin/sbe01/sbe01003.htm",
   "action": "text"
+}
+```
+
+#### 52. Instagram Aktörü (`instagram`)
+* **Ne Yapar?** Kamuya açık Instagram profillerini, gönderi/reel detaylarını, karusel slaytlarını ve etiket akışlarını çift motorlu (HTTP API + Playwright Stealth) mimariyle çeker.
+* **REST:** `POST /api/v1/instagram`
+* **MCP:** `query_instagram`
+```json
+{
+  "username": "natgeo",
+  "action": "profile",
+  "extractMarkdown": true
 }
 ```
 

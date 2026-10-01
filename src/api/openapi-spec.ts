@@ -3298,6 +3298,69 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/instagram": {
+      post: {
+        tags: ["Corpus - Social Media"],
+        summary: "Instagram Public Media & Profile Harvester",
+        description:
+          "Extracts public Instagram profiles, posts, reels, recent media timeline, and hashtags using dual-engine HTTP API and Playwright Chromium stealth fallback.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["profile", "post", "recent_posts", "hashtag"],
+                    default: "profile",
+                    description: "Operational action mode",
+                  },
+                  username: {
+                    type: "string",
+                    description: "Target Instagram username",
+                  },
+                  shortcode: {
+                    type: "string",
+                    description: "Target post or reel shortcode",
+                  },
+                  hashtag: {
+                    type: "string",
+                    description: "Target hashtag name",
+                  },
+                  limit: {
+                    type: "integer",
+                    default: 12,
+                    description: "Maximum media records to return",
+                  },
+                  targetUrl: {
+                    type: "string",
+                    description: "Direct Instagram URL (profile, post, or tag)",
+                  },
+                  useBrowser: {
+                    type: "boolean",
+                    default: false,
+                    description: "Force Playwright Chromium browser pool execution",
+                  },
+                  extractMarkdown: {
+                    type: "boolean",
+                    default: true,
+                    description: "Synthesize LLM-ready GFM Markdown output",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Structured Instagram profile, media post records, or hashtag feed with GFM Markdown.",
+          },
+        },
+      },
+    },
     "/api/v1/sitemap": {
       post: {
         tags: ["Crawling"],

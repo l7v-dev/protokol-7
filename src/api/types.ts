@@ -77,7 +77,8 @@ export type ActorType =
   | "danistay"
   | "google-patents"
   | "perseus-dl"
-  | "sacred-texts";
+  | "sacred-texts"
+  | "instagram";
 
 export interface ExtractedTable {
   id: string;
@@ -1811,6 +1812,98 @@ export interface SacredTextsActorResult {
   markdown?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Instagram (Public Profile, Post/Reel, Recent Media & Hashtag Harvester)
+// ---------------------------------------------------------------------------
+
+export type InstagramAction = "profile" | "post" | "recent_posts" | "hashtag";
+export type InstagramMediaType = "image" | "video" | "carousel";
+
+export interface InstagramMediaChild {
+  id: string;
+  mediaType: "image" | "video";
+  displayUrl: string;
+  videoUrl?: string;
+  dimensions?: { width: number; height: number };
+}
+
+export interface InstagramMediaRecord {
+  id: string;
+  shortcode: string;
+  url: string;
+  mediaType: InstagramMediaType;
+  caption: string;
+  likeCount: number;
+  commentCount: number;
+  takenAtTimestamp: number;
+  displayUrl: string;
+  videoUrl?: string;
+  videoViewCount?: number;
+  hashtags: string[];
+  mentions: string[];
+  dimensions?: { width: number; height: number };
+  children?: InstagramMediaChild[];
+  location?: {
+    id: string;
+    name: string;
+    slug?: string;
+  };
+  owner?: {
+    id: string;
+    username: string;
+    fullName?: string;
+    isVerified?: boolean;
+    profilePicUrl?: string;
+  };
+}
+
+export interface InstagramProfileRecord {
+  id: string;
+  username: string;
+  fullName: string;
+  biography: string;
+  externalUrl?: string;
+  profilePicUrl?: string;
+  isVerified: boolean;
+  isPrivate: boolean;
+  followerCount: number;
+  followingCount: number;
+  mediaCount: number;
+  recentPostsPreview?: InstagramMediaRecord[];
+}
+
+export interface InstagramHashtagRecord {
+  name: string;
+  mediaCount: number;
+  topPosts: InstagramMediaRecord[];
+  recentPosts: InstagramMediaRecord[];
+}
+
+export interface InstagramActorTaskOptions {
+  action?: InstagramAction;
+  username?: string;
+  shortcode?: string;
+  hashtag?: string;
+  limit?: number;
+  targetUrl?: string;
+  useBrowser?: boolean;
+  renderJavaScript?: boolean;
+  sessionCookies?: Array<{ name: string; value: string; domain?: string; path?: string }>;
+  timeoutMs?: number;
+  extractMarkdown?: boolean;
+  allowLocalNetwork?: boolean;
+}
+
+export interface InstagramActorResult {
+  action: InstagramAction;
+  query: string;
+  profile?: InstagramProfileRecord;
+  posts?: InstagramMediaRecord[];
+  hashtag?: InstagramHashtagRecord;
+  markdown: string;
+  engineUsed: "http" | "browser";
+}
+
 export interface OpenAlexWorkItem {
   id: string;
   doi?: string;
@@ -2912,6 +3005,7 @@ export interface ActorTask {
     googlePatentsOptions?: GooglePatentsActorTaskOptions;
     perseusDlOptions?: PerseusDlActorTaskOptions;
     sacredTextsOptions?: SacredTextsActorTaskOptions;
+    instagramOptions?: InstagramActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;
