@@ -1905,6 +1905,8 @@ export interface InstagramActorTaskOptions {
   allowLocalNetwork?: boolean;
   extractComments?: boolean;
   commentsLimit?: number;
+  persistToDatabase?: boolean;
+  dbPath?: string;
 }
 
 export interface InstagramActorResult {
@@ -1915,6 +1917,12 @@ export interface InstagramActorResult {
   hashtag?: InstagramHashtagRecord;
   markdown: string;
   engineUsed: "http" | "browser";
+  databaseSaved?: {
+    profilesSaved: number;
+    postsSaved: number;
+    commentsSaved: number;
+    dbPath: string;
+  };
 }
 
 export interface OpenAlexWorkItem {

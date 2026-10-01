@@ -9,10 +9,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 146 | 274 | Yardımcı Modül |
-| `src/dataset/types.ts` | 146 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 146 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 146 | 6 | Yardımcı Modül |
+| `src/api/types.ts` | 148 | 275 | Yardımcı Modül |
+| `src/dataset/types.ts` | 148 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 148 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 148 | 6 | Yardımcı Modül |
 | `src/network/safe-redirect-fetcher.ts` | 68 | 2 | Yardımcı Modül |
 | `src/network/ssrf-guard.ts` | 65 | 3 | Yardımcı Modül |
 | `src/api/server.ts` | 19 | 1 | Giriş Noktası (Server) |
@@ -146,6 +146,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/processors/quality-filter.ts` | 2 | 4 | Yardımcı Modül |
 | `src/pipeline/processors/text-normalizer.ts` | 2 | 3 | Yardımcı Modül |
 | `src/pipeline/storage/google-drive-storage.ts` | 2 | 3 | Yardımcı Modül |
+| `src/storage/instagram-database.ts` | 2 | 4 | Yardımcı Modül |
 | `src/actors/corpus/wikimedia-actor.ts` | 1 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/api-extractor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/crawler-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
@@ -223,6 +224,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/huggingface-datasets-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/ietf-rfc-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/instagram-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/instagram-database.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/interactive-browser-controller.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/internet-archive-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/internet-phil-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -1733,11 +1735,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface SacredTextsActorTaskOptions` (6 üye)
 - `interface SacredTextsActorResult` (6 üye)
 - `interface InstagramMediaChild` (5 üye)
-- `interface InstagramMediaRecord` (17 üye)
+- `interface InstagramCommentRecord` (7 üye)
+- `interface InstagramMediaRecord` (18 üye)
 - `interface InstagramProfileRecord` (12 üye)
 - `interface InstagramHashtagRecord` (4 üye)
-- `interface InstagramActorTaskOptions` (12 üye)
-- `interface InstagramActorResult` (7 üye)
+- `interface InstagramActorTaskOptions` (16 üye)
+- `interface InstagramActorResult` (8 üye)
 - `interface OpenAlexWorkItem` (12 üye)
 - `interface OpenAlexActorTaskOptions` (11 üye)
 - `interface OpenAlexActorResult` (5 üye)
@@ -2617,6 +2620,46 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface S3ClientLike` (1 üye)
 - `interface S3StorageOptions` (5 üye)
 
+### `src/storage/instagram-database.ts`
+
+**Sınıflar (Classes):**
+- `class InstagramDatabase`
+  - `initDatabase(): void`
+  - `prepareStatements(): void`
+  - `upsertProfile(profile: InstagramProfileRecord, rawJson: unknown): void`
+  - `upsertPost(post: InstagramMediaRecord, ownerUsername: string, rawJson: unknown): void`
+  - `upsertComment(comment: InstagramCommentRecord, postShortcode: string, parentCommentId: string, rawJson: unknown): void`
+  - `upsertHashtag(hashtag: InstagramHashtagRecord): void`
+  - `saveActorResult(result: InstagramActorResult): {
+    profilesSaved: number;
+    postsSaved: number;
+    commentsSaved: number;
+  }`
+  - `recordHarvestRun(run: InstagramHarvestRunRecord): void`
+  - `getProfile(username: string): InstagramProfileRecord | null`
+  - `getProfileById(id: string): InstagramProfileRecord | null`
+  - `listHarvestRuns(limit): InstagramHarvestRunRecord[]`
+  - `listProfileSnapshots(profileId: string, limit): Array<{
+    followerCount: number;
+    followingCount: number;
+    mediaCount: number;
+    capturedAt: number;
+  }>`
+  - `getPost(shortcode: string): InstagramMediaRecord | null`
+  - `listPosts(options: {
+    ownerUsername?: string;
+    limit?: number;
+    offset?: number;
+  }): InstagramMediaRecord[]`
+  - `listComments(postShortcode: string, limit, offset): InstagramCommentRecord[]`
+  - `getStats(): InstagramDatabaseStats`
+  - `mapPostRow(row: Record<string, unknown>): InstagramMediaRecord`
+  - `close(): void`
+**Arayüzler (Interfaces):**
+- `interface InstagramDatabaseOptions` (2 üye)
+- `interface InstagramHarvestRunRecord` (10 üye)
+- `interface InstagramDatabaseStats` (7 üye)
+
 ### `src/telemetry/anomalies.ts`
 
 **Fonksiyonlar (Functions):**
@@ -2712,5 +2755,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/openalex-actor.ts` |
 | `src/actors/corpus/openreview-actor.ts` |
 | `src/actors/corpus/openstax-actor.ts` |
-| *... ve 244 dosya daha* |
+| *... ve 246 dosya daha* |
 

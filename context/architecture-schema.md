@@ -262,6 +262,12 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 |---|---|---|
 | `src/utils/terminal-theme.ts` | `TerminalTheme`, `badge`, `banner`, `divider`, `panel`, `table` | Zero-emoji deterministic ASCII formatting engine for console banners, status badges, structured panels, and tables. |
 
+### 1.14 Storage Subsystem (`src/storage/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/storage/instagram-database.ts` | `InstagramDatabase`, `InstagramHarvestRunRecord`, `InstagramDatabaseStats` | SQLite relational persistence engine for Instagram profiles, posts, carousel child slides, comments, hashtags, mentions, growth snapshots, and harvest run audits. |
+
 ---
 
 ## 2. Test Suite Inventory (`tests/`)
@@ -365,6 +371,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `tests/perseus-dl-actor.test.ts` | `PerseusDlActor`, `src/api/server.ts` | Tufts Perseus metin pasajı, kart/dize yapısı, morfolojik analiz, katalog arama, SSRF denetimi ve REST rotası. |
 | `tests/sacred-texts-actor.test.ts` | `SacredTextsActor`, `src/api/server.ts` | Internet Sacred Text Archive kitap pasajı, çevirmen, dipnotlar, gelenek kataloğu, SSRF denetimi ve REST rotası. |
 | `tests/instagram-actor.test.ts` | `InstagramActor`, `src/api/server.ts` | Instagram profile normalization, post/reel media extraction, hashtag feed, dual-engine fallback, SSRF defense, and REST route. |
+| `tests/instagram-database.test.ts` | `InstagramDatabase` | SQLite relational database engine, profile/post/slide/comment/hashtag/mention persistence, growth snapshots, ACID transactions, and queries. |
 
 ---
 

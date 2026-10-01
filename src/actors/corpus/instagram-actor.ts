@@ -27,6 +27,7 @@ import type {
 import { BrowserPool, type PooledBrowserSession } from "../../browser/browser-pool";
 import { safeRedirectFetch } from "../../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../../network/ssrf-guard";
+import { InstagramDatabase } from "../../storage/instagram-database";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const INSTAGRAM_WEB_APP_ID = "936619743392459";
@@ -46,6 +47,8 @@ export class InstagramActor implements IActor<InstagramActorResult> {
   readonly actorType = "instagram" as const;
   readonly description =
     "Extracts public Instagram profiles, posts, reels, recent media, and hashtags using dual-engine HTTP API and Playwright Chromium stealth fallback.";
+
+  constructor(private readonly db?: InstagramDatabase) {}
 
   async run(
     task: ActorTask,
@@ -135,6 +138,36 @@ export class InstagramActor implements IActor<InstagramActorResult> {
         resultData.markdown = this.synthesizeMarkdown(resultData);
       }
       resultData.engineUsed = engineUsed;
+
+      // 6. Persist to relational SQLite database if enabled
+      if (options.persistToDatabase !== false) {
+        try {
+          const dbInstance = this.db ?? new InstagramDatabase({ dbPath: options.dbPath });
+          const saveStats = dbInstance.saveActorResult(resultData);
+          dbInstance.recordHarvestRun({
+            runId: task.taskId,
+            targetType: target.action,
+            targetQuery: target.query,
+            engineUsed,
+            status: "success",
+            itemsHarvested: (resultData.posts?.length || 0) + (resultData.profile ? 1 : 0),
+            commentsHarvested: saveStats.commentsSaved,
+            durationMs: Date.now() - startTime,
+            createdAt: Math.floor(Date.now() / 1000),
+          });
+
+          resultData.databaseSaved = {
+            ...saveStats,
+            dbPath: options.dbPath || "data/instagram.sqlite",
+          };
+
+          if (!this.db) {
+            dbInstance.close();
+          }
+        } catch {
+          // Non-fatal persistence fallback
+        }
+      }
 
       return {
         taskId: task.taskId,
