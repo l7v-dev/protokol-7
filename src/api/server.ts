@@ -3898,6 +3898,8 @@ export function createServer(): http.Server {
           renderJavaScript?: boolean;
           sessionCookies?: Array<{ name: string; value: string; domain?: string; path?: string }>;
           extractMarkdown?: boolean;
+          extractComments?: boolean;
+          commentsLimit?: number;
           options?: ActorTask["options"];
         }>(req);
 
@@ -3930,6 +3932,8 @@ export function createServer(): http.Server {
               renderJavaScript: body.renderJavaScript,
               sessionCookies: body.sessionCookies,
               extractMarkdown: body.extractMarkdown,
+              extractComments: body.extractComments,
+              commentsLimit: body.commentsLimit,
               ...body.options?.instagramOptions,
             },
           },

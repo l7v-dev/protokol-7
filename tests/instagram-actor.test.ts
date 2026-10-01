@@ -317,6 +317,34 @@ describe("InstagramActor Unit & Integration Tests", () => {
     assert.strictEqual(media.children?.[1].mediaType, "video");
     assert.strictEqual(media.children?.[1].videoUrl, "https://example.com/slide2.mp4");
     assert.deepStrictEqual(media.hashtags, ["slideshow", "photography"]);
+
+    // Media with comments
+    const rawWithComments = {
+      id: "202",
+      shortcode: "C_comments",
+      edge_media_to_parent_comment: {
+        edges: [
+          {
+            node: {
+              id: "c1",
+              text: "Incredible shot!",
+              created_at: 1710001000,
+              edge_liked_by: { count: 12 },
+              owner: {
+                username: "photofan",
+                is_verified: true,
+              },
+            },
+          },
+        ],
+      },
+    };
+    const postWithComments = actor.normalizeMedia(rawWithComments);
+    assert.strictEqual(postWithComments.comments?.length, 1);
+    assert.strictEqual(postWithComments.comments?.[0].username, "photofan");
+    assert.strictEqual(postWithComments.comments?.[0].text, "Incredible shot!");
+    assert.strictEqual(postWithComments.comments?.[0].likeCount, 12);
+    assert.strictEqual(postWithComments.comments?.[0].authorIsVerified, true);
   });
 
   it("synthesizes clean GFM markdown for profiles and posts", () => {
@@ -359,6 +387,41 @@ describe("InstagramActor Unit & Integration Tests", () => {
     assert.ok(markdown.includes("280,000,000"));
     assert.ok(markdown.includes("Recent Media Timeline"));
     assert.ok(markdown.includes("[C_lion]"));
+
+    const postMarkdown = actor.synthesizeMarkdown({
+      action: "post",
+      query: "C_lion",
+      engineUsed: "http",
+      markdown: "",
+      posts: [
+        {
+          id: "1",
+          shortcode: "C_lion",
+          url: "https://www.instagram.com/p/C_lion/",
+          mediaType: "image",
+          caption: "Lions resting under an acacia tree",
+          likeCount: 50000,
+          commentCount: 1,
+          takenAtTimestamp: 1710000000,
+          displayUrl: "https://example.com/lion.jpg",
+          hashtags: [],
+          mentions: [],
+          comments: [
+            {
+              id: "c1",
+              username: "safari_guide",
+              text: "Magnificent creature!",
+              likeCount: 25,
+              createdAtTimestamp: 1710001000,
+            },
+          ],
+        },
+      ],
+    });
+
+    assert.ok(postMarkdown.includes("### User Comments (1 Items)"));
+    assert.ok(postMarkdown.includes("@safari_guide"));
+    assert.ok(postMarkdown.includes("Magnificent creature!"));
   });
 
   it("executes HTTP profile extraction successfully against mock server", async () => {

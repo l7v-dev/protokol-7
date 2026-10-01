@@ -3348,6 +3348,16 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
                     default: true,
                     description: "Synthesize LLM-ready GFM Markdown output",
                   },
+                  extractComments: {
+                    type: "boolean",
+                    default: false,
+                    description: "Extract user comments and usernames for posts",
+                  },
+                  commentsLimit: {
+                    type: "integer",
+                    default: 20,
+                    description: "Maximum comments to extract per post",
+                  },
                 },
               },
             },

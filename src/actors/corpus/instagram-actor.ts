@@ -17,6 +17,7 @@ import type {
   InstagramAction,
   InstagramActorResult,
   InstagramActorTaskOptions,
+  InstagramCommentRecord,
   InstagramHashtagRecord,
   InstagramMediaChild,
   InstagramMediaRecord,
@@ -467,8 +468,37 @@ export class InstagramActor implements IActor<InstagramActorResult> {
         }
       });
 
+      const domComments: Array<{
+        username: string;
+        text: string;
+        profilePicUrl?: string;
+      }> = [];
+
+      document.querySelectorAll("ul li, div[class*='Comment'], article ul li").forEach((el) => {
+        const userEl = el.querySelector("h3, a[href^='/'], a[role='link']");
+        const textEl = el.querySelector("span[dir='auto']");
+        if (userEl && textEl) {
+          const u = userEl.textContent?.trim().replace(/^@/, "") || "";
+          const t = textEl.textContent?.trim() || "";
+          if (
+            u &&
+            t &&
+            u !== t &&
+            !u.includes("Follow") &&
+            !domComments.some((c) => c.username === u && c.text === t)
+          ) {
+            const img = el.querySelector("img");
+            domComments.push({
+              username: u,
+              text: t,
+              profilePicUrl: img?.src || undefined,
+            });
+          }
+        }
+      });
+
       const title = document.title || "";
-      return { metaTags, jsonLd, title, domPosts };
+      return { metaTags, jsonLd, title, domPosts, domComments };
     });
 
     const { metaTags, jsonLd } = pageData;
@@ -524,6 +554,16 @@ export class InstagramActor implements IActor<InstagramActorResult> {
     const isVideo = Boolean(ogVideo || metaTags["og:type"] === "video");
     const caption = ogTitle || ogDesc;
 
+    const extractedComments: InstagramCommentRecord[] = (pageData.domComments || []).map(
+      (c, idx) => ({
+        id: `dom-c-${idx + 1}`,
+        username: c.username,
+        text: c.text,
+        authorProfilePicUrl: c.profilePicUrl,
+        likeCount: 0,
+      })
+    );
+
     const mediaRecord: InstagramMediaRecord = {
       id: shortcode,
       shortcode,
@@ -531,12 +571,13 @@ export class InstagramActor implements IActor<InstagramActorResult> {
       mediaType: isVideo ? "video" : "image",
       caption,
       likeCount: 0,
-      commentCount: 0,
+      commentCount: extractedComments.length,
       takenAtTimestamp: Math.floor(Date.now() / 1000),
       displayUrl: ogImage,
       videoUrl: ogVideo || undefined,
       hashtags: this.extractHashtags(caption),
       mentions: this.extractMentions(caption),
+      comments: extractedComments.length > 0 ? extractedComments : undefined,
     };
 
     return {
@@ -776,6 +817,31 @@ export class InstagramActor implements IActor<InstagramActorResult> {
       };
     }
 
+    // Comments
+    let comments: InstagramCommentRecord[] | undefined;
+    const commentEdges =
+      (raw.edge_media_to_parent_comment as Record<string, unknown>)?.edges ||
+      (raw.edge_media_to_comment as Record<string, unknown>)?.edges ||
+      (Array.isArray(raw.comments) ? raw.comments : undefined) ||
+      (Array.isArray(raw.preview_comments) ? raw.preview_comments : undefined);
+
+    if (Array.isArray(commentEdges) && commentEdges.length > 0) {
+      comments = commentEdges.map((e: Record<string, unknown>, idx: number) => {
+        const cNode = (e.node || e) as Record<string, unknown>;
+        const cOwner = (cNode.owner || cNode.user) as Record<string, unknown> | undefined;
+        const likeObj = cNode.edge_liked_by as Record<string, unknown> | undefined;
+        return {
+          id: String(cNode.id || `c-${idx + 1}`),
+          username: String(cOwner?.username || ""),
+          text: String(cNode.text || ""),
+          createdAtTimestamp: Number(cNode.created_at || cNode.created_at_utc || 0),
+          likeCount: Number(likeObj?.count || cNode.comment_like_count || 0),
+          authorProfilePicUrl: cOwner?.profile_pic_url ? String(cOwner.profile_pic_url) : undefined,
+          authorIsVerified: Boolean(cOwner?.is_verified),
+        };
+      });
+    }
+
     return {
       id,
       shortcode,
@@ -783,7 +849,7 @@ export class InstagramActor implements IActor<InstagramActorResult> {
       mediaType,
       caption,
       likeCount,
-      commentCount,
+      commentCount: commentCount || comments?.length || 0,
       takenAtTimestamp,
       displayUrl,
       videoUrl,
@@ -791,6 +857,7 @@ export class InstagramActor implements IActor<InstagramActorResult> {
       hashtags: this.extractHashtags(caption),
       mentions: this.extractMentions(caption),
       children,
+      comments,
       location,
       owner,
     };
@@ -904,6 +971,22 @@ export class InstagramActor implements IActor<InstagramActorResult> {
           post.children.forEach((c, idx) => {
             lines.push(`| ${idx + 1} | \`${c.mediaType}\` | [View Image/Video](${c.displayUrl}) |`);
           });
+          lines.push("");
+        }
+
+        if (post.comments && post.comments.length > 0) {
+          lines.push(`### User Comments (${post.comments.length} Items)`);
+          lines.push("| User | Likes | Date | Comment Text |");
+          lines.push("|---|---|---|---|");
+          for (const c of post.comments) {
+            const dateStr = c.createdAtTimestamp
+              ? new Date(c.createdAtTimestamp * 1000).toISOString().split("T")[0]
+              : "N/A";
+            const snippet = c.text.replace(/[\r\n]+/g, " ");
+            lines.push(
+              `| [@${c.username}](https://www.instagram.com/${c.username}/) | ${c.likeCount || 0} | ${dateStr} | ${snippet} |`
+            );
+          }
           lines.push("");
         }
       }

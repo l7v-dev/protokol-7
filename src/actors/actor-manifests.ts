@@ -8244,6 +8244,22 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           default: true,
           editor: "checkbox",
         },
+        extractComments: {
+          name: "extractComments",
+          type: "boolean",
+          title: "Yorumları Ayıkla",
+          description: "Gonderi yorumlarini (kullanici adi, metin, begeni) ayiklar",
+          default: false,
+          editor: "checkbox",
+        },
+        commentsLimit: {
+          name: "commentsLimit",
+          type: "integer",
+          title: "Yorum Limiti",
+          description: "Gonderi basina ayiklanacak maksimum yorum sayisi (varsayilan: 20)",
+          default: 20,
+          editor: "number",
+        },
       },
       required: [],
     },
@@ -8301,6 +8317,14 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
           useBrowser: {
             type: "boolean",
             description: "Forces headless Chromium browser pool execution",
+          },
+          extractComments: {
+            type: "boolean",
+            description: "Extract user comments, usernames, and likes for posts",
+          },
+          commentsLimit: {
+            type: "number",
+            description: "Maximum comments to extract per post (default: 20)",
           },
         },
         required: [],

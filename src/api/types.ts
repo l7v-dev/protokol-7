@@ -1827,6 +1827,16 @@ export interface InstagramMediaChild {
   dimensions?: { width: number; height: number };
 }
 
+export interface InstagramCommentRecord {
+  id: string;
+  username: string;
+  text: string;
+  createdAtTimestamp?: number;
+  likeCount?: number;
+  authorProfilePicUrl?: string;
+  authorIsVerified?: boolean;
+}
+
 export interface InstagramMediaRecord {
   id: string;
   shortcode: string;
@@ -1843,6 +1853,7 @@ export interface InstagramMediaRecord {
   mentions: string[];
   dimensions?: { width: number; height: number };
   children?: InstagramMediaChild[];
+  comments?: InstagramCommentRecord[];
   location?: {
     id: string;
     name: string;
@@ -1892,6 +1903,8 @@ export interface InstagramActorTaskOptions {
   timeoutMs?: number;
   extractMarkdown?: boolean;
   allowLocalNetwork?: boolean;
+  extractComments?: boolean;
+  commentsLimit?: number;
 }
 
 export interface InstagramActorResult {

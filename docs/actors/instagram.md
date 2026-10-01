@@ -85,6 +85,8 @@ flowchart TD
 | `useBrowser` | `boolean` | No | Forces Level 2 headless Chromium pool execution (default: `false`). |
 | `sessionCookies` | `array` | No | Optional array of cookies (`{ name, value, domain }`) to authenticate requests. |
 | `extractMarkdown` | `boolean` | No | Synthesizes LLM-ready GFM markdown (default: `true`). |
+| `extractComments` | `boolean` | No | Extracts individual post comments with user handles and like counts (default: `false`). |
+| `commentsLimit` | `number` | No | Maximum comments to extract per post (default: 20). |
 | `timeoutMs` | `number` | No | Request timeout in milliseconds (default: 30000). |
 
 ---
@@ -92,6 +94,36 @@ flowchart TD
 ## 5. Output Data Schema
 
 ```typescript
+export interface InstagramCommentRecord {
+  id: string;
+  username: string;
+  text: string;
+  createdAtTimestamp?: number;
+  likeCount?: number;
+  authorProfilePicUrl?: string;
+  authorIsVerified?: boolean;
+}
+
+export interface InstagramMediaRecord {
+  id: string;
+  shortcode: string;
+  url: string;
+  mediaType: "image" | "video" | "carousel";
+  caption: string;
+  likeCount: number;
+  commentCount: number;
+  takenAtTimestamp: number;
+  displayUrl: string;
+  videoUrl?: string;
+  videoViewCount?: number;
+  hashtags: string[];
+  mentions: string[];
+  children?: InstagramMediaChild[];
+  comments?: InstagramCommentRecord[];
+  location?: { id: string; name: string; slug?: string };
+  owner?: { id: string; username: string; fullName?: string; isVerified?: boolean; profilePicUrl?: string };
+}
+
 export interface InstagramActorResult {
   action: "profile" | "post" | "recent_posts" | "hashtag";
   query: string;
