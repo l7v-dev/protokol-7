@@ -8,6 +8,15 @@
  *   - "text"      : Downloads the first DjVuTXT or Abbyy GZ text file for an item
  *                   and returns up to maxTextChars of plain text.
  *
+ * Corpus Boundary & Deduplication Note:
+ *   Specialized relational dataset dumps hosted on archive.org (notably 'stackexchange')
+ *   MUST NOT be ingested or duplicated via this generic text/metadata actor.
+ *   StackExchange is handled exclusively by its dedicated streaming ETL pipeline
+ *   (`scripts/stackexchange_pipeline/`) which parses relational XML (questions, answers,
+ *   scores, accepted solutions), normalizes HTML, and sharded Parquet files for LLM training.
+ *   By default, `excludeSpecializedCorpora: true` excludes 'stackexchange' from search queries
+ *   and blocks text/metadata ingestion to guarantee zero duplicate data ingestion.
+ *
  * Zero new npm dependencies: uses native fetch (safeRedirectFetch + SSRF guard)
  * and Node.js zlib for optional gzip decompression of Abbyy OCR streams.
  */
@@ -37,7 +46,7 @@ const TEXT_FORMAT_PRIORITY = ["DjVuTXT", "Abbyy GZ", "Abbyy", "Plain Text", "Tex
 export class InternetArchiveActor implements IActor<InternetArchiveActorResult> {
   readonly actorType = "internet-archive" as const;
   readonly description =
-    "Fetches item metadata, search results, and OCR text streams from the Internet Archive (archive.org).";
+    "Fetches item metadata, search results, and OCR text streams from the Internet Archive (archive.org), with built-in deduplication guards for specialized corpora like StackExchange.";
 
   async run(
     task: ActorTask,
@@ -90,7 +99,22 @@ export class InternetArchiveActor implements IActor<InternetArchiveActorResult> 
         status: "failed",
         statusCode: 400,
         errorMessage:
-          "action='metadata' requires dergiParkOptions.identifier or a targetUrl containing the archive.org item path.",
+          "action='metadata' requires internetArchiveOptions.identifier or a targetUrl containing the archive.org item path.",
+        executionDurationMs: Date.now() - startTime,
+      };
+    }
+
+    const excludeSpecialized = opts.excludeSpecializedCorpora ?? true;
+    if (
+      excludeSpecialized &&
+      (identifier === "stackexchange" || (opts.excludeIdentifiers ?? []).includes(identifier))
+    ) {
+      return {
+        taskId: task.taskId,
+        actorType: this.actorType,
+        status: "failed",
+        statusCode: 400,
+        errorMessage: `Item '${identifier}' is a specialized relational dataset dump handled exclusively by scripts/stackexchange_pipeline/ and is excluded from generic metadata/text ingestion to avoid duplicate raw data ingestion. Set excludeSpecializedCorpora: false to override.`,
         executionDurationMs: Date.now() - startTime,
       };
     }
@@ -144,9 +168,30 @@ export class InternetArchiveActor implements IActor<InternetArchiveActorResult> 
 
     const maxResults = opts.maxResults ?? DEFAULT_MAX_RESULTS;
     const mediaType = opts.mediaType ?? "texts";
+    const excludeSpecialized = opts.excludeSpecializedCorpora ?? true;
+
+    const excludedIds = [...(opts.excludeIdentifiers ?? [])];
+    const excludedCols = [...(opts.excludeCollections ?? [])];
+
+    if (excludeSpecialized) {
+      if (!excludedIds.includes("stackexchange")) {
+        excludedIds.push("stackexchange");
+      }
+      if (!excludedCols.includes("stackexchange")) {
+        excludedCols.push("stackexchange");
+      }
+    }
+
+    let searchQueryStr = `${query} AND mediatype:${mediaType}`;
+    if (excludedIds.length > 0) {
+      searchQueryStr += ` AND NOT identifier:(${excludedIds.join(" OR ")})`;
+    }
+    if (excludedCols.length > 0) {
+      searchQueryStr += ` AND NOT collection:(${excludedCols.join(" OR ")})`;
+    }
 
     const params = new URLSearchParams({
-      q: `${query} AND mediatype:${mediaType}`,
+      q: searchQueryStr,
       fl: [
         "identifier",
         "title",
@@ -230,6 +275,21 @@ export class InternetArchiveActor implements IActor<InternetArchiveActorResult> 
         status: "failed",
         statusCode: 400,
         errorMessage: "action='text' requires internetArchiveOptions.identifier.",
+        executionDurationMs: Date.now() - startTime,
+      };
+    }
+
+    const excludeSpecialized = opts.excludeSpecializedCorpora ?? true;
+    if (
+      excludeSpecialized &&
+      (identifier === "stackexchange" || (opts.excludeIdentifiers ?? []).includes(identifier))
+    ) {
+      return {
+        taskId: task.taskId,
+        actorType: this.actorType,
+        status: "failed",
+        statusCode: 400,
+        errorMessage: `Item '${identifier}' is a specialized relational dataset dump handled exclusively by scripts/stackexchange_pipeline/ and is excluded from generic text ingestion to avoid duplicate raw data ingestion. Set excludeSpecializedCorpora: false to override.`,
         executionDurationMs: Date.now() - startTime,
       };
     }

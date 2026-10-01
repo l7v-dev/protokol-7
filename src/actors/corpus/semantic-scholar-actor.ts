@@ -6,6 +6,8 @@
  * AI-generated TLDR summaries, citation graphs, author profiles, and open-access PDF links.
  */
 
+import { extractText, getDocumentProxy } from "unpdf";
+import { ContextGuard } from "../../api/context-guard";
 import type {
   ActorResult,
   ActorRunContext,
@@ -17,12 +19,10 @@ import type {
   SemanticScholarPaperItem,
   SemanticScholarPdfExtractionResult,
 } from "../../api/types";
-import { ContextGuard } from "../../api/context-guard";
 import { PdfAnomalyDetector } from "../../extractors/pdf-anomaly-detector";
 import { safeRedirectFetch } from "../../network/safe-redirect-fetcher";
 import { SSRFGuard } from "../../network/ssrf-guard";
 import { globalOcrRegistry, PdfRasterizer } from "../../ocr";
-import { extractText, getDocumentProxy } from "unpdf";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const USER_AGENT = "Mozilla/5.0 (compatible; Protokol7Scraper/1.0; +https://protokol-7.local)";
@@ -161,13 +161,7 @@ export class SemanticScholarActor implements IActor<SemanticScholarActorResult> 
             allowLocalNetwork
           );
         case "pdf_ocr":
-          return await this.handlePdfOcr(
-            task,
-            options,
-            startTime,
-            timeoutMs,
-            allowLocalNetwork
-          );
+          return await this.handlePdfOcr(task, options, startTime, timeoutMs, allowLocalNetwork);
         default:
           return await this.handlePaper(
             task,
@@ -1074,7 +1068,7 @@ export class SemanticScholarActor implements IActor<SemanticScholarActorResult> 
           ocrApplied = ocrResult.text.length > 0;
           ocrConnectorUsed = ocrResult.connectorName;
         }
-      } catch (ocrErr) {
+      } catch (_ocrErr) {
         // OCR failed — return anomaly info, not hard failure
         fullText = "";
       }
@@ -1111,7 +1105,10 @@ export class SemanticScholarActor implements IActor<SemanticScholarActorResult> 
 
     if (fullText.length > 0) {
       // Truncate to 8000 chars for markdown preview — full text in pdfExtraction.fullText
-      const preview = fullText.length > 8000 ? `${fullText.slice(0, 8000)}\n\n_[truncated — full text in pdfExtraction.fullText]_` : fullText;
+      const preview =
+        fullText.length > 8000
+          ? `${fullText.slice(0, 8000)}\n\n_[truncated — full text in pdfExtraction.fullText]_`
+          : fullText;
       mdLines.push("## Extracted Text", "", preview);
     } else {
       mdLines.push(`_No text extracted. Anomaly: ${anomaly.reason ?? anomaly.status}_`);

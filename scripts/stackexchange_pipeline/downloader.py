@@ -37,22 +37,28 @@ ARCHIVE_BASE = "https://archive.org/download/stackexchange"
 CHUNK_SIZE = 4 * 1024 * 1024   # 4 MB
 
 
-def build_dump_url(slug: str) -> str:
+import shutil
+import subprocess
+
+def build_dump_url(slug: str, site: Optional[str] = None) -> str:
     """
-    Returns the archive.org 7z dump URL for the given site slug.
+    Returns the archive.org 7z dump URL for the given site slug or domain.
     Examples:
-      'stackoverflow'    -> .../stackexchange/stackoverflow.com.7z
-      'math'             -> .../stackexchange/math.stackexchange.com.7z
-      'mathoverflow.net' -> .../stackexchange/mathoverflow.net.7z
+      'askubuntu', 'askubuntu.com'          -> .../stackexchange/askubuntu.com.7z
+      'superuser', 'superuser.com'          -> .../stackexchange/superuser.com.7z
+      'math', 'math.stackexchange.com'      -> .../stackexchange/math.stackexchange.com.7z
+      'mathoverflow.net'                    -> .../stackexchange/mathoverflow.net.7z
     """
-    if slug == "stackoverflow":
-        filename = "stackoverflow.com.7z"
+    if site and site.endswith((".com", ".net", ".org")):
+        filename = f"{site}.7z"
+    elif slug in ("superuser", "serverfault", "askubuntu"):
+        filename = f"{slug}.com.7z"
     elif "." in slug:
-        # already full domain
         filename = f"{slug}.7z"
     else:
         filename = f"{slug}.stackexchange.com.7z"
     return f"{ARCHIVE_BASE}/{filename}"
+
 
 
 def download_7z(
@@ -113,22 +119,43 @@ def extract_xml_files(
     target_files: Tuple[str, ...] = ("Posts.xml", "Comments.xml"),
 ) -> dict:
     """
-    Extracts only the needed XML files from a 7z archive using py7zr.
+    Extracts only the needed XML files from a 7z archive.
+    Uses native system 7z/7za if available (much faster and lower memory),
+    falling back to py7zr.
     Returns dict mapping xml_name -> extracted_path.
-    Raises ImportError if py7zr is not installed.
     """
-    try:
-        import py7zr
-    except ImportError:
-        raise ImportError(
-            "py7zr is required for 7z extraction. "
-            "Install with: pip install py7zr"
-        )
-
     os.makedirs(dest_dir, exist_ok=True)
     extracted: dict = {}
 
     print(f"[INFO] Extracting {target_files} from {os.path.basename(archive_path)}...")
+
+    # Fast path: native 7z binary
+    seven_zip = shutil.which("7z") or shutil.which("7za") or shutil.which("7zr")
+    if seven_zip:
+        try:
+            cmd = [seven_zip, "e", "-y", f"-o{dest_dir}", archive_path, *target_files]
+            res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+            if res.returncode == 0:
+                for name in target_files:
+                    path = os.path.join(dest_dir, name)
+                    if os.path.exists(path):
+                        size_mb = os.path.getsize(path) / 1024**2
+                        print(f"[OK] Extracted (native 7z): {name} ({size_mb:.1f} MB)")
+                        extracted[name] = path
+                if extracted:
+                    return extracted
+        except Exception as e:
+            print(f"[WARN] Native 7z extraction failed ({e}), falling back to py7zr...", file=sys.stderr)
+
+    # Fallback path: py7zr
+    try:
+        import py7zr
+    except ImportError:
+        raise ImportError(
+            "py7zr or system 7z is required for 7z extraction. "
+            "Install with: pip install py7zr or install p7zip"
+        )
+
     with py7zr.SevenZipFile(archive_path, mode="r") as archive:
         all_names = archive.getnames()
         to_extract = [n for n in all_names if n in target_files]
@@ -141,7 +168,7 @@ def extract_xml_files(
         path = os.path.join(dest_dir, name)
         if os.path.exists(path):
             size_mb = os.path.getsize(path) / 1024**2
-            print(f"[OK] Extracted: {name} ({size_mb:.1f} MB)")
+            print(f"[OK] Extracted (py7zr): {name} ({size_mb:.1f} MB)")
             extracted[name] = path
 
     return extracted

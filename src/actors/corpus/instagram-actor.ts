@@ -439,8 +439,36 @@ export class InstagramActor implements IActor<InstagramActorResult> {
         }
       }
 
+      const domPosts: Array<{
+        shortcode: string;
+        url: string;
+        mediaType: "image" | "video";
+        displayUrl?: string;
+        caption?: string;
+      }> = [];
+
+      document.querySelectorAll('a[href*="/p/"], a[href*="/reel/"]').forEach((el) => {
+        const a = el as HTMLAnchorElement;
+        const href = a.getAttribute("href") || "";
+        const match = href.match(/\/(p|reel)\/([^/?#]+)/);
+        if (match) {
+          const type = match[1] === "reel" ? ("video" as const) : ("image" as const);
+          const shortcode = match[2];
+          if (!domPosts.some((p) => p.shortcode === shortcode)) {
+            const img = a.querySelector("img");
+            domPosts.push({
+              shortcode,
+              url: `https://www.instagram.com/${match[1]}/${shortcode}/`,
+              mediaType: type,
+              displayUrl: img?.src || undefined,
+              caption: img?.alt || "",
+            });
+          }
+        }
+      });
+
       const title = document.title || "";
-      return { metaTags, jsonLd, title };
+      return { metaTags, jsonLd, title, domPosts };
     });
 
     const { metaTags, jsonLd } = pageData;
@@ -452,6 +480,19 @@ export class InstagramActor implements IActor<InstagramActorResult> {
     if (target.action === "profile" || target.action === "recent_posts") {
       const parsedStats = this.parseProfileStatsFromDescription(ogDesc);
       const username = target.username || target.query;
+
+      const recentPostsPreview: InstagramMediaRecord[] = (pageData.domPosts || []).map((p) => ({
+        id: p.shortcode,
+        shortcode: p.shortcode,
+        url: p.url,
+        mediaType: p.mediaType,
+        caption: p.caption || "",
+        likeCount: 0,
+        commentCount: 0,
+        displayUrl: p.displayUrl,
+        hashtags: this.extractHashtags(p.caption || ""),
+        mentions: this.extractMentions(p.caption || ""),
+      }));
 
       const profile: InstagramProfileRecord = {
         id: String(jsonLd?.identifier || username),
@@ -465,14 +506,14 @@ export class InstagramActor implements IActor<InstagramActorResult> {
         followerCount: parsedStats.followers,
         followingCount: parsedStats.following,
         mediaCount: parsedStats.posts,
-        recentPostsPreview: [],
+        recentPostsPreview,
       };
 
       return {
         action: target.action,
         query: target.query,
         profile,
-        posts: [],
+        posts: recentPostsPreview,
         markdown: "",
         engineUsed: "browser",
       };

@@ -292,4 +292,41 @@ describe("InternetArchiveActor", () => {
       globalThis.fetch = origFetch;
     }
   });
+
+  it("action='search' excludes stackexchange by default to prevent duplicate ingestion", async () => {
+    let capturedUrl = "";
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      capturedUrl = String(url);
+      return new Response(JSON.stringify(MOCK_SEARCH_JSON), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+    try {
+      const task = makeTask({}, { action: "search", searchQuery: "quantum physics" });
+      const result = await actor.run(task, ctx);
+      assert.equal(result.status, "completed");
+      assert.ok(capturedUrl.includes("advancedsearch.php"));
+      assert.ok(capturedUrl.includes("NOT+identifier"));
+      assert.ok(capturedUrl.includes("stackexchange"));
+      assert.ok(capturedUrl.includes("NOT+collection"));
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
+
+  it("blocks generic text and metadata ingestion for stackexchange item identifier", async () => {
+    const metaTask = makeTask({}, { action: "metadata", identifier: "stackexchange" });
+    const metaResult = await actor.run(metaTask, ctx);
+    assert.equal(metaResult.status, "failed");
+    assert.equal(metaResult.statusCode, 400);
+    assert.ok(metaResult.errorMessage?.includes("scripts/stackexchange_pipeline/"));
+
+    const textTask = makeTask({}, { action: "text", identifier: "stackexchange" });
+    const textResult = await actor.run(textTask, ctx);
+    assert.equal(textResult.status, "failed");
+    assert.equal(textResult.statusCode, 400);
+    assert.ok(textResult.errorMessage?.includes("scripts/stackexchange_pipeline/"));
+  });
 });

@@ -23,7 +23,7 @@
   {"site": "history.stackexchange.com","slug": "history",               "priority": 2},
   {"site": "economics.stackexchange.com","slug": "economics",           "priority": 2},
   {"site": "law.stackexchange.com",    "slug": "law",                   "priority": 2},
-  {"site": "medicalsciences.stackexchange.com","slug": "medicalsciences","priority": 2},
+  {"site": "health.stackexchange.com", "slug": "health",                "priority": 2},
   {"site": "space.stackexchange.com",  "slug": "space",                 "priority": 3},
   {"site": "astronomy.stackexchange.com","slug": "astronomy",           "priority": 3},
   {"site": "earthscience.stackexchange.com","slug": "earthscience",     "priority": 3},
@@ -36,7 +36,6 @@
   {"site": "mathoverflow.net",         "slug": "mathoverflow.net",      "priority": 3},
   {"site": "crypto.stackexchange.com", "slug": "crypto",                "priority": 3},
   {"site": "bioinformatics.stackexchange.com","slug": "bioinformatics", "priority": 3},
-  {"site": "psychology.stackexchange.com","slug": "psychology",         "priority": 3},
   {"site": "cogsci.stackexchange.com", "slug": "cogsci",                "priority": 3},
   {"site": "academia.stackexchange.com","slug": "academia",             "priority": 3}
 ]

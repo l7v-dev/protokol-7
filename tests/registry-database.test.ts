@@ -5,7 +5,11 @@
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
-import { RegistryDatabase } from "../src/api/registry-database";
+import {
+  getDefaultRegistryDatabase,
+  RegistryDatabase,
+  resetDefaultRegistryDatabase,
+} from "../src/api/registry-database";
 import { RunRegistry } from "../src/api/run-registry";
 
 describe("RegistryDatabase - Actor Runs", () => {
@@ -471,5 +475,105 @@ describe("RegistryDatabase - Unified Datasets, Storage Replicas & Verification A
     assert.equal(audits[0].verifierIdentity, "VerificationGatekeeper-v1.0");
 
     db.close();
+  });
+});
+
+describe("RegistryDatabase - Deletion Operations and Reset", () => {
+  it("deletes a scheduled job and returns false for non-existent job", () => {
+    const db = new RegistryDatabase({ inMemory: true });
+    db.upsertScheduledJob({
+      id: "job-to-delete",
+      cronExpression: "0 0 * * *",
+      running: true,
+      runCount: 0,
+    });
+    assert.equal(db.listScheduledJobs().length, 1);
+    const deleted = db.deleteScheduledJob("job-to-delete");
+    assert.equal(deleted, true);
+    assert.equal(db.listScheduledJobs().length, 0);
+
+    const deletedAgain = db.deleteScheduledJob("job-to-delete");
+    assert.equal(deletedAgain, false);
+    db.close();
+  });
+
+  it("deletes a dataset and returns false for non-existent dataset", () => {
+    const db = new RegistryDatabase({ inMemory: true });
+    db.upsertDataset({
+      datasetId: "ds-to-delete",
+      name: "Temporary Dataset",
+      sourcePlatform: "test",
+      licenseGroup: "permissive_commercial",
+      defaultLanguage: "en",
+      description: "Dataset to delete",
+      createdAt: new Date().toISOString(),
+    });
+    assert.ok(db.getDataset("ds-to-delete"));
+    const deleted = db.deleteDataset("ds-to-delete");
+    assert.equal(deleted, true);
+    assert.equal(db.getDataset("ds-to-delete"), undefined);
+
+    const deletedAgain = db.deleteDataset("ds-to-delete");
+    assert.equal(deletedAgain, false);
+    db.close();
+  });
+
+  it("deletes a dataset shard and returns false for non-existent shard", () => {
+    const db = new RegistryDatabase({ inMemory: true });
+    db.recordDatasetShard({
+      shardId: "shard-to-delete",
+      pipelineRunId: "run-del-1",
+      datasetName: "ds-test",
+      fileName: "part001.parquet",
+      storageUri: "file:///data/part001.parquet",
+      storageBackend: "local",
+      recordCount: 10,
+      sizeBytes: 100,
+      sha256Hash: "hash123",
+      createdAt: new Date().toISOString(),
+    });
+    assert.ok(db.getDatasetShard("shard-to-delete"));
+    const deleted = db.deleteDatasetShard("shard-to-delete");
+    assert.equal(deleted, true);
+    assert.equal(db.getDatasetShard("shard-to-delete"), undefined);
+
+    const deletedAgain = db.deleteDatasetShard("shard-to-delete");
+    assert.equal(deletedAgain, false);
+    db.close();
+  });
+
+  it("deletes a dataset snapshot and returns false for non-existent snapshot", () => {
+    const db = new RegistryDatabase({ inMemory: true });
+    db.recordDatasetSnapshot({
+      snapshotId: "snap-to-delete",
+      datasetName: "ds-test",
+      version: "v1.0",
+      splitsJson: "{}",
+      shardCount: 1,
+      totalRecordCount: 10,
+      totalSizeBytes: 100,
+      totalTokensEstimated: 50,
+      manifestUri: "file:///manifest.json",
+      manifestJson: "{}",
+      createdAt: new Date().toISOString(),
+    });
+    assert.ok(db.getDatasetSnapshot("snap-to-delete"));
+    const deleted = db.deleteDatasetSnapshot("snap-to-delete");
+    assert.equal(deleted, true);
+    assert.equal(db.getDatasetSnapshot("snap-to-delete"), undefined);
+
+    const deletedAgain = db.deleteDatasetSnapshot("snap-to-delete");
+    assert.equal(deletedAgain, false);
+    db.close();
+  });
+
+  it("resetDefaultRegistryDatabase resets singleton instance", () => {
+    const inst1 = getDefaultRegistryDatabase();
+    assert.ok(inst1);
+    resetDefaultRegistryDatabase();
+    const inst2 = getDefaultRegistryDatabase();
+    assert.ok(inst2);
+    assert.notEqual(inst1, inst2);
+    resetDefaultRegistryDatabase();
   });
 });

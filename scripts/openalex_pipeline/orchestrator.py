@@ -40,7 +40,10 @@ from typing import Any, Dict, List, Optional
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from cleaner import build_record
-from downloader import build_filter_string, iter_works_cursor, DEFAULT_MAILTO
+from downloader import (
+    build_filter_string, iter_works_cursor, DEFAULT_MAILTO,
+    fetch_fulltext, fetch_fulltext_batch,
+)
 from drive_sync import OpenAlexDriveSync
 from packer import OpenAlexParquetSharder
 
@@ -112,9 +115,13 @@ class OpenAlexLedger:
                 VALUES (?, ?, ?, ?, ?)
             """, (shard_name, work_count, size_mb, drive_id, now))
 
+    def get_shard_count(self) -> int:
+        row = self.conn.execute("SELECT COUNT(*) FROM shards").fetchone()
+        return row[0] if row else 0
+
     def print_summary(self) -> None:
         print("\n=== OpenAlex Harvest Summary ===")
-        for key in ("total_processed", "total_skipped", "total_failed"):
+        for key in ("total_processed", "total_html", "total_pdf", "total_skipped", "total_failed"):
             row = self.conn.execute("SELECT value FROM stats WHERE key = ?", (key,)).fetchone()
             print(f"  {key:20s}: {(row['value'] if row else 0):,}")
         shards = self.conn.execute("SELECT COUNT(*), SUM(work_count), SUM(size_mb) FROM shards").fetchone()
@@ -197,20 +204,30 @@ class OpenAlexOrchestrator:
         total_processed = 0
         total_skipped   = 0
         total_failed    = 0
-        shard_idx       = 0
+        total_html      = 0   # fulltext fetched via HTML
+        total_pdf       = 0   # fulltext fetched via PDF
+        shard_idx       = self.ledger.get_shard_count()
         sharder         = self._new_sharder(shard_idx)
         works_in_shard  = 0
         t_start         = time.time()
 
         try:
-            for page_works in iter_works_cursor(
+            for page_works, next_cursor in iter_works_cursor(
                 filter_str=filter_str,
                 mailto=self.mailto,
                 start_cursor=start_cursor,
             ):
-                for raw in page_works:
+                # Fetch full text for the entire page in parallel (16 workers)
+                ft_results = fetch_fulltext_batch(page_works)
+
+                for raw, (fulltext, ft_source) in zip(page_works, ft_results):
+                    if fulltext is None:
+                        # No accessible full text — skip per policy
+                        total_skipped += 1
+                        continue
+
                     try:
-                        record = build_record(raw)
+                        record = build_record(raw, fulltext=fulltext, fulltext_source=ft_source)
                     except Exception as e:
                         print(f"[WARN] build_record error: {e}", file=sys.stderr)
                         total_failed += 1
@@ -223,41 +240,50 @@ class OpenAlexOrchestrator:
                     sharder.append(record)
                     works_in_shard  += 1
                     total_processed += 1
+                    if ft_source and ft_source.startswith("pdf"):
+                        total_pdf += 1
+                    else:
+                        total_html += 1
 
-                    if total_processed % 10_000 == 0:
-                        elapsed = time.time() - t_start
-                        rate    = total_processed / max(1, elapsed)
-                        print(
-                            f"[PROGRESS] {total_processed:,} works "
-                            f"({rate:.0f}/s) | skipped: {total_skipped:,} | failed: {total_failed}"
-                        )
+                if next_cursor:
+                    self.ledger.save_cursor(next_cursor)
 
-                    if works_in_shard >= FLUSH_EVERY:
-                        self._commit_shard(sharder, shard_idx)
-                        shard_idx      += 1
-                        sharder         = self._new_sharder(shard_idx)
-                        works_in_shard  = 0
+                elapsed = time.time() - t_start
+                rate    = total_processed / max(1, elapsed)
+                print(
+                    f"[PROGRESS] {total_processed:,} works "
+                    f"({rate:.2f}/s) | html: {total_html:,} | pdf: {total_pdf:,} | "
+                    f"skipped: {total_skipped:,} | failed: {total_failed}"
+                )
 
-                    if self.dry_run and total_processed >= 2_000:
-                        print("[DRY-RUN] 2000-work limit reached.")
-                        break
-                    if limit and total_processed >= limit:
-                        print(f"[INFO] --limit {limit} reached.")
-                        break
+                if works_in_shard >= FLUSH_EVERY:
+                    self._commit_shard(sharder, shard_idx)
+                    shard_idx      += 1
+                    sharder         = self._new_sharder(shard_idx)
+                    works_in_shard  = 0
 
-                if (self.dry_run and total_processed >= 2_000) or (limit and total_processed >= limit):
+                if self.dry_run and total_processed >= 200:
+                    print("[DRY-RUN] 200-work limit reached.")
+                    break
+                if limit and total_processed >= limit:
+                    print(f"[INFO] --limit {limit} reached.")
                     break
 
         finally:
-            self._commit_shard(sharder, shard_idx)
+            if works_in_shard > 0:
+                self._commit_shard(sharder, shard_idx)
             self.ledger.increment_stat("total_processed", total_processed)
             self.ledger.increment_stat("total_skipped",   total_skipped)
             self.ledger.increment_stat("total_failed",    total_failed)
+            self.ledger.increment_stat("total_html",      total_html)
+            self.ledger.increment_stat("total_pdf",       total_pdf)
 
         elapsed_total = time.time() - t_start
         print(
             f"\n[DONE] OpenAlex harvest complete in {elapsed_total:.0f}s.\n"
             f"  Processed : {total_processed:,}\n"
+            f"  HTML full : {total_html:,}\n"
+            f"  PDF full  : {total_pdf:,}\n"
             f"  Skipped   : {total_skipped:,}\n"
             f"  Failed    : {total_failed:,}\n"
         )

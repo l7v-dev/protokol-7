@@ -77,6 +77,85 @@ export class JobRouter {
     this.broker = broker || new ScheduleBroker({ db: this.registryDb });
     this.runner = runner || new PipelineRunner({ registryDb: this.registryDb });
     this.actorRegistry = actorRegistry;
+    this.restoreActiveJobs();
+  }
+
+  private restoreActiveJobs(): void {
+    try {
+      const persistedJobs = this.registryDb.listScheduledJobs();
+      for (const job of persistedJobs) {
+        if (!job.running) {
+          continue;
+        }
+        if (this.broker.hasJob(job.id)) {
+          continue;
+        }
+        if (!job.pipelineConfig && !job.actorConfig) {
+          continue;
+        }
+        const handler = this.createExecutionHandler(job.pipelineConfig, job.actorConfig);
+        this.broker.scheduleJob(job.id, job.cronExpression, handler, 60000, {
+          pipelineConfig: job.pipelineConfig,
+          actorConfig: job.actorConfig,
+        });
+      }
+    } catch (err) {
+      console.error("[JOB_ROUTER] Failed to restore active scheduled jobs from database:", err);
+    }
+  }
+
+  private createExecutionHandler(
+    pipeline?: ScheduleJobRequestBody["pipeline"],
+    actor?: ScheduleJobRequestBody["actor"],
+    explicitFilePath?: string
+  ): () => Promise<void> {
+    let resolvedFilePath = explicitFilePath;
+    if (!resolvedFilePath && pipeline?.filePath) {
+      const rootDir = process.cwd();
+      const targetPath = isAbsolute(pipeline.filePath)
+        ? pipeline.filePath
+        : resolve(rootDir, pipeline.filePath);
+      const normalizedPath = normalize(targetPath);
+      if (
+        normalizedPath.startsWith(rootDir) &&
+        !normalizedPath.includes("..") &&
+        existsSync(normalizedPath)
+      ) {
+        resolvedFilePath = normalizedPath;
+      }
+    }
+
+    return async () => {
+      if (pipeline) {
+        if (resolvedFilePath) {
+          await this.runner.runFile(resolvedFilePath);
+        } else if (pipeline.yaml) {
+          await this.runner.runYaml(pipeline.yaml);
+        } else if (pipeline.config) {
+          await this.runner.runConfig(pipeline.config);
+        }
+      } else if (actor && this.actorRegistry) {
+        const actorInstance = this.actorRegistry.get(actor.actorName as ActorType);
+        if (actorInstance) {
+          const input = actor.input || {};
+          const targetUrl =
+            typeof input.targetUrl === "string"
+              ? input.targetUrl
+              : typeof input.query === "string"
+                ? input.query
+                : typeof input.searchQuery === "string"
+                  ? input.searchQuery
+                  : "";
+          const task: ActorTask = {
+            taskId: `task_${randomUUID().replace(/-/g, "").slice(0, 12)}`,
+            actorType: actor.actorName as ActorType,
+            targetUrl,
+            options: input,
+          };
+          await actorInstance.run(task, { task, startTime: Date.now() });
+        }
+      }
+    };
   }
 
   getBroker(): ScheduleBroker {
@@ -178,40 +257,13 @@ export class JobRouter {
     }
 
     // Create execution handler
-    const handler = async () => {
-      if (pipeline) {
-        if (resolvedFilePath) {
-          await this.runner.runFile(resolvedFilePath);
-        } else if (pipeline.yaml) {
-          await this.runner.runYaml(pipeline.yaml);
-        } else if (pipeline.config) {
-          await this.runner.runConfig(pipeline.config);
-        }
-      } else if (actor && this.actorRegistry) {
-        const actorInstance = this.actorRegistry.get(actor.actorName as ActorType);
-        if (actorInstance) {
-          const input = actor.input || {};
-          const targetUrl =
-            typeof input.targetUrl === "string"
-              ? input.targetUrl
-              : typeof input.query === "string"
-                ? input.query
-                : typeof input.searchQuery === "string"
-                  ? input.searchQuery
-                  : "";
-          const task: ActorTask = {
-            taskId: `task_${randomUUID().replace(/-/g, "").slice(0, 12)}`,
-            actorType: actor.actorName as ActorType,
-            targetUrl,
-            options: input,
-          };
-          await actorInstance.run(task, { task, startTime: Date.now() });
-        }
-      }
-    };
+    const handler = this.createExecutionHandler(pipeline, actor, resolvedFilePath);
 
     try {
-      this.broker.scheduleJob(jobId, body.cronExpression, handler, body.checkIntervalMs || 60000);
+      this.broker.scheduleJob(jobId, body.cronExpression, handler, body.checkIntervalMs || 60000, {
+        pipelineConfig: pipeline,
+        actorConfig: actor,
+      });
 
       sendJson(res, 201, {
         success: true,

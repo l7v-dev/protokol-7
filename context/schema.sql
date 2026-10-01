@@ -1,8 +1,9 @@
 -- ==============================================================================
 -- Protokol-7 Unified Control Plane Database Schema
 -- Engine: SQLite 3 / ANSI SQL (Compatible with PostgreSQL / DuckDB)
--- Purpose: Unified persistence for Actor Runs, Pipeline Executions, Datasets,
---          Shards, Storage Replicas, and Cryptographic Verification Audit Ledger.
+-- Purpose: Unified persistence for Actor Runs, Event Logs, Pipeline Executions,
+--          Scheduled Jobs, Datasets, Shards, Storage Replicas, Snapshots, and Audit Ledger.
+-- Canonical Source: src/api/registry-database.ts
 -- ==============================================================================
 
 PRAGMA foreign_keys = ON;
@@ -65,47 +66,34 @@ CREATE TABLE IF NOT EXISTS pipeline_executions (
     completed_at TEXT NOT NULL
 );
 
--- 5. Pipeline Runs (Corpus ingestion & ETL lifecycle batches)
-CREATE TABLE IF NOT EXISTS pipeline_runs (
-    run_id TEXT PRIMARY KEY,
-    dataset_id TEXT NOT NULL,
-    status TEXT NOT NULL CHECK(status IN ('INITIALIZING', 'INGESTING', 'CLEANING', 'PACKING', 'VERIFYING', 'COMPLETED', 'FAILED')),
-    target_storage_provider TEXT NOT NULL,
-    total_raw_documents INTEGER NOT NULL DEFAULT 0,
-    total_clean_documents INTEGER NOT NULL DEFAULT 0,
-    total_rejected_documents INTEGER NOT NULL DEFAULT 0,
-    total_uncompressed_bytes INTEGER NOT NULL DEFAULT 0,
-    total_compressed_bytes INTEGER NOT NULL DEFAULT 0,
-    total_estimated_tokens INTEGER NOT NULL DEFAULT 0,
-    total_shards INTEGER NOT NULL DEFAULT 0,
-    raw_data_purged INTEGER NOT NULL DEFAULT 0 CHECK(raw_data_purged IN (0, 1)),
+-- 5. Scheduled Jobs (Cron job scheduler state & execution recovery)
+CREATE TABLE IF NOT EXISTS scheduled_jobs (
+    job_id TEXT PRIMARY KEY,
+    cron_expression TEXT NOT NULL,
+    running INTEGER NOT NULL DEFAULT 1 CHECK(running IN (0, 1)),
+    last_run_at TEXT,
+    run_count INTEGER NOT NULL DEFAULT 0,
+    pipeline_config_json TEXT,
+    actor_config_json TEXT,
+    last_error TEXT,
+    fail_count INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
-    completed_at TEXT,
-    error_message TEXT,
-    FOREIGN KEY (dataset_id) REFERENCES datasets(dataset_id) ON DELETE RESTRICT
+    updated_at TEXT NOT NULL
 );
 
--- 6. Dataset Shards (Individual 512MB-1GB Parquet pieces with cryptographic hashes)
+-- 6. Dataset Shards (Individual Parquet pieces with cryptographic hashes)
 CREATE TABLE IF NOT EXISTS dataset_shards (
     shard_id TEXT PRIMARY KEY,
-    run_id TEXT,
-    shard_index INTEGER NOT NULL DEFAULT 0,
+    pipeline_run_id TEXT,
     dataset_name TEXT NOT NULL,
-    filename TEXT NOT NULL,
-    storage_uri TEXT,
-    storage_backend TEXT,
+    file_name TEXT NOT NULL,
+    storage_uri TEXT NOT NULL,
+    storage_backend TEXT NOT NULL,
     record_count INTEGER NOT NULL DEFAULT 0,
     size_bytes INTEGER NOT NULL DEFAULT 0,
-    compression_codec TEXT NOT NULL DEFAULT 'zstd',
-    compression_level INTEGER NOT NULL DEFAULT 6,
     sha256_hash TEXT NOT NULL,
-    blake3_hash TEXT,
-    row_group_count INTEGER NOT NULL DEFAULT 1,
-    char_count INTEGER NOT NULL DEFAULT 0,
-    word_count INTEGER NOT NULL DEFAULT 0,
-    estimated_tokens INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL,
-    FOREIGN KEY (run_id) REFERENCES pipeline_runs(run_id) ON DELETE SET NULL
+    compression_codec TEXT NOT NULL DEFAULT 'zstd',
+    created_at TEXT NOT NULL
 );
 
 -- 7. Storage Replicas (Tracks where shards reside across Cold Vault, R2, S3, Drive)
@@ -138,27 +126,36 @@ CREATE TABLE IF NOT EXISTS verification_audit_ledger (
     verifier_identity TEXT NOT NULL,
     notes TEXT,
     created_at TEXT NOT NULL,
-    FOREIGN KEY (shard_id) REFERENCES dataset_shards(shard_id) ON DELETE CASCADE,
-    FOREIGN KEY (run_id) REFERENCES pipeline_runs(run_id) ON DELETE CASCADE
+    FOREIGN KEY (shard_id) REFERENCES dataset_shards(shard_id) ON DELETE CASCADE
 );
 
--- 9. Scheduled Jobs (Cron job scheduler state)
-CREATE TABLE IF NOT EXISTS scheduled_jobs (
-    job_id TEXT PRIMARY KEY,
-    cron_expression TEXT NOT NULL,
-    running INTEGER NOT NULL DEFAULT 1 CHECK(running IN (0, 1)),
-    last_run_at TEXT,
-    run_count INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+-- 9. Dataset Snapshots & Training Manifests (Versioned dataset manifests)
+CREATE TABLE IF NOT EXISTS dataset_snapshots (
+    snapshot_id TEXT PRIMARY KEY,
+    dataset_name TEXT NOT NULL,
+    version TEXT NOT NULL,
+    splits_json TEXT NOT NULL,
+    shard_count INTEGER NOT NULL DEFAULT 0,
+    total_record_count INTEGER NOT NULL DEFAULT 0,
+    total_size_bytes INTEGER NOT NULL DEFAULT 0,
+    total_tokens_estimated INTEGER NOT NULL DEFAULT 0,
+    manifest_uri TEXT NOT NULL,
+    manifest_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
 );
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_actor_runs_status ON actor_runs(status);
-CREATE INDEX IF NOT EXISTS idx_actor_runs_actor ON actor_runs(actor_name);
+CREATE INDEX IF NOT EXISTS idx_actor_runs_started_at ON actor_runs(started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_actor_runs_domain ON actor_runs(source_domain);
+CREATE INDEX IF NOT EXISTS idx_actor_runs_pipeline ON actor_runs(pipeline_run_id);
 CREATE INDEX IF NOT EXISTS idx_actor_run_logs_run_id ON actor_run_logs(run_id);
-CREATE INDEX IF NOT EXISTS idx_shards_dataset ON dataset_shards(dataset_name);
-CREATE INDEX IF NOT EXISTS idx_shards_run ON dataset_shards(run_id, shard_index);
+CREATE INDEX IF NOT EXISTS idx_pipeline_exec_started ON pipeline_executions(started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_scheduled_jobs_running ON scheduled_jobs(running);
+CREATE INDEX IF NOT EXISTS idx_dataset_shards_dataset ON dataset_shards(dataset_name);
+CREATE INDEX IF NOT EXISTS idx_dataset_shards_pipeline ON dataset_shards(pipeline_run_id);
+CREATE INDEX IF NOT EXISTS idx_dataset_snapshots_name ON dataset_snapshots(dataset_name);
+CREATE INDEX IF NOT EXISTS idx_dataset_snapshots_created ON dataset_snapshots(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_replicas_shard ON storage_replicas(shard_id);
 CREATE INDEX IF NOT EXISTS idx_replicas_status ON storage_replicas(sync_status);
 CREATE INDEX IF NOT EXISTS idx_audit_shard ON verification_audit_ledger(shard_id);

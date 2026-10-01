@@ -143,6 +143,13 @@ class SELedger:
                 f"UPDATE sites SET {', '.join(fields)} WHERE slug = ?", params
             )
 
+    def reset_failed(self) -> int:
+        with self.conn:
+            cur = self.conn.execute(
+                "UPDATE sites SET status = 'pending', error_message = NULL WHERE status IN ('failed', 'skipped', 'in_progress')"
+            )
+            return cur.rowcount
+
     def print_summary(self) -> None:
         print("\n=== StackExchange Harvest Summary ===")
         rows = self.conn.execute("""
@@ -204,7 +211,7 @@ class SEOrchestrator:
 
         try:
             # 1. Download 7z archive from archive.org
-            url          = build_dump_url(slug)
+            url          = build_dump_url(slug, site=site)
             archive_path = os.path.join(site_tmp, f"{slug}.7z")
 
             try:
@@ -326,11 +333,18 @@ def main() -> None:
     parser.add_argument("--site",      type=str,             help="Process single site slug")
     parser.add_argument("--priority",  type=int, default=None, help="Max priority tier (1/2/3)")
     parser.add_argument("--dry-run",   action="store_true",  help="First 500 threads per site only")
-    parser.add_argument("--no-drive",  action="store_true",  help="Skip Drive upload")
-    parser.add_argument("--status",    action="store_true",  help="Print summary and exit")
+    parser.add_argument("--no-drive",      action="store_true",  help="Skip Drive upload")
+    parser.add_argument("--status",        action="store_true",  help="Print summary and exit")
+    parser.add_argument("--retry-failed",  action="store_true",  help="Reset failed/skipped/in_progress sites to pending")
     args = parser.parse_args()
 
     ledger = SELedger()
+
+    if args.retry_failed:
+        cnt = ledger.reset_failed()
+        print(f"[INFO] Reset {cnt} failed/skipped/in_progress site(s) back to 'pending'.")
+        if not args.all and not args.site:
+            return
 
     if args.status:
         ledger.print_summary()

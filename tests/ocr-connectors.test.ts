@@ -463,7 +463,8 @@ describe("OCR Subsystem - Connectors and Registry", () => {
             choices: [
               {
                 message: {
-                  content: "# Scholarly Article\n\nAbstract: Deep learning for mathematical reasoning.",
+                  content:
+                    "# Scholarly Article\n\nAbstract: Deep learning for mathematical reasoning.",
                 },
               },
             ],

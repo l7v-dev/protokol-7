@@ -54,10 +54,19 @@ def _clean_html(text: str) -> str:
     return text.strip()
 
 
-def build_record(raw: Dict[str, Any], fulltext: Optional[str] = None) -> Optional[Dict[str, Any]]:
+def build_record(
+    raw: Dict[str, Any],
+    fulltext: Optional[str] = None,
+    fulltext_source: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
     """
     Transforms a raw OpenAlex work dict into a Parquet-ready record.
     Returns None if the record fails the quality gate.
+
+    full_text fetching strategy (caller's responsibility):
+      1. HTML landing page (best_oa_location / primary_location)
+      2. PDF via best_oa_location.pdf_url (pymupdf extraction)
+    Records without fulltext are skipped (return None).
     """
     work_id   = raw.get("id", "")
     doi       = raw.get("doi", "") or ""
@@ -88,15 +97,20 @@ def build_record(raw: Dict[str, Any], fulltext: Optional[str] = None) -> Optiona
     concepts = "; ".join(c.get("display_name", "") for c in concepts_raw if c.get("display_name"))
 
     # Best OA URL
-    oa_info   = raw.get("open_access") or {}
+    best_loc  = raw.get("best_oa_location") or {}
     prim_loc  = raw.get("primary_location") or {}
+    oa_info   = raw.get("open_access") or {}
     oa_url    = (
         oa_info.get("oa_url")
+        or best_loc.get("landing_page_url")
         or prim_loc.get("landing_page_url")
         or ""
     )
 
     # Build unified text field: Title + Abstract + (optional full text)
+    if not abstract and not fulltext:
+        return None  # no textual content at all
+
     parts: List[str] = []
     if title:
         parts.append(f"# {title}")
@@ -107,29 +121,28 @@ def build_record(raw: Dict[str, Any], fulltext: Optional[str] = None) -> Optiona
         if cleaned_ft:
             parts.append(cleaned_ft[:50_000])  # cap at 50k chars
 
-    if not abstract and not fulltext:
-        return None  # no textual content at all
-
     text = "\n\n".join(parts).strip()
 
-    # Quality gate
+    # Quality gate: need at least abstract tokens worth of content
     if len(text.split()) < MIN_ABSTRACT_TOKENS:
         return None
 
     return {
-        "work_id":       work_id,
-        "doi":           doi,
-        "title":         title,
-        "authors":       authors,
+        "work_id":          work_id,
+        "doi":              doi,
+        "title":            title,
+        "authors":          authors,
         "publication_year": int(pub_year),
         "publication_date": pub_date,
-        "abstract":      abstract or "",
-        "concepts":      concepts,
-        "language":      language,
-        "work_type":     work_type,
-        "cited_by_count": cited,
-        "oa_url":        oa_url,
-        "text":          text,
-        "char_count":    len(text),
-        "word_count":    len(text.split()),
+        "abstract":         abstract or "",
+        "concepts":         concepts,
+        "language":         language,
+        "work_type":        work_type,
+        "cited_by_count":   cited,
+        "oa_url":           oa_url,
+        "fulltext_source":  fulltext_source or "",
+        "text":             text,
+        "char_count":       len(text),
+        "word_count":       len(text.split()),
     }
+

@@ -107,24 +107,29 @@ export class RegistryDatabase {
 
   private stmtUpsertJob!: StatementSync;
   private stmtUpdateJobRun!: StatementSync;
+  private stmtUpdateJobRunFailure!: StatementSync;
   private stmtSetJobRunning!: StatementSync;
   private stmtListJobs!: StatementSync;
   private stmtGetJob!: StatementSync;
+  private stmtDeleteJob!: StatementSync;
 
   private stmtInsertShard!: StatementSync;
   private stmtListShardsByDataset!: StatementSync;
   private stmtListShardsAll!: StatementSync;
   private stmtGetShard!: StatementSync;
+  private stmtDeleteShard!: StatementSync;
 
   private stmtUpsertDataset!: StatementSync;
   private stmtGetDataset!: StatementSync;
   private stmtListDatasets!: StatementSync;
+  private stmtDeleteDataset!: StatementSync;
 
   private stmtInsertSnapshot!: StatementSync;
   private stmtListSnapshotsByName!: StatementSync;
   private stmtListSnapshotsAll!: StatementSync;
   private stmtGetSnapshot!: StatementSync;
   private stmtGetLatestSnapshotByName!: StatementSync;
+  private stmtDeleteSnapshot!: StatementSync;
 
   private stmtInsertReplica!: StatementSync;
   private stmtListReplicasByShard!: StatementSync;
@@ -250,10 +255,36 @@ export class RegistryDatabase {
         running INTEGER NOT NULL DEFAULT 1 CHECK(running IN (0, 1)),
         last_run_at TEXT,
         run_count INTEGER NOT NULL DEFAULT 0,
+        pipeline_config_json TEXT,
+        actor_config_json TEXT,
+        last_error TEXT,
+        fail_count INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );
     `);
+
+    // Migration for scheduled_jobs columns
+    try {
+      const existingJobCols = new Set(
+        (
+          this.db.prepare("PRAGMA table_info(scheduled_jobs);").all() as Array<{ name: string }>
+        ).map((c) => c.name)
+      );
+      const newJobCols: Array<{ name: string; type: string }> = [
+        { name: "pipeline_config_json", type: "TEXT" },
+        { name: "actor_config_json", type: "TEXT" },
+        { name: "last_error", type: "TEXT" },
+        { name: "fail_count", type: "INTEGER NOT NULL DEFAULT 0" },
+      ];
+      for (const col of newJobCols) {
+        if (!existingJobCols.has(col.name)) {
+          this.db.exec(`ALTER TABLE scheduled_jobs ADD COLUMN ${col.name} ${col.type};`);
+        }
+      }
+    } catch {
+      // Ignore migration errors during in-memory initialization
+    }
 
     // 5. Datasets Catalog
     this.db.exec(`
@@ -438,13 +469,19 @@ export class RegistryDatabase {
 
     this.stmtUpsertJob = this.db.prepare(`
       INSERT INTO scheduled_jobs (
-        job_id, cron_expression, running, last_run_at, run_count, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        job_id, cron_expression, running, last_run_at, run_count,
+        pipeline_config_json, actor_config_json, last_error, fail_count,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(job_id) DO UPDATE SET
         cron_expression = excluded.cron_expression,
         running = excluded.running,
         last_run_at = excluded.last_run_at,
         run_count = excluded.run_count,
+        pipeline_config_json = COALESCE(excluded.pipeline_config_json, scheduled_jobs.pipeline_config_json),
+        actor_config_json = COALESCE(excluded.actor_config_json, scheduled_jobs.actor_config_json),
+        last_error = excluded.last_error,
+        fail_count = excluded.fail_count,
         updated_at = excluded.updated_at
     `);
 
@@ -452,6 +489,16 @@ export class RegistryDatabase {
       UPDATE scheduled_jobs SET
         last_run_at = ?,
         run_count = ?,
+        last_error = NULL,
+        updated_at = ?
+      WHERE job_id = ?
+    `);
+
+    this.stmtUpdateJobRunFailure = this.db.prepare(`
+      UPDATE scheduled_jobs SET
+        last_run_at = ?,
+        fail_count = fail_count + 1,
+        last_error = ?,
         updated_at = ?
       WHERE job_id = ?
     `);
@@ -461,13 +508,19 @@ export class RegistryDatabase {
     `);
 
     this.stmtListJobs = this.db.prepare(`
-      SELECT job_id, cron_expression, running, last_run_at, run_count
+      SELECT job_id, cron_expression, running, last_run_at, run_count,
+             pipeline_config_json, actor_config_json, last_error, fail_count
       FROM scheduled_jobs ORDER BY job_id ASC
     `);
 
     this.stmtGetJob = this.db.prepare(`
-      SELECT job_id, cron_expression, running, last_run_at, run_count
+      SELECT job_id, cron_expression, running, last_run_at, run_count,
+             pipeline_config_json, actor_config_json, last_error, fail_count
       FROM scheduled_jobs WHERE job_id = ?
+    `);
+
+    this.stmtDeleteJob = this.db.prepare(`
+      DELETE FROM scheduled_jobs WHERE job_id = ?
     `);
 
     this.stmtInsertShard = this.db.prepare(`
@@ -495,6 +548,10 @@ export class RegistryDatabase {
       FROM dataset_shards WHERE shard_id = ?
     `);
 
+    this.stmtDeleteShard = this.db.prepare(`
+      DELETE FROM dataset_shards WHERE shard_id = ?
+    `);
+
     this.stmtUpsertDataset = this.db.prepare(`
       INSERT INTO datasets (dataset_id, name, source_platform, license_group, default_language, description, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -514,6 +571,10 @@ export class RegistryDatabase {
     this.stmtListDatasets = this.db.prepare(`
       SELECT dataset_id, name, source_platform, license_group, default_language, description, created_at
       FROM datasets ORDER BY created_at DESC
+    `);
+
+    this.stmtDeleteDataset = this.db.prepare(`
+      DELETE FROM datasets WHERE dataset_id = ?
     `);
 
     this.stmtInsertSnapshot = this.db.prepare(`
@@ -550,6 +611,10 @@ export class RegistryDatabase {
              total_record_count, total_size_bytes, total_tokens_estimated,
              manifest_uri, manifest_json, created_at
       FROM dataset_snapshots WHERE dataset_name = ? ORDER BY created_at DESC LIMIT 1
+    `);
+
+    this.stmtDeleteSnapshot = this.db.prepare(`
+      DELETE FROM dataset_snapshots WHERE snapshot_id = ?
     `);
 
     this.stmtInsertReplica = this.db.prepare(`
@@ -804,12 +869,18 @@ export class RegistryDatabase {
 
   upsertScheduledJob(job: ScheduledJobInfo): void {
     const now = new Date().toISOString();
+    const pipelineConfigJson = job.pipelineConfig ? JSON.stringify(job.pipelineConfig) : null;
+    const actorConfigJson = job.actorConfig ? JSON.stringify(job.actorConfig) : null;
     this.stmtUpsertJob.run(
       job.id,
       job.cronExpression,
       job.running ? 1 : 0,
       job.lastRunAt || null,
       job.runCount,
+      pipelineConfigJson,
+      actorConfigJson,
+      job.lastError || null,
+      job.failCount || 0,
       now,
       now
     );
@@ -820,32 +891,63 @@ export class RegistryDatabase {
     this.stmtUpdateJobRun.run(lastRunAt, runCount, now, id);
   }
 
+  updateScheduledJobFailure(id: string, lastRunAt: string, errorMessage: string): void {
+    const now = new Date().toISOString();
+    this.stmtUpdateJobRunFailure.run(lastRunAt, errorMessage, now, id);
+  }
+
   setScheduledJobRunning(id: string, running: boolean): void {
     const now = new Date().toISOString();
     this.stmtSetJobRunning.run(running ? 1 : 0, now, id);
   }
 
-  listScheduledJobs(): ScheduledJobInfo[] {
-    const rows = this.stmtListJobs.all() as Record<string, unknown>[];
-    return rows.map((row) => ({
-      id: String(row.job_id),
-      cronExpression: String(row.cron_expression),
-      running: Number(row.running) === 1,
-      lastRunAt: row.last_run_at ? String(row.last_run_at) : undefined,
-      runCount: Number(row.run_count),
-    }));
-  }
+  private mapJobRow(row: Record<string, unknown>): ScheduledJobInfo {
+    let pipelineConfig: ScheduledJobInfo["pipelineConfig"];
+    if (row.pipeline_config_json) {
+      try {
+        pipelineConfig = JSON.parse(String(row.pipeline_config_json));
+      } catch {
+        // ignore parse error
+      }
+    }
 
-  getScheduledJob(id: string): ScheduledJobInfo | undefined {
-    const row = this.stmtGetJob.get(id) as Record<string, unknown> | undefined;
-    if (!row) return undefined;
+    let actorConfig: ScheduledJobInfo["actorConfig"];
+    if (row.actor_config_json) {
+      try {
+        actorConfig = JSON.parse(String(row.actor_config_json));
+      } catch {
+        // ignore parse error
+      }
+    }
+
     return {
       id: String(row.job_id),
       cronExpression: String(row.cron_expression),
       running: Number(row.running) === 1,
       lastRunAt: row.last_run_at ? String(row.last_run_at) : undefined,
       runCount: Number(row.run_count),
+      pipelineConfig,
+      actorConfig,
+      lastError: row.last_error ? String(row.last_error) : undefined,
+      failCount:
+        row.fail_count !== undefined && row.fail_count !== null ? Number(row.fail_count) : 0,
     };
+  }
+
+  listScheduledJobs(): ScheduledJobInfo[] {
+    const rows = this.stmtListJobs.all() as Record<string, unknown>[];
+    return rows.map((row) => this.mapJobRow(row));
+  }
+
+  getScheduledJob(id: string): ScheduledJobInfo | undefined {
+    const row = this.stmtGetJob.get(id) as Record<string, unknown> | undefined;
+    if (!row) return undefined;
+    return this.mapJobRow(row);
+  }
+
+  deleteScheduledJob(id: string): boolean {
+    const result = this.stmtDeleteJob.run(id);
+    return Number(result.changes) > 0;
   }
 
   // --- Dataset Shards API ---
@@ -908,6 +1010,11 @@ export class RegistryDatabase {
     };
   }
 
+  deleteDatasetShard(shardId: string): boolean {
+    const result = this.stmtDeleteShard.run(shardId);
+    return Number(result.changes) > 0;
+  }
+
   // --- Datasets Catalog API ---
 
   upsertDataset(dataset: DatasetRecord): void {
@@ -947,6 +1054,11 @@ export class RegistryDatabase {
       description: row.description ? String(row.description) : undefined,
       createdAt: String(row.created_at),
     }));
+  }
+
+  deleteDataset(datasetId: string): boolean {
+    const result = this.stmtDeleteDataset.run(datasetId);
+    return Number(result.changes) > 0;
   }
 
   // --- Dataset Snapshots API ---
@@ -1025,6 +1137,11 @@ export class RegistryDatabase {
       manifestJson: String(row.manifest_json),
       createdAt: String(row.created_at),
     };
+  }
+
+  deleteDatasetSnapshot(snapshotId: string): boolean {
+    const result = this.stmtDeleteSnapshot.run(snapshotId);
+    return Number(result.changes) > 0;
   }
 
   // --- Storage Replicas API ---
@@ -1111,4 +1228,15 @@ export function getDefaultRegistryDatabase(): RegistryDatabase {
     defaultDbInstance = new RegistryDatabase();
   }
   return defaultDbInstance;
+}
+
+export function resetDefaultRegistryDatabase(): void {
+  if (defaultDbInstance) {
+    try {
+      defaultDbInstance.close();
+    } catch {
+      // ignore close errors during reset
+    }
+    defaultDbInstance = null;
+  }
 }

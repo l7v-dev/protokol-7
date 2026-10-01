@@ -4,7 +4,7 @@
  */
 
 import { getDefaultRegistryDatabase, type RegistryDatabase } from "../api/registry-database";
-import { PipelineError } from "./schema";
+import { type PipelineConfig, PipelineError } from "./schema";
 
 export interface ScheduledJobInfo {
   id: string;
@@ -12,6 +12,17 @@ export interface ScheduledJobInfo {
   running: boolean;
   lastRunAt?: string;
   runCount: number;
+  pipelineConfig?: {
+    yaml?: string;
+    filePath?: string;
+    config?: PipelineConfig;
+  };
+  actorConfig?: {
+    actorName: string;
+    input?: Record<string, unknown>;
+  };
+  lastError?: string;
+  failCount?: number;
 }
 
 export interface ScheduleBrokerOptions {
@@ -123,6 +134,10 @@ export class ScheduleBroker {
       running: boolean;
       lastRunAt?: string;
       runCount: number;
+      pipelineConfig?: ScheduledJobInfo["pipelineConfig"];
+      actorConfig?: ScheduledJobInfo["actorConfig"];
+      lastError?: string;
+      failCount: number;
     }
   >();
   private readonly db?: RegistryDatabase;
@@ -138,7 +153,11 @@ export class ScheduleBroker {
     id: string,
     cronExpression: string,
     handler: () => Promise<unknown> | unknown,
-    checkIntervalMs = 60000
+    checkIntervalMs = 60000,
+    jobConfig?: {
+      pipelineConfig?: ScheduledJobInfo["pipelineConfig"];
+      actorConfig?: ScheduledJobInfo["actorConfig"];
+    }
   ): { stop: () => void } {
     if (this.jobs.has(id)) {
       this.stopJob(id);
@@ -164,19 +183,34 @@ export class ScheduleBroker {
         if (job) {
           job.lastRunAt = now.toISOString();
           job.runCount++;
-          if (this.db) {
-            try {
-              this.db.updateScheduledJobRun(id, job.lastRunAt, job.runCount);
-            } catch (err) {
-              console.error(`[DB_ERROR] Failed to update scheduled job run ${id}:`, err);
-            }
-          }
         }
 
         try {
           await handler();
+          if (job) {
+            job.lastError = undefined;
+          }
+          if (this.db && job) {
+            try {
+              this.db.updateScheduledJobRun(id, job.lastRunAt || now.toISOString(), job.runCount);
+            } catch (err) {
+              console.error(`[DB_ERROR] Failed to update scheduled job run ${id}:`, err);
+            }
+          }
         } catch (err) {
+          const errMsg = err instanceof Error ? err.message : String(err);
           console.error(`[SCHEDULE_ERROR] Job '${id}' execution failed:`, err);
+          if (job) {
+            job.lastError = errMsg;
+            job.failCount = (job.failCount || 0) + 1;
+          }
+          if (this.db && job) {
+            try {
+              this.db.updateScheduledJobFailure(id, job.lastRunAt || now.toISOString(), errMsg);
+            } catch (dbErr) {
+              console.error(`[DB_ERROR] Failed to record scheduled job failure ${id}:`, dbErr);
+            }
+          }
         }
       }
     }, checkIntervalMs);
@@ -191,12 +225,23 @@ export class ScheduleBroker {
       timer,
       running: true,
       runCount: 0,
+      pipelineConfig: jobConfig?.pipelineConfig,
+      actorConfig: jobConfig?.actorConfig,
+      failCount: 0,
     };
     this.jobs.set(id, jobRecord);
 
     if (this.db) {
       try {
-        this.db.upsertScheduledJob({ id, cronExpression, running: true, runCount: 0 });
+        this.db.upsertScheduledJob({
+          id,
+          cronExpression,
+          running: true,
+          runCount: 0,
+          pipelineConfig: jobConfig?.pipelineConfig,
+          actorConfig: jobConfig?.actorConfig,
+          failCount: 0,
+        });
       } catch (err) {
         console.error(`[DB_ERROR] Failed to persist scheduled job ${id}:`, err);
       }
@@ -253,6 +298,10 @@ export class ScheduleBroker {
       running: job.running,
       lastRunAt: job.lastRunAt,
       runCount: job.runCount,
+      pipelineConfig: job.pipelineConfig,
+      actorConfig: job.actorConfig,
+      lastError: job.lastError,
+      failCount: job.failCount,
     }));
   }
 }

@@ -23,6 +23,7 @@ OPENALEX_SCHEMA = pa.schema([
     ("work_type",         pa.string()),
     ("cited_by_count",    pa.int32()),
     ("oa_url",            pa.string()),
+    ("fulltext_source",   pa.string()),  # html_best_oa | html_primary | pdf_best_oa | pdf_oa_url
     ("text",              pa.string()),
     ("char_count",        pa.int32()),
     ("word_count",        pa.int32()),
@@ -101,6 +102,7 @@ class OpenAlexParquetSharder:
             "work_type":        pa.array(_s("work_type"),        type=pa.string()),
             "cited_by_count":   pa.array(_i("cited_by_count"),   type=pa.int32()),
             "oa_url":           pa.array(_s("oa_url"),           type=pa.string()),
+            "fulltext_source":  pa.array(_s("fulltext_source"),  type=pa.string()),
             "text":             pa.array(_s("text"),             type=pa.string()),
             "char_count":       pa.array(_i("char_count"),       type=pa.int32()),
             "word_count":       pa.array(_i("word_count"),       type=pa.int32()),

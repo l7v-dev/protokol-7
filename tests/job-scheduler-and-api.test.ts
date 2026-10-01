@@ -5,8 +5,11 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import { after, before, describe, it } from "node:test";
+import { RegistryDatabase } from "../src/api/registry-database";
+import { JobRouter } from "../src/api/routers/job-router";
 import { createServer } from "../src/api/server";
 import { ProtokolMcpServer } from "../src/mcp/protokol-mcp-server";
+import { ScheduleBroker } from "../src/pipeline/schedule-broker";
 
 describe("Scheduled Jobs REST API & MCP Integration", () => {
   let server: http.Server;
@@ -347,5 +350,45 @@ storage:
     };
     assert.equal(parsed.success, true);
     assert.equal(parsed.stopped, true);
+  });
+
+  it("restores active jobs with actor config on JobRouter restart", async () => {
+    const db = new RegistryDatabase({ inMemory: true });
+    const broker1 = new ScheduleBroker({ db });
+    const router1 = new JobRouter(broker1, undefined, db);
+    assert.ok(router1);
+
+    broker1.scheduleJob("restart_test_job", "0 5 * * *", async () => {}, 60000, {
+      actorConfig: {
+        actorName: "cheerio-scraper",
+        input: { targetUrl: "https://example.com/test" },
+      },
+    });
+
+    assert.equal(broker1.hasJob("restart_test_job"), true);
+    const persisted = db.listScheduledJobs().find((j) => j.id === "restart_test_job");
+    assert.ok(persisted);
+    assert.equal(persisted?.running, true);
+    assert.equal(persisted?.actorConfig?.actorName, "cheerio-scraper");
+
+    // Simulate process shutdown
+    broker1.stopJob("restart_test_job"); // stops timer
+    // re-enable running in db to test server restart recovery
+    db.setScheduledJobRunning("restart_test_job", true);
+
+    // Simulate service restart with fresh broker and router
+    const broker2 = new ScheduleBroker({ db });
+    const router2 = new JobRouter(broker2, undefined, db);
+    assert.ok(router2);
+
+    assert.equal(broker2.hasJob("restart_test_job"), true);
+    const restoredJob = broker2.getActiveJobs().find((j) => j.id === "restart_test_job");
+    assert.ok(restoredJob);
+    assert.equal(restoredJob?.cronExpression, "0 5 * * *");
+    assert.equal(restoredJob?.running, true);
+    assert.equal(restoredJob?.actorConfig?.actorName, "cheerio-scraper");
+
+    broker2.stopAll();
+    db.close();
   });
 });

@@ -26,7 +26,17 @@ import sys
 import time
 import urllib.request
 import urllib.error
-from typing import Iterator, Dict, Any, Optional, List
+import warnings
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Iterator, Dict, Any, Optional, List, Tuple
+
+# Suppress BeautifulSoup XML-parsed-as-HTML noise; lxml handles both formats fine
+try:
+    from bs4 import XMLParsedAsHTMLWarning
+    warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+except ImportError:
+    pass
+
 
 try:
     import certifi
@@ -42,7 +52,7 @@ PAGE_SIZE    = 200     # max allowed
 REQUEST_DELAY = 0.12  # ~8 req/s, safely under 10 req/s polite limit
 
 
-def _get(url: str, retries: int = 4) -> Dict[str, Any]:
+def _get(url: str, retries: int = 6) -> Dict[str, Any]:
     req = urllib.request.Request(
         url,
         headers={
@@ -59,8 +69,10 @@ def _get(url: str, retries: int = 4) -> Dict[str, Any]:
                 wait = 2 ** attempt * 5
                 print(f"[WARN] 429 rate-limit. Waiting {wait}s...", file=sys.stderr)
                 time.sleep(wait)
-            elif e.code == 503:
-                time.sleep(10 * attempt)
+            elif e.code in (500, 502, 503, 504):
+                wait = 10 * attempt
+                print(f"[WARN] HTTP {e.code} (attempt {attempt}/{retries}). Waiting {wait}s...", file=sys.stderr)
+                time.sleep(wait)
             else:
                 raise
         except Exception as e:
@@ -103,6 +115,7 @@ SELECT_FIELDS = ",".join([
     "concepts",
     "type",
     "language",
+    "best_oa_location",       # includes pdf_url + landing_page_url
 ])
 
 
@@ -110,9 +123,9 @@ def iter_works_cursor(
     filter_str: str = "is_oa:true",
     mailto: str = DEFAULT_MAILTO,
     start_cursor: str = "*",
-) -> Iterator[List[Dict[str, Any]]]:
+) -> Iterator[Tuple[List[Dict[str, Any]], Optional[str]]]:
     """
-    Yields pages (list of raw work dicts) via cursor pagination.
+    Yields (works, next_cursor) via cursor pagination.
     Cursor is '*' for first page; subsequent cursors come from meta.next_cursor.
     """
     cursor = start_cursor
@@ -128,46 +141,202 @@ def iter_works_cursor(
             f"&mailto={urllib.parse.quote(mailto)}"
         )
 
-        data   = _get(url)
-        works  = data.get("results", [])
-        meta   = data.get("meta", {})
-        cursor = meta.get("next_cursor")  # None when exhausted
+        data = _get(url)
+        works = data.get("results", [])
+        meta = data.get("meta", {})
+        next_cursor = meta.get("next_cursor")
         page_num += 1
 
         if not works:
             break
 
-        yield works
+        yield works, next_cursor
+        cursor = next_cursor
 
         time.sleep(REQUEST_DELAY)
 
 
-# Lazy import — avoid crashing on missing module at import time
-def _urllib_parse():
-    import urllib.parse
-    return urllib.parse
-
 import urllib.parse  # noqa: E402  (stdlib, always available)
 
+# ---------------------------------------------------------------------------
+# Full-text fetch: HTML-first, PDF fallback
+# ---------------------------------------------------------------------------
 
-def fetch_oa_fulltext(oa_url: str, timeout: int = 60, max_bytes: int = 5 * 1024 * 1024) -> Optional[str]:
+MAX_FULLTEXT_BYTES = 10 * 1024 * 1024   # 10 MB cap per document
+HTML_TIMEOUT       = 20                  # seconds — fail fast on slow servers
+PDF_TIMEOUT        = 30                  # seconds — PDFs larger but same fail-fast policy
+MIN_FULLTEXT_CHARS = 300                 # discard boilerplate-only fetches
+FULLTEXT_WORKERS   = 64                  # parallel HTTP workers per page (200 works/page)
+
+
+def _html_accept_types() -> dict:
+    return {"Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8"}
+
+
+def _fetch_html_text(url: str) -> Optional[str]:
     """
-    Attempts to download a plain-text or HTML full text from an OA URL.
-    Returns stripped text or None on failure.
+    Downloads an HTML page and extracts main body text via BeautifulSoup.
+    Returns plain text or None on failure.
     """
     try:
+        from bs4 import BeautifulSoup
+    except ImportError:
+        return None
+
+    try:
         req = urllib.request.Request(
-            oa_url, headers={"User-Agent": USER_AGENT, "Accept": "text/html,text/plain,*/*"}
+            url,
+            headers={**{"User-Agent": USER_AGENT}, **_html_accept_types()},
         )
-        with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=timeout) as resp:
-            ct = resp.headers.get("Content-Type", "")
-            # Only accept text responses; skip PDFs (binary, needs OCR)
-            if "pdf" in ct.lower():
+        with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=HTML_TIMEOUT) as resp:
+            ct = resp.headers.get("Content-Type", "").lower()
+            # Bail out immediately if server sends back a PDF
+            if "pdf" in ct:
                 return None
-            raw = resp.read(max_bytes)
-            try:
-                return raw.decode("utf-8", errors="replace")
-            except Exception:
+            if "html" not in ct and "xml" not in ct and "text" not in ct:
                 return None
+            raw = resp.read(MAX_FULLTEXT_BYTES)
     except Exception:
         return None
+
+    try:
+        soup = BeautifulSoup(raw, "lxml")
+    except Exception:
+        try:
+            soup = BeautifulSoup(raw, "html.parser")
+        except Exception:
+            return None
+
+    # Remove navigation, header/footer, scripts, styles
+    for tag in soup.find_all(["script", "style", "nav", "header", "footer", "aside"]):
+        tag.decompose()
+
+    # Prefer article or main body if present
+    body = soup.find("article") or soup.find("main") or soup.find("body") or soup
+    text = body.get_text(separator="\n", strip=True)
+
+    # Collapse excessive blank lines
+    lines = [ln.strip() for ln in text.splitlines()]
+    text  = "\n".join(ln for ln in lines if ln)
+
+    return text if len(text) >= MIN_FULLTEXT_CHARS else None
+
+
+def _fetch_pdf_text(url: str) -> Optional[str]:
+    """
+    Downloads a PDF and extracts plain text via pymupdf.
+    Returns plain text or None on failure.
+    """
+    try:
+        import pymupdf
+    except ImportError:
+        return None
+
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": USER_AGENT, "Accept": "application/pdf,*/*"},
+        )
+        with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=PDF_TIMEOUT) as resp:
+            ct = resp.headers.get("Content-Type", "").lower()
+            # Only process PDF content
+            if "pdf" not in ct and not url.lower().endswith(".pdf"):
+                return None
+            data = resp.read(MAX_FULLTEXT_BYTES)
+    except Exception:
+        return None
+
+    try:
+        pymupdf.TOOLS.mupdf_display_errors(False)
+        doc  = pymupdf.open(stream=data, filetype="pdf")
+        pages: List[str] = []
+        for page in doc:
+            t = page.get_text("text")
+            if t and t.strip():
+                pages.append(t.strip())
+        doc.close()
+        text = "\n\n".join(pages)
+        return text if len(text) >= MIN_FULLTEXT_CHARS else None
+    except Exception:
+        return None
+
+
+def fetch_fulltext(raw: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Attempts to fetch full text for an OpenAlex work dict.
+
+    Strategy (in order):
+      1. HTML landing page from best_oa_location.landing_page_url
+      2. HTML landing page from primary_location.landing_page_url
+      3. PDF from best_oa_location.pdf_url
+      4. PDF from open_access.oa_url (if ends in .pdf)
+
+    Returns:
+      (text, source) — source is one of:
+        "html_best_oa", "html_primary", "pdf_best_oa", "pdf_oa_url"
+      or (None, None) if all attempts fail.
+    """
+    best_loc  = raw.get("best_oa_location") or {}
+    prim_loc  = raw.get("primary_location") or {}
+    oa_info   = raw.get("open_access") or {}
+
+    html_urls = [
+        (best_loc.get("landing_page_url"), "html_best_oa"),
+        (prim_loc.get("landing_page_url"), "html_primary"),
+    ]
+    for url, source in html_urls:
+        if not url:
+            continue
+        text = _fetch_html_text(url)
+        if text:
+            return text, source
+
+    pdf_urls = [
+        (best_loc.get("pdf_url"), "pdf_best_oa"),
+    ]
+    oa_url = oa_info.get("oa_url", "") or ""
+    if oa_url.endswith(".pdf"):
+        pdf_urls.append((oa_url, "pdf_oa_url"))
+
+    for url, source in pdf_urls:
+        if not url:
+            continue
+        text = _fetch_pdf_text(url)
+        if text:
+            return text, source
+
+    return None, None
+
+
+def fetch_fulltext_batch(
+    works: List[Dict[str, Any]],
+    workers: int = FULLTEXT_WORKERS,
+) -> List[Tuple[Optional[str], Optional[str]]]:
+    """
+    Fetches full text for a batch of work dicts in parallel.
+
+    Args:
+      works:   list of raw OpenAlex work dicts (one API page = 200 items)
+      workers: number of concurrent HTTP threads
+
+    Returns:
+      list of (text, source) tuples, same order and length as `works`.
+      Items that failed fetch have (None, None).
+    """
+    results: List[Tuple[Optional[str], Optional[str]]] = [(None, None)] * len(works)
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        future_to_idx = {
+            pool.submit(fetch_fulltext, raw): idx
+            for idx, raw in enumerate(works)
+        }
+        for future in as_completed(future_to_idx):
+            idx = future_to_idx[future]
+            try:
+                results[idx] = future.result()
+            except Exception:
+                results[idx] = (None, None)
+
+    return results
+
+
