@@ -266,7 +266,8 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
-| `src/storage/instagram-database.ts` | `InstagramDatabase`, `InstagramHarvestRunRecord`, `InstagramDatabaseStats` | SQLite relational persistence engine for Instagram profiles, posts, carousel child slides, comments, hashtags, mentions, growth snapshots, and harvest run audits. |
+| `src/storage/instagram-database.ts` | `InstagramDatabase`, `InstagramHarvestRunRecord`, `InstagramDatabaseStats` | SQLite relational persistence engine for Instagram profiles, posts, carousel child slides, comments, hashtags, mentions, growth snapshots, local disk path tracking, and harvest run audits. |
+| `src/storage/object-vault.ts` | `ObjectVault`, `StoredObjectMetadata`, `StoreObjectOptions`, `MediaCategory` | Deterministic local asset vault partitioner, streaming HTTP downloader with SHA-256 calculation, atomic file writes, deduplication, and manifest.jsonl ledger tracking. |
 
 ---
 

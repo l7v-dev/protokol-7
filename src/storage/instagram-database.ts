@@ -78,6 +78,9 @@ export class InstagramDatabase {
   private stmtInsertHarvestRun!: StatementSync;
   private stmtListHarvestRuns!: StatementSync;
 
+  private stmtUpdatePostLocalPath!: StatementSync;
+  private stmtUpdateSlideLocalPath!: StatementSync;
+
   constructor(options?: InstagramDatabaseOptions) {
     const isTest = process.env.NODE_ENV === "test";
     this.isMemory =
@@ -163,6 +166,7 @@ export class InstagramDatabase {
         is_pinned INTEGER DEFAULT 0,
         is_paid_partnership INTEGER DEFAULT 0,
         raw_json TEXT,
+        local_path TEXT,
         first_scraped_at INTEGER NOT NULL,
         last_scraped_at INTEGER NOT NULL
       );
@@ -181,6 +185,7 @@ export class InstagramDatabase {
         width INTEGER,
         height INTEGER,
         raw_json TEXT,
+        local_path TEXT,
         FOREIGN KEY (post_shortcode) REFERENCES instagram_posts(shortcode) ON DELETE CASCADE
       );
       CREATE INDEX IF NOT EXISTS idx_ig_slides_post ON instagram_post_slides(post_shortcode, slide_order ASC);
@@ -245,6 +250,18 @@ export class InstagramDatabase {
       );
       CREATE INDEX IF NOT EXISTS idx_ig_harvest_runs_created ON instagram_harvest_runs(created_at DESC);
     `);
+
+    // 10. Schema migrations for local_path
+    try {
+      this.db.exec("ALTER TABLE instagram_posts ADD COLUMN local_path TEXT;");
+    } catch {
+      // Column already exists
+    }
+    try {
+      this.db.exec("ALTER TABLE instagram_post_slides ADD COLUMN local_path TEXT;");
+    } catch {
+      // Column already exists
+    }
   }
 
   private prepareStatements(): void {
@@ -338,6 +355,10 @@ export class InstagramDatabase {
       SELECT * FROM instagram_posts ORDER BY taken_at DESC LIMIT ? OFFSET ?;
     `);
 
+    this.stmtUpdatePostLocalPath = this.db.prepare(`
+      UPDATE instagram_posts SET local_path = $local_path WHERE shortcode = $shortcode;
+    `);
+
     // 3. Slide statements
     this.stmtUpsertSlide = this.db.prepare(`
       INSERT INTO instagram_post_slides (
@@ -352,6 +373,10 @@ export class InstagramDatabase {
 
     this.stmtListSlidesByPostShortcode = this.db.prepare(`
       SELECT * FROM instagram_post_slides WHERE post_shortcode = ? ORDER BY slide_order ASC;
+    `);
+
+    this.stmtUpdateSlideLocalPath = this.db.prepare(`
+      UPDATE instagram_post_slides SET local_path = $local_path WHERE id = $id;
     `);
 
     // 4. Comment statements
@@ -633,8 +658,8 @@ export class InstagramDatabase {
       run.itemsHarvested,
       run.commentsHarvested,
       run.durationMs,
-      run.errorMessage || null,
-      run.createdAt
+      run.errorMessage ?? null,
+      run.createdAt ?? Math.floor(Date.now() / 1000)
     );
   }
 
@@ -879,6 +904,113 @@ export class InstagramDatabase {
         username: String(row.owner_username),
       },
     };
+  }
+
+  /**
+   * Retrieves set of existing post shortcodes to prevent redundant scraping.
+   */
+  getExistingShortcodes(ownerUsername?: string): Set<string> {
+    const query = ownerUsername
+      ? this.db.prepare("SELECT shortcode FROM instagram_posts WHERE owner_username = ?;")
+      : this.db.prepare("SELECT shortcode FROM instagram_posts;");
+    const rows = (ownerUsername ? query.all(ownerUsername) : query.all()) as Array<{
+      shortcode: string;
+    }>;
+    return new Set(rows.map((r) => r.shortcode));
+  }
+
+  /**
+   * Updates local disk path for a post.
+   */
+  updatePostLocalPath(shortcode: string, localPath: string): void {
+    this.stmtUpdatePostLocalPath.run({
+      $shortcode: shortcode,
+      $local_path: localPath,
+    });
+  }
+
+  /**
+   * Updates local disk path for an individual slide.
+   */
+  updateSlideLocalPath(id: string, localPath: string): void {
+    this.stmtUpdateSlideLocalPath.run({
+      $id: id,
+      $local_path: localPath,
+    });
+  }
+
+  /**
+   * Retrieves pending media items that have not yet been downloaded to disk.
+   */
+  getPendingMediaDownloads(username?: string): {
+    posts: Array<{
+      id: string;
+      shortcode: string;
+      owner_username: string;
+      media_type: string;
+      display_url: string;
+      video_url?: string;
+      local_path?: string;
+    }>;
+    slides: Array<{
+      id: string;
+      post_shortcode: string;
+      slide_order: number;
+      media_type: string;
+      display_url: string;
+      video_url?: string;
+      owner_username: string;
+      local_path?: string;
+    }>;
+  } {
+    const postQuery = username
+      ? `SELECT id, shortcode, owner_username, media_type, display_url, video_url, local_path
+         FROM instagram_posts
+         WHERE owner_username = ? AND (local_path IS NULL OR local_path = '') AND display_url IS NOT NULL AND display_url != ''`
+      : `SELECT id, shortcode, owner_username, media_type, display_url, video_url, local_path
+         FROM instagram_posts
+         WHERE (local_path IS NULL OR local_path = '') AND display_url IS NOT NULL AND display_url != ''`;
+
+    const slideQuery = username
+      ? `SELECT s.id, s.post_shortcode, s.slide_order, s.media_type, s.display_url, s.video_url, s.local_path, p.owner_username
+         FROM instagram_post_slides s
+         JOIN instagram_posts p ON s.post_shortcode = p.shortcode
+         WHERE p.owner_username = ? AND (s.local_path IS NULL OR s.local_path = '') AND s.display_url IS NOT NULL AND s.display_url != ''
+         ORDER BY s.post_shortcode, s.slide_order ASC`
+      : `SELECT s.id, s.post_shortcode, s.slide_order, s.media_type, s.display_url, s.video_url, s.local_path, p.owner_username
+         FROM instagram_post_slides s
+         JOIN instagram_posts p ON s.post_shortcode = p.shortcode
+         WHERE (s.local_path IS NULL OR s.local_path = '') AND s.display_url IS NOT NULL AND s.display_url != ''
+         ORDER BY s.post_shortcode, s.slide_order ASC`;
+
+    type PendingPostRow = {
+      id: string;
+      shortcode: string;
+      owner_username: string;
+      media_type: string;
+      display_url: string;
+      video_url?: string;
+      local_path?: string;
+    };
+    type PendingSlideRow = {
+      id: string;
+      post_shortcode: string;
+      slide_order: number;
+      media_type: string;
+      display_url: string;
+      video_url?: string;
+      owner_username: string;
+      local_path?: string;
+    };
+
+    const posts = (username
+      ? this.db.prepare(postQuery).all(username)
+      : this.db.prepare(postQuery).all()) as unknown as PendingPostRow[];
+    const slides = (username
+      ? this.db.prepare(slideQuery).all(username)
+      : this.db.prepare(slideQuery).all()) as unknown as PendingSlideRow[];
+
+    return { posts, slides };
   }
 
   close(): void {
