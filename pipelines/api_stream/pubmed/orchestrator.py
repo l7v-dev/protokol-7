@@ -46,6 +46,9 @@ def main():
     parser.add_argument(
         "--no-drive", action="store_true", help="Skip Google Drive upload and retain local shards"
     )
+    parser.add_argument(
+        "--sync-shards", action="store_true", help="Flush un-uploaded local shards to Google Drive and exit"
+    )
     parser.add_argument("--api-key", default=None, help="Optional NCBI API key")
     args = parser.parse_args()
 
@@ -60,7 +63,36 @@ def main():
     downloader = PubmedDownloader(api_key=args.api_key)
     cleaner = PubmedCleaner()
     ledger = PubmedLedger(db_path=args.db_path)
-    drive_sync = PubmedDriveSync(dry_run=args.dry_run) if not args.no_drive else None
+
+    drive_sync = None
+    if not args.no_drive:
+        try:
+            drive_sync = PubmedDriveSync(dry_run=args.dry_run)
+        except Exception as e:
+            print(f"[DRIVE-WARN] Google Drive authentication unavailable: {e}")
+            print(f"[DRIVE-WARN] Falling back to local storage buffer mode in {args.output_dir}.")
+            print("[DRIVE-WARN] Run 'npm run auth:gdrive' to refresh Google Drive token and flush shards.")
+
+    if args.sync_shards:
+        print("[PUBMED] Scanning for un-uploaded local shards...")
+        if not drive_sync:
+            print("[ERROR] Cannot sync shards without active Google Drive authentication.")
+            sys.exit(1)
+        uploaded_count = 0
+        if os.path.exists(args.output_dir):
+            for fname in sorted(os.listdir(args.output_dir)):
+                if fname.endswith(".parquet"):
+                    fpath = os.path.join(args.output_dir, fname)
+                    print(f"[DRIVE-SYNC] Uploading {fname} to Drive...")
+                    res = drive_sync.sync_shard(fpath, purge_on_success=True)
+                    fid = res.get("file_id") or ""
+                    vmd5 = res.get("md5")
+                    if fid:
+                        ledger.mark_shard_uploaded(fname, drive_file_id=fid, verified_md5=vmd5)
+                        uploaded_count += 1
+            ledger.sync_to_central_catalog("pubmed")
+        print(f"[DRIVE-SYNC] Flushed {uploaded_count} shards to Google Drive.")
+        return
 
     # Shard completion callback
     def on_shard_completed(shard_info):
@@ -73,19 +105,22 @@ def main():
             md5=shard_info["md5"],
         )
         if drive_sync:
-            sync_res = drive_sync.sync_shard(
-                local_path=shard_info["file_path"],
-                purge_on_success=True,
-            )
-            file_id = sync_res.get("file_id") or ""
-            verified_md5 = sync_res.get("md5")
-            if file_id:
-                ledger.mark_shard_uploaded(
-                    shard_name=shard_info["shard_name"],
-                    drive_file_id=file_id,
-                    verified_md5=verified_md5,
+            try:
+                sync_res = drive_sync.sync_shard(
+                    local_path=shard_info["file_path"],
+                    purge_on_success=True,
                 )
-                ledger.sync_to_central_catalog("pubmed")
+                file_id = sync_res.get("file_id") or ""
+                verified_md5 = sync_res.get("md5")
+                if file_id:
+                    ledger.mark_shard_uploaded(
+                        shard_name=shard_info["shard_name"],
+                        drive_file_id=file_id,
+                        verified_md5=verified_md5,
+                    )
+                    ledger.sync_to_central_catalog("pubmed")
+            except Exception as e:
+                print(f"[DRIVE-WARN] Shard upload deferred: {e}. Preserved locally at {shard_info['file_path']}")
 
     sharder = PubmedSharder(
         output_dir=args.output_dir,
