@@ -9,8 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-
-- *(Aktif görev tamamlandı; Instagram @pratik.psikoloji profil ve medya arşivi %100 eksiksiz tamamlandı)*
+- *(Aktif görev tamamlandı; Instagram @uzman.psikoloji profil ve medya arşivi %100 eksiksiz tamamlandı)*
 
 ## Bekleyen (Blok var)
 
@@ -21,6 +20,8 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 - *(Sağlamlaştırma bekleyen görev bulunmuyor)*
 
 ## Son tamamlananlar (son 3-5, eskiler ledger/'a taşınır)
+
+- [x] **Instagram Profil & Medya Akışı Çekimi (@uzman.psikoloji)** — `Tier: 2` — Uzman Psikoloji (@uzman.psikoloji, 4.825 gönderi, 373.000 takipçi) profili baştan sona tarandı. Toplam 4.824 gönderi ve 4.348 slayt ilişkisel SQLite veritabanına (`data/instagram.sqlite`) kaydedildi. İlgili tüm 9.172 medya nesnesi (4.824 kapak + 4.348 slayt, toplam 1.03 GB) yerel ev dizininde `~/protokol-object-vault/instagram/uzman.psikoloji/` altına indirilip SHA-256 manifestiyle mühürlendi. Eksiksizlik oranı %100.0 olarak doğrulandı.
 
 - [x] **Instagram Profil & Medya Akışı Çekimi ve Object Vault Senkronizasyonu (@pratik.psikoloji)** — `Tier: 2` — Playwright Stealth ve GraphQL response interceptor tabanlı akış harvesteriyle `@pratik.psikoloji` profili baştan sona tarandı. Toplam 8.286 gönderi (3.667 tekil görsel, 2.021 çoklu karusel, 1.764 video/reel) ve 18.582 bağımsız alt slayt görseli ilişkisel SQLite veritabanına (`data/instagram.sqlite`) işlendi. İlgili tüm 26.868 medya nesnesi (8.286 kapak + 18.582 slayt görseli, toplam 1.53 GB) yerel ev dizininde `~/protokol-object-vault/instagram/pratik.psikoloji/` altına indirildi ve SHA-256 manifestiyle mühürlendi. Eksiksizlik oranı %100.0 olarak doğrulandı.
 
