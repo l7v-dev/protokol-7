@@ -50,6 +50,7 @@
     "openalex:snapshot:pipeline": ".venv/bin/python pipelines/snapshot/openalex/orchestrator.py",
     "semanticscholar:pipeline": ".venv/bin/python pipelines/api_stream/semantic_scholar/orchestrator.py",
     "pubmed:pipeline": ".venv/bin/python pipelines/api_stream/pubmed/orchestrator.py",
+    "auth:gdrive": ".venv/bin/python scripts/auth_gdrive.py",
     "test:gutenberg": ".venv/bin/python pipelines/dump/gutenberg/test_gutenberg_pipeline.py",
     "test:stackexchange": ".venv/bin/python pipelines/dump/stackexchange/test_stackexchange_pipeline.py",
     "test:openalex": ".venv/bin/python pipelines/api_stream/openalex/test_openalex_pipeline.py",

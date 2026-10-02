@@ -7,6 +7,7 @@ with strict politeness rate-limiting and exponential retry backoff.
 """
 
 import os
+import ssl
 import sys
 import time
 import urllib.parse
@@ -42,6 +43,11 @@ class PubmedDownloader:
         self.max_retries = max_retries
         self.min_interval = 0.12 if self.api_key else 0.35
         self._last_request_time = 0.0
+        try:
+            import certifi
+            self._ssl_context = ssl.create_default_context(cafile=certifi.where())
+        except Exception:
+            self._ssl_context = ssl.create_default_context()
 
     def _wait_for_rate_limit(self) -> None:
         elapsed = time.time() - self._last_request_time
@@ -58,7 +64,7 @@ class PubmedDownloader:
             self._wait_for_rate_limit()
             req = urllib.request.Request(url, headers=headers)
             try:
-                with urllib.request.urlopen(req, timeout=self.timeout) as response:
+                with urllib.request.urlopen(req, timeout=self.timeout, context=self._ssl_context) as response:
                     return response.read()
             except urllib.error.HTTPError as e:
                 if e.code in (429, 500, 502, 503, 504) and attempt < self.max_retries:
