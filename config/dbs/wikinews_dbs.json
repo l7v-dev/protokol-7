@@ -1,0 +1,218 @@
+[
+  {
+    "db": "arwikinews",
+    "lang": "ar",
+    "url": "https://ar.wikinews.org",
+    "name": "العربية"
+  },
+  {
+    "db": "bgwikinews",
+    "lang": "bg",
+    "url": "https://bg.wikinews.org",
+    "name": "български"
+  },
+  {
+    "db": "bswikinews",
+    "lang": "bs",
+    "url": "https://bs.wikinews.org",
+    "name": "bosanski"
+  },
+  {
+    "db": "cawikinews",
+    "lang": "ca",
+    "url": "https://ca.wikinews.org",
+    "name": "català"
+  },
+  {
+    "db": "cswikinews",
+    "lang": "cs",
+    "url": "https://cs.wikinews.org",
+    "name": "čeština"
+  },
+  {
+    "db": "dewikinews",
+    "lang": "de",
+    "url": "https://de.wikinews.org",
+    "name": "Deutsch"
+  },
+  {
+    "db": "elwikinews",
+    "lang": "el",
+    "url": "https://el.wikinews.org",
+    "name": "Ελληνικά"
+  },
+  {
+    "db": "enwikinews",
+    "lang": "en",
+    "url": "https://en.wikinews.org",
+    "name": "English"
+  },
+  {
+    "db": "eowikinews",
+    "lang": "eo",
+    "url": "https://eo.wikinews.org",
+    "name": "Esperanto"
+  },
+  {
+    "db": "eswikinews",
+    "lang": "es",
+    "url": "https://es.wikinews.org",
+    "name": "español"
+  },
+  {
+    "db": "fawikinews",
+    "lang": "fa",
+    "url": "https://fa.wikinews.org",
+    "name": "فارسی"
+  },
+  {
+    "db": "fiwikinews",
+    "lang": "fi",
+    "url": "https://fi.wikinews.org",
+    "name": "suomi"
+  },
+  {
+    "db": "frwikinews",
+    "lang": "fr",
+    "url": "https://fr.wikinews.org",
+    "name": "français"
+  },
+  {
+    "db": "guwwikinews",
+    "lang": "guw",
+    "url": "https://guw.wikinews.org",
+    "name": "gungbe"
+  },
+  {
+    "db": "hewikinews",
+    "lang": "he",
+    "url": "https://he.wikinews.org",
+    "name": "עברית"
+  },
+  {
+    "db": "huwikinews",
+    "lang": "hu",
+    "url": "https://hu.wikinews.org",
+    "name": "magyar"
+  },
+  {
+    "db": "itwikinews",
+    "lang": "it",
+    "url": "https://it.wikinews.org",
+    "name": "italiano"
+  },
+  {
+    "db": "jawikinews",
+    "lang": "ja",
+    "url": "https://ja.wikinews.org",
+    "name": "日本語"
+  },
+  {
+    "db": "kowikinews",
+    "lang": "ko",
+    "url": "https://ko.wikinews.org",
+    "name": "한국어"
+  },
+  {
+    "db": "liwikinews",
+    "lang": "li",
+    "url": "https://li.wikinews.org",
+    "name": "Limburgs"
+  },
+  {
+    "db": "nlwikinews",
+    "lang": "nl",
+    "url": "https://nl.wikinews.org",
+    "name": "Nederlands"
+  },
+  {
+    "db": "nowikinews",
+    "lang": "no",
+    "url": "https://no.wikinews.org",
+    "name": "norsk"
+  },
+  {
+    "db": "plwikinews",
+    "lang": "pl",
+    "url": "https://pl.wikinews.org",
+    "name": "polski"
+  },
+  {
+    "db": "ptwikinews",
+    "lang": "pt",
+    "url": "https://pt.wikinews.org",
+    "name": "português"
+  },
+  {
+    "db": "rowikinews",
+    "lang": "ro",
+    "url": "https://ro.wikinews.org",
+    "name": "română"
+  },
+  {
+    "db": "ruwikinews",
+    "lang": "ru",
+    "url": "https://ru.wikinews.org",
+    "name": "русский"
+  },
+  {
+    "db": "sdwikinews",
+    "lang": "sd",
+    "url": "https://sd.wikinews.org",
+    "name": "سنڌي"
+  },
+  {
+    "db": "shnwikinews",
+    "lang": "shn",
+    "url": "https://shn.wikinews.org",
+    "name": "တႆး"
+  },
+  {
+    "db": "sqwikinews",
+    "lang": "sq",
+    "url": "https://sq.wikinews.org",
+    "name": "shqip"
+  },
+  {
+    "db": "srwikinews",
+    "lang": "sr",
+    "url": "https://sr.wikinews.org",
+    "name": "српски / srpski"
+  },
+  {
+    "db": "svwikinews",
+    "lang": "sv",
+    "url": "https://sv.wikinews.org",
+    "name": "svenska"
+  },
+  {
+    "db": "tawikinews",
+    "lang": "ta",
+    "url": "https://ta.wikinews.org",
+    "name": "தமிழ்"
+  },
+  {
+    "db": "thwikinews",
+    "lang": "th",
+    "url": "https://th.wikinews.org",
+    "name": "ไทย"
+  },
+  {
+    "db": "trwikinews",
+    "lang": "tr",
+    "url": "https://tr.wikinews.org",
+    "name": "Türkçe"
+  },
+  {
+    "db": "ukwikinews",
+    "lang": "uk",
+    "url": "https://uk.wikinews.org",
+    "name": "українська"
+  },
+  {
+    "db": "zhwikinews",
+    "lang": "zh",
+    "url": "https://zh.wikinews.org",
+    "name": "中文"
+  }
+]

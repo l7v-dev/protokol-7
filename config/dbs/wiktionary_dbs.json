@@ -1,0 +1,794 @@
+[
+  {
+    "db": "aawiktionary",
+    "lang": "aa"
+  },
+  {
+    "db": "abwiktionary",
+    "lang": "ab"
+  },
+  {
+    "db": "afwiktionary",
+    "lang": "af"
+  },
+  {
+    "db": "akwiktionary",
+    "lang": "ak"
+  },
+  {
+    "db": "amwiktionary",
+    "lang": "am"
+  },
+  {
+    "db": "angwiktionary",
+    "lang": "ang"
+  },
+  {
+    "db": "anwiktionary",
+    "lang": "an"
+  },
+  {
+    "db": "arwiktionary",
+    "lang": "ar"
+  },
+  {
+    "db": "astwiktionary",
+    "lang": "ast"
+  },
+  {
+    "db": "aswiktionary",
+    "lang": "as"
+  },
+  {
+    "db": "avwiktionary",
+    "lang": "av"
+  },
+  {
+    "db": "aywiktionary",
+    "lang": "ay"
+  },
+  {
+    "db": "azwiktionary",
+    "lang": "az"
+  },
+  {
+    "db": "bclwiktionary",
+    "lang": "bcl"
+  },
+  {
+    "db": "bewiktionary",
+    "lang": "be"
+  },
+  {
+    "db": "bewwiktionary",
+    "lang": "bew"
+  },
+  {
+    "db": "bgwiktionary",
+    "lang": "bg"
+  },
+  {
+    "db": "bhwiktionary",
+    "lang": "bh"
+  },
+  {
+    "db": "biwiktionary",
+    "lang": "bi"
+  },
+  {
+    "db": "bjnwiktionary",
+    "lang": "bjn"
+  },
+  {
+    "db": "blkwiktionary",
+    "lang": "blk"
+  },
+  {
+    "db": "bmwiktionary",
+    "lang": "bm"
+  },
+  {
+    "db": "bnwiktionary",
+    "lang": "bn"
+  },
+  {
+    "db": "bowiktionary",
+    "lang": "bo"
+  },
+  {
+    "db": "brwiktionary",
+    "lang": "br"
+  },
+  {
+    "db": "bswiktionary",
+    "lang": "bs"
+  },
+  {
+    "db": "btmwiktionary",
+    "lang": "btm"
+  },
+  {
+    "db": "cawiktionary",
+    "lang": "ca"
+  },
+  {
+    "db": "chrwiktionary",
+    "lang": "chr"
+  },
+  {
+    "db": "chwiktionary",
+    "lang": "ch"
+  },
+  {
+    "db": "ckbwiktionary",
+    "lang": "ckb"
+  },
+  {
+    "db": "cowiktionary",
+    "lang": "co"
+  },
+  {
+    "db": "crwiktionary",
+    "lang": "cr"
+  },
+  {
+    "db": "csbwiktionary",
+    "lang": "csb"
+  },
+  {
+    "db": "cswiktionary",
+    "lang": "cs"
+  },
+  {
+    "db": "cywiktionary",
+    "lang": "cy"
+  },
+  {
+    "db": "dawiktionary",
+    "lang": "da"
+  },
+  {
+    "db": "dewiktionary",
+    "lang": "de"
+  },
+  {
+    "db": "diqwiktionary",
+    "lang": "diq"
+  },
+  {
+    "db": "dvwiktionary",
+    "lang": "dv"
+  },
+  {
+    "db": "dzwiktionary",
+    "lang": "dz"
+  },
+  {
+    "db": "elwiktionary",
+    "lang": "el"
+  },
+  {
+    "db": "enwiktionary",
+    "lang": "en"
+  },
+  {
+    "db": "eowiktionary",
+    "lang": "eo"
+  },
+  {
+    "db": "eswiktionary",
+    "lang": "es"
+  },
+  {
+    "db": "etwiktionary",
+    "lang": "et"
+  },
+  {
+    "db": "euwiktionary",
+    "lang": "eu"
+  },
+  {
+    "db": "fawiktionary",
+    "lang": "fa"
+  },
+  {
+    "db": "fiwiktionary",
+    "lang": "fi"
+  },
+  {
+    "db": "fjwiktionary",
+    "lang": "fj"
+  },
+  {
+    "db": "fowiktionary",
+    "lang": "fo"
+  },
+  {
+    "db": "frwiktionary",
+    "lang": "fr"
+  },
+  {
+    "db": "fywiktionary",
+    "lang": "fy"
+  },
+  {
+    "db": "gawiktionary",
+    "lang": "ga"
+  },
+  {
+    "db": "gdwiktionary",
+    "lang": "gd"
+  },
+  {
+    "db": "glwiktionary",
+    "lang": "gl"
+  },
+  {
+    "db": "gnwiktionary",
+    "lang": "gn"
+  },
+  {
+    "db": "gomwiktionary",
+    "lang": "gom"
+  },
+  {
+    "db": "gorwiktionary",
+    "lang": "gor"
+  },
+  {
+    "db": "guwiktionary",
+    "lang": "gu"
+  },
+  {
+    "db": "guwwiktionary",
+    "lang": "guw"
+  },
+  {
+    "db": "gvwiktionary",
+    "lang": "gv"
+  },
+  {
+    "db": "hawiktionary",
+    "lang": "ha"
+  },
+  {
+    "db": "hewiktionary",
+    "lang": "he"
+  },
+  {
+    "db": "hifwiktionary",
+    "lang": "hif"
+  },
+  {
+    "db": "hiwiktionary",
+    "lang": "hi"
+  },
+  {
+    "db": "hrwiktionary",
+    "lang": "hr"
+  },
+  {
+    "db": "hsbwiktionary",
+    "lang": "hsb"
+  },
+  {
+    "db": "huwiktionary",
+    "lang": "hu"
+  },
+  {
+    "db": "hywiktionary",
+    "lang": "hy"
+  },
+  {
+    "db": "iawiktionary",
+    "lang": "ia"
+  },
+  {
+    "db": "idwiktionary",
+    "lang": "id"
+  },
+  {
+    "db": "iewiktionary",
+    "lang": "ie"
+  },
+  {
+    "db": "igwiktionary",
+    "lang": "ig"
+  },
+  {
+    "db": "ikwiktionary",
+    "lang": "ik"
+  },
+  {
+    "db": "iowiktionary",
+    "lang": "io"
+  },
+  {
+    "db": "iswiktionary",
+    "lang": "is"
+  },
+  {
+    "db": "itwiktionary",
+    "lang": "it"
+  },
+  {
+    "db": "iuwiktionary",
+    "lang": "iu"
+  },
+  {
+    "db": "jawiktionary",
+    "lang": "ja"
+  },
+  {
+    "db": "jbowiktionary",
+    "lang": "jbo"
+  },
+  {
+    "db": "jvwiktionary",
+    "lang": "jv"
+  },
+  {
+    "db": "kaawiktionary",
+    "lang": "kaa"
+  },
+  {
+    "db": "kawiktionary",
+    "lang": "ka"
+  },
+  {
+    "db": "kbdwiktionary",
+    "lang": "kbd"
+  },
+  {
+    "db": "kcgwiktionary",
+    "lang": "kcg"
+  },
+  {
+    "db": "kkwiktionary",
+    "lang": "kk"
+  },
+  {
+    "db": "klwiktionary",
+    "lang": "kl"
+  },
+  {
+    "db": "kmwiktionary",
+    "lang": "km"
+  },
+  {
+    "db": "knwiktionary",
+    "lang": "kn"
+  },
+  {
+    "db": "kowiktionary",
+    "lang": "ko"
+  },
+  {
+    "db": "kswiktionary",
+    "lang": "ks"
+  },
+  {
+    "db": "kuwiktionary",
+    "lang": "ku"
+  },
+  {
+    "db": "kwwiktionary",
+    "lang": "kw"
+  },
+  {
+    "db": "kywiktionary",
+    "lang": "ky"
+  },
+  {
+    "db": "lawiktionary",
+    "lang": "la"
+  },
+  {
+    "db": "lbwiktionary",
+    "lang": "lb"
+  },
+  {
+    "db": "liwiktionary",
+    "lang": "li"
+  },
+  {
+    "db": "lmowiktionary",
+    "lang": "lmo"
+  },
+  {
+    "db": "lnwiktionary",
+    "lang": "ln"
+  },
+  {
+    "db": "lowiktionary",
+    "lang": "lo"
+  },
+  {
+    "db": "ltwiktionary",
+    "lang": "lt"
+  },
+  {
+    "db": "lvwiktionary",
+    "lang": "lv"
+  },
+  {
+    "db": "madwiktionary",
+    "lang": "mad"
+  },
+  {
+    "db": "mgwiktionary",
+    "lang": "mg"
+  },
+  {
+    "db": "mhwiktionary",
+    "lang": "mh"
+  },
+  {
+    "db": "minwiktionary",
+    "lang": "min"
+  },
+  {
+    "db": "miwiktionary",
+    "lang": "mi"
+  },
+  {
+    "db": "mkwiktionary",
+    "lang": "mk"
+  },
+  {
+    "db": "mlwiktionary",
+    "lang": "ml"
+  },
+  {
+    "db": "mniwiktionary",
+    "lang": "mni"
+  },
+  {
+    "db": "mnwiktionary",
+    "lang": "mn"
+  },
+  {
+    "db": "mnwwiktionary",
+    "lang": "mnw"
+  },
+  {
+    "db": "mrwiktionary",
+    "lang": "mr"
+  },
+  {
+    "db": "mswiktionary",
+    "lang": "ms"
+  },
+  {
+    "db": "mtwiktionary",
+    "lang": "mt"
+  },
+  {
+    "db": "mywiktionary",
+    "lang": "my"
+  },
+  {
+    "db": "nahwiktionary",
+    "lang": "nah"
+  },
+  {
+    "db": "nawiktionary",
+    "lang": "na"
+  },
+  {
+    "db": "ndswiktionary",
+    "lang": "nds"
+  },
+  {
+    "db": "newiktionary",
+    "lang": "ne"
+  },
+  {
+    "db": "niawiktionary",
+    "lang": "nia"
+  },
+  {
+    "db": "nlwiktionary",
+    "lang": "nl"
+  },
+  {
+    "db": "nnwiktionary",
+    "lang": "nn"
+  },
+  {
+    "db": "nowiktionary",
+    "lang": "no"
+  },
+  {
+    "db": "ocwiktionary",
+    "lang": "oc"
+  },
+  {
+    "db": "omwiktionary",
+    "lang": "om"
+  },
+  {
+    "db": "orwiktionary",
+    "lang": "or"
+  },
+  {
+    "db": "pawiktionary",
+    "lang": "pa"
+  },
+  {
+    "db": "piwiktionary",
+    "lang": "pi"
+  },
+  {
+    "db": "plwiktionary",
+    "lang": "pl"
+  },
+  {
+    "db": "pnbwiktionary",
+    "lang": "pnb"
+  },
+  {
+    "db": "pswiktionary",
+    "lang": "ps"
+  },
+  {
+    "db": "ptwiktionary",
+    "lang": "pt"
+  },
+  {
+    "db": "quwiktionary",
+    "lang": "qu"
+  },
+  {
+    "db": "rmwiktionary",
+    "lang": "rm"
+  },
+  {
+    "db": "rnwiktionary",
+    "lang": "rn"
+  },
+  {
+    "db": "roa_rupwiktionary",
+    "lang": "roa_rup"
+  },
+  {
+    "db": "rowiktionary",
+    "lang": "ro"
+  },
+  {
+    "db": "ruwiktionary",
+    "lang": "ru"
+  },
+  {
+    "db": "rwwiktionary",
+    "lang": "rw"
+  },
+  {
+    "db": "satwiktionary",
+    "lang": "sat"
+  },
+  {
+    "db": "sawiktionary",
+    "lang": "sa"
+  },
+  {
+    "db": "scnwiktionary",
+    "lang": "scn"
+  },
+  {
+    "db": "scwiktionary",
+    "lang": "sc"
+  },
+  {
+    "db": "sdwiktionary",
+    "lang": "sd"
+  },
+  {
+    "db": "sgwiktionary",
+    "lang": "sg"
+  },
+  {
+    "db": "shnwiktionary",
+    "lang": "shn"
+  },
+  {
+    "db": "shwiktionary",
+    "lang": "sh"
+  },
+  {
+    "db": "shywiktionary",
+    "lang": "shy"
+  },
+  {
+    "db": "simplewiktionary",
+    "lang": "simple"
+  },
+  {
+    "db": "siwiktionary",
+    "lang": "si"
+  },
+  {
+    "db": "skrwiktionary",
+    "lang": "skr"
+  },
+  {
+    "db": "skwiktionary",
+    "lang": "sk"
+  },
+  {
+    "db": "slwiktionary",
+    "lang": "sl"
+  },
+  {
+    "db": "smwiktionary",
+    "lang": "sm"
+  },
+  {
+    "db": "snwiktionary",
+    "lang": "sn"
+  },
+  {
+    "db": "sowiktionary",
+    "lang": "so"
+  },
+  {
+    "db": "sqwiktionary",
+    "lang": "sq"
+  },
+  {
+    "db": "srwiktionary",
+    "lang": "sr"
+  },
+  {
+    "db": "sswiktionary",
+    "lang": "ss"
+  },
+  {
+    "db": "stwiktionary",
+    "lang": "st"
+  },
+  {
+    "db": "suwiktionary",
+    "lang": "su"
+  },
+  {
+    "db": "svwiktionary",
+    "lang": "sv"
+  },
+  {
+    "db": "swwiktionary",
+    "lang": "sw"
+  },
+  {
+    "db": "tawiktionary",
+    "lang": "ta"
+  },
+  {
+    "db": "tcywiktionary",
+    "lang": "tcy"
+  },
+  {
+    "db": "tewiktionary",
+    "lang": "te"
+  },
+  {
+    "db": "tgwiktionary",
+    "lang": "tg"
+  },
+  {
+    "db": "thwiktionary",
+    "lang": "th"
+  },
+  {
+    "db": "tiwiktionary",
+    "lang": "ti"
+  },
+  {
+    "db": "tkwiktionary",
+    "lang": "tk"
+  },
+  {
+    "db": "tlwiktionary",
+    "lang": "tl"
+  },
+  {
+    "db": "tnwiktionary",
+    "lang": "tn"
+  },
+  {
+    "db": "towiktionary",
+    "lang": "to"
+  },
+  {
+    "db": "tpiwiktionary",
+    "lang": "tpi"
+  },
+  {
+    "db": "trwiktionary",
+    "lang": "tr"
+  },
+  {
+    "db": "tswiktionary",
+    "lang": "ts"
+  },
+  {
+    "db": "ttwiktionary",
+    "lang": "tt"
+  },
+  {
+    "db": "twwiktionary",
+    "lang": "tw"
+  },
+  {
+    "db": "ugwiktionary",
+    "lang": "ug"
+  },
+  {
+    "db": "ukwiktionary",
+    "lang": "uk"
+  },
+  {
+    "db": "urwiktionary",
+    "lang": "ur"
+  },
+  {
+    "db": "uzwiktionary",
+    "lang": "uz"
+  },
+  {
+    "db": "vecwiktionary",
+    "lang": "vec"
+  },
+  {
+    "db": "viwiktionary",
+    "lang": "vi"
+  },
+  {
+    "db": "vowiktionary",
+    "lang": "vo"
+  },
+  {
+    "db": "wawiktionary",
+    "lang": "wa"
+  },
+  {
+    "db": "wowiktionary",
+    "lang": "wo"
+  },
+  {
+    "db": "xhwiktionary",
+    "lang": "xh"
+  },
+  {
+    "db": "yiwiktionary",
+    "lang": "yi"
+  },
+  {
+    "db": "yowiktionary",
+    "lang": "yo"
+  },
+  {
+    "db": "yuewiktionary",
+    "lang": "yue"
+  },
+  {
+    "db": "zawiktionary",
+    "lang": "za"
+  },
+  {
+    "db": "zghwiktionary",
+    "lang": "zgh"
+  },
+  {
+    "db": "zh_min_nanwiktionary",
+    "lang": "nan"
+  },
+  {
+    "db": "zhwiktionary",
+    "lang": "zh"
+  },
+  {
+    "db": "zuwiktionary",
+    "lang": "zu"
+  }
+]

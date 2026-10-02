@@ -51,8 +51,16 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 
 #### Corpus Actors (`src/actors/corpus/`) — LLM training data source extraction
 
+Categorized into 5 primary domains accessible via `src/actors/corpus/domains/`:
+- `academic.ts`: Peer-reviewed literature, scholarly databases, clinical trials, and regulatory filings.
+- `legal.ts`: Judicial precedents, court opinions, legislation, official gazettes, patents, and disclosures.
+- `reasoning-code.ts`: Code benchmarks, formal proofs, mathematics, developer docs, and technical forums.
+- `wikimedia.ts`: Multilingual Wikimedia knowledgebases and sister projects.
+- `philosophy-humanities.ts`: Philosophy treatises, open textbooks, classical literature, and multimedia transcripts.
+
 | File Path | Class | Source |
 |---|---|---|
+| `src/actors/corpus/domains/` | Domain Barrels | Modular domain export barrels (`academic`, `legal`, `reasoning-code`, `wikimedia`, `philosophy-humanities`). |
 | `src/actors/corpus/arxiv-actor.ts` | `ArxivActor` | arXiv Export API (Atom 1.0) — preprints, metadata, abstracts, optional PDF text. |
 | `src/actors/corpus/wikipedia-actor.ts` | `WikipediaActor`, `WikimediaActor` | Official Wikimedia REST API v1 extraction actor. Fetches clean summaries, full Parsoid HTML converted to GFM markdown, batch title extractions, and full article page search. Detailed technical specification in `docs/actors/wikipedia.md`. |
 | `src/actors/corpus/wikimedia-actor.ts` | Trampoline Re-export | Backwards-compatibility re-export module routing to `src/actors/corpus/wikipedia-actor.ts`. |
@@ -268,6 +276,25 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 |---|---|---|
 | `src/storage/instagram-database.ts` | `InstagramDatabase`, `InstagramHarvestRunRecord`, `InstagramDatabaseStats` | SQLite relational persistence engine for Instagram profiles, posts, carousel child slides, comments, hashtags, mentions, growth snapshots, local disk path tracking, and harvest run audits. |
 | `src/storage/object-vault.ts` | `ObjectVault`, `StoredObjectMetadata`, `StoreObjectOptions`, `MediaCategory` | Deterministic local asset vault partitioner, streaming HTTP downloader with SHA-256 calculation, atomic file writes, deduplication, and manifest.jsonl ledger tracking. |
+
+### 1.15 Unified Ingestion Pipelines (`pipelines/`)
+
+Standardized high-throughput ETL pipelines organized across 7 ingestion paradigms with zero local disk residue.
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `pipelines/shared/cleaner_base.py` | `BaseCleaner`, `clean_text`, `reconstruct_inverted_index` | Reusable text sanitization, HTML entity decoding, inverted index text reconstruction, and quality gate filters. |
+| `pipelines/shared/sharder_base.py` | `BaseParquetSharder`, `compute_file_hashes` | Streaming Parquet sharder with Zstandard compression, size rotation (10-50 GB), SHA-256 and MD5 hashing. |
+| `pipelines/shared/drive_sync_base.py` | `BaseDriveSync`, `calculate_md5` | Google Drive v3 chunked resumable uploader, remote MD5 integrity verification, and zero local disk residue eviction. |
+| `pipelines/shared/ledger_base.py` | `BaseLedger` | Transactional SQLite WAL ledger tracking partitions, shards, and dual-syncing with `data/catalog.sqlite`. |
+| `pipelines/snapshot/openalex/` | `OpenAlexSnapshotSharder`, `cleaner.py` | AWS S3 Parquet snapshot streamer, 10-50 GB Zstd sharder, Google Drive uploader, SQLite ledger, zero disk residue. |
+| `pipelines/dump/wikimedia/` | Wikimedia Dump ETLs | 8 multi-language dump pipelines (Wikibooks, Wikinews, Wikiquote, Wikispecies, Wikisource, Wiktionary, Wikiversity, Wikivoyage). |
+| `pipelines/dump/gutenberg/` | `GutenbergParquetSharder`, `GutenbergImageTarSharder` | Gutendex API harvester, boilerplate cleaner, Zstd Parquet sharder, image WebDataset TAR.GZ sharder, Google Drive sync. |
+| `pipelines/dump/stackexchange/` | StackExchange Orchestrator | Archive.org 7z dump processor, thread Q&A assembler, Zstd Parquet sharder, Drive sync. |
+| `pipelines/dump/corpus_pipeline/` | Corpus Orchestrator | TextNormalizer (NFKC), QualityFilter (FineWeb/Gopher), ParquetPacker, 4-point verification gate. |
+| `pipelines/api_stream/openalex/` | OpenAlex API Streamer | Cursor pagination streamer, inverted index abstract reconstructor, Parquet sharder, Drive sync. |
+| `pipelines/api_stream/semantic_scholar/` | Semantic Scholar Streamer | S2 bulk API streamer, metadata cleaner, PDF extraction, Zstd Parquet sharder, Drive sync. |
+| `scripts/scaffold/scaffold-pipeline.py` | Pipeline Scaffolder CLI | Command-line code generator for new ETL pipelines (`snapshot`, `dump`, `api_stream`, `multimodal`). |
 
 ---
 

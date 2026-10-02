@@ -1,0 +1,104 @@
+[
+  {
+    "db": "arwikiversity",
+    "lang": "ar",
+    "url": "https://ar.wikiversity.org",
+    "name": "العربية"
+  },
+  {
+    "db": "cswikiversity",
+    "lang": "cs",
+    "url": "https://cs.wikiversity.org",
+    "name": "čeština"
+  },
+  {
+    "db": "dewikiversity",
+    "lang": "de",
+    "url": "https://de.wikiversity.org",
+    "name": "Deutsch"
+  },
+  {
+    "db": "elwikiversity",
+    "lang": "el",
+    "url": "https://el.wikiversity.org",
+    "name": "Ελληνικά"
+  },
+  {
+    "db": "enwikiversity",
+    "lang": "en",
+    "url": "https://en.wikiversity.org",
+    "name": "English"
+  },
+  {
+    "db": "eswikiversity",
+    "lang": "es",
+    "url": "https://es.wikiversity.org",
+    "name": "español"
+  },
+  {
+    "db": "fiwikiversity",
+    "lang": "fi",
+    "url": "https://fi.wikiversity.org",
+    "name": "suomi"
+  },
+  {
+    "db": "frwikiversity",
+    "lang": "fr",
+    "url": "https://fr.wikiversity.org",
+    "name": "français"
+  },
+  {
+    "db": "hiwikiversity",
+    "lang": "hi",
+    "url": "https://hi.wikiversity.org",
+    "name": "हिन्दी"
+  },
+  {
+    "db": "itwikiversity",
+    "lang": "it",
+    "url": "https://it.wikiversity.org",
+    "name": "italiano"
+  },
+  {
+    "db": "jawikiversity",
+    "lang": "ja",
+    "url": "https://ja.wikiversity.org",
+    "name": "日本語"
+  },
+  {
+    "db": "kowikiversity",
+    "lang": "ko",
+    "url": "https://ko.wikiversity.org",
+    "name": "한국어"
+  },
+  {
+    "db": "ptwikiversity",
+    "lang": "pt",
+    "url": "https://pt.wikiversity.org",
+    "name": "português"
+  },
+  {
+    "db": "ruwikiversity",
+    "lang": "ru",
+    "url": "https://ru.wikiversity.org",
+    "name": "русский"
+  },
+  {
+    "db": "slwikiversity",
+    "lang": "sl",
+    "url": "https://sl.wikiversity.org",
+    "name": "slovenščina"
+  },
+  {
+    "db": "svwikiversity",
+    "lang": "sv",
+    "url": "https://sv.wikiversity.org",
+    "name": "svenska"
+  },
+  {
+    "db": "zhwikiversity",
+    "lang": "zh",
+    "url": "https://zh.wikiversity.org",
+    "name": "中文"
+  }
+]

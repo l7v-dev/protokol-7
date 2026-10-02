@@ -1,0 +1,734 @@
+[
+  {
+    "db": "aawikibooks",
+    "lang": "aa",
+    "url": "https://aa.wikibooks.org",
+    "name": "Qafár af"
+  },
+  {
+    "db": "afwikibooks",
+    "lang": "af",
+    "url": "https://af.wikibooks.org",
+    "name": "Afrikaans"
+  },
+  {
+    "db": "akwikibooks",
+    "lang": "ak",
+    "url": "https://ak.wikibooks.org",
+    "name": "Akan"
+  },
+  {
+    "db": "angwikibooks",
+    "lang": "ang",
+    "url": "https://ang.wikibooks.org",
+    "name": "Ænglisc"
+  },
+  {
+    "db": "arwikibooks",
+    "lang": "ar",
+    "url": "https://ar.wikibooks.org",
+    "name": "العربية"
+  },
+  {
+    "db": "aswikibooks",
+    "lang": "as",
+    "url": "https://as.wikibooks.org",
+    "name": "অসমীয়া"
+  },
+  {
+    "db": "astwikibooks",
+    "lang": "ast",
+    "url": "https://ast.wikibooks.org",
+    "name": "asturianu"
+  },
+  {
+    "db": "aywikibooks",
+    "lang": "ay",
+    "url": "https://ay.wikibooks.org",
+    "name": "Aymar aru"
+  },
+  {
+    "db": "azwikibooks",
+    "lang": "az",
+    "url": "https://az.wikibooks.org",
+    "name": "azərbaycanca"
+  },
+  {
+    "db": "bawikibooks",
+    "lang": "ba",
+    "url": "https://ba.wikibooks.org",
+    "name": "башҡортса"
+  },
+  {
+    "db": "bewikibooks",
+    "lang": "be",
+    "url": "https://be.wikibooks.org",
+    "name": "беларуская"
+  },
+  {
+    "db": "bgwikibooks",
+    "lang": "bg",
+    "url": "https://bg.wikibooks.org",
+    "name": "български"
+  },
+  {
+    "db": "biwikibooks",
+    "lang": "bi",
+    "url": "https://bi.wikibooks.org",
+    "name": "Bislama"
+  },
+  {
+    "db": "bmwikibooks",
+    "lang": "bm",
+    "url": "https://bm.wikibooks.org",
+    "name": "bamanankan"
+  },
+  {
+    "db": "bnwikibooks",
+    "lang": "bn",
+    "url": "https://bn.wikibooks.org",
+    "name": "বাংলা"
+  },
+  {
+    "db": "bowikibooks",
+    "lang": "bo",
+    "url": "https://bo.wikibooks.org",
+    "name": "བོད་ཡིག"
+  },
+  {
+    "db": "bswikibooks",
+    "lang": "bs",
+    "url": "https://bs.wikibooks.org",
+    "name": "bosanski"
+  },
+  {
+    "db": "cawikibooks",
+    "lang": "ca",
+    "url": "https://ca.wikibooks.org",
+    "name": "català"
+  },
+  {
+    "db": "chwikibooks",
+    "lang": "ch",
+    "url": "https://ch.wikibooks.org",
+    "name": "Chamoru"
+  },
+  {
+    "db": "cowikibooks",
+    "lang": "co",
+    "url": "https://co.wikibooks.org",
+    "name": "corsu"
+  },
+  {
+    "db": "cswikibooks",
+    "lang": "cs",
+    "url": "https://cs.wikibooks.org",
+    "name": "čeština"
+  },
+  {
+    "db": "cvwikibooks",
+    "lang": "cv",
+    "url": "https://cv.wikibooks.org",
+    "name": "чӑвашла"
+  },
+  {
+    "db": "cywikibooks",
+    "lang": "cy",
+    "url": "https://cy.wikibooks.org",
+    "name": "Cymraeg"
+  },
+  {
+    "db": "dawikibooks",
+    "lang": "da",
+    "url": "https://da.wikibooks.org",
+    "name": "dansk"
+  },
+  {
+    "db": "dewikibooks",
+    "lang": "de",
+    "url": "https://de.wikibooks.org",
+    "name": "Deutsch"
+  },
+  {
+    "db": "elwikibooks",
+    "lang": "el",
+    "url": "https://el.wikibooks.org",
+    "name": "Ελληνικά"
+  },
+  {
+    "db": "enwikibooks",
+    "lang": "en",
+    "url": "https://en.wikibooks.org",
+    "name": "English"
+  },
+  {
+    "db": "eowikibooks",
+    "lang": "eo",
+    "url": "https://eo.wikibooks.org",
+    "name": "Esperanto"
+  },
+  {
+    "db": "eswikibooks",
+    "lang": "es",
+    "url": "https://es.wikibooks.org",
+    "name": "español"
+  },
+  {
+    "db": "etwikibooks",
+    "lang": "et",
+    "url": "https://et.wikibooks.org",
+    "name": "eesti"
+  },
+  {
+    "db": "euwikibooks",
+    "lang": "eu",
+    "url": "https://eu.wikibooks.org",
+    "name": "euskara"
+  },
+  {
+    "db": "fawikibooks",
+    "lang": "fa",
+    "url": "https://fa.wikibooks.org",
+    "name": "فارسی"
+  },
+  {
+    "db": "fiwikibooks",
+    "lang": "fi",
+    "url": "https://fi.wikibooks.org",
+    "name": "suomi"
+  },
+  {
+    "db": "frwikibooks",
+    "lang": "fr",
+    "url": "https://fr.wikibooks.org",
+    "name": "français"
+  },
+  {
+    "db": "fywikibooks",
+    "lang": "fy",
+    "url": "https://fy.wikibooks.org",
+    "name": "Frysk"
+  },
+  {
+    "db": "gawikibooks",
+    "lang": "ga",
+    "url": "https://ga.wikibooks.org",
+    "name": "Gaeilge"
+  },
+  {
+    "db": "glwikibooks",
+    "lang": "gl",
+    "url": "https://gl.wikibooks.org",
+    "name": "galego"
+  },
+  {
+    "db": "gnwikibooks",
+    "lang": "gn",
+    "url": "https://gn.wikibooks.org",
+    "name": "Avañe'ẽ"
+  },
+  {
+    "db": "gotwikibooks",
+    "lang": "got",
+    "url": "https://got.wikibooks.org",
+    "name": "𐌲𐌿𐍄𐌹𐍃𐌺"
+  },
+  {
+    "db": "guwikibooks",
+    "lang": "gu",
+    "url": "https://gu.wikibooks.org",
+    "name": "ગુજરાતી"
+  },
+  {
+    "db": "hewikibooks",
+    "lang": "he",
+    "url": "https://he.wikibooks.org",
+    "name": "עברית"
+  },
+  {
+    "db": "hiwikibooks",
+    "lang": "hi",
+    "url": "https://hi.wikibooks.org",
+    "name": "हिन्दी"
+  },
+  {
+    "db": "hrwikibooks",
+    "lang": "hr",
+    "url": "https://hr.wikibooks.org",
+    "name": "hrvatski"
+  },
+  {
+    "db": "huwikibooks",
+    "lang": "hu",
+    "url": "https://hu.wikibooks.org",
+    "name": "magyar"
+  },
+  {
+    "db": "hywikibooks",
+    "lang": "hy",
+    "url": "https://hy.wikibooks.org",
+    "name": "հայերեն"
+  },
+  {
+    "db": "iawikibooks",
+    "lang": "ia",
+    "url": "https://ia.wikibooks.org",
+    "name": "interlingua"
+  },
+  {
+    "db": "idwikibooks",
+    "lang": "id",
+    "url": "https://id.wikibooks.org",
+    "name": "Bahasa Indonesia"
+  },
+  {
+    "db": "iewikibooks",
+    "lang": "ie",
+    "url": "https://ie.wikibooks.org",
+    "name": "Interlingue"
+  },
+  {
+    "db": "iswikibooks",
+    "lang": "is",
+    "url": "https://is.wikibooks.org",
+    "name": "íslenska"
+  },
+  {
+    "db": "itwikibooks",
+    "lang": "it",
+    "url": "https://it.wikibooks.org",
+    "name": "italiano"
+  },
+  {
+    "db": "jawikibooks",
+    "lang": "ja",
+    "url": "https://ja.wikibooks.org",
+    "name": "日本語"
+  },
+  {
+    "db": "kawikibooks",
+    "lang": "ka",
+    "url": "https://ka.wikibooks.org",
+    "name": "ქართული"
+  },
+  {
+    "db": "kkwikibooks",
+    "lang": "kk",
+    "url": "https://kk.wikibooks.org",
+    "name": "қазақша"
+  },
+  {
+    "db": "kmwikibooks",
+    "lang": "km",
+    "url": "https://km.wikibooks.org",
+    "name": "ភាសាខ្មែរ"
+  },
+  {
+    "db": "knwikibooks",
+    "lang": "kn",
+    "url": "https://kn.wikibooks.org",
+    "name": "ಕನ್ನಡ"
+  },
+  {
+    "db": "kowikibooks",
+    "lang": "ko",
+    "url": "https://ko.wikibooks.org",
+    "name": "한국어"
+  },
+  {
+    "db": "kswikibooks",
+    "lang": "ks",
+    "url": "https://ks.wikibooks.org",
+    "name": "کٲشُر"
+  },
+  {
+    "db": "kuwikibooks",
+    "lang": "ku",
+    "url": "https://ku.wikibooks.org",
+    "name": "kurdî"
+  },
+  {
+    "db": "kywikibooks",
+    "lang": "ky",
+    "url": "https://ky.wikibooks.org",
+    "name": "кыргызча"
+  },
+  {
+    "db": "lawikibooks",
+    "lang": "la",
+    "url": "https://la.wikibooks.org",
+    "name": "Latina"
+  },
+  {
+    "db": "lbwikibooks",
+    "lang": "lb",
+    "url": "https://lb.wikibooks.org",
+    "name": "Lëtzebuergesch"
+  },
+  {
+    "db": "liwikibooks",
+    "lang": "li",
+    "url": "https://li.wikibooks.org",
+    "name": "Limburgs"
+  },
+  {
+    "db": "lnwikibooks",
+    "lang": "ln",
+    "url": "https://ln.wikibooks.org",
+    "name": "lingála"
+  },
+  {
+    "db": "ltwikibooks",
+    "lang": "lt",
+    "url": "https://lt.wikibooks.org",
+    "name": "lietuvių"
+  },
+  {
+    "db": "lvwikibooks",
+    "lang": "lv",
+    "url": "https://lv.wikibooks.org",
+    "name": "latviešu"
+  },
+  {
+    "db": "mgwikibooks",
+    "lang": "mg",
+    "url": "https://mg.wikibooks.org",
+    "name": "Malagasy"
+  },
+  {
+    "db": "miwikibooks",
+    "lang": "mi",
+    "url": "https://mi.wikibooks.org",
+    "name": "Māori"
+  },
+  {
+    "db": "minwikibooks",
+    "lang": "min",
+    "url": "https://min.wikibooks.org",
+    "name": "Minangkabau"
+  },
+  {
+    "db": "mkwikibooks",
+    "lang": "mk",
+    "url": "https://mk.wikibooks.org",
+    "name": "македонски"
+  },
+  {
+    "db": "mlwikibooks",
+    "lang": "ml",
+    "url": "https://ml.wikibooks.org",
+    "name": "മലയാളം"
+  },
+  {
+    "db": "mnwikibooks",
+    "lang": "mn",
+    "url": "https://mn.wikibooks.org",
+    "name": "монгол"
+  },
+  {
+    "db": "mrwikibooks",
+    "lang": "mr",
+    "url": "https://mr.wikibooks.org",
+    "name": "मराठी"
+  },
+  {
+    "db": "mswikibooks",
+    "lang": "ms",
+    "url": "https://ms.wikibooks.org",
+    "name": "Bahasa Melayu"
+  },
+  {
+    "db": "mywikibooks",
+    "lang": "my",
+    "url": "https://my.wikibooks.org",
+    "name": "မြန်မာဘာသာ"
+  },
+  {
+    "db": "nawikibooks",
+    "lang": "na",
+    "url": "https://na.wikibooks.org",
+    "name": "Dorerin Naoero"
+  },
+  {
+    "db": "nahwikibooks",
+    "lang": "nah",
+    "url": "https://nah.wikibooks.org",
+    "name": "Nāhuatl"
+  },
+  {
+    "db": "zh_min_nanwikibooks",
+    "lang": "nan",
+    "url": "https://zh-min-nan.wikibooks.org",
+    "name": "閩南語 / Bân-lâm-gí"
+  },
+  {
+    "db": "ndswikibooks",
+    "lang": "nds",
+    "url": "https://nds.wikibooks.org",
+    "name": "Plattdüütsch"
+  },
+  {
+    "db": "newikibooks",
+    "lang": "ne",
+    "url": "https://ne.wikibooks.org",
+    "name": "नेपाली"
+  },
+  {
+    "db": "nlwikibooks",
+    "lang": "nl",
+    "url": "https://nl.wikibooks.org",
+    "name": "Nederlands"
+  },
+  {
+    "db": "nowikibooks",
+    "lang": "no",
+    "url": "https://no.wikibooks.org",
+    "name": "norsk"
+  },
+  {
+    "db": "ocwikibooks",
+    "lang": "oc",
+    "url": "https://oc.wikibooks.org",
+    "name": "occitan"
+  },
+  {
+    "db": "pawikibooks",
+    "lang": "pa",
+    "url": "https://pa.wikibooks.org",
+    "name": "ਪੰਜਾਬੀ"
+  },
+  {
+    "db": "plwikibooks",
+    "lang": "pl",
+    "url": "https://pl.wikibooks.org",
+    "name": "polski"
+  },
+  {
+    "db": "pswikibooks",
+    "lang": "ps",
+    "url": "https://ps.wikibooks.org",
+    "name": "پښتو"
+  },
+  {
+    "db": "ptwikibooks",
+    "lang": "pt",
+    "url": "https://pt.wikibooks.org",
+    "name": "português"
+  },
+  {
+    "db": "quwikibooks",
+    "lang": "qu",
+    "url": "https://qu.wikibooks.org",
+    "name": "Runa Simi"
+  },
+  {
+    "db": "rmwikibooks",
+    "lang": "rm",
+    "url": "https://rm.wikibooks.org",
+    "name": "rumantsch"
+  },
+  {
+    "db": "rowikibooks",
+    "lang": "ro",
+    "url": "https://ro.wikibooks.org",
+    "name": "română"
+  },
+  {
+    "db": "ruwikibooks",
+    "lang": "ru",
+    "url": "https://ru.wikibooks.org",
+    "name": "русский"
+  },
+  {
+    "db": "sawikibooks",
+    "lang": "sa",
+    "url": "https://sa.wikibooks.org",
+    "name": "संस्कृतम्"
+  },
+  {
+    "db": "sewikibooks",
+    "lang": "se",
+    "url": "https://se.wikibooks.org",
+    "name": "davvisámegiella"
+  },
+  {
+    "db": "shnwikibooks",
+    "lang": "shn",
+    "url": "https://shn.wikibooks.org",
+    "name": "တႆး"
+  },
+  {
+    "db": "siwikibooks",
+    "lang": "si",
+    "url": "https://si.wikibooks.org",
+    "name": "සිංහල"
+  },
+  {
+    "db": "simplewikibooks",
+    "lang": "simple",
+    "url": "https://simple.wikibooks.org",
+    "name": "Simple English"
+  },
+  {
+    "db": "skwikibooks",
+    "lang": "sk",
+    "url": "https://sk.wikibooks.org",
+    "name": "slovenčina"
+  },
+  {
+    "db": "slwikibooks",
+    "lang": "sl",
+    "url": "https://sl.wikibooks.org",
+    "name": "slovenščina"
+  },
+  {
+    "db": "sqwikibooks",
+    "lang": "sq",
+    "url": "https://sq.wikibooks.org",
+    "name": "shqip"
+  },
+  {
+    "db": "srwikibooks",
+    "lang": "sr",
+    "url": "https://sr.wikibooks.org",
+    "name": "српски / srpski"
+  },
+  {
+    "db": "suwikibooks",
+    "lang": "su",
+    "url": "https://su.wikibooks.org",
+    "name": "Sunda"
+  },
+  {
+    "db": "svwikibooks",
+    "lang": "sv",
+    "url": "https://sv.wikibooks.org",
+    "name": "svenska"
+  },
+  {
+    "db": "swwikibooks",
+    "lang": "sw",
+    "url": "https://sw.wikibooks.org",
+    "name": "Kiswahili"
+  },
+  {
+    "db": "tawikibooks",
+    "lang": "ta",
+    "url": "https://ta.wikibooks.org",
+    "name": "தமிழ்"
+  },
+  {
+    "db": "tewikibooks",
+    "lang": "te",
+    "url": "https://te.wikibooks.org",
+    "name": "తెలుగు"
+  },
+  {
+    "db": "tgwikibooks",
+    "lang": "tg",
+    "url": "https://tg.wikibooks.org",
+    "name": "тоҷикӣ"
+  },
+  {
+    "db": "thwikibooks",
+    "lang": "th",
+    "url": "https://th.wikibooks.org",
+    "name": "ไทย"
+  },
+  {
+    "db": "tkwikibooks",
+    "lang": "tk",
+    "url": "https://tk.wikibooks.org",
+    "name": "Türkmençe"
+  },
+  {
+    "db": "tlwikibooks",
+    "lang": "tl",
+    "url": "https://tl.wikibooks.org",
+    "name": "Tagalog"
+  },
+  {
+    "db": "trwikibooks",
+    "lang": "tr",
+    "url": "https://tr.wikibooks.org",
+    "name": "Türkçe"
+  },
+  {
+    "db": "ttwikibooks",
+    "lang": "tt",
+    "url": "https://tt.wikibooks.org",
+    "name": "татарча / tatarça"
+  },
+  {
+    "db": "ugwikibooks",
+    "lang": "ug",
+    "url": "https://ug.wikibooks.org",
+    "name": "ئۇيغۇرچە / Uyghurche"
+  },
+  {
+    "db": "ukwikibooks",
+    "lang": "uk",
+    "url": "https://uk.wikibooks.org",
+    "name": "українська"
+  },
+  {
+    "db": "urwikibooks",
+    "lang": "ur",
+    "url": "https://ur.wikibooks.org",
+    "name": "اردو"
+  },
+  {
+    "db": "uzwikibooks",
+    "lang": "uz",
+    "url": "https://uz.wikibooks.org",
+    "name": "oʻzbekcha / ўзбекча"
+  },
+  {
+    "db": "viwikibooks",
+    "lang": "vi",
+    "url": "https://vi.wikibooks.org",
+    "name": "Tiếng Việt"
+  },
+  {
+    "db": "vowikibooks",
+    "lang": "vo",
+    "url": "https://vo.wikibooks.org",
+    "name": "Volapük"
+  },
+  {
+    "db": "wawikibooks",
+    "lang": "wa",
+    "url": "https://wa.wikibooks.org",
+    "name": "walon"
+  },
+  {
+    "db": "xhwikibooks",
+    "lang": "xh",
+    "url": "https://xh.wikibooks.org",
+    "name": "isiXhosa"
+  },
+  {
+    "db": "yowikibooks",
+    "lang": "yo",
+    "url": "https://yo.wikibooks.org",
+    "name": "Yorùbá"
+  },
+  {
+    "db": "zawikibooks",
+    "lang": "za",
+    "url": "https://za.wikibooks.org",
+    "name": "Vahcuengh"
+  },
+  {
+    "db": "zhwikibooks",
+    "lang": "zh",
+    "url": "https://zh.wikibooks.org",
+    "name": "中文"
+  },
+  {
+    "db": "zuwikibooks",
+    "lang": "zu",
+    "url": "https://zu.wikibooks.org",
+    "name": "isiZulu"
+  }
+]

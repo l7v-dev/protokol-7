@@ -98,7 +98,11 @@ function scanNamingAndDocs(dir) {
       f === "archive" ||
       f === "dist" ||
       f === "docs" ||
-      f === "skills"
+      f === "skills" ||
+      f === "data" ||
+      f === "scratch" ||
+      f === "trash" ||
+      f === "output"
     ) {
       continue;
     }
@@ -224,7 +228,11 @@ function scanSecrets(dir) {
       f === "package-lock.json" ||
       f === "service_account.json" ||
       f === "credentials.json" ||
-      f === "token.json"
+      f === "token.json" ||
+      f === "data" ||
+      f === "scratch" ||
+      f === "trash" ||
+      f === "output"
     ) {
       continue;
     }

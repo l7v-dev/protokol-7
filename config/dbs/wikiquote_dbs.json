@@ -1,0 +1,602 @@
+[
+  {
+    "db": "afwikiquote",
+    "lang": "af",
+    "url": "https://af.wikiquote.org",
+    "name": "Afrikaans"
+  },
+  {
+    "db": "amwikiquote",
+    "lang": "am",
+    "url": "https://am.wikiquote.org",
+    "name": "አማርኛ"
+  },
+  {
+    "db": "angwikiquote",
+    "lang": "ang",
+    "url": "https://ang.wikiquote.org",
+    "name": "Ænglisc"
+  },
+  {
+    "db": "arwikiquote",
+    "lang": "ar",
+    "url": "https://ar.wikiquote.org",
+    "name": "العربية"
+  },
+  {
+    "db": "aswikiquote",
+    "lang": "as",
+    "url": "https://as.wikiquote.org",
+    "name": "অসমীয়া"
+  },
+  {
+    "db": "astwikiquote",
+    "lang": "ast",
+    "url": "https://ast.wikiquote.org",
+    "name": "asturianu"
+  },
+  {
+    "db": "azwikiquote",
+    "lang": "az",
+    "url": "https://az.wikiquote.org",
+    "name": "azərbaycanca"
+  },
+  {
+    "db": "bclwikiquote",
+    "lang": "bcl",
+    "url": "https://bcl.wikiquote.org",
+    "name": "Bikol Central"
+  },
+  {
+    "db": "bewikiquote",
+    "lang": "be",
+    "url": "https://be.wikiquote.org",
+    "name": "беларуская"
+  },
+  {
+    "db": "bgwikiquote",
+    "lang": "bg",
+    "url": "https://bg.wikiquote.org",
+    "name": "български"
+  },
+  {
+    "db": "bjnwikiquote",
+    "lang": "bjn",
+    "url": "https://bjn.wikiquote.org",
+    "name": "Banjar"
+  },
+  {
+    "db": "bmwikiquote",
+    "lang": "bm",
+    "url": "https://bm.wikiquote.org",
+    "name": "bamanankan"
+  },
+  {
+    "db": "bnwikiquote",
+    "lang": "bn",
+    "url": "https://bn.wikiquote.org",
+    "name": "বাংলা"
+  },
+  {
+    "db": "brwikiquote",
+    "lang": "br",
+    "url": "https://br.wikiquote.org",
+    "name": "brezhoneg"
+  },
+  {
+    "db": "bswikiquote",
+    "lang": "bs",
+    "url": "https://bs.wikiquote.org",
+    "name": "bosanski"
+  },
+  {
+    "db": "cawikiquote",
+    "lang": "ca",
+    "url": "https://ca.wikiquote.org",
+    "name": "català"
+  },
+  {
+    "db": "cowikiquote",
+    "lang": "co",
+    "url": "https://co.wikiquote.org",
+    "name": "corsu"
+  },
+  {
+    "db": "crwikiquote",
+    "lang": "cr",
+    "url": "https://cr.wikiquote.org",
+    "name": "Nēhiyawēwin / ᓀᐦᐃᔭᐍᐏᐣ"
+  },
+  {
+    "db": "cswikiquote",
+    "lang": "cs",
+    "url": "https://cs.wikiquote.org",
+    "name": "čeština"
+  },
+  {
+    "db": "cywikiquote",
+    "lang": "cy",
+    "url": "https://cy.wikiquote.org",
+    "name": "Cymraeg"
+  },
+  {
+    "db": "dawikiquote",
+    "lang": "da",
+    "url": "https://da.wikiquote.org",
+    "name": "dansk"
+  },
+  {
+    "db": "dewikiquote",
+    "lang": "de",
+    "url": "https://de.wikiquote.org",
+    "name": "Deutsch"
+  },
+  {
+    "db": "elwikiquote",
+    "lang": "el",
+    "url": "https://el.wikiquote.org",
+    "name": "Ελληνικά"
+  },
+  {
+    "db": "enwikiquote",
+    "lang": "en",
+    "url": "https://en.wikiquote.org",
+    "name": "English"
+  },
+  {
+    "db": "eowikiquote",
+    "lang": "eo",
+    "url": "https://eo.wikiquote.org",
+    "name": "Esperanto"
+  },
+  {
+    "db": "eswikiquote",
+    "lang": "es",
+    "url": "https://es.wikiquote.org",
+    "name": "español"
+  },
+  {
+    "db": "etwikiquote",
+    "lang": "et",
+    "url": "https://et.wikiquote.org",
+    "name": "eesti"
+  },
+  {
+    "db": "euwikiquote",
+    "lang": "eu",
+    "url": "https://eu.wikiquote.org",
+    "name": "euskara"
+  },
+  {
+    "db": "fawikiquote",
+    "lang": "fa",
+    "url": "https://fa.wikiquote.org",
+    "name": "فارسی"
+  },
+  {
+    "db": "fiwikiquote",
+    "lang": "fi",
+    "url": "https://fi.wikiquote.org",
+    "name": "suomi"
+  },
+  {
+    "db": "frwikiquote",
+    "lang": "fr",
+    "url": "https://fr.wikiquote.org",
+    "name": "français"
+  },
+  {
+    "db": "gawikiquote",
+    "lang": "ga",
+    "url": "https://ga.wikiquote.org",
+    "name": "Gaeilge"
+  },
+  {
+    "db": "glwikiquote",
+    "lang": "gl",
+    "url": "https://gl.wikiquote.org",
+    "name": "galego"
+  },
+  {
+    "db": "gorwikiquote",
+    "lang": "gor",
+    "url": "https://gor.wikiquote.org",
+    "name": "Bahasa Hulontalo"
+  },
+  {
+    "db": "guwikiquote",
+    "lang": "gu",
+    "url": "https://gu.wikiquote.org",
+    "name": "ગુજરાતી"
+  },
+  {
+    "db": "guwwikiquote",
+    "lang": "guw",
+    "url": "https://guw.wikiquote.org",
+    "name": "gungbe"
+  },
+  {
+    "db": "hewikiquote",
+    "lang": "he",
+    "url": "https://he.wikiquote.org",
+    "name": "עברית"
+  },
+  {
+    "db": "hiwikiquote",
+    "lang": "hi",
+    "url": "https://hi.wikiquote.org",
+    "name": "हिन्दी"
+  },
+  {
+    "db": "hrwikiquote",
+    "lang": "hr",
+    "url": "https://hr.wikiquote.org",
+    "name": "hrvatski"
+  },
+  {
+    "db": "huwikiquote",
+    "lang": "hu",
+    "url": "https://hu.wikiquote.org",
+    "name": "magyar"
+  },
+  {
+    "db": "hywikiquote",
+    "lang": "hy",
+    "url": "https://hy.wikiquote.org",
+    "name": "հայերեն"
+  },
+  {
+    "db": "idwikiquote",
+    "lang": "id",
+    "url": "https://id.wikiquote.org",
+    "name": "Bahasa Indonesia"
+  },
+  {
+    "db": "igwikiquote",
+    "lang": "ig",
+    "url": "https://ig.wikiquote.org",
+    "name": "Igbo"
+  },
+  {
+    "db": "iswikiquote",
+    "lang": "is",
+    "url": "https://is.wikiquote.org",
+    "name": "íslenska"
+  },
+  {
+    "db": "itwikiquote",
+    "lang": "it",
+    "url": "https://it.wikiquote.org",
+    "name": "italiano"
+  },
+  {
+    "db": "jawikiquote",
+    "lang": "ja",
+    "url": "https://ja.wikiquote.org",
+    "name": "日本語"
+  },
+  {
+    "db": "kawikiquote",
+    "lang": "ka",
+    "url": "https://ka.wikiquote.org",
+    "name": "ქართული"
+  },
+  {
+    "db": "kkwikiquote",
+    "lang": "kk",
+    "url": "https://kk.wikiquote.org",
+    "name": "қазақша"
+  },
+  {
+    "db": "knwikiquote",
+    "lang": "kn",
+    "url": "https://kn.wikiquote.org",
+    "name": "ಕನ್ನಡ"
+  },
+  {
+    "db": "kowikiquote",
+    "lang": "ko",
+    "url": "https://ko.wikiquote.org",
+    "name": "한국어"
+  },
+  {
+    "db": "krwikiquote",
+    "lang": "kr",
+    "url": "https://kr.wikiquote.org",
+    "name": "kanuri"
+  },
+  {
+    "db": "kswikiquote",
+    "lang": "ks",
+    "url": "https://ks.wikiquote.org",
+    "name": "کٲشُر"
+  },
+  {
+    "db": "kuwikiquote",
+    "lang": "ku",
+    "url": "https://ku.wikiquote.org",
+    "name": "kurdî"
+  },
+  {
+    "db": "kwwikiquote",
+    "lang": "kw",
+    "url": "https://kw.wikiquote.org",
+    "name": "kernowek"
+  },
+  {
+    "db": "kywikiquote",
+    "lang": "ky",
+    "url": "https://ky.wikiquote.org",
+    "name": "кыргызча"
+  },
+  {
+    "db": "lawikiquote",
+    "lang": "la",
+    "url": "https://la.wikiquote.org",
+    "name": "Latina"
+  },
+  {
+    "db": "lbwikiquote",
+    "lang": "lb",
+    "url": "https://lb.wikiquote.org",
+    "name": "Lëtzebuergesch"
+  },
+  {
+    "db": "liwikiquote",
+    "lang": "li",
+    "url": "https://li.wikiquote.org",
+    "name": "Limburgs"
+  },
+  {
+    "db": "ltwikiquote",
+    "lang": "lt",
+    "url": "https://lt.wikiquote.org",
+    "name": "lietuvių"
+  },
+  {
+    "db": "minwikiquote",
+    "lang": "min",
+    "url": "https://min.wikiquote.org",
+    "name": "Minangkabau"
+  },
+  {
+    "db": "mlwikiquote",
+    "lang": "ml",
+    "url": "https://ml.wikiquote.org",
+    "name": "മലയാളം"
+  },
+  {
+    "db": "mrwikiquote",
+    "lang": "mr",
+    "url": "https://mr.wikiquote.org",
+    "name": "मराठी"
+  },
+  {
+    "db": "mswikiquote",
+    "lang": "ms",
+    "url": "https://ms.wikiquote.org",
+    "name": "Bahasa Melayu"
+  },
+  {
+    "db": "nawikiquote",
+    "lang": "na",
+    "url": "https://na.wikiquote.org",
+    "name": "Dorerin Naoero"
+  },
+  {
+    "db": "zh_min_nanwikiquote",
+    "lang": "nan",
+    "url": "https://zh-min-nan.wikiquote.org",
+    "name": "閩南語 / Bân-lâm-gí"
+  },
+  {
+    "db": "ndswikiquote",
+    "lang": "nds",
+    "url": "https://nds.wikiquote.org",
+    "name": "Plattdüütsch"
+  },
+  {
+    "db": "nlwikiquote",
+    "lang": "nl",
+    "url": "https://nl.wikiquote.org",
+    "name": "Nederlands"
+  },
+  {
+    "db": "nnwikiquote",
+    "lang": "nn",
+    "url": "https://nn.wikiquote.org",
+    "name": "norsk nynorsk"
+  },
+  {
+    "db": "nowikiquote",
+    "lang": "no",
+    "url": "https://no.wikiquote.org",
+    "name": "norsk"
+  },
+  {
+    "db": "pcmwikiquote",
+    "lang": "pcm",
+    "url": "https://pcm.wikiquote.org",
+    "name": "Naijá"
+  },
+  {
+    "db": "plwikiquote",
+    "lang": "pl",
+    "url": "https://pl.wikiquote.org",
+    "name": "polski"
+  },
+  {
+    "db": "ptwikiquote",
+    "lang": "pt",
+    "url": "https://pt.wikiquote.org",
+    "name": "português"
+  },
+  {
+    "db": "quwikiquote",
+    "lang": "qu",
+    "url": "https://qu.wikiquote.org",
+    "name": "Runa Simi"
+  },
+  {
+    "db": "rowikiquote",
+    "lang": "ro",
+    "url": "https://ro.wikiquote.org",
+    "name": "română"
+  },
+  {
+    "db": "ruwikiquote",
+    "lang": "ru",
+    "url": "https://ru.wikiquote.org",
+    "name": "русский"
+  },
+  {
+    "db": "sawikiquote",
+    "lang": "sa",
+    "url": "https://sa.wikiquote.org",
+    "name": "संस्कृतम्"
+  },
+  {
+    "db": "sahwikiquote",
+    "lang": "sah",
+    "url": "https://sah.wikiquote.org",
+    "name": "саха тыла"
+  },
+  {
+    "db": "simplewikiquote",
+    "lang": "simple",
+    "url": "https://simple.wikiquote.org",
+    "name": "Simple English"
+  },
+  {
+    "db": "skwikiquote",
+    "lang": "sk",
+    "url": "https://sk.wikiquote.org",
+    "name": "slovenčina"
+  },
+  {
+    "db": "slwikiquote",
+    "lang": "sl",
+    "url": "https://sl.wikiquote.org",
+    "name": "slovenščina"
+  },
+  {
+    "db": "sqwikiquote",
+    "lang": "sq",
+    "url": "https://sq.wikiquote.org",
+    "name": "shqip"
+  },
+  {
+    "db": "srwikiquote",
+    "lang": "sr",
+    "url": "https://sr.wikiquote.org",
+    "name": "српски / srpski"
+  },
+  {
+    "db": "suwikiquote",
+    "lang": "su",
+    "url": "https://su.wikiquote.org",
+    "name": "Sunda"
+  },
+  {
+    "db": "svwikiquote",
+    "lang": "sv",
+    "url": "https://sv.wikiquote.org",
+    "name": "svenska"
+  },
+  {
+    "db": "tawikiquote",
+    "lang": "ta",
+    "url": "https://ta.wikiquote.org",
+    "name": "தமிழ்"
+  },
+  {
+    "db": "tewikiquote",
+    "lang": "te",
+    "url": "https://te.wikiquote.org",
+    "name": "తెలుగు"
+  },
+  {
+    "db": "thwikiquote",
+    "lang": "th",
+    "url": "https://th.wikiquote.org",
+    "name": "ไทย"
+  },
+  {
+    "db": "tkwikiquote",
+    "lang": "tk",
+    "url": "https://tk.wikiquote.org",
+    "name": "Türkmençe"
+  },
+  {
+    "db": "tlwikiquote",
+    "lang": "tl",
+    "url": "https://tl.wikiquote.org",
+    "name": "Tagalog"
+  },
+  {
+    "db": "trwikiquote",
+    "lang": "tr",
+    "url": "https://tr.wikiquote.org",
+    "name": "Türkçe"
+  },
+  {
+    "db": "ttwikiquote",
+    "lang": "tt",
+    "url": "https://tt.wikiquote.org",
+    "name": "татарча / tatarça"
+  },
+  {
+    "db": "ugwikiquote",
+    "lang": "ug",
+    "url": "https://ug.wikiquote.org",
+    "name": "ئۇيغۇرچە / Uyghurche"
+  },
+  {
+    "db": "ukwikiquote",
+    "lang": "uk",
+    "url": "https://uk.wikiquote.org",
+    "name": "українська"
+  },
+  {
+    "db": "urwikiquote",
+    "lang": "ur",
+    "url": "https://ur.wikiquote.org",
+    "name": "اردو"
+  },
+  {
+    "db": "uzwikiquote",
+    "lang": "uz",
+    "url": "https://uz.wikiquote.org",
+    "name": "oʻzbekcha / ўзбекча"
+  },
+  {
+    "db": "viwikiquote",
+    "lang": "vi",
+    "url": "https://vi.wikiquote.org",
+    "name": "Tiếng Việt"
+  },
+  {
+    "db": "vowikiquote",
+    "lang": "vo",
+    "url": "https://vo.wikiquote.org",
+    "name": "Volapük"
+  },
+  {
+    "db": "wowikiquote",
+    "lang": "wo",
+    "url": "https://wo.wikiquote.org",
+    "name": "Wolof"
+  },
+  {
+    "db": "zawikiquote",
+    "lang": "za",
+    "url": "https://za.wikiquote.org",
+    "name": "Vahcuengh"
+  },
+  {
+    "db": "zhwikiquote",
+    "lang": "zh",
+    "url": "https://zh.wikiquote.org",
+    "name": "中文"
+  }
+]

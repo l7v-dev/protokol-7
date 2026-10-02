@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""
+Unit & Integration Tests for Wiktionary Dump ETL Pipeline — protokol-7
+"""
+
+import bz2
+import os
+import shutil
+import sys
+import tempfile
+import unittest
+
+sys.path.insert(0, os.path.dirname(__file__))
+
+import pyarrow.parquet as pq
+
+from cleaner import clean_wiktionary_text, stream_wiktionary_entries
+from downloader import resolve_dump_db_name, build_dump_urls
+from packer import StreamingParquetSharder, WIKTIONARY_SCHEMA
+from orchestrator import LedgerManager
+
+
+class TestWiktionaryPipeline(unittest.TestCase):
+    def setUp(self):
+        self.test_dir = tempfile.mkdtemp(prefix="test_wiktionary_")
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir, ignore_errors=True)
+
+    def test_downloader_url_resolution(self):
+        self.assertEqual(resolve_dump_db_name("tr"), "trwiktionary")
+        self.assertEqual(resolve_dump_db_name("en"), "enwiktionary")
+        self.assertEqual(resolve_dump_db_name("nan"), "zh_min_nanwiktionary")
+        self.assertEqual(resolve_dump_db_name("frwiktionary"), "frwiktionary")
+
+        dump_url, md5_url, filename = build_dump_urls("tr")
+        self.assertIn("trwiktionary", dump_url)
+        self.assertTrue(dump_url.endswith("-latest-pages-articles.xml.bz2"))
+        self.assertEqual(filename, "trwiktionary-latest-pages-articles.xml.bz2")
+
+    def test_cleaner_text_and_template_formatting(self):
+        raw_wikitext = """
+== Türkçe ==
+=== Ad ===
+{{ad}}
+'''kitap''' (''belirtme hâli'' '''kitabı''', ''çoğulu'' '''kitaplar''')
+
+1. Ciltli veya ciltsiz olarak bir araya getirilmiş basılı yapraklar bütünü.
+<!-- gizli yorum -->
+{| class="wikitable"
+|-
+| çekim tablosu || veri
+|}
+[[Kategori:Türkçe sözcükler]]
+[[Dosya:Book.jpg|küçük|Bir kitap]]
+"""
+        cleaned = clean_wiktionary_text(raw_wikitext)
+        self.assertIn("Türkçe", cleaned)
+        self.assertIn("kitap", cleaned)
+        self.assertIn("Ciltli veya ciltsiz olarak bir araya getirilmiş basılı yapraklar bütünü.", cleaned)
+        self.assertNotIn("Kategori:", cleaned)
+        self.assertNotIn("Dosya:", cleaned)
+        self.assertNotIn("çekim tablosu", cleaned)
+        self.assertNotIn("gizli yorum", cleaned)
+
+    def test_stream_wiktionary_entries_with_synthetic_bz2(self):
+        synthetic_xml = """<mediawiki xmlns="http://www.mediawiki.org/xml/export-0.10/">
+  <siteinfo>
+    <sitename>Wiktionary</sitename>
+  </siteinfo>
+  <page>
+    <title>kalem</title>
+    <ns>0</ns>
+    <id>501</id>
+    <revision>
+      <id>601</id>
+      <timestamp>2026-01-01T12:00:00Z</timestamp>
+      <text bytes="200">
+== Türkçe ==
+=== Ad ===
+Yazma, çizme işlerinde kullanılan araç.
+      </text>
+    </revision>
+  </page>
+  <page>
+    <title>Tartışma:kalem</title>
+    <ns>1</ns>
+    <id>502</id>
+    <revision>
+      <id>602</id>
+      <timestamp>2026-01-01T12:00:00Z</timestamp>
+      <text bytes="80">Tartışma sayfası metni.</text>
+    </revision>
+  </page>
+</mediawiki>"""
+        bz2_path = os.path.join(self.test_dir, "synthetic_wiktionary.xml.bz2")
+        with bz2.BZ2File(bz2_path, "wb") as f:
+            f.write(synthetic_xml.encode("utf-8"))
+
+        entries = list(stream_wiktionary_entries(bz2_path, lang="tr", min_length=20))
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+        self.assertEqual(entry["article_id"], 501)
+        self.assertEqual(entry["word"], "kalem")
+        self.assertEqual(entry["lang"], "tr")
+        self.assertIn("Yazma, çizme işlerinde kullanılan araç.", entry["text"])
+
+    def test_parquet_sharder_packaging(self):
+        sharder = StreamingParquetSharder(
+            output_dir=self.test_dir,
+            corpus_prefix="test_wiktionary",
+            batch_size=2,
+            snapshot_date="20260930",
+        )
+        sample_entry_1 = {
+            "article_id": 1,
+            "word": "lemma1",
+            "lang": "tr",
+            "text": "Definition for lemma 1 in dictionary.",
+            "raw_length": 80,
+            "clean_length": 38,
+            "url": "https://tr.wiktionary.org/wiki/lemma1",
+            "timestamp": "2026-09-30T12:00:00Z",
+        }
+        sample_entry_2 = {
+            "article_id": 2,
+            "word": "lemma2",
+            "lang": "tr",
+            "text": "Definition for lemma 2 in dictionary.",
+            "raw_length": 85,
+            "clean_length": 38,
+            "url": "https://tr.wiktionary.org/wiki/lemma2",
+            "timestamp": "2026-09-30T12:00:00Z",
+        }
+        sharder.add_entry(sample_entry_1)
+        sharder.add_entry(sample_entry_2)
+        shards = sharder.close()
+
+        self.assertEqual(len(shards), 1)
+        self.assertTrue(os.path.exists(shards[0]))
+
+        table = pq.read_table(shards[0])
+        self.assertEqual(table.num_rows, 2)
+        self.assertEqual(table.schema, WIKTIONARY_SCHEMA)
+        self.assertEqual(table["word"][0].as_py(), "lemma1")
+
+    def test_ledger_manager_initialization(self):
+        db_file = os.path.join(self.test_dir, "test_ledger.sqlite")
+        ledger = LedgerManager(db_path=db_file)
+        pending = ledger.get_pending()
+        self.assertGreaterEqual(len(pending), 5)
+        ledger.update_status(pending[0]["db_name"], "completed", total_entries=100)
+        ledger.conn.close()
+
+
+if __name__ == "__main__":
+    unittest.main()

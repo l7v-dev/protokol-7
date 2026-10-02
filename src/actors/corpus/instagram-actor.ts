@@ -552,7 +552,8 @@ export class InstagramActor implements IActor<InstagramActorResult> {
         caption: p.caption || "",
         likeCount: 0,
         commentCount: 0,
-        displayUrl: p.displayUrl,
+        displayUrl: p.displayUrl || "",
+        takenAtTimestamp: Math.floor(Date.now() / 1000),
         hashtags: this.extractHashtags(p.caption || ""),
         mentions: this.extractMentions(p.caption || ""),
       }));

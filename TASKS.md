@@ -9,7 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- *(Aktif görev tamamlandı; OpenAlex S3 snapshot pipeline'ı PID 958059 olarak arka planda canlı çalışıyor)*
+- *(Aktif görev tamamlandı; Kapsamlı Veri Çekme Yöntemleri ve Kurumsal Modüler Mimari Dönüşümü %100 başarıyla tamamlandı)*
 
 ## Bekleyen (Blok var)
 
@@ -17,9 +17,11 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Sağlamlaştırma bekliyor
 
-- [ ] **Kapsamlı Veri Çekme Yöntemleri ve Kurumsal Modüler Mimari Dönüşümü** — `Tier: 2` — Tüm 7 veri çekme yöntemini (S3/GCS snapshot, arşiv dump'ları, REST/GraphQL API'leri, Playwright stealth, Git SCM, multimodal OCR ve ses transkriptleri) birleştiren modüler mimari planı [`docs/plans/kapsamli-veri-cekme-ve-mimari-kategorizasyon-plani.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/plans/kapsamli-veri-cekme-ve-mimari-kategorizasyon-plani.md) hazırlandı. Canlı süreç (PID 958059) bitiminde uygulanacak.
+- *(Sağlamlaştırma bekleyen görev bulunmuyor)*
 
 ## Son tamamlananlar (son 3-5, eskiler ledger/'a taşınır)
+
+- [x] **Kapsamlı Veri Çekme Yöntemleri ve Kurumsal Modüler Mimari Dönüşümü** — `Tier: 2` — Tüm 7 veri çekme yöntemini birleştiren modüler mimari kuruldu. Faz 1: `pipelines/` hiyerarşisi (`snapshot`, `dump`, `api_stream`, `multimodal`, `shared`), `BaseCleaner`, `BaseParquetSharder`, `BaseDriveSync`, `BaseLedger` taban sınıfları ve `scripts/scaffold/scaffold-pipeline.py` inşa edildi (9 shared birim testi). Faz 2: 12 ETL boru hattı `scripts/` altından `pipelines/` altına taşındı, `scripts/` altında geriye dönük göreceli sembolik köprüler kuruldu, `package.json` güncellendi ve 93 Python testi eksiksiz geçti. Faz 3: `data/catalogs/`, `data/parquets/`, `data/scratch/` dizin izolasyonu sağlandı. Faz 4: 59 korpus aktörü `src/actors/corpus/domains/` altında 5 alana (`academic`, `legal`, `reasoning_code`, `wikimedia`, `philosophy_humanities`) sınıflandırıldı. 902 TS testi ve `npm run verify` 6/6 onaylandı. Walkthrough: [`docs/walkthroughs/kapsamli-veri-cekme-ve-mimari-kategorizasyon-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/kapsamli-veri-cekme-ve-mimari-kategorizasyon-walkthrough.md).
 
 - [x] **Instagram Veri Çıkarma Aktörü ve SQLite Veritabanı Saklama Motoru (`instagram`)** — `Tier: 2` — Instagram kamuya açık profil, gönderi/reel, karusel, kullanıcı yorumları (`InstagramCommentRecord`), etiket ve son medya akışını toplayan ikili motorlu (HTTP API + Playwright Chromium Stealth fallback) aktör mimarisi geliştirildi. Verilerin sıfır kayıpla ilişkisel saklanması için `InstagramDatabase` (`src/storage/instagram-database.ts`) SQLite motoru inşa edildi; 9 normalize tablo (`instagram_profiles`, `instagram_profile_snapshots`, `instagram_posts`, `instagram_post_slides`, `instagram_comments`, `instagram_hashtags`, `instagram_post_hashtags`, `instagram_post_mentions`, `instagram_harvest_runs`) ve geleceğe dönük `raw_json` yedek kolonları kuruldu. `POST /api/v1/instagram` REST rotası (`src/api/server.ts`), `query_instagram` MCP aracı (`src/mcp/protokol-mcp-server.ts`), `docs/actors/instagram.md`, `examples/actors/instagram.json`, `tests/instagram-actor.test.ts` (11 test) ve `tests/instagram-database.test.ts` (5 test) eksiksiz tamamlandı. Canlı `pratik.psikoloji` profili ve 12 gönderisi `data/instagram.sqlite` veritabanına başarıyla yazıldı. `npm run verify` 6/6 onaylandı. Walkthrough: [`docs/walkthroughs/instagram-veritabani-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/instagram-veritabani-walkthrough.md).
 
