@@ -40,6 +40,7 @@ import { PapersWithCodeActor } from "./corpus/papers-with-code-actor";
 import { PerseusDlActor } from "./corpus/perseus-dl-actor";
 import { PhilPapersActor } from "./corpus/philpapers-actor";
 import { ProofWikiActor } from "./corpus/proofwiki-actor";
+import { PubmedActor } from "./corpus/pubmed-actor";
 import { ResmiGazeteActor } from "./corpus/resmi-gazete-actor";
 import { RosettaCodeActor } from "./corpus/rosetta-code-actor";
 import { SacredTextsActor } from "./corpus/sacred-texts-actor";
@@ -169,5 +170,6 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new PerseusDlActor());
   registry.register(new SacredTextsActor());
   registry.register(new InstagramActor());
+  registry.register(new PubmedActor());
   return registry;
 }

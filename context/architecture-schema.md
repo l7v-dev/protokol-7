@@ -69,6 +69,7 @@ Categorized into 5 primary domains accessible via `src/actors/corpus/domains/`:
 | `src/actors/corpus/stack-exchange-actor.ts` | `StackExchangeActor` | Stack Exchange API v2.3 — verified algorithmic Q&A and instruction-tuning pairs. |
 | `src/actors/corpus/gutenberg-actor.ts` | `GutenbergActor` | Gutendex API — public domain books with license block stripping. |
 | `src/actors/corpus/europe-pmc-actor.ts` | `EuropePmcActor` | Europe PMC REST API — biomedical literature and open-access full-text links. |
+| `src/actors/corpus/pubmed-actor.ts` | `PubmedActor` | NCBI E-utilities (esearch, esummary, efetch) & BioC API — peer-reviewed biomedical literature, abstracts, MeSH headings, and PMC articles. |
 | `src/actors/corpus/ietf-rfc-actor.ts` | `IetfRfcActor` | IETF RFC Editor + Datatracker — Internet standards with plain-text cleaning. |
 | `src/actors/corpus/openstax-actor.ts` | `OpenStaxActor` | OpenStax CMS API — CC-licensed peer-reviewed textbooks and chapter content. |
 | `src/actors/corpus/mit-ocw-actor.ts` | `MitOcwActor` | MIT OCW OpenSearch DSL — university curricula, syllabi, and course resources. |
@@ -294,6 +295,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `pipelines/dump/corpus_pipeline/` | Corpus Orchestrator | TextNormalizer (NFKC), QualityFilter (FineWeb/Gopher), ParquetPacker, 4-point verification gate. |
 | `pipelines/api_stream/openalex/` | OpenAlex API Streamer | Cursor pagination streamer, inverted index abstract reconstructor, Parquet sharder, Drive sync. |
 | `pipelines/api_stream/semantic_scholar/` | Semantic Scholar Streamer | S2 bulk API streamer, metadata cleaner, PDF extraction, Zstd Parquet sharder, Drive sync. |
+| `pipelines/api_stream/pubmed/` | PubMed / PMC API Streamer | NCBI E-utilities / BioC XML parser, rate-limited streamer, MeSH cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
 | `scripts/scaffold/scaffold-pipeline.py` | Pipeline Scaffolder CLI | Command-line code generator for new ETL pipelines (`snapshot`, `dump`, `api_stream`, `multimodal`). |
 
 ---
@@ -400,6 +402,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `tests/sacred-texts-actor.test.ts` | `SacredTextsActor`, `src/api/server.ts` | Internet Sacred Text Archive kitap pasajı, çevirmen, dipnotlar, gelenek kataloğu, SSRF denetimi ve REST rotası. |
 | `tests/instagram-actor.test.ts` | `InstagramActor`, `src/api/server.ts` | Instagram profile normalization, post/reel media extraction, hashtag feed, dual-engine fallback, SSRF defense, and REST route. |
 | `tests/instagram-database.test.ts` | `InstagramDatabase` | SQLite relational database engine, profile/post/slide/comment/hashtag/mention persistence, growth snapshots, ACID transactions, and queries. |
+| `tests/pubmed-actor.test.ts` | `PubmedActor`, `src/api/server.ts` | PubMed XML parsing, structured abstracts, MeSH headings, NCBI esummary JSON, BioC JSON, SSRF guard, and REST route. |
 
 ---
 

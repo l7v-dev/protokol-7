@@ -1,6 +1,6 @@
 # Connectome — Otomatik Üretilen Sistem Haritası
 
-> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-10-01). Elle düzenlenmez.
+> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-10-02). Elle düzenlenmez.
 > Çözümleyici Motor: TypeScript Compiler API AST (v5.9.3)
 
 ## Çekirdek Modüller ve Mimari Düğümler (Centrality)
@@ -9,20 +9,22 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 148 | 275 | Yardımcı Modül |
-| `src/dataset/types.ts` | 148 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 148 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 148 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 68 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 65 | 3 | Yardımcı Modül |
-| `src/api/server.ts` | 19 | 1 | Giriş Noktası (Server) |
-| `src/server.ts` | 19 | 0 | Giriş Noktası (Server) |
+| `src/api/types.ts` | 150 | 278 | Yardımcı Modül |
+| `src/dataset/types.ts` | 150 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 150 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 150 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 69 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 66 | 3 | Yardımcı Modül |
+| `src/api/server.ts` | 20 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 20 | 0 | Giriş Noktası (Server) |
 | `src/api/registry-database.ts` | 15 | 9 | Bileşen Tescili (Registry) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
+| `src/actors/corpus/domains/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/actors/documents/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/api/index.ts` | 10 | 0 | Yardımcı Modül |
+| `src/browser/browser-pool.ts` | 10 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/dataset/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/mcp/index.ts` | 10 | 0 | Yardımcı Modül |
@@ -33,7 +35,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/processors/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/index.ts` | 10 | 2 | Yardımcı Modül |
 | `src/vault/index.ts` | 10 | 0 | Yardımcı Modül |
-| `src/browser/browser-pool.ts` | 9 | 4 | Kaynak Yöneticisi (BrowserPool) |
 | `src/pipeline/pipeline-runner.ts` | 9 | 4 | Yardımcı Modül |
 | `src/api/run-registry.ts` | 8 | 6 | Bileşen Tescili (Registry) |
 | `src/actors/actor-registry.ts` | 7 | 2 | Bileşen Tescili (Registry) |
@@ -44,11 +45,13 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/actor-manifests.ts` | 5 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/structured-extractor.ts` | 5 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
+| `scripts/terminal-theme.mjs` | 4 | 7 | Yardımcı Modül |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
+| `src/storage/instagram-database.ts` | 4 | 4 | Yardımcı Modül |
+| `src/utils/terminal-theme.ts` | 4 | 8 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
-| `scripts/terminal-theme.mjs` | 3 | 7 | Yardımcı Modül |
 | `src/actors/documents/pdf-document-actor.ts` | 3 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/dataset/dataset-publisher.ts` | 3 | 2 | Yardımcı Modül |
 | `src/extractors/pdf-anomaly-detector.ts` | 3 | 2 | Etki Alanı Aktörü (Actor) |
@@ -62,7 +65,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/storage/b2-storage.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/local-storage.ts` | 3 | 1 | Yardımcı Modül |
 | `src/pipeline/storage/r2-storage.ts` | 3 | 2 | Yardımcı Modül |
-| `src/utils/terminal-theme.ts` | 3 | 8 | Yardımcı Modül |
+| `src/storage/object-vault.ts` | 3 | 5 | Yardımcı Modül |
 | `src/vault/cold-vault-exporter.ts` | 3 | 1 | Yardımcı Modül |
 | `src/actors/corpus/anayasa-mahkemesi-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -100,6 +103,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/perseus-dl-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/philpapers-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/proofwiki-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/pubmed-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/resmi-gazete-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/rosetta-code-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/sacred-texts-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -146,7 +150,6 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/processors/quality-filter.ts` | 2 | 4 | Yardımcı Modül |
 | `src/pipeline/processors/text-normalizer.ts` | 2 | 3 | Yardımcı Modül |
 | `src/pipeline/storage/google-drive-storage.ts` | 2 | 3 | Yardımcı Modül |
-| `src/storage/instagram-database.ts` | 2 | 4 | Yardımcı Modül |
 | `src/actors/corpus/wikimedia-actor.ts` | 1 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/api-extractor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/crawler-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
@@ -177,7 +180,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/checkpoint.mjs` | 0 | 3 | Yardımcı Modül |
 | `scripts/consolidate-memory.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/doctor.mjs` | 0 | 0 | Yardımcı Modül |
+| `scripts/download_instagram_media.ts` | 0 | 1 | Yardımcı Modül |
 | `scripts/generate-connectome.mjs` | 0 | 4 | Sistem Haritacısı |
+| `scripts/harvest_instagram_profile.ts` | 0 | 1 | Yardımcı Modül |
 | `scripts/logs.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/omega-mcp-server.mjs` | 0 | 0 | Giriş Noktası (Server) |
 | `scripts/omega-memory.mjs` | 0 | 0 | Semantik Bellek |
@@ -187,6 +192,11 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/scaffold-actor.mjs` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `scripts/verify-pipeline.mjs` | 0 | 0 | Doğrulama Hattı |
 | `src/actors/actor.template.ts` | 0 | 3 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/domains/academic.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/domains/legal.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/domains/philosophy-humanities.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/domains/reasoning-code.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/domains/wikimedia.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/ocr/ocr-connector-registry.ts` | 0 | 3 | Bileşen Tescili (Registry) |
 | `src/pipeline/cli.ts` | 0 | 0 | Yardımcı Modül |
 | `src/types/node-sqlite.d.ts` | 0 | 0 | Yardımcı Modül |
@@ -241,6 +251,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/mit-ocw-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/multi-column-layout-resolver.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/network-interceptor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/object-vault.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/ocr-connectors.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/office-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/open-fda-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -264,6 +275,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/proofwiki-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/protokol-mcp-server.test.ts` | 0 | 0 | Giriş Noktası (Server) |
 | `tests/proxy-manager.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/pubmed-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/readability-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/registry-database.test.ts` | 0 | 0 | Bileşen Tescili (Registry) |
 | `tests/resmi-gazete-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -386,6 +398,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `perseus-dl` | `PerseusDlActor` |
 | `sacred-texts` | `SacredTextsActor` |
 | `instagram` | `InstagramActor` |
+| `pubmed` | `PubmedActor` |
 | `unlimited-ocr-connector` | `UnlimitedOcrConnector` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
@@ -406,6 +419,11 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `listCheckpoints(): void`
 - `rollbackCheckpoint(targetId): void`
 
+### `scripts/download_instagram_media.ts`
+
+**Fonksiyonlar (Functions):**
+- `downloadInstagramMedia(options: DownloaderOptions): void`
+
 ### `scripts/generate-connectome.mjs`
 
 **Fonksiyonlar (Functions):**
@@ -413,6 +431,11 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `parseFileAST(filePath, sourceText): void`
 - `buildDependencyGraph(fileMap): void`
 - `generateConnectome(target): void`
+
+### `scripts/harvest_instagram_profile.ts`
+
+**Fonksiyonlar (Functions):**
+- `harvestInstagramProfile(options: HarvestOptions): void`
 
 ### `scripts/telemetry-logger.mjs`
 
@@ -1012,6 +1035,16 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   }`
   - `normalizeMath(text: string): string`
   - `renderMarkdown(action: string, items: ProofWikiItem[]): string`
+
+### `src/actors/corpus/pubmed-actor.ts`
+
+**Sınıflar (Classes):**
+- `class PubmedActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<PubmedActorResult>>`
+  - `buildApiUrl(targetUrl: string | undefined, options: PubmedActorTaskOptions, action: "search" | "summary" | "fetch" | "bioc"): string`
+  - `parsePubmedXml(xmlText: string): PubmedArticleItem[]`
+  - `parseEsummaryJson(resultObj: Record<string, unknown>): PubmedArticleItem[]`
+  - `parseBioCJson(biocObj: RawBioCResult): PubmedArticleItem[]`
 
 ### `src/actors/corpus/resmi-gazete-actor.ts`
 
@@ -1754,6 +1787,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface EuropePmcArticleItem` (13 üye)
 - `interface EuropePmcActorTaskOptions` (6 üye)
 - `interface EuropePmcActorResult` (4 üye)
+- `interface PubmedArticleItem` (13 üye)
+- `interface PubmedActorTaskOptions` (7 üye)
+- `interface PubmedActorResult` (5 üye)
 - `interface IetfRfcItem` (10 üye)
 - `interface IetfRfcActorTaskOptions` (7 üye)
 - `interface IetfRfcActorResult` (3 üye)
@@ -2654,11 +2690,55 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
   - `listComments(postShortcode: string, limit, offset): InstagramCommentRecord[]`
   - `getStats(): InstagramDatabaseStats`
   - `mapPostRow(row: Record<string, unknown>): InstagramMediaRecord`
+  - `getExistingShortcodes(ownerUsername: string): Set<string>`
+  - `updatePostLocalPath(shortcode: string, localPath: string): void`
+  - `updateSlideLocalPath(id: string, localPath: string): void`
+  - `getPendingMediaDownloads(username: string): {
+    posts: Array<{
+      id: string;
+      shortcode: string;
+      owner_username: string;
+      media_type: string;
+      display_url: string;
+      video_url?: string;
+      local_path?: string;
+    }>;
+    slides: Array<{
+      id: string;
+      post_shortcode: string;
+      slide_order: number;
+      media_type: string;
+      display_url: string;
+      video_url?: string;
+      owner_username: string;
+      local_path?: string;
+    }>;
+  }`
   - `close(): void`
 **Arayüzler (Interfaces):**
 - `interface InstagramDatabaseOptions` (2 üye)
 - `interface InstagramHarvestRunRecord` (10 üye)
 - `interface InstagramDatabaseStats` (7 üye)
+
+### `src/storage/object-vault.ts`
+
+**Sınıflar (Classes):**
+- `class ObjectVault`
+  - `resolvePath(actor: string, targetId: string, category: MediaCategory, filename: string): {
+    absolutePath: string;
+    relativePath: string;
+    directory: string;
+  }`
+  - `hasAsset(actor: string, targetId: string, category: MediaCategory, filename: string): boolean`
+  - `saveBuffer(buffer: Buffer | Uint8Array, options: StoreObjectOptions): Promise<StoredObjectMetadata>`
+  - `downloadAsset(url: string, options: StoreObjectOptions, customHeaders: Record<string, string>): Promise<StoredObjectMetadata>`
+  - `appendManifestLedger(metadata: StoredObjectMetadata): Promise<void>`
+**Arayüzler (Interfaces):**
+- `interface ObjectVaultOptions` (1 üye)
+- `interface StoredObjectMetadata` (11 üye)
+- `interface StoreObjectOptions` (7 üye)
+**Tipler (Types):**
+- `type MediaCategory`
 
 ### `src/telemetry/anomalies.ts`
 
@@ -2708,7 +2788,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/checkpoint.mjs` |
 | `scripts/consolidate-memory.mjs` |
 | `scripts/doctor.mjs` |
+| `scripts/download_instagram_media.ts` |
 | `scripts/generate-connectome.mjs` |
+| `scripts/harvest_instagram_profile.ts` |
 | `scripts/logs.mjs` |
 | `scripts/omega-mcp-server.mjs` |
 | `scripts/omega-memory.mjs` |
@@ -2730,6 +2812,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/danistay-actor.ts` |
 | `src/actors/corpus/dergipark-actor.ts` |
 | `src/actors/corpus/devdocs-actor.ts` |
+| `src/actors/corpus/domains/academic.ts` |
+| `src/actors/corpus/domains/index.ts` |
+| `src/actors/corpus/domains/legal.ts` |
+| `src/actors/corpus/domains/philosophy-humanities.ts` |
+| `src/actors/corpus/domains/reasoning-code.ts` |
+| `src/actors/corpus/domains/wikimedia.ts` |
 | `src/actors/corpus/eur-lex-actor.ts` |
 | `src/actors/corpus/europe-pmc-actor.ts` |
 | `src/actors/corpus/github-actor.ts` |
@@ -2747,13 +2835,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/lean-mathlib-actor.ts` |
 | `src/actors/corpus/lesswrong-actor.ts` |
 | `src/actors/corpus/libretexts-actor.ts` |
-| `src/actors/corpus/math-reasoning-actor.ts` |
-| `src/actors/corpus/metamath-actor.ts` |
-| `src/actors/corpus/mit-ocw-actor.ts` |
-| `src/actors/corpus/open-fda-actor.ts` |
-| `src/actors/corpus/open-textbook-actor.ts` |
-| `src/actors/corpus/openalex-actor.ts` |
-| `src/actors/corpus/openreview-actor.ts` |
-| `src/actors/corpus/openstax-actor.ts` |
-| *... ve 246 dosya daha* |
+| *... ve 258 dosya daha* |
 

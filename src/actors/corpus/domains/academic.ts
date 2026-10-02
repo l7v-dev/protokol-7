@@ -11,6 +11,7 @@ export * from "../europe-pmc-actor";
 export * from "../open-fda-actor";
 export * from "../openalex-actor";
 export * from "../openreview-actor";
+export * from "../pubmed-actor";
 export * from "../saglik-ekutuphane-actor";
 export * from "../sec-edgar-actor";
 export * from "../semantic-scholar-actor";

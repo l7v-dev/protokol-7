@@ -78,7 +78,8 @@ export type ActorType =
   | "google-patents"
   | "perseus-dl"
   | "sacred-texts"
-  | "instagram";
+  | "instagram"
+  | "pubmed";
 
 export interface ExtractedTable {
   id: string;
@@ -2068,6 +2069,40 @@ export interface EuropePmcActorResult {
   queryUrl: string;
 }
 
+export interface PubmedArticleItem {
+  pmid: string;
+  pmcid?: string;
+  doi?: string;
+  title: string;
+  abstractText?: string;
+  journalTitle?: string;
+  pubDate?: string;
+  pubYear?: number;
+  authors: string[];
+  meshHeadings?: string[];
+  pubTypes?: string[];
+  fullTextUrl?: string;
+  markdown?: string;
+}
+
+export interface PubmedActorTaskOptions {
+  action?: "search" | "summary" | "fetch" | "bioc";
+  query?: string;
+  pmids?: string[];
+  pmcids?: string[];
+  maxResults?: number;
+  apiKey?: string;
+  timeoutMs?: number;
+}
+
+export interface PubmedActorResult {
+  action: "search" | "summary" | "fetch" | "bioc";
+  totalCount: number;
+  pmids: string[];
+  articles: PubmedArticleItem[];
+  queryUrl: string;
+}
+
 export interface IetfRfcItem {
   rfcNumber: number;
   title: string;
@@ -3027,6 +3062,7 @@ export interface ActorTask {
     perseusDlOptions?: PerseusDlActorTaskOptions;
     sacredTextsOptions?: SacredTextsActorTaskOptions;
     instagramOptions?: InstagramActorTaskOptions;
+    pubmedOptions?: PubmedActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

@@ -41,6 +41,7 @@ export * from "./papers-with-code-actor";
 export * from "./perseus-dl-actor";
 export * from "./philpapers-actor";
 export * from "./proofwiki-actor";
+export * from "./pubmed-actor";
 export * from "./resmi-gazete-actor";
 export * from "./rosetta-code-actor";
 export * from "./sacred-texts-actor";

@@ -3947,6 +3947,59 @@ export function createServer(): http.Server {
         return;
       }
 
+      // PubMed & PMC Biomedical Literature Extractor (/pubmed or /api/v1/pubmed)
+      if (method === "POST" && (pathname === "/api/v1/pubmed" || pathname === "/pubmed")) {
+        const body = await parseBody<{
+          action?: "search" | "summary" | "fetch" | "bioc";
+          query?: string;
+          pmids?: string[];
+          pmcids?: string[];
+          maxResults?: number;
+          apiKey?: string;
+          targetUrl?: string;
+          timeoutMs?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const pubmedActor = registry.get("pubmed");
+        if (!pubmedActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "PubMed extractor actor is not available.",
+            "Ensure PubmedActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `pubmed-${Date.now()}`,
+          actorType: "pubmed",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            pubmedOptions: {
+              action: body.action,
+              query: body.query,
+              pmids: body.pmids,
+              pmcids: body.pmcids,
+              maxResults: body.maxResults,
+              apiKey: body.apiKey,
+              timeoutMs: body.timeoutMs,
+              ...body.options?.pubmedOptions,
+            },
+          },
+        };
+
+        const result = await pubmedActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

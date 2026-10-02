@@ -65,9 +65,10 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 80);
+    assert.equal(result.tools.length, 81);
 
     const toolNames = result.tools.map((t) => t.name);
+    assert.ok(toolNames.includes("query_pubmed"));
     assert.ok(toolNames.includes("query_instagram"));
     assert.ok(toolNames.includes("wikipedia_query"));
     assert.ok(toolNames.includes("query_youtube_transcripts"));

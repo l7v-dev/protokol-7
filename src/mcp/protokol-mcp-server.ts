@@ -60,6 +60,7 @@ import type {
   PerseusDlActorTaskOptions,
   PhilPapersActorTaskOptions,
   ProofWikiActorTaskOptions,
+  PubmedActorTaskOptions,
   ResmiGazeteActorTaskOptions,
   RosettaCodeActorTaskOptions,
   SacredTextsActorTaskOptions,
@@ -1415,6 +1416,10 @@ export class ProtokolMcpServer {
             instagramOptions:
               manifest.actorType === "instagram"
                 ? (toolArgs as unknown as InstagramActorTaskOptions)
+                : undefined,
+            pubmedOptions:
+              manifest.actorType === "pubmed"
+                ? (toolArgs as unknown as PubmedActorTaskOptions)
                 : undefined,
           },
         };

@@ -8331,4 +8331,132 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+  pubmed: {
+    actorType: "pubmed",
+    name: "pubmed",
+    title: "PubMed & PMC Biomedical Literature Extractor",
+    category: "API",
+    version: "1.0.0",
+    description:
+      "Queries NCBI E-utilities (esearch, esummary, efetch) and BioC API for peer-reviewed biomedical literature, abstracts, MeSH terms, and PMC open-access articles.",
+    author: "protokol-7",
+    tags: ["pubmed", "pmc", "biomedical", "mesh", "ncbi", "llm-data"],
+    inputSchema: {
+      type: "object",
+      title: "PubMed Extractor Input",
+      description: "NCBI E-utilities and BioC API search and retrieval parameters",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["search", "summary", "fetch", "bioc"],
+          description: "Execution action mode: search (default), summary, fetch, or bioc",
+        },
+        query: {
+          type: "string",
+          description: "Entrez search query (e.g. 'CRISPR Cas9 cancer immunotherapy')",
+        },
+        pmids: {
+          type: "array",
+          items: { type: "string" },
+          description: "List of PubMed IDs (PMIDs) to retrieve",
+        },
+        pmcids: {
+          type: "array",
+          items: { type: "string" },
+          description: "List of PubMed Central IDs (PMCIDs) to retrieve",
+        },
+        maxResults: {
+          type: "number",
+          description: "Maximum records to return (1-100, default 20)",
+        },
+        apiKey: {
+          type: "string",
+          description: "NCBI API Key for higher rate limits (up to 10 req/s)",
+        },
+        targetUrl: {
+          type: "string",
+          description: "Optional custom or proxy target URL for NCBI API requests",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        action: { type: "string" },
+        totalCount: { type: "number" },
+        pmids: { type: "array", items: { type: "string" } },
+        articles: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              pmid: { type: "string" },
+              pmcid: { type: "string" },
+              doi: { type: "string" },
+              title: { type: "string" },
+              abstractText: { type: "string" },
+              journalTitle: { type: "string" },
+              pubDate: { type: "string" },
+              pubYear: { type: "number" },
+              authors: { type: "array", items: { type: "string" } },
+              meshHeadings: { type: "array", items: { type: "string" } },
+              pubTypes: { type: "array", items: { type: "string" } },
+              fullTextUrl: { type: "string" },
+              markdown: { type: "string" },
+            },
+          },
+        },
+        queryUrl: { type: "string" },
+      },
+    },
+    exampleInput: {
+      query: "CRISPR-Cas9 gene editing",
+      maxResults: 10,
+    },
+    readme:
+      "# PubMed & PMC Biomedical Literature Extractor\n\nNCBI E-utilities (esearch, esummary, efetch) ve BioC API uzerinden hakemli biyomedikal literaturu, ozetleri, MeSH terimlerini ve acik erisim tam metinleri ceker.",
+    mcpTool: {
+      name: "query_pubmed",
+      description:
+        "Queries NCBI E-utilities (esearch, esummary, efetch) and BioC API for peer-reviewed biomedical literature, abstracts, MeSH terms, and PMC open-access articles.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["search", "summary", "fetch", "bioc"],
+            description: "Execution action mode: search (default), summary, fetch, or bioc",
+          },
+          query: {
+            type: "string",
+            description: "Entrez search query (e.g. 'CRISPR Cas9 cancer immunotherapy')",
+          },
+          pmids: {
+            type: "array",
+            items: { type: "string" },
+            description: "List of PubMed IDs (PMIDs) to retrieve",
+          },
+          pmcids: {
+            type: "array",
+            items: { type: "string" },
+            description: "List of PubMed Central IDs (PMCIDs) to retrieve",
+          },
+          maxResults: {
+            type: "number",
+            description: "Maximum records to return (1-100, default 20)",
+          },
+          apiKey: {
+            type: "string",
+            description: "NCBI API Key for higher rate limits (up to 10 req/s)",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Optional custom or proxy target URL for NCBI API requests",
+          },
+        },
+        required: [],
+      },
+    },
+  },
 };
