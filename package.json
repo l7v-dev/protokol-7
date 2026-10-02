@@ -24,6 +24,7 @@
     "mcp": "node scripts/omega-mcp-server.mjs",
     "mcp:server": "tsx src/mcp/protokol-mcp-server.ts",
     "doctor": "node scripts/doctor.mjs",
+    "dbx:sync": "python3 scripts/sync-dbx-connections.py",
     "checkpoint": "node scripts/checkpoint.mjs create",
     "rollback": "node scripts/checkpoint.mjs rollback",
     "pipedream": "node scripts/pipedream-cli.mjs",
