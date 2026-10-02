@@ -9,14 +9,14 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 150 | 278 | Yardımcı Modül |
-| `src/dataset/types.ts` | 150 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 150 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 150 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 69 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 66 | 3 | Yardımcı Modül |
-| `src/api/server.ts` | 20 | 1 | Giriş Noktası (Server) |
-| `src/server.ts` | 20 | 0 | Giriş Noktası (Server) |
+| `src/api/types.ts` | 151 | 281 | Yardımcı Modül |
+| `src/dataset/types.ts` | 151 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 151 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 151 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 70 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 67 | 3 | Yardımcı Modül |
+| `src/api/server.ts` | 21 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 21 | 0 | Giriş Noktası (Server) |
 | `src/api/registry-database.ts` | 15 | 9 | Bileşen Tescili (Registry) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
 | `src/actors/corpus/domains/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
@@ -69,6 +69,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/vault/cold-vault-exporter.ts` | 3 | 1 | Yardımcı Modül |
 | `src/actors/corpus/anayasa-mahkemesi-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/biorxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/clinical-trials-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/code-eval-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/court-listener-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -207,6 +208,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/archive-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/archive-guard.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/arxiv-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/biorxiv-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/browser-pool.test.ts` | 0 | 0 | Kaynak Yöneticisi (BrowserPool) |
 | `tests/browser-session-manager.test.ts` | 0 | 0 | Oturum Denetleyicisi |
 | `tests/clinical-trials-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -399,6 +401,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `sacred-texts` | `SacredTextsActor` |
 | `instagram` | `InstagramActor` |
 | `pubmed` | `PubmedActor` |
+| `biorxiv` | `BiorxivActor` |
 | `unlimited-ocr-connector` | `UnlimitedOcrConnector` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
@@ -513,6 +516,36 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
     papers: ArxivPaperItem[];
   }`
   - `enrichPapersWithPdfText(papers: ArxivPaperItem[], timeoutMs: number, allowLocalNetwork: boolean): Promise<void>`
+
+### `src/actors/corpus/biorxiv-actor.ts`
+
+**Sınıflar (Classes):**
+- `class BiorxivActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<BiorxivActorResult>>`
+  - `buildApiUrl(targetUrl: string | undefined, options: BiorxivActorTaskOptions, server: string): string`
+  - `synthesizeArticleMarkdown(item: {
+    doi: string;
+    title: string;
+    server: string;
+    category: string;
+    pubDate?: string;
+    version?: number;
+    authors?: string;
+    institution?: string;
+    license?: string;
+    publishedDoi?: string;
+    abstractText?: string;
+  }): string`
+  - `synthesizeOverallMarkdown(meta: {
+    server: string;
+    totalCount: number;
+    cursor: number;
+    articles: BiorxivArticleItem[];
+    query?: string;
+    category?: string;
+    interval?: string;
+    doi?: string;
+  }): string`
 
 ### `src/actors/corpus/clinical-trials-actor.ts`
 
@@ -1790,6 +1823,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface PubmedArticleItem` (13 üye)
 - `interface PubmedActorTaskOptions` (7 üye)
 - `interface PubmedActorResult` (5 üye)
+- `interface BiorxivArticleItem` (15 üye)
+- `interface BiorxivActorTaskOptions` (8 üye)
+- `interface BiorxivActorResult` (6 üye)
 - `interface IetfRfcItem` (10 üye)
 - `interface IetfRfcActorTaskOptions` (7 üye)
 - `interface IetfRfcActorResult` (3 üye)
@@ -2806,6 +2842,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/actor.template.ts` |
 | `src/actors/corpus/anayasa-mahkemesi-actor.ts` |
 | `src/actors/corpus/arxiv-actor.ts` |
+| `src/actors/corpus/biorxiv-actor.ts` |
 | `src/actors/corpus/clinical-trials-actor.ts` |
 | `src/actors/corpus/code-eval-actor.ts` |
 | `src/actors/corpus/court-listener-actor.ts` |
@@ -2834,6 +2871,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/ktb-ekitap-actor.ts` |
 | `src/actors/corpus/lean-mathlib-actor.ts` |
 | `src/actors/corpus/lesswrong-actor.ts` |
-| `src/actors/corpus/libretexts-actor.ts` |
-| *... ve 258 dosya daha* |
+| *... ve 260 dosya daha* |
 

@@ -8459,4 +8459,145 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+  biorxiv: {
+    actorType: "biorxiv",
+    name: "biorxiv",
+    title: "bioRxiv & medRxiv Life Sciences Preprint Extractor",
+    category: "API",
+    version: "1.0.0",
+    description:
+      "Queries Cold Spring Harbor Laboratory (CSHL) bioRxiv and medRxiv REST API for biology and health sciences preprints, metadata, abstracts, and author affiliations.",
+    author: "protokol-7",
+    tags: ["biorxiv", "medrxiv", "preprints", "biology", "medicine", "cshl", "llm-data"],
+    inputSchema: {
+      type: "object",
+      title: "bioRxiv & medRxiv Extractor Input",
+      description: "CSHL bioRxiv & medRxiv Details API query parameters",
+      properties: {
+        server: {
+          type: "string",
+          enum: ["biorxiv", "medrxiv"],
+          description:
+            "Preprint server: 'biorxiv' (biology/life sciences) or 'medrxiv' (health sciences/clinical)",
+        },
+        doi: {
+          type: "string",
+          description: "Preprint DOI to retrieve (e.g. '10.1101/2026.01.01.697424')",
+        },
+        interval: {
+          type: "string",
+          description: "Date interval format YYYY-MM-DD/YYYY-MM-DD (e.g. '2026-01-01/2026-10-02')",
+        },
+        category: {
+          type: "string",
+          description:
+            "Subject category filter (e.g. 'neuroscience', 'bioinformatics', 'rheumatology')",
+        },
+        query: {
+          type: "string",
+          description: "Keyword search query for client-side filtering on title and abstract",
+        },
+        cursor: {
+          type: "number",
+          description: "Pagination cursor offset (starts at 0)",
+        },
+        limit: {
+          type: "number",
+          description: "Maximum records to return (default 30)",
+        },
+        targetUrl: {
+          type: "string",
+          description: "Optional custom or proxy target URL for CSHL API requests",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        server: { type: "string" },
+        totalCount: { type: "number" },
+        cursor: { type: "number" },
+        articles: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              doi: { type: "string" },
+              title: { type: "string" },
+              server: { type: "string" },
+              category: { type: "string" },
+              pubDate: { type: "string" },
+              pubYear: { type: "number" },
+              version: { type: "number" },
+              authors: { type: "string" },
+              correspondingAuthor: { type: "string" },
+              institution: { type: "string" },
+              license: { type: "string" },
+              publishedDoi: { type: "string" },
+              abstractText: { type: "string" },
+              jatsxmlUrl: { type: "string" },
+              markdown: { type: "string" },
+            },
+          },
+        },
+        queryUrl: { type: "string" },
+        markdown: { type: "string" },
+      },
+    },
+    exampleInput: {
+      server: "biorxiv",
+      interval: "2026-01-01/2026-10-02",
+      category: "neuroscience",
+      limit: 10,
+    },
+    readme:
+      "# bioRxiv & medRxiv Life Sciences Preprint Extractor\n\nCold Spring Harbor Laboratory (CSHL) bioRxiv ve medRxiv REST API uzerinden biyoloji, klinik tip ve saglik bilimleri on-baskilarini, ozetlerini, yazar kurumlarini ve yayinlanan makale eslesmelerini ceker.",
+    mcpTool: {
+      name: "query_biorxiv",
+      description:
+        "Queries Cold Spring Harbor Laboratory (CSHL) bioRxiv and medRxiv REST API for biology and health sciences preprints, metadata, abstracts, and author affiliations.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          server: {
+            type: "string",
+            enum: ["biorxiv", "medrxiv"],
+            description: "Target repository: 'biorxiv' or 'medrxiv'",
+          },
+          doi: {
+            type: "string",
+            description: "Preprint DOI to retrieve (e.g. '10.1101/2026.01.01.697424')",
+          },
+          interval: {
+            type: "string",
+            description:
+              "Date interval format YYYY-MM-DD/YYYY-MM-DD (e.g. '2026-01-01/2026-10-02')",
+          },
+          category: {
+            type: "string",
+            description:
+              "Subject category (e.g. 'neuroscience', 'genomics', 'infectious diseases')",
+          },
+          query: {
+            type: "string",
+            description: "Keyword search query for preprint titles and abstracts",
+          },
+          cursor: {
+            type: "number",
+            description: "Pagination cursor offset (starts at 0)",
+          },
+          limit: {
+            type: "number",
+            description: "Maximum records to return (default 30)",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Optional custom or proxy target URL for CSHL API requests",
+          },
+        },
+        required: [],
+      },
+    },
+  },
 };

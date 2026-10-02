@@ -79,7 +79,8 @@ export type ActorType =
   | "perseus-dl"
   | "sacred-texts"
   | "instagram"
-  | "pubmed";
+  | "pubmed"
+  | "biorxiv";
 
 export interface ExtractedTable {
   id: string;
@@ -2103,6 +2104,44 @@ export interface PubmedActorResult {
   queryUrl: string;
 }
 
+export interface BiorxivArticleItem {
+  doi: string;
+  title: string;
+  server: "biorxiv" | "medrxiv" | string;
+  category: string;
+  pubDate?: string;
+  pubYear?: number;
+  version?: number;
+  authors?: string;
+  correspondingAuthor?: string;
+  institution?: string;
+  license?: string;
+  publishedDoi?: string;
+  abstractText?: string;
+  jatsxmlUrl?: string;
+  markdown?: string;
+}
+
+export interface BiorxivActorTaskOptions {
+  server?: "biorxiv" | "medrxiv";
+  doi?: string;
+  interval?: string;
+  category?: string;
+  query?: string;
+  cursor?: number;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface BiorxivActorResult {
+  server: string;
+  totalCount: number;
+  cursor: number;
+  articles: BiorxivArticleItem[];
+  queryUrl: string;
+  markdown: string;
+}
+
 export interface IetfRfcItem {
   rfcNumber: number;
   title: string;
@@ -3063,6 +3102,7 @@ export interface ActorTask {
     sacredTextsOptions?: SacredTextsActorTaskOptions;
     instagramOptions?: InstagramActorTaskOptions;
     pubmedOptions?: PubmedActorTaskOptions;
+    biorxivOptions?: BiorxivActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

@@ -216,32 +216,63 @@ class BaseLedger:
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
         with self._get_conn(self.central_db_path) as central_conn:
             c_cur = central_conn.cursor()
+            cols_info = c_cur.execute("PRAGMA table_info(dataset_shards);").fetchall()
+            col_names = {c["name"] if isinstance(c, dict) else c[1] for c in cols_info}
+            has_shard_index = "shard_index" in col_names
+
             for r in rows:
                 shard_id = f"{dataset_name}:{r['shard_name']}"
                 storage_uri = storage_uri_template.format(file_id=r["drive_file_id"])
-                c_cur.execute(
-                    """
-                    INSERT INTO dataset_shards (
-                        shard_id, dataset_name, shard_index, byte_size,
-                        record_count, sha256_checksum, storage_uri, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(shard_id) DO UPDATE SET
-                        record_count = excluded.record_count,
-                        byte_size = excluded.byte_size,
-                        sha256_checksum = excluded.sha256_checksum,
-                        storage_uri = excluded.storage_uri;
-                    """,
-                    (
-                        shard_id,
-                        dataset_name,
-                        r["part_index"],
-                        r["byte_size"],
-                        r["record_count"],
-                        r["sha256"],
-                        storage_uri,
-                        now,
-                    ),
-                )
+                if has_shard_index:
+                    c_cur.execute(
+                        """
+                        INSERT INTO dataset_shards (
+                            shard_id, dataset_name, shard_index, byte_size,
+                            record_count, sha256_checksum, storage_uri, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(shard_id) DO UPDATE SET
+                            record_count = excluded.record_count,
+                            byte_size = excluded.byte_size,
+                            sha256_checksum = excluded.sha256_checksum,
+                            storage_uri = excluded.storage_uri;
+                        """,
+                        (
+                            shard_id,
+                            dataset_name,
+                            r["part_index"],
+                            r["byte_size"],
+                            r["record_count"],
+                            r["sha256"],
+                            storage_uri,
+                            now,
+                        ),
+                    )
+                else:
+                    c_cur.execute(
+                        """
+                        INSERT INTO dataset_shards (
+                            shard_id, pipeline_run_id, dataset_name, file_name,
+                            storage_uri, storage_backend, record_count, size_bytes,
+                            sha256_hash, compression_codec, created_at
+                        ) VALUES (?, ?, ?, ?, ?, 'gdrive', ?, ?, ?, 'zstd', ?)
+                        ON CONFLICT(shard_id) DO UPDATE SET
+                            record_count = excluded.record_count,
+                            size_bytes = excluded.size_bytes,
+                            sha256_hash = excluded.sha256_hash,
+                            storage_uri = excluded.storage_uri;
+                        """,
+                        (
+                            shard_id,
+                            f"pipeline_{dataset_name}",
+                            dataset_name,
+                            r["shard_name"],
+                            storage_uri,
+                            r["record_count"],
+                            r["byte_size"],
+                            r["sha256"],
+                            now,
+                        ),
+                    )
                 synced += 1
             central_conn.commit()
 

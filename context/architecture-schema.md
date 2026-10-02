@@ -70,6 +70,7 @@ Categorized into 5 primary domains accessible via `src/actors/corpus/domains/`:
 | `src/actors/corpus/gutenberg-actor.ts` | `GutenbergActor` | Gutendex API — public domain books with license block stripping. |
 | `src/actors/corpus/europe-pmc-actor.ts` | `EuropePmcActor` | Europe PMC REST API — biomedical literature and open-access full-text links. |
 | `src/actors/corpus/pubmed-actor.ts` | `PubmedActor` | NCBI E-utilities (esearch, esummary, efetch) & BioC API — peer-reviewed biomedical literature, abstracts, MeSH headings, and PMC articles. |
+| `src/actors/corpus/biorxiv-actor.ts` | `BiorxivActor` | Cold Spring Harbor Laboratory (CSHL) bioRxiv & medRxiv REST API — biology, medical preprints, abstracts, and published peer-reviewed journal mappings. |
 | `src/actors/corpus/ietf-rfc-actor.ts` | `IetfRfcActor` | IETF RFC Editor + Datatracker — Internet standards with plain-text cleaning. |
 | `src/actors/corpus/openstax-actor.ts` | `OpenStaxActor` | OpenStax CMS API — CC-licensed peer-reviewed textbooks and chapter content. |
 | `src/actors/corpus/mit-ocw-actor.ts` | `MitOcwActor` | MIT OCW OpenSearch DSL — university curricula, syllabi, and course resources. |
@@ -296,6 +297,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `pipelines/api_stream/openalex/` | OpenAlex API Streamer | Cursor pagination streamer, inverted index abstract reconstructor, Parquet sharder, Drive sync. |
 | `pipelines/api_stream/semantic_scholar/` | Semantic Scholar Streamer | S2 bulk API streamer, metadata cleaner, PDF extraction, Zstd Parquet sharder, Drive sync. |
 | `pipelines/api_stream/pubmed/` | PubMed / PMC API Streamer | NCBI E-utilities / BioC XML parser, rate-limited streamer, MeSH cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
+| `pipelines/api_stream/biorxiv/` | bioRxiv / medRxiv API Streamer | CSHL Details REST API streamer, rate-limited cursor pagination, preprint cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
 | `scripts/scaffold/scaffold-pipeline.py` | Pipeline Scaffolder CLI | Command-line code generator for new ETL pipelines (`snapshot`, `dump`, `api_stream`, `multimodal`). |
 
 ---
@@ -403,6 +405,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `tests/instagram-actor.test.ts` | `InstagramActor`, `src/api/server.ts` | Instagram profile normalization, post/reel media extraction, hashtag feed, dual-engine fallback, SSRF defense, and REST route. |
 | `tests/instagram-database.test.ts` | `InstagramDatabase` | SQLite relational database engine, profile/post/slide/comment/hashtag/mention persistence, growth snapshots, ACID transactions, and queries. |
 | `tests/pubmed-actor.test.ts` | `PubmedActor`, `src/api/server.ts` | PubMed XML parsing, structured abstracts, MeSH headings, NCBI esummary JSON, BioC JSON, SSRF guard, and REST route. |
+| `tests/biorxiv-actor.test.ts` | `BiorxivActor`, `src/api/server.ts` | CSHL bioRxiv & medRxiv preprint queries, category filters, direct DOI lookups, query text filtering, SSRF guard, and REST route. |
 
 ---
 

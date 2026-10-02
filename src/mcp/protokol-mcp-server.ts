@@ -22,6 +22,7 @@ import type {
   ApiExtractorTaskOptions,
   ArchiveExtractorTaskOptions,
   ArxivActorTaskOptions,
+  BiorxivActorTaskOptions,
   ClinicalTrialsActorTaskOptions,
   CodeEvalActorTaskOptions,
   CourtListenerActorTaskOptions,
@@ -1420,6 +1421,10 @@ export class ProtokolMcpServer {
             pubmedOptions:
               manifest.actorType === "pubmed"
                 ? (toolArgs as unknown as PubmedActorTaskOptions)
+                : undefined,
+            biorxivOptions:
+              manifest.actorType === "biorxiv"
+                ? (toolArgs as unknown as BiorxivActorTaskOptions)
                 : undefined,
           },
         };

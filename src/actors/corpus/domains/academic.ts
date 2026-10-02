@@ -5,6 +5,7 @@
  */
 
 export * from "../arxiv-actor";
+export * from "../biorxiv-actor";
 export * from "../clinical-trials-actor";
 export * from "../dergipark-actor";
 export * from "../europe-pmc-actor";

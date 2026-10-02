@@ -4000,6 +4000,61 @@ export function createServer(): http.Server {
         return;
       }
 
+      // bioRxiv & medRxiv Life Sciences Preprint Extractor (/biorxiv or /api/v1/biorxiv)
+      if (method === "POST" && (pathname === "/api/v1/biorxiv" || pathname === "/biorxiv")) {
+        const body = await parseBody<{
+          server?: "biorxiv" | "medrxiv";
+          doi?: string;
+          interval?: string;
+          category?: string;
+          query?: string;
+          cursor?: number;
+          limit?: number;
+          targetUrl?: string;
+          timeoutMs?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const biorxivActor = registry.get("biorxiv");
+        if (!biorxivActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "bioRxiv extractor actor is not available.",
+            false
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `biorxiv-${Date.now()}`,
+          actorType: "biorxiv",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            biorxivOptions: {
+              server: body.server,
+              doi: body.doi,
+              interval: body.interval,
+              category: body.category,
+              query: body.query,
+              cursor: body.cursor,
+              limit: body.limit,
+              timeoutMs: body.timeoutMs,
+              ...body.options?.biorxivOptions,
+            },
+          },
+        };
+
+        const result = await biorxivActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

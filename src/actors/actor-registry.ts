@@ -6,6 +6,7 @@ import type { ActorType, IActor } from "../api/types";
 // corpus: LLM training data source actors
 import { AnayasaMahkemesiActor } from "./corpus/anayasa-mahkemesi-actor";
 import { ArxivActor } from "./corpus/arxiv-actor";
+import { BiorxivActor } from "./corpus/biorxiv-actor";
 import { ClinicalTrialsActor } from "./corpus/clinical-trials-actor";
 import { CodeEvalActor } from "./corpus/code-eval-actor";
 import { CourtListenerActor } from "./corpus/court-listener-actor";
@@ -171,5 +172,6 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new SacredTextsActor());
   registry.register(new InstagramActor());
   registry.register(new PubmedActor());
+  registry.register(new BiorxivActor());
   return registry;
 }

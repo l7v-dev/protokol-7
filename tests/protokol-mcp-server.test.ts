@@ -65,9 +65,10 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 81);
+    assert.equal(result.tools.length, 82);
 
     const toolNames = result.tools.map((t) => t.name);
+    assert.ok(toolNames.includes("query_biorxiv"));
     assert.ok(toolNames.includes("query_pubmed"));
     assert.ok(toolNames.includes("query_instagram"));
     assert.ok(toolNames.includes("wikipedia_query"));
@@ -1356,6 +1357,67 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.ok(typedTask.options?.semanticScholarOptions);
     assert.equal(typedTask.options.semanticScholarOptions.action, "paper");
     assert.equal(typedTask.options.semanticScholarOptions.paperId, "ARXIV:1706.03762");
+  });
+
+  it("dispatches query_biorxiv tool call to BiorxivActor with structured options", async () => {
+    let capturedTask: unknown;
+    const mockActor: IActor = {
+      actorType: "biorxiv",
+      description: "Mock bioRxiv actor",
+      async run(task) {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "biorxiv",
+          status: "completed",
+          statusCode: 200,
+          data: {
+            server: "biorxiv",
+            totalCount: 1,
+            cursor: 0,
+            articles: [],
+            queryUrl: "https://api.biorxiv.org/details/biorxiv/2026-01-01/2026-10-02/0/json",
+            markdown: "# bioRxiv preprints",
+          },
+          executionDurationMs: 5,
+        };
+      },
+    };
+
+    const registry = new ActorRegistry();
+    registry.register(mockActor);
+    const server = new ProtokolMcpServer(registry);
+
+    const res = await server.processRequest({
+      jsonrpc: "2.0",
+      id: "call-query-biorxiv",
+      method: "tools/call",
+      params: {
+        name: "query_biorxiv",
+        arguments: {
+          server: "biorxiv",
+          category: "neuroscience",
+          limit: 10,
+        },
+      },
+    });
+
+    assert.ok(res);
+    assert.equal(res.id, "call-query-biorxiv");
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        biorxivOptions?: {
+          server?: string;
+          category?: string;
+          limit?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.biorxivOptions);
+    assert.equal(typedTask.options.biorxivOptions.server, "biorxiv");
+    assert.equal(typedTask.options.biorxivOptions.category, "neuroscience");
+    assert.equal(typedTask.options.biorxivOptions.limit, 10);
   });
 
   it("accepts an injected RegistryDatabase and queries datasets via list_datasets", async () => {

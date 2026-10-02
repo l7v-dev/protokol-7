@@ -1,0 +1,6 @@
+{
+  "server": "biorxiv",
+  "interval": "2026-01-01/2026-10-02",
+  "category": "neuroscience",
+  "limit": 10
+}

@@ -6,6 +6,7 @@
 
 export * from "./anayasa-mahkemesi-actor";
 export * from "./arxiv-actor";
+export * from "./biorxiv-actor";
 export * from "./clinical-trials-actor";
 export * from "./code-eval-actor";
 export * from "./court-listener-actor";
