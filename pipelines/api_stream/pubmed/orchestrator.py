@@ -35,7 +35,7 @@ def main():
         "--shard-size-mb", type=int, default=10240, help="Max Parquet shard size in MB"
     )
     parser.add_argument(
-        "--output-dir", default="data/scratch/pubmed", help="Local scratch directory"
+        "--output-dir", default="data/parquets/pubmed", help="Local Parquet directory"
     )
     parser.add_argument(
         "--db-path", default="data/catalogs/pubmed_catalog.sqlite", help="SQLite ledger path"

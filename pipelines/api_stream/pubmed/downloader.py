@@ -90,25 +90,42 @@ class PubmedDownloader:
         retstart: int = 0,
         sort: str = "pub_date",
     ) -> List[str]:
-        """Queries esearch.fcgi and returns list of matching PMIDs."""
-        params = {
-            "db": "pubmed",
-            "term": query,
-            "retmax": str(retmax),
-            "retstart": str(retstart),
-            "sort": sort,
-            "retmode": "json",
-        }
-        if self.api_key:
-            params["api_key"] = self.api_key
-
-        url = f"{EUTILS_BASE}/esearch.fcgi?{urllib.parse.urlencode(params)}"
-        raw_bytes = self._fetch_url(url)
+        """Queries esearch.fcgi and returns list of matching PMIDs with automatic pagination."""
         import json
 
-        data = json.loads(raw_bytes.decode("utf-8"))
-        id_list = data.get("esearchresult", {}).get("idlist", [])
-        return [str(x) for x in id_list]
+        all_ids: List[str] = []
+        current_start = retstart
+        remaining = retmax
+
+        while remaining > 0:
+            chunk_size = min(remaining, 10000)
+            params = {
+                "db": "pubmed",
+                "term": query,
+                "retmax": str(chunk_size),
+                "retstart": str(current_start),
+                "sort": sort,
+                "retmode": "json",
+            }
+            if self.api_key:
+                params["api_key"] = self.api_key
+
+            url = f"{EUTILS_BASE}/esearch.fcgi?{urllib.parse.urlencode(params)}"
+            raw_bytes = self._fetch_url(url)
+            data = json.loads(raw_bytes.decode("utf-8"))
+            esearch = data.get("esearchresult", {})
+            id_list = [str(x) for x in esearch.get("idlist", [])]
+            if not id_list:
+                break
+
+            all_ids.extend(id_list)
+            current_start += len(id_list)
+            remaining -= len(id_list)
+
+            if len(id_list) < chunk_size:
+                break
+
+        return all_ids
 
     def fetch_articles_xml(self, pmids: List[str]) -> List[Dict[str, Any]]:
         """Queries efetch.fcgi with up to 100 PMIDs and parses structured article dicts."""
