@@ -9,7 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-- *(Aktif görev bulunmuyor)*
+- [ ] **PubMed & PMC Canlı Veri Çekimi ve Parquet Paketleme (Arka Plan)** — `Tier: 1` — Canlı NCBI E-utilities akışı üzerinden 50.000 hedef kayıtlık biyomedikal literatür (kanser, klinik araştırmalar, genetik, nörobilim, farmakoloji) toplanıyor; veriler anlık olarak `data/catalogs/pubmed_catalog.sqlite` veritabanına ve `data/parquets/pubmed/` Zstd Parquet dosyalarına işleniyor. Arka plan görevi aktif olarak çalışıyor.
 
 ## Bekleyen (Blok var)
 
