@@ -110,7 +110,7 @@ from typing import Optional
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
-from pipelines.shared.drive_sync_base import BaseDriveSync
+from pipelines.shared.drive_sync_base import DEFAULT_ROOT_FOLDER_ID, BaseDriveSync
 
 
 class {name_camel}DriveSync(BaseDriveSync):
@@ -120,7 +120,7 @@ class {name_camel}DriveSync(BaseDriveSync):
         dry_run: bool = False,
     ):
         super().__init__(
-            root_folder_id=root_folder_id or "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL",
+            root_folder_id=root_folder_id or DEFAULT_ROOT_FOLDER_ID,
             dry_run=dry_run,
         )
 '''

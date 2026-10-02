@@ -23,7 +23,9 @@ except ImportError:
     GOOGLE_LIBS_AVAILABLE = False
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
-DEFAULT_ROOT_FOLDER_ID = "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"
+DEFAULT_ROOT_FOLDER_ID = os.environ.get(
+    "DRIVE_ROOT_FOLDER_ID", "1p9-IOwZwpdHCmcqq86Y-oAK5ttyZoQv1"
+)
 
 TOKEN_CANDIDATE_PATHS = [
     os.path.abspath("config/auth/gdrive-token.json"),
@@ -64,7 +66,7 @@ class BaseDriveSync:
         token_path: Optional[str] = None,
         dry_run: bool = False,
     ):
-        self.root_folder_id = root_folder_id
+        self.root_folder_id = root_folder_id or DEFAULT_ROOT_FOLDER_ID
         self.dry_run = dry_run
         self.token_path = token_path or find_token_path()
         self.service = None

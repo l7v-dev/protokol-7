@@ -23,8 +23,10 @@ except ImportError:
     GOOGLE_LIBS_AVAILABLE = False
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
-# Shared Drive root folder (same as other pipelines in this project)
-DEFAULT_ROOT_FOLDER_ID = "1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL"
+# Shared Drive root folder (protokol-object-vault)
+DEFAULT_ROOT_FOLDER_ID = os.environ.get(
+    "DRIVE_ROOT_FOLDER_ID", "1p9-IOwZwpdHCmcqq86Y-oAK5ttyZoQv1"
+)
 
 _TOKEN_CANDIDATES = [
     os.path.abspath("token.json"),

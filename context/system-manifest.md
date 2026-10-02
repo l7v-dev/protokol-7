@@ -35,7 +35,7 @@ Bu dosya `protokol-7` mikroservisinin uretim (production) ve calisma zamani can 
 ## 3. Depolama Baglayicilari (Storage Engines)
 
 - **Yerel Onbellek:** `cache/` (Gecici ham dökümler ve donusturme ara dosyalari).
-- **Google Drive:** `1s7Xs0U7ql9tEHT1WuQC7AdStWFys6TUL` (Zstd Parquet sardlari, OAuth2 token dogrulamali yukleme).
+- **Google Drive (protokol-object-vault):** `1p9-IOwZwpdHCmcqq86Y-oAK5ttyZoQv1` (Zstd Parquet shardları, OAuth2 token doğrulamalı yükleme, zero-disk residue).
 - **Cloudflare R2 / AWS S3:** `@aws-sdk/client-s3` (S3 uyumlu nesne depolama).
 - **Cold Vault:** `vault/` (Btrfs streaming SHA-256 saglama toplamli fiziksel soguk depolama).
 - **Defter (Ledger):** `ledger/` (`index.jsonl` ve gzip sikistirmali `sessions/*.md.gz`).
@@ -58,6 +58,8 @@ Bu dosya `protokol-7` mikroservisinin uretim (production) ve calisma zamani can 
 PORT=3000                                 # HTTP sunucu portu
 PROTOKOL_DB_PATH=data/catalog.sqlite      # SQLite veritabani yolu
 AUTH_TOKEN=                               # API Bearer token guvenligi
+DRIVE_ROOT_FOLDER_ID=1p9-IOwZwpdHCmcqq86Y-oAK5ttyZoQv1 # Google Drive protokol-object-vault kök dizini
+```
 GOOGLE_DRIVE_REFRESH_TOKEN=               # Google Drive OAuth2 erisimi
 GOOGLE_DRIVE_CLIENT_ID=                   # Google Cloud OAuth istemci no
 GOOGLE_DRIVE_CLIENT_SECRET=               # Google Cloud OAuth istemci sirri
