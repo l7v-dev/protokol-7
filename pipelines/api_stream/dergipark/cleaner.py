@@ -100,6 +100,8 @@ class DergiParkCleaner:
         doi = self._clean_str(raw.get("doi", ""))
         issn = self._clean_str(raw.get("issn", ""))
         fulltext_url = self._clean_str(raw.get("fulltext_url") or raw.get("pdf_url") or raw.get("html_url", ""))
+        article_url = ""
+        pdf_url = ""
 
         identifiers = raw.get("identifiers") or []
         if isinstance(identifiers, str):
@@ -119,8 +121,22 @@ class DergiParkCleaner:
                 issn_match = re.search(r"\b(\d{4}-\d{3}[\dX])\b", ident_clean, re.IGNORECASE)
                 if issn_match:
                     issn = issn_match.group(1).upper()
-            if not fulltext_url and (ident_clean.endswith(".pdf") or "/download/" in ident_clean):
-                fulltext_url = ident_clean
+            if not pdf_url and (ident_clean.endswith(".pdf") or "/download/" in ident_clean):
+                pdf_url = ident_clean
+            elif not article_url and "dergipark.org.tr" in ident_clean and "/article/" in ident_clean:
+                article_url = ident_clean
+
+        # Assign fulltext_url by preference: explicit -> pdf_url -> article_url -> doi fallback -> set_spec pattern
+        if not fulltext_url:
+            if pdf_url:
+                fulltext_url = pdf_url
+            elif article_url:
+                fulltext_url = article_url
+            elif doi:
+                fulltext_url = f"https://doi.org/{doi}"
+            elif raw.get("set_spec") and art_id:
+                clean_id = art_id.split("/")[-1] if "/" in art_id else art_id
+                fulltext_url = f"https://dergipark.org.tr/tr/pub/{raw.get('set_spec')}/article/{clean_id}"
 
         # Check journal source for ISSN if missing
         if not issn and journal:

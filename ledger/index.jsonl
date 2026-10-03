@@ -45,3 +45,4 @@
 {"tarih":"2026-10-03","faz":"Ledger-Muhur","konu":"3 gorev konsolide edildi: **PubMed & PMC Canlı Veri Çekimi ve Parquet Paketleme (`pubmed`)** — `Tier: 1` —...","dosya":"sessions/2026-10-03--session-1791019152125.md.gz","tier_max":2}
 {"tarih":"2026-10-03","faz":"Ledger-Muhur","konu":"3 gorev konsolide edildi: **Eski Yapı Tasfiyesi, Veritabanı ve Dizin Konsolidasyonu** — `Tier: 1` — Tüm ko...","dosya":"sessions/2026-10-03--session-1791038612214.md.gz","tier_max":2}
 {"tarih":"2026-10-03","faz":"Ledger-Muhur","konu":"3 gorev konsolide edildi: **Geliştirici Paketi V3 Entegrasyonu (Sözleşmeler, Şartnameler ve Kaynak Katılım...","dosya":"sessions/2026-10-03--session-1791040677274.md.gz","tier_max":2}
+{"tarih":"2026-10-03","faz":"Ledger-Muhur","konu":"3 gorev konsolide edildi: **İşçi Havuzu ve Görev Yürütücüsü Köprüsü (Faz 3)** — `Tier: 1` — `src/workers/`...","dosya":"sessions/2026-10-03--session-1791053283770.md.gz","tier_max":2}

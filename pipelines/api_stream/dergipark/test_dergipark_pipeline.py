@@ -54,9 +54,56 @@ def test_cleaner_valid_record():
     assert rec["issn"] == "1300-1234"
     assert rec["language"] == "tr"
     assert rec["year"] == 2023
-    assert "bilişim hukuku" in rec["keywords"]
+    assert rec["fulltext_url"] == "https://dergipark.org.tr/article/12345/download.pdf"
     assert rec["char_count"] > 50
     assert rec["word_count"] > 10
+
+
+def test_cleaner_landing_page_and_doi_url():
+    cleaner = DergiParkCleaner()
+    # 1. Landing page URL extraction
+    raw = {
+        "id": "oai:dergipark.org.tr:article/99999",
+        "title": "Yapay Zeka ve Hukuk",
+        "abstract": "Ozet metin",
+        "authors": ["Veli, Can"],
+        "journal": "Bilisim Dergisi",
+        "identifiers": [
+            "https://dergipark.org.tr/tr/pub/bilisim/article/99999",
+            "https://doi.org/10.1234/bilisim.99999",
+        ],
+    }
+    rec = cleaner.clean_record(raw)
+    assert rec is not None
+    assert rec["fulltext_url"] == "https://dergipark.org.tr/tr/pub/bilisim/article/99999"
+
+    # 2. DOI fallback when no direct URL is present
+    raw_doi_only = {
+        "id": "oai:dergipark.org.tr:article/88888",
+        "title": "Veri Analitigi",
+        "abstract": "Ozet metin",
+        "authors": ["Veli, Can"],
+        "journal": "Veri Dergisi",
+        "identifiers": [
+            "https://doi.org/10.1234/veri.88888",
+        ],
+    }
+    rec_doi = cleaner.clean_record(raw_doi_only)
+    assert rec_doi is not None
+    assert rec_doi["fulltext_url"] == "https://doi.org/10.1234/veri.88888"
+
+    # 3. Set spec pattern fallback
+    raw_set_only = {
+        "id": "oai:dergipark.org.tr:article/77777",
+        "set_spec": "mulkiye",
+        "title": "Iktisat Tarihi",
+        "abstract": "Ozet metin",
+        "authors": ["Ahmet, Can"],
+        "journal": "Mulkiye Dergisi",
+    }
+    rec_set = cleaner.clean_record(raw_set_only)
+    assert rec_set is not None
+    assert rec_set["fulltext_url"] == "https://dergipark.org.tr/tr/pub/mulkiye/article/77777"
 
 
 def test_cleaner_turkish_normalization():

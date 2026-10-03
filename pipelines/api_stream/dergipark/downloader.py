@@ -140,6 +140,12 @@ class DergiParkDownloader:
             return None
 
         identifier = header_id_elem.text.strip()
+        set_specs = [
+            el.text.strip()
+            for el in header.findall("{http://www.openarchives.org/OAI/2.0/}setSpec")
+            if el.text and el.text.strip()
+        ]
+        set_spec = set_specs[0] if set_specs else ""
 
         dc = rec.find(".//{http://www.openarchives.org/OAI/2.0/oai_dc/}dc")
         if dc is None:
@@ -169,6 +175,7 @@ class DergiParkDownloader:
 
         return {
             "id": identifier,
+            "set_spec": set_spec,
             "title": title,
             "authors": authors,
             "abstract": abstract,
