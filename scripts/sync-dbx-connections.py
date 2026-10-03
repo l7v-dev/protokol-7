@@ -55,6 +55,7 @@ def sync_dbx_connections():
     # Core databases
     core_dbs = [
         ("protokol-catalog", os.path.join(base_dir, "data/catalog.sqlite")),
+        ("protokol-dergipark", os.path.join(base_dir, "data/catalogs/dergipark_catalog.sqlite")),
         ("protokol-doaj", os.path.join(base_dir, "data/catalogs/doaj_catalog.sqlite")),
         ("protokol-biorxiv", os.path.join(base_dir, "data/catalogs/biorxiv_catalog.sqlite")),
         ("protokol-pubmed", os.path.join(base_dir, "data/catalogs/pubmed_catalog.sqlite")),
