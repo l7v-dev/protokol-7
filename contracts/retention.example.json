@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "policy_id": "raw-default",
+  "revision": 1,
+  "mode": "keep",
+  "review_after_days": 90,
+  "ttl_days": null,
+  "grace_days": 14,
+  "delete_scope": "owned_raw_replicas_only",
+  "require_release": true,
+  "require_quality_pass": true,
+  "require_no_active_consumers": true,
+  "hold_blocks_delete": true,
+  "shared_content_requires_all_refs_eligible": true,
+  "dry_run_default": true,
+  "delete_principal": "retention-worker"
+}

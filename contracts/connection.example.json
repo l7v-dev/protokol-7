@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "connection_id": "r2-main",
+  "connector_type": "r2",
+  "status": "configured",
+  "secret_ref": "secret://protokol7/r2",
+  "resource_scope": {
+    "bucket": "<bucket>",
+    "prefixes": [
+      "bronze/",
+      "silver/"
+    ]
+  },
+  "granted_operations": [
+    "read",
+    "create"
+  ],
+  "delete_enabled": false,
+  "share_enabled": false,
+  "tested_at": null
+}

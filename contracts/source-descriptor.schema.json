@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_id",
+    "name",
+    "method",
+    "adapter_version",
+    "record_type",
+    "external_id_field",
+    "pagination",
+    "budget",
+    "purpose",
+    "rights_status",
+    "retention_policy_id"
+  ],
+  "properties": {
+    "source_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adapter_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "record_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "external_id_field": {
+      "type": "string",
+      "minLength": 1
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retention_policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "method": {
+      "enum": [
+        "bulk",
+        "rest",
+        "graphql",
+        "oai_pmh",
+        "feed",
+        "http",
+        "browser",
+        "file",
+        "database",
+        "cdc",
+        "stream",
+        "semantic",
+        "geo",
+        "repository",
+        "media",
+        "partner"
+      ]
+    },
+    "pagination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "checkpoint_after_durable_commit"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "none",
+            "page",
+            "offset",
+            "cursor",
+            "resumption_token",
+            "watermark"
+          ]
+        },
+        "checkpoint_after_durable_commit": {
+          "const": true
+        }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_requests",
+        "max_bytes",
+        "max_seconds"
+      ],
+      "properties": {
+        "max_requests": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "rights_status": {
+      "enum": [
+        "approved",
+        "pending",
+        "denied"
+      ]
+    }
+  }
+}

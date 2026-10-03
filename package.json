@@ -8,6 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
     "pipeline": "tsx src/pipeline/cli.ts",
+    "worker": "tsx scripts/run-worker.ts",
     "build": "tsc",
     "test": "NODE_ENV=test tsx --test 'tests/**/*.test.ts'",
     "lint": "biome check",
@@ -62,7 +63,7 @@
     "test:pubmed": ".venv/bin/python pipelines/api_stream/pubmed/test_pubmed_pipeline.py",
     "test:biorxiv": ".venv/bin/python pipelines/api_stream/biorxiv/test_biorxiv_pipeline.py",
     "test:doaj": ".venv/bin/python pipelines/api_stream/doaj/test_doaj_pipeline.py",
-    "test:shared-pipelines": ".venv/bin/python pipelines/shared/test_shared_pipeline.py",
+    "test:shared-pipelines": ".venv/bin/python pipelines/shared/test_shared_pipeline.py && .venv/bin/python pipelines/shared/test_object_store.py",
     "test:corpus-pipelines": ".venv/bin/python pipelines/dump/gutenberg/test_gutenberg_pipeline.py && .venv/bin/python pipelines/dump/stackexchange/test_stackexchange_pipeline.py && .venv/bin/python pipelines/api_stream/openalex/test_openalex_pipeline.py && .venv/bin/python pipelines/snapshot/openalex/test_snapshot_pipeline.py && .venv/bin/python pipelines/api_stream/semantic_scholar/test_semanticscholar_pipeline.py && .venv/bin/python pipelines/shared/test_shared_pipeline.py && .venv/bin/python pipelines/api_stream/pubmed/test_pubmed_pipeline.py && .venv/bin/python pipelines/api_stream/biorxiv/test_biorxiv_pipeline.py && .venv/bin/python pipelines/api_stream/doaj/test_doaj_pipeline.py",
     "make:actor": "node scripts/scaffold-actor.mjs",
     "make:pipeline": ".venv/bin/python scripts/scaffold/scaffold-pipeline.py"

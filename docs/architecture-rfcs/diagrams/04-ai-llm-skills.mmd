@@ -1,0 +1,12 @@
+flowchart TD
+  D[Release edilmiş metin] --> P[Sayfa ve başlık ayrımı]
+  P --> C[Versioned chunking]
+  C --> E[Embedding gateway]
+  E --> V[Vector index]
+  C --> F[Lexical index]
+  U[Yetkili kullanıcı sorgusu] --> A[Access filter]
+  A --> V
+  A --> F
+  V --> R[Hybrid ranking]
+  F --> R
+  R --> L[LLM ve kaynak gösterimi]

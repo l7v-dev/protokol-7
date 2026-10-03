@@ -1,6 +1,6 @@
 # Connectome — Otomatik Üretilen Sistem Haritası
 
-> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-10-02). Elle düzenlenmez.
+> Bu dosya `scripts/generate-connectome.mjs` ile üretildi (2026-10-03). Elle düzenlenmez.
 > Çözümleyici Motor: TypeScript Compiler API AST (v5.9.3)
 
 ## Çekirdek Modüller ve Mimari Düğümler (Centrality)
@@ -9,32 +9,37 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 
 | Modül / Dosya | İçe Aktarılma (In-Degree) | İhraç Sembol Sayısı | Rol / Açıklama |
 |---|---|---|---|
-| `src/api/types.ts` | 151 | 281 | Yardımcı Modül |
-| `src/dataset/types.ts` | 151 | 6 | Yardımcı Modül |
-| `src/ocr/types.ts` | 151 | 5 | Yardımcı Modül |
-| `src/vault/types.ts` | 151 | 6 | Yardımcı Modül |
-| `src/network/safe-redirect-fetcher.ts` | 70 | 2 | Yardımcı Modül |
-| `src/network/ssrf-guard.ts` | 67 | 3 | Yardımcı Modül |
-| `src/api/server.ts` | 21 | 1 | Giriş Noktası (Server) |
-| `src/server.ts` | 21 | 0 | Giriş Noktası (Server) |
+| `src/api/types.ts` | 156 | 284 | Yardımcı Modül |
+| `src/dataset/types.ts` | 156 | 6 | Yardımcı Modül |
+| `src/ocr/types.ts` | 156 | 5 | Yardımcı Modül |
+| `src/vault/types.ts` | 156 | 6 | Yardımcı Modül |
+| `src/workers/types.ts` | 156 | 6 | Yardımcı Modül |
+| `src/network/safe-redirect-fetcher.ts` | 72 | 2 | Yardımcı Modül |
+| `src/network/ssrf-guard.ts` | 68 | 3 | Yardımcı Modül |
+| `contracts/index.ts` | 24 | 5 | Yardımcı Modül |
+| `src/actors/corpus/domains/index.ts` | 24 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/index.ts` | 24 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/actors/documents/index.ts` | 24 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/actors/web/index.ts` | 24 | 0 | Etki Alanı Aktörü (Actor) |
+| `src/api/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/dataset/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/mcp/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/ocr/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/pipeline/connectors/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/pipeline/execution/index.ts` | 24 | 2 | Yardımcı Modül |
+| `src/pipeline/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/pipeline/processors/index.ts` | 24 | 2 | Yardımcı Modül |
+| `src/pipeline/storage/index.ts` | 24 | 2 | Yardımcı Modül |
+| `src/storage/adapters/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/storage/ledger/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/vault/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/workers/index.ts` | 24 | 0 | Yardımcı Modül |
+| `src/api/server.ts` | 23 | 1 | Giriş Noktası (Server) |
+| `src/server.ts` | 23 | 0 | Giriş Noktası (Server) |
 | `src/api/registry-database.ts` | 15 | 9 | Bileşen Tescili (Registry) |
 | `src/pipeline/schema.ts` | 14 | 19 | Yardımcı Modül |
-| `src/actors/corpus/domains/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
-| `src/actors/corpus/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
-| `src/actors/documents/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
-| `src/actors/web/index.ts` | 10 | 0 | Etki Alanı Aktörü (Actor) |
-| `src/api/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/browser/browser-pool.ts` | 10 | 4 | Kaynak Yöneticisi (BrowserPool) |
-| `src/dataset/index.ts` | 10 | 0 | Yardımcı Modül |
-| `src/index.ts` | 10 | 0 | Yardımcı Modül |
-| `src/mcp/index.ts` | 10 | 0 | Yardımcı Modül |
-| `src/ocr/index.ts` | 10 | 0 | Yardımcı Modül |
-| `src/pipeline/connectors/index.ts` | 10 | 0 | Yardımcı Modül |
-| `src/pipeline/execution/index.ts` | 10 | 2 | Yardımcı Modül |
-| `src/pipeline/index.ts` | 10 | 0 | Yardımcı Modül |
-| `src/pipeline/processors/index.ts` | 10 | 2 | Yardımcı Modül |
-| `src/pipeline/storage/index.ts` | 10 | 2 | Yardımcı Modül |
-| `src/vault/index.ts` | 10 | 0 | Yardımcı Modül |
 | `src/pipeline/pipeline-runner.ts` | 9 | 4 | Yardımcı Modül |
 | `src/api/run-registry.ts` | 8 | 6 | Bileşen Tescili (Registry) |
 | `src/actors/actor-registry.ts` | 7 | 2 | Bileşen Tescili (Registry) |
@@ -42,15 +47,15 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/mcp/protokol-mcp-server.ts` | 7 | 3 | Giriş Noktası (Server) |
 | `src/pipeline/schedule-broker.ts` | 6 | 5 | Yardımcı Modül |
 | `src/pipeline/storage/s3-storage.ts` | 6 | 4 | Yardımcı Modül |
+| `scripts/terminal-theme.mjs` | 5 | 7 | Yardımcı Modül |
 | `src/actors/actor-manifests.ts` | 5 | 5 | Etki Alanı Aktörü (Actor) |
 | `src/extractors/structured-extractor.ts` | 5 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/network/proxy-manager.ts` | 5 | 5 | Yardımcı Modül |
-| `scripts/terminal-theme.mjs` | 4 | 7 | Yardımcı Modül |
+| `src/utils/terminal-theme.ts` | 5 | 8 | Yardımcı Modül |
 | `src/browser/session-vault.ts` | 4 | 4 | Oturum Denetleyicisi |
 | `src/network/url-normalizer.ts` | 4 | 2 | Yardımcı Modül |
 | `src/network/url-pattern-matcher.ts` | 4 | 2 | Yardımcı Modül |
 | `src/storage/instagram-database.ts` | 4 | 4 | Yardımcı Modül |
-| `src/utils/terminal-theme.ts` | 4 | 8 | Yardımcı Modül |
 | `scripts/telemetry-logger.mjs` | 3 | 4 | Yardımcı Modül |
 | `src/actors/documents/pdf-document-actor.ts` | 3 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/dataset/dataset-publisher.ts` | 3 | 2 | Yardımcı Modül |
@@ -65,8 +70,10 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/storage/b2-storage.ts` | 3 | 2 | Yardımcı Modül |
 | `src/pipeline/storage/local-storage.ts` | 3 | 1 | Yardımcı Modül |
 | `src/pipeline/storage/r2-storage.ts` | 3 | 2 | Yardımcı Modül |
+| `src/storage/ledger/sqlite-ledger-repository.ts` | 3 | 2 | Yardımcı Modül |
 | `src/storage/object-vault.ts` | 3 | 5 | Yardımcı Modül |
 | `src/vault/cold-vault-exporter.ts` | 3 | 1 | Yardımcı Modül |
+| `src/workers/task-worker.ts` | 3 | 3 | Yardımcı Modül |
 | `src/actors/corpus/anayasa-mahkemesi-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/arxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/biorxiv-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -76,6 +83,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/danistay-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/dergipark-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/devdocs-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
+| `src/actors/corpus/doaj-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/eur-lex-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/europe-pmc-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/corpus/github-actor.ts` | 2 | 1 | Etki Alanı Aktörü (Actor) |
@@ -151,6 +159,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/pipeline/processors/quality-filter.ts` | 2 | 4 | Yardımcı Modül |
 | `src/pipeline/processors/text-normalizer.ts` | 2 | 3 | Yardımcı Modül |
 | `src/pipeline/storage/google-drive-storage.ts` | 2 | 3 | Yardımcı Modül |
+| `src/storage/adapters/local-object-store.ts` | 2 | 2 | Yardımcı Modül |
+| `contracts/storage.ts` | 1 | 3 | Yardımcı Modül |
 | `src/actors/corpus/wikimedia-actor.ts` | 1 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/api-extractor-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/crawler-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
@@ -159,6 +169,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/web/serp-search-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/actors/web/sitemap-xml-actor.ts` | 1 | 1 | Etki Alanı Aktörü (Actor) |
 | `src/api/openapi-spec.ts` | 1 | 2 | Yardımcı Modül |
+| `src/api/routers/control-router.ts` | 1 | 3 | Yardımcı Modül |
 | `src/api/routers/dataset-router.ts` | 1 | 1 | Yardımcı Modül |
 | `src/api/routers/pipeline-router.ts` | 1 | 2 | Yardımcı Modül |
 | `src/api/routers/store-router.ts` | 1 | 1 | Yardımcı Modül |
@@ -178,6 +189,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/ocr/connectors/unlimited-ocr-connector.ts` | 1 | 2 | Yardımcı Modül |
 | `src/ocr/pdf-rasterizer.ts` | 1 | 2 | Yardımcı Modül |
 | `src/telemetry/anomalies.ts` | 1 | 4 | Yardımcı Modül |
+| `contracts/ledger.ts` | 0 | 14 | Yardımcı Modül |
 | `scripts/checkpoint.mjs` | 0 | 3 | Yardımcı Modül |
 | `scripts/consolidate-memory.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/doctor.mjs` | 0 | 0 | Yardımcı Modül |
@@ -189,6 +201,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/omega-memory.mjs` | 0 | 0 | Semantik Bellek |
 | `scripts/pipedream-cli.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/pulse.mjs` | 0 | 0 | Yardımcı Modül |
+| `scripts/run-worker.ts` | 0 | 0 | Yardımcı Modül |
 | `scripts/sca-check.mjs` | 0 | 0 | Yardımcı Modül |
 | `scripts/scaffold-actor.mjs` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `scripts/verify-pipeline.mjs` | 0 | 0 | Doğrulama Hattı |
@@ -200,7 +213,12 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/domains/wikimedia.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `src/ocr/ocr-connector-registry.ts` | 0 | 3 | Bileşen Tescili (Registry) |
 | `src/pipeline/cli.ts` | 0 | 0 | Yardımcı Modül |
+| `src/storage/adapters/r2-object-store.ts` | 0 | 2 | Yardımcı Modül |
+| `src/storage/ledger/outbox-dispatcher.ts` | 0 | 3 | Yardımcı Modül |
 | `src/types/node-sqlite.d.ts` | 0 | 0 | Yardımcı Modül |
+| `src/workers/handlers/download-handler.ts` | 0 | 2 | Yardımcı Modül |
+| `src/workers/handlers/extract-handler.ts` | 0 | 2 | Yardımcı Modül |
+| `src/workers/worker-pool.ts` | 0 | 1 | Yardımcı Modül |
 | `tests/actor-resolver.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/anayasa-mahkemesi-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/api-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -215,6 +233,8 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/code-eval-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/cold-vault-exporter-and-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/context-guard.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/contracts.test.ts` | 0 | 0 | Yardımcı Modül |
+| `tests/control-router.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/court-listener-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/crawl-frontier.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/crawler-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -222,6 +242,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/dataset-publisher-and-api.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/dergipark-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/devdocs-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/doaj-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/document-extractor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/documents-archives-ocr-endpoints.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/dom-indexer.test.ts` | 0 | 0 | Yardımcı Modül |
@@ -244,6 +265,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/kap-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/ktb-ekitap-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/lean-mathlib-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/ledger-repository.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/lesswrong-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/libretexts-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/markdown-reader-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -253,6 +275,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/mit-ocw-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/multi-column-layout-resolver.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/network-interceptor-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/object-store-adapters.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/object-vault.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/ocr-connectors.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/office-extractor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
@@ -317,6 +340,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `tests/wikiversity-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/wikivoyage-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/wiktionary-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
+| `tests/worker-pool.test.ts` | 0 | 0 | Yardımcı Modül |
 | `tests/yargitay-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 | `tests/youtube-transcripts-actor.test.ts` | 0 | 0 | Etki Alanı Aktörü (Actor) |
 
@@ -402,6 +426,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `instagram` | `InstagramActor` |
 | `pubmed` | `PubmedActor` |
 | `biorxiv` | `BiorxivActor` |
+| `doaj` | `DoajActor` |
 | `unlimited-ocr-connector` | `UnlimitedOcrConnector` |
 | `local-llm-vision-ocr-connector` | `LocalLlmVisionOcrConnector` |
 | `cloud-vision-ocr-connector` | `CloudVisionOcrConnector` |
@@ -414,6 +439,43 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
       }` |
 
 ## İhraç Edilen Semboller ve Arayüz Kontratları (AST)
+
+### `contracts/index.ts`
+
+**Arayüzler (Interfaces):**
+- `interface SourceDescriptorBudget` (3 üye)
+- `interface SourceDescriptorPagination` (2 üye)
+- `interface SourceDescriptor` (11 üye)
+- `interface JobNotification` (5 üye)
+**Tipler (Types):**
+- `type IngestionMethod`
+
+### `contracts/ledger.ts`
+
+**Arayüzler (Interfaces):**
+- `interface SourceRecord` (4 üye)
+- `interface CrawlPartition` (8 üye)
+- `interface DocumentRecord` (5 üye)
+- `interface ContentObjectRecord` (3 üye)
+- `interface ArtifactRecord` (9 üye)
+- `interface JobRecord` (15 üye)
+- `interface OutboxEventRecord` (9 üye)
+- `interface FinalizeJobOptions` (3 üye)
+- `interface FailJobOptions` (3 üye)
+- `interface TaskContext` (3 üye)
+- `interface TaskResult` (3 üye)
+- `interface LedgerRepository` (16 üye)
+**Tipler (Types):**
+- `type JobStatus`
+- `type TaskHandler`
+
+### `contracts/storage.ts`
+
+**Arayüzler (Interfaces):**
+- `interface ObjectStore` (7 üye)
+**Tipler (Types):**
+- `type StorageRef`
+- `type Capabilities`
 
 ### `scripts/checkpoint.mjs`
 
@@ -619,6 +681,38 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 **Sınıflar (Classes):**
 - `class DevDocsActor`
   - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<DevDocsActorResult>>`
+
+### `src/actors/corpus/doaj-actor.ts`
+
+**Sınıflar (Classes):**
+- `class DoajActor`
+  - `run(task: ActorTask, context: ActorRunContext): Promise<ActorResult<DoajActorResult>>`
+  - `buildApiUrl(targetUrl: string | undefined, options: DoajActorTaskOptions, action: "search_articles" | "search_journals" | "get_article"): string`
+  - `normalizeItem(raw: RawDoajItem): DoajArticleItem`
+  - `synthesizeArticleMarkdown(item: {
+    id: string;
+    doi?: string;
+    title: string;
+    abstract?: string;
+    journal?: string;
+    publisher?: string;
+    issn?: string;
+    year?: number;
+    authors?: string;
+    affiliations?: string;
+    keywords?: string[];
+    subjects?: string[];
+    fulltextUrl?: string;
+  }): string`
+  - `synthesizeOverallMarkdown(meta: {
+    action: string;
+    totalCount: number;
+    page: number;
+    pageSize: number;
+    articles: DoajArticleItem[];
+    query?: string;
+    articleId?: string;
+  }): string`
 
 ### `src/actors/corpus/eur-lex-actor.ts`
 
@@ -1548,6 +1642,20 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface VerificationAuditRecord` (14 üye)
 - `interface RegistryDatabaseOptions` (2 üye)
 
+### `src/api/routers/control-router.ts`
+
+**Sınıflar (Classes):**
+- `class ControlRouter`
+  - `getLedger(): LedgerRepository`
+  - `handleCreateJob(res: http.ServerResponse, body: CreateJobRequestBody): Promise<void>`
+  - `handleGetJob(res: http.ServerResponse, jobId: string): Promise<void>`
+  - `handleCreateSource(res: http.ServerResponse, body: CreateSourceRequestBody): Promise<void>`
+  - `handleGetSource(res: http.ServerResponse, sourceId: string): Promise<void>`
+  - `handleReapLeases(res: http.ServerResponse): Promise<void>`
+**Arayüzler (Interfaces):**
+- `interface CreateJobRequestBody` (5 üye)
+- `interface CreateSourceRequestBody` (3 üye)
+
 ### `src/api/routers/dataset-router.ts`
 
 **Sınıflar (Classes):**
@@ -1826,6 +1934,9 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface BiorxivArticleItem` (15 üye)
 - `interface BiorxivActorTaskOptions` (8 üye)
 - `interface BiorxivActorResult` (6 üye)
+- `interface DoajArticleItem` (17 üye)
+- `interface DoajActorTaskOptions` (7 üye)
+- `interface DoajActorResult` (7 üye)
 - `interface IetfRfcItem` (10 üye)
 - `interface IetfRfcActorTaskOptions` (7 üye)
 - `interface IetfRfcActorResult` (3 üye)
@@ -2692,6 +2803,33 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface S3ClientLike` (1 üye)
 - `interface S3StorageOptions` (5 üye)
 
+### `src/storage/adapters/local-object-store.ts`
+
+**Sınıflar (Classes):**
+- `class LocalObjectStore`
+  - `resolveKey(key: string): string`
+  - `putStream(key: string, data: AsyncIterable<Uint8Array>): Promise<StorageRef>`
+  - `openStream(ref: StorageRef, range: { start: number; endExclusive: number }): AsyncIterable<Uint8Array>`
+  - `head(ref: StorageRef): Promise<StorageRef>`
+  - `exists(key: string): Promise<boolean>`
+  - `listPage(prefix: string, cursor: string): Promise<{ items: StorageRef[]; next: string | null }>`
+  - `delete(ref: StorageRef): Promise<void>`
+**Arayüzler (Interfaces):**
+- `interface LocalObjectStoreOptions` (3 üye)
+
+### `src/storage/adapters/r2-object-store.ts`
+
+**Sınıflar (Classes):**
+- `class R2ObjectStore`
+  - `putStream(key: string, data: AsyncIterable<Uint8Array>): Promise<StorageRef>`
+  - `openStream(ref: StorageRef, range: { start: number; endExclusive: number }): AsyncIterable<Uint8Array>`
+  - `head(ref: StorageRef): Promise<StorageRef>`
+  - `exists(key: string): Promise<boolean>`
+  - `listPage(prefix: string, cursor: string): Promise<{ items: StorageRef[]; next: string | null }>`
+  - `delete(ref: StorageRef): Promise<void>`
+**Arayüzler (Interfaces):**
+- `interface R2ObjectStoreOptions` (7 üye)
+
 ### `src/storage/instagram-database.ts`
 
 **Sınıflar (Classes):**
@@ -2756,6 +2894,72 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface InstagramHarvestRunRecord` (10 üye)
 - `interface InstagramDatabaseStats` (7 üye)
 
+### `src/storage/ledger/outbox-dispatcher.ts`
+
+**Sınıflar (Classes):**
+- `class OutboxDispatcher`
+  - `subscribe(eventType: string, handler: OutboxEventHandler): void`
+  - `dispatchOnce(): Promise<{ claimed: number; dispatched: number; failed: number }>`
+**Arayüzler (Interfaces):**
+- `interface OutboxDispatcherOptions` (4 üye)
+**Tipler (Types):**
+- `type OutboxEventHandler`
+
+### `src/storage/ledger/sqlite-ledger-repository.ts`
+
+**Sınıflar (Classes):**
+- `class SqliteLedgerRepository`
+  - `initSchema(): void`
+  - `createSource(source: {
+    name: string;
+    descriptor: Record<string, unknown>;
+    enabled?: boolean;
+  }): Promise<SourceRecord>`
+  - `getSource(id: string): Promise<SourceRecord | null>`
+  - `getOrCreatePartition(sourceId: string, partitionKey: string): Promise<CrawlPartition>`
+  - `updatePartitionCursor(id: string, cursor: Record<string, unknown>, expectedRevision: number): Promise<boolean>`
+  - `upsertDocument(doc: {
+    sourceId: string;
+    externalId: string;
+    canonicalUrl?: string;
+  }): Promise<DocumentRecord>`
+  - `registerContentObject(obj: {
+    sha256: string;
+    sizeBytes: number;
+    mimeType: string;
+  }): Promise<ContentObjectRecord>`
+  - `recordArtifact(artifact: {
+    documentId?: string;
+    sha256: string;
+    sizeBytes: number;
+    mimeType: string;
+    providerId: string;
+    container: string;
+    objectKey: string;
+    objectVersion?: string | null;
+    transformVersion: string;
+    metadata?: Record<string, unknown>;
+    role?: string;
+  }): Promise<ArtifactRecord>`
+  - `createJob(job: {
+    documentId?: string;
+    operation: string;
+    idempotencyKey: string;
+    input: Record<string, unknown>;
+    maxAttempts?: number;
+  }): Promise<JobRecord>`
+  - `getJob(jobId: string): Promise<JobRecord | null>`
+  - `claimJob(owner: string, leaseSeconds: number, allowedOperations: string[]): Promise<JobRecord | null>`
+  - `heartbeatJob(jobId: string, owner: string, leaseEpoch: number, leaseSeconds: number): Promise<boolean>`
+  - `finalizeJob(jobId: string, owner: string, leaseEpoch: number, options: FinalizeJobOptions): Promise<boolean>`
+  - `failJob(jobId: string, owner: string, leaseEpoch: number, errorCode: string, options: FailJobOptions): Promise<boolean>`
+  - `claimOutboxEvents(owner: string, batchSize, leaseSeconds): Promise<OutboxEventRecord[]>`
+  - `markOutboxPublished(eventId: string, owner: string, dispatchEpoch: number): Promise<boolean>`
+  - `reapExpiredLeases(): Promise<{ expiredJobs: number; expiredOutbox: number }>`
+  - `close(): void`
+**Arayüzler (Interfaces):**
+- `interface SqliteLedgerRepositoryOptions` (1 üye)
+
 ### `src/storage/object-vault.ts`
 
 **Sınıflar (Classes):**
@@ -2817,10 +3021,65 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 - `interface VolumeVerificationItem` (6 üye)
 - `interface VolumeVerificationResult` (9 üye)
 
+### `src/workers/handlers/download-handler.ts`
+
+**Fonksiyonlar (Functions):**
+- `createDownloadJobHandler(): JobHandler`
+**Arayüzler (Interfaces):**
+- `interface DownloadJobInput` (7 üye)
+
+### `src/workers/handlers/extract-handler.ts`
+
+**Fonksiyonlar (Functions):**
+- `createExtractJobHandler(): JobHandler`
+**Arayüzler (Interfaces):**
+- `interface ExtractJobInput` (7 üye)
+
+### `src/workers/task-worker.ts`
+
+**Sınıflar (Classes):**
+- `class QuarantineError`
+- `class TerminalJobError`
+- `class TaskWorker`
+  - `registerHandler(operation: string, handler: JobHandler): this`
+  - `getHandler(operation: string): JobHandler | undefined`
+  - `getActiveJob(): JobRecord | null`
+  - `getActiveAbortSignal(): AbortSignal | null`
+  - `getIsRunning(): boolean`
+  - `start(): void`
+  - `stop(): Promise<void>`
+  - `scheduleNextPoll(delayMs: number): void`
+  - `executeOnce(): Promise<boolean>`
+
+### `src/workers/types.ts`
+
+**Arayüzler (Interfaces):**
+- `interface WorkerConfig` (8 üye)
+- `interface WorkerPoolConfig` (3 üye)
+- `interface WorkerStats` (6 üye)
+- `interface TaskExecutionContext` (5 üye)
+- `interface TaskExecutionResult` (3 üye)
+**Tipler (Types):**
+- `type JobHandler`
+
+### `src/workers/worker-pool.ts`
+
+**Sınıflar (Classes):**
+- `class WorkerPool`
+  - `registerHandler(operation: string, handler: JobHandler): this`
+  - `start(): void`
+  - `stop(): Promise<void>`
+  - `drain(): Promise<void>`
+  - `getStats(): WorkerStats`
+  - `getWorkers(): readonly TaskWorker[]`
+
 ## Modül ve Dosya Envanteri
 
 | Dosya Yolu |
 |---|
+| `contracts/index.ts` |
+| `contracts/ledger.ts` |
+| `contracts/storage.ts` |
 | `scripts/checkpoint.mjs` |
 | `scripts/consolidate-memory.mjs` |
 | `scripts/doctor.mjs` |
@@ -2832,6 +3091,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `scripts/omega-memory.mjs` |
 | `scripts/pipedream-cli.mjs` |
 | `scripts/pulse.mjs` |
+| `scripts/run-worker.ts` |
 | `scripts/sca-check.mjs` |
 | `scripts/scaffold-actor.mjs` |
 | `scripts/telemetry-logger.mjs` |
@@ -2849,6 +3109,7 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/danistay-actor.ts` |
 | `src/actors/corpus/dergipark-actor.ts` |
 | `src/actors/corpus/devdocs-actor.ts` |
+| `src/actors/corpus/doaj-actor.ts` |
 | `src/actors/corpus/domains/academic.ts` |
 | `src/actors/corpus/domains/index.ts` |
 | `src/actors/corpus/domains/legal.ts` |
@@ -2866,10 +3127,5 @@ Bu tablo, diğer modüller tarafından en çok referans verilen (PageRank benzer
 | `src/actors/corpus/index.ts` |
 | `src/actors/corpus/instagram-actor.ts` |
 | `src/actors/corpus/internet-archive-actor.ts` |
-| `src/actors/corpus/internet-phil-actor.ts` |
-| `src/actors/corpus/kap-actor.ts` |
-| `src/actors/corpus/ktb-ekitap-actor.ts` |
-| `src/actors/corpus/lean-mathlib-actor.ts` |
-| `src/actors/corpus/lesswrong-actor.ts` |
-| *... ve 260 dosya daha* |
+| *... ve 284 dosya daha* |
 

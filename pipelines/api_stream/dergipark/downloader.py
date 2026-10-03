@@ -29,7 +29,7 @@ class DergiParkDownloader:
         self,
         base_url: str = DERGIPARK_OAI_URL,
         timeout: int = 40,
-        max_retries: int = 4,
+        max_retries: int = 15,
         min_interval: float = 0.35,
     ):
         self.base_url = base_url if base_url.endswith("/") else base_url + "/"

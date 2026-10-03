@@ -1,0 +1,10 @@
+stateDiagram-v2
+ [*] --> Retained
+ Retained --> Eligible: policy ve bağımlılıklar uygun
+ Eligible --> Planned: etki manifesti
+ Planned --> Retained: hold veya yeni bağımlılık
+ Planned --> Deleting: güncel policy ve dar yetki
+ Deleting --> Deleted: provider doğrulaması
+ Deleting --> RetryPending: transient hata
+ RetryPending --> Deleting: bounded retry
+ Deleted --> [*]

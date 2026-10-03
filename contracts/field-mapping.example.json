@@ -1,0 +1,17 @@
+{
+  "example_only": true,
+  "schema_version": 1,
+  "mapping": {
+    "external_id": "id",
+    "source_modified_at": "updated_at",
+    "title": "title"
+  },
+  "missing_field_policy": "null_with_reason",
+  "unknown_fields_policy": "preserve_in_raw_not_silent_drop",
+  "observations": {
+    "engagement_count": {
+      "target": "record_observation",
+      "timestamp": "observed_at"
+    }
+  }
+}

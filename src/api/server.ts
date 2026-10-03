@@ -13,6 +13,11 @@ import { HttpMcpTransport, ProtokolMcpServer } from "../mcp";
 import { globalOcrRegistry } from "../ocr";
 import type { ColdVaultExportOptions } from "../vault/types";
 import { OPENAPI_SPECIFICATION, renderDocsHtml } from "./openapi-spec";
+import {
+  ControlRouter,
+  type CreateJobRequestBody,
+  type CreateSourceRequestBody,
+} from "./routers/control-router";
 import { DatasetRouter } from "./routers/dataset-router";
 import { JobRouter, type ScheduleJobRequestBody } from "./routers/job-router";
 import { PipelineRouter, type PipelineRunRequestBody } from "./routers/pipeline-router";
@@ -32,6 +37,7 @@ const pipelineRouter = new PipelineRouter();
 const datasetRouter = new DatasetRouter();
 const jobRouter = new JobRouter(undefined, pipelineRouter.getRunner(), undefined, registry);
 const vaultRouter = new VaultRouter();
+const controlRouter = new ControlRouter();
 const mcpServer = new ProtokolMcpServer(registry);
 const httpMcpTransport = new HttpMcpTransport(mcpServer);
 const PORT = parseInt(process.env.PORT || "4000", 10);
@@ -4488,6 +4494,36 @@ export function createServer(): http.Server {
       if (method === "GET" && pathname === "/api/v1/vault/inspect") {
         const volumeRoot = parsedUrl.searchParams.get("volumeRoot") || "";
         vaultRouter.handleInspect(res, volumeRoot);
+        return;
+      }
+
+      // 12. Control Plane & Task Ledger Routes (/api/v1/control/*)
+      if (method === "POST" && pathname === "/api/v1/control/jobs") {
+        const body = await parseBody<CreateJobRequestBody>(req);
+        await controlRouter.handleCreateJob(res, body);
+        return;
+      }
+
+      if (method === "GET" && pathname.startsWith("/api/v1/control/jobs/")) {
+        const jobId = pathname.slice("/api/v1/control/jobs/".length).trim();
+        await controlRouter.handleGetJob(res, jobId);
+        return;
+      }
+
+      if (method === "POST" && pathname === "/api/v1/control/sources") {
+        const body = await parseBody<CreateSourceRequestBody>(req);
+        await controlRouter.handleCreateSource(res, body);
+        return;
+      }
+
+      if (method === "GET" && pathname.startsWith("/api/v1/control/sources/")) {
+        const sourceId = pathname.slice("/api/v1/control/sources/".length).trim();
+        await controlRouter.handleGetSource(res, sourceId);
+        return;
+      }
+
+      if (method === "POST" && pathname === "/api/v1/control/leases/reap") {
+        await controlRouter.handleReapLeases(res);
         return;
       }
 

@@ -1,0 +1,13 @@
+flowchart TD
+  S[Kaynak bağlayıcıları] --> D[Discovery]
+  D --> C[PostgreSQL ve outbox]
+  C --> Q[RabbitMQ]
+  Q --> W[Download worker]
+  W --> B[Bronze storage]
+  B --> E[Extraction ve OCR]
+  E --> N[Normalize ve kalite]
+  N --> K{Release kapısı}
+  K -->|başarılı| L[Silver ve Iceberg]
+  K -->|başarısız| X[Quarantine]
+  L --> R[RAG ve arama]
+  L --> T[Training ve eval export]

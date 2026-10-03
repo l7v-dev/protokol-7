@@ -25,6 +25,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | `src/api/routers/dataset-router.ts` | `DatasetRouter` | Dataset catalog router (`/api/v1/datasets/*`), training manifest publisher, snapshot viewer, and shard inventory inspector. |
 | `src/api/routers/job-router.ts` | `JobRouter`, `ScheduleJobRequestBody` | Scheduled job and cron engine HTTP router (`/api/v1/jobs/*`), recurring pipeline/actor scheduler, and cron parser. |
 | `src/api/routers/vault-router.ts` | `VaultRouter` | Cold vault HTTP router (`/api/v1/vault/*`), dataset packaging, volume integrity auditing, and path traversal guard. |
+| `src/api/routers/control-router.ts` | `ControlRouter`, `CreateJobRequestBody`, `CreateSourceRequestBody` | HTTP REST router for control plane task submission, status lookup, source registration, and lease reaping (`/api/v1/control/*`). |
 | `src/server.ts` | Server Trampoline | Root-level entrypoint re-exporting `src/api/server.ts`. |
 | `src/index.ts` | Unified Barrel | Aggregates all domain actors, browser utilities, extractors, and network tools. |
 
@@ -279,8 +280,25 @@ Categorized into 5 primary domains accessible via `src/actors/corpus/domains/`:
 |---|---|---|
 | `src/storage/instagram-database.ts` | `InstagramDatabase`, `InstagramHarvestRunRecord`, `InstagramDatabaseStats` | SQLite relational persistence engine for Instagram profiles, posts, carousel child slides, comments, hashtags, mentions, growth snapshots, local disk path tracking, and harvest run audits. |
 | `src/storage/object-vault.ts` | `ObjectVault`, `StoredObjectMetadata`, `StoreObjectOptions`, `MediaCategory` | Deterministic local asset vault partitioner, streaming HTTP downloader with SHA-256 calculation, atomic file writes, deduplication, and manifest.jsonl ledger tracking. |
+| `src/storage/adapters/local-object-store.ts` | `LocalObjectStore` | Local filesystem object store adapter implementing `ObjectStore` contract with path traversal guards, atomic fsync commits, immutable conflict defense, and ranged reads. |
+| `src/storage/adapters/r2-object-store.ts` | `R2ObjectStore` | Cloudflare R2 / S3-compatible zero-egress lake storage adapter implementing `ObjectStore` contract with multipart, ranged read, and SHA-256 integrity verification. |
+| `src/storage/adapters/index.ts` | Storage Adapters Barrel | Re-exports all canonical `ObjectStore` implementations. |
+| `src/storage/ledger/sqlite-ledger-repository.ts` | `SqliteLedgerRepository` | SQLite implementation of `LedgerRepository` contract with ACID transactions, atomic row leasing (`lease_epoch`), and outbox queuing. |
+| `src/storage/ledger/outbox-dispatcher.ts` | `OutboxDispatcher` | Transactional outbox event dispatcher with subscriber registry, at-least-once delivery, and epoch-fenced publication. |
+| `src/storage/ledger/index.ts` | Ledger Storage Barrel | Re-exports all ledger repository and outbox engine components. |
 
-### 1.15 Unified Ingestion Pipelines (`pipelines/`)
+### 1.15 Workers and Task Execution Subsystem (`src/workers/`)
+
+| File Path | Primary Export / Class | Technical Responsibility |
+|---|---|---|
+| `src/workers/types.ts` | `WorkerConfig`, `WorkerPoolConfig`, `WorkerStats`, `TaskExecutionContext`, `TaskExecutionResult`, `JobHandler` | Core configuration, telemetry interfaces, and execution context contracts for task execution. |
+| `src/workers/task-worker.ts` | `TaskWorker`, `QuarantineError`, `TerminalJobError` | Bounded execution loop with atomic job claims, heartbeat lease renewal, backoff jitter, and epoch-fenced finalization. |
+| `src/workers/worker-pool.ts` | `WorkerPool` | Concurrent worker pool coordinator managing worker instances, graceful draining, and background lease reaping. |
+| `src/workers/handlers/download-handler.ts` | `createDownloadJobHandler`, `DownloadJobInput` | SSRF-guarded HTTP asset downloader storing raw immutable blobs in ObjectStore and creating child extraction jobs. |
+| `src/workers/handlers/extract-handler.ts` | `createExtractJobHandler`, `ExtractJobInput` | Reads raw artifacts from ObjectStore, distills text/markdown, commits derived artifacts, and emits transactional outbox notifications. |
+| `src/workers/index.ts` | Workers Barrel | Re-exports all worker engines, pool coordinator, standard handlers, and contracts. |
+
+### 1.16 Unified Ingestion Pipelines (`pipelines/`)
 
 Standardized high-throughput ETL pipelines organized across 7 ingestion paradigms with zero local disk residue.
 
@@ -289,6 +307,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `pipelines/shared/cleaner_base.py` | `BaseCleaner`, `clean_text`, `reconstruct_inverted_index` | Reusable text sanitization, HTML entity decoding, inverted index text reconstruction, and quality gate filters. |
 | `pipelines/shared/sharder_base.py` | `BaseParquetSharder`, `compute_file_hashes` | Streaming Parquet sharder with Zstandard compression, size rotation (10-50 GB), SHA-256 and MD5 hashing. |
 | `pipelines/shared/drive_sync_base.py` | `BaseDriveSync`, `calculate_md5` | Google Drive v3 chunked resumable uploader, remote MD5 integrity verification, and zero local disk residue eviction. |
+| `pipelines/shared/object_store_base.py` | `BaseObjectStore`, `LocalObjectStore`, `StorageRef` | Python ObjectStore contracts with atomic fsync commits, immutable conflict defense, path traversal prevention, and ranged reads. |
 | `pipelines/shared/ledger_base.py` | `BaseLedger` | Transactional SQLite WAL ledger tracking partitions, shards, and dual-syncing with `data/catalog.sqlite`. |
 | `pipelines/snapshot/openalex/` | `OpenAlexSnapshotSharder`, `cleaner.py` | AWS S3 Parquet snapshot streamer, 10-50 GB Zstd sharder, Google Drive uploader, SQLite ledger, zero disk residue. |
 | `pipelines/dump/wikimedia/` | Wikimedia Dump ETLs | 8 multi-language dump pipelines (Wikibooks, Wikinews, Wikiquote, Wikispecies, Wikisource, Wiktionary, Wikiversity, Wikivoyage). |
@@ -409,6 +428,11 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `tests/pubmed-actor.test.ts` | `PubmedActor`, `src/api/server.ts` | PubMed XML parsing, structured abstracts, MeSH headings, NCBI esummary JSON, BioC JSON, SSRF guard, and REST route. |
 | `tests/biorxiv-actor.test.ts` | `BiorxivActor`, `src/api/server.ts` | CSHL bioRxiv & medRxiv preprint queries, category filters, direct DOI lookups, query text filtering, SSRF guard, and REST route. |
 | `tests/doaj-actor.test.ts` | `DoajActor`, `src/api/server.ts` | DOAJ article searches, direct ID retrieval, journal queries, error handling, SSRF guard, and REST routes. |
+| `tests/contracts.test.ts` | `contracts/` | JSON Schema validation for source-descriptor and job contracts, example payloads, and migration schemas. |
+| `tests/object-store-adapters.test.ts` | `src/storage/adapters/` | Conformance suite for `LocalObjectStore` and `R2ObjectStore` (path traversal guards, atomic fsync, immutable conflict defense, ranged reads). |
+| `tests/ledger-repository.test.ts` | `src/storage/ledger/` | Conformance suite for `SqliteLedgerRepository` (atomic job leases, `lease_epoch` fencing, transactional outbox dispatch, and lease reaping). |
+| `tests/worker-pool.test.ts` | `src/workers/` | Unit and integration test suite verifying `TaskWorker` lifecycle, heartbeats, exponential backoff retries, terminal/quarantine error states, operation filtering, epoch fencing, `WorkerPool` concurrency, and end-to-end `download` -> `extract` pipeline. |
+| `tests/control-router.test.ts` | `src/api/routers/control-router.ts` | Conformance suite for HTTP control plane REST API (job submission, status lookup, source registration, lease reaping, and validation errors). |
 
 ---
 
@@ -538,4 +562,11 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `Dockerfile` | Container Build | Multi-stage production container build with Node 22, Playwright Chromium libraries, and Python 3. |
 | `docker-compose.yml` | Container Orchestration | Docker compose deployment mapping port 4000, data volume, and healthcheck. |
 | `.github/workflows/ci.yml` | CI/CD Workflow | Continuous integration pipeline executing Biome lint, naming check, TypeScript build, test suite, and SCA audit. |
+| `contracts/` | Canonical System Contracts | JSON Schemas (Draft 2020-12) for `source-descriptor.schema.json`, `job.schema.json`, example payloads, and `storage.ts` ObjectStore contract interfaces. |
+| `contracts/ledger.ts` | Ledger and Control Plane Contracts | TypeScript contracts defining `LedgerRepository`, `SourceRecord`, `CrawlPartition`, `DocumentRecord`, `ArtifactRecord`, `JobRecord`, and `OutboxEventRecord`. |
+| `contracts/index.ts` | Contracts Barrel | TypeScript type contracts for `StorageRef`, `Capabilities`, `ObjectStore`, `SourceDescriptor`, `JobNotification`, and all ledger entities. |
+| `infra/migrations/` | Database Migrations | PostgreSQL starter control plane tables (`001-control-plane.sql`), atomic lease queries (`002-lease-examples.sql`), and operational extension tables (`003-operational-extension.sql`). |
+| `scripts/run-worker.ts` | CLI Daemon Runner | Standalone task worker CLI daemon coordinating concurrent workers, LocalObjectStore, and SQLite control plane ledger (`npm run worker`). |
+| `docs/architecture-rfcs/` | Architecture RFC Specifications | Developer Package V3 specifications (docs 01-13) defining storage registries, worker control plane, failure matrix, connector permissions, retention state machines, and source onboarding protocol. |
+
 

@@ -1,143 +1,114 @@
 # Protokol-7
 
-Headless Web Scraping, Structured Document Extraction, and Corpus Pipeline Microservice.
+**Massive Scale Data Ingestion, Headless Web Scraping, and Document Extraction Pipeline.**
 
-## Overview
-
-Protokol-7 is a standalone Node.js and TypeScript microservice designed for high-throughput, structured data acquisition. It combines browser automation (Playwright Chromium session pooling with anti-automation masking), low-latency static DOM parsing (Cheerio), document distillation (Mozilla Readability to GFM Markdown), and specialized API extractors across 31 domain sources. 
-
-The service exposes both a native HTTP REST API (with OpenAPI 3.1.0 interactive Swagger documentation) and a Model Context Protocol (MCP JSON-RPC 2.0 / SSE) interface for AI agent tool calling.
+Protokol-7 is a hybrid **Node.js/TypeScript microservice** and **Python data pipeline** ecosystem designed for high-throughput, structured data acquisition. Its ultimate architectural target is a **500 TB Distributed Data Lake**, specializing in academic, scientific, legal, and cultural datasets.
 
 ---
 
-## Architecture Overview
+## 1. Vision & The 500 TB Data Lake Architecture
+
+To achieve a 500 TB distributed Data Lake without bottlenecks, Protokol-7 employs a strictly separated **Two-Stage Architecture**:
+
+### Stage 1: High-Speed Metadata Hunters (Implemented)
+- Fast, non-blocking ingestion of JSON/XML metadata via APIs (OAI-PMH, REST).
+- **Format:** Saves structured data into column-oriented **Parquet** shards (Zstandard compressed).
+- **State Management:** Uses local **SQLite Ledgers** to track exact pagination states, ensuring pause/resume capabilities without duplicate records.
+- *Active Pipelines:* DOAJ (Directory of Open Access Journals) and DergiPark (TÜBİTAK ULAKBİM).
+
+### Stage 2: Heavy Asset Workers (In Development)
+- Downloading PDFs, parsing layouts, and running OCR is highly network/CPU bound.
+- Stage 1 pushes discovered PDF URLs to a distributed message queue (e.g., RabbitMQ, Kafka).
+- Independent Worker Nodes (written in Python using `PyMuPDF`/`pdfminer`) consume the queue, download the heavy assets, extract text, and append the content to the Data Lake (MinIO/S3 + Apache Iceberg).
+
+---
+
+## 2. Core Node.js Microservice (Actors & Web Scraping)
+
+The core application exposes both a native HTTP REST API (with OpenAPI 3.1.0 Swagger) and a **Model Context Protocol (MCP)** interface for AI agent tool calling.
+
+- **31 Domain Extraction Actors**:
+  - **Web & Crawling**: Cheerio, Playwright, Sitemap XML, Markdown extraction, Network interception.
+  - **Scholarly & Science**: arXiv, Europe PMC, OpenAlex, DergiPark.
+  - **Government & Legal**: SEC Edgar, Court Listener, EUR-Lex, Open FDA.
+  - **Library & Culture**: Gutenberg, Internet Archive, KTB eKitap.
+- **Browser Automation**: Playwright Chromium session pooling with anti-automation masking and stealth evasion.
+- **Document Distillation**: Mozilla Readability to GFM Markdown, HTML tables, Office, and EPUB extraction.
+- **Network Security**: Strict SSRF perimeter guard, automated DNS validation, and politeness rate limiting.
+
+---
+
+## 3. Tech Stack
+
+- **Data Ingestion (Python 3.12):** `pandas`, `pyarrow` (Parquet), `sqlite3` (Ledger), `httpx` (Async/Sync HTTP).
+- **Microservice (Node.js 22+ / TypeScript):** Express, Zod (Schema Validation), Cheerio, Playwright, Node:SQLite.
+- **Storage Target:** MinIO / Cloudflare R2 / AWS S3 (for the Parquet Data Lake), local filesystem for staging.
+- **Orchestration:** Docker, Docker Compose, RabbitMQ (Planned).
+
+---
+
+## 4. Directory Structure
 
 ```text
 protokol-7/
-├── src/
-│   ├── core/                # HTTP REST server, RegistryDatabase (node:sqlite), Store router, OpenAPI
-│   ├── actors/              # 31 specialized extraction actors (Web, Science, Legal, Culture, Code, Docs)
-│   ├── browser/             # Playwright Chromium pool, stealth evasion, session vault, DOM indexer
-│   ├── extractors/          # Readability, HTML tables, PDF layout reordering, Office, EPUB, CSV
-│   ├── network/             # SSRF perimeter guard, politeness rate limiter, safe redirect fetcher
-│   ├── mcp/                 # Model Context Protocol stdio and HTTP/SSE JSON-RPC 2.0 server
-│   ├── pipeline/            # YAML pipeline runner, execution targets, storage drivers (S3, R2, B2, Drive)
-│   └── ocr/                 # OCR connector registry, PDF rasterizer, and local/cloud vision bridges
-├── scripts/
-│   └── corpus_pipeline/     # High-throughput text normalization, Parquet sharding (ZSTD-6), audit ledger
-├── examples/
-│   ├── actors/              # Runnable JSON input examples for all 31 actors
-│   └── pipelines/           # YAML pipeline specifications for batch extraction
-├── tests/                   # Native Node.js test runner test suites (tsx --test)
-├── Dockerfile               # Multi-stage containerization with Chromium and Python
-└── docker-compose.yml       # Production service orchestration
+├── pipelines/               # [Python] Massive Data Ingestion Pipelines
+│   ├── api_stream/          # Active scrapers (doaj, dergipark)
+│   └── shared/              # Shared Sharder (Parquet) and Ledger (SQLite) base classes
+├── src/                     # [Node.js] HTTP REST server, MCP, Actors, Browser pool
+│   ├── actors/              # 31 specialized extraction actors
+│   ├── browser/             # Playwright Chromium pool & stealth
+│   ├── mcp/                 # Model Context Protocol server
+│   └── network/             # SSRF guard & politeness limiter
+├── data/
+│   ├── catalogs/            # SQLite State Ledgers (*.sqlite)
+│   └── parquets/            # Staging area for generated Parquet shards
+├── docs/                    # Architecture and AI Agent Plans
+├── .agents/                 # AI Agent Skills and Protocols (e.g., data-ingestion-protocol)
+└── tests/                   # Node.js and Python test suites
 ```
 
 ---
 
-## Core Capabilities
+## 5. Getting Started
 
-1. **31 Domain Extraction Actors**:
-   - **Web & Crawling**: `cheerio-scraper`, `playwright-browser`, `crawler`, `sitemap-xml`, `markdown-reader`, `network-interceptor`, `serp-search`, `api-extractor`.
-   - **Scholarly & Science**: `arxiv`, `europe-pmc`, `openalex`, `dergipark`, `openstax`, `mit-ocw`.
-   - **Government & Legal**: `sec-edgar`, `court-listener`, `eur-lex`, `open-fda`, `clinical-trials`.
-   - **Library & Culture**: `gutenberg`, `internet-archive`, `ktb-ekitap`, `saglik-ekutuphane`, `epub-extractor`.
-   - **Code & Standards**: `software-heritage`, `stack-exchange`, `ietf-rfc`, `wikimedia`.
-   - **Document & Archives**: `pdf-document`, `document-extractor`, `archive-extractor`.
-   *See [src/actors/README.md](src/actors/README.md) for full documentation and parameter specifications.*
+### Python Pipelines (Stage 1 Ingestion)
+```bash
+# 1. Setup virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-2. **Network Perimeter Security & SSRF Defense**:
-   - Automated DNS resolution and IP validation blocking RFC 1918, RFC 4193, loopback, and cloud metadata endpoints (169.254.169.254).
-   - Iterative redirect traversing with DNS re-validation at each hop.
-   - Host-based politeness rate limiting with exponential backoff.
+# 2. Install dependencies
+pip install -r requirements-python.txt
 
-3. **Storage & Packaging**:
-   - Pluggable storage providers: Local Filesystem, Physical Cold Vault (Btrfs SHA256SUMS), Cloudflare R2, AWS S3, Backblaze B2, Google Drive.
-   - Streaming Parquet sharding (512 MB – 1 GB partitions with Zstandard compression) and cryptographic SHA-256 / BLAKE3 receipt verification.
+# 3. Run unit tests
+python -m pytest pipelines/api_stream/dergipark -v
 
-4. **Model Context Protocol (MCP)**:
-   - Exposes all 31 actors as callable tools for AI agents over Stdio or HTTP/SSE (`/mcp`).
+# 4. Start a live pipeline (e.g., DOAJ or DergiPark)
+python -u pipelines/api_stream/dergipark/orchestrator.py \
+  --all \
+  --batch-size 1000 \
+  --max-shard-records 50000 \
+  2>&1 | tee -a logs/dergipark.log
+```
 
----
-
-## Quick Start
-
-### Option A: Local Development
-
+### Node.js Microservice
 ```bash
 # 1. Install dependencies
 npm install
 
-# 2. Run static analysis and technical naming audit
+# 2. Run static analysis and tests
 npm run lint
-npm run lint:naming
-
-# 3. Run test suites (435 passing tests)
 npm test
 
-# 4. Start HTTP REST & MCP server
+# 3. Start HTTP REST & MCP server
 npm start
 ```
-
-### Option B: Docker / Container Deployment
-
-```bash
-# Start containerized service in background
-docker compose up -d
-
-# Verify service health
-curl -f http://localhost:4000/health
-```
-
-The interactive Swagger API documentation is available at `http://localhost:4000/docs`.
+The interactive Swagger API documentation will be available at `http://localhost:4000/docs`.
 
 ---
 
-## HTTP REST API Summary
+## 6. AI Agent Protocols
 
-Default listen address: `http://0.0.0.0:4000` (configurable via `PORT` and `HOST`).
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Service health status, active contexts, and uptime |
-| `GET` | `/docs` | Interactive Swagger UI API documentation |
-| `GET` | `/openapi.json` | OpenAPI 3.1.0 specification schema |
-| `GET` | `/api/v1/actors` | List registered actor types and input contracts |
-| `POST` | `/api/v1/actors` | Execute generic actor task (`ActorTask`) |
-| `POST` | `/api/v1/scrape` | Execute single-page scrape (`targetUrl`, `renderJavaScript`) |
-| `POST` | `/api/v1/crawl` | Execute site crawl (`targetUrl`, `maxDepth`, `maxPages`) |
-| `POST` | `/api/v1/arxiv` | Query arXiv preprints and download papers |
-| `POST` | `/api/v1/wikimedia` | Query Wikimedia summaries or full Markdown articles |
-| `POST` | `/api/v1/sec-edgar` | Query SEC company filings (10-K, 10-Q) |
-| `POST` | `/api/v1/court-listener` | Query US legal opinions and case precedents |
-| `POST` | `/api/v1/software-heritage` | Query Software Heritage code blobs (SWHID) |
-| `POST` | `/api/v1/eur-lex` | Query European Union legislation (CELLAR) |
-| `POST` | `/api/v1/openstax` | Query OpenStax open educational textbooks |
-| `POST` | `/api/v1/mit-ocw` | Query MIT OpenCourseWare curriculum resources |
-| `POST` | `/api/v1/browser/action` | Execute stateful browser interaction (`sessionId`, `action`) |
-| `DELETE` | `/api/v1/browser/session/:id` | Terminate stateful browser session |
-
----
-
-## Pipeline Execution CLI
-
-Execute structured extraction pipelines defined in YAML:
-
-```bash
-# Run a batch extraction pipeline
-npm run pipeline -- --config examples/pipelines/corpus-parquet-sample.yaml
-```
-
----
-
-## Environment Variables
-
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | `4000` | HTTP server listening port |
-| `HOST` | `0.0.0.0` | HTTP server listening interface |
-| `MCP_API_TOKEN` | (none) | Optional Bearer token for MCP authentication |
-| `PYTHON_PATH` | `python3` | Path to Python 3 binary for Parquet conversion |
-| `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` | (auto-detected) | Custom path to local Chromium binary |
-| `AWS_ACCESS_KEY_ID` | (none) | Credentials for S3/R2/B2 storage providers |
-| `AWS_SECRET_ACCESS_KEY` | (none) | Secret key for S3/R2/B2 storage providers |
+Protokol-7 is built in collaboration with advanced AI agents. The repository enforces strict rules via:
+- `AGENTS.md` and `GEMINI.md`: Project rules and cognitive routing for agents.
+- `.agents/skills/data-ingestion-protocol/SKILL.md`: The mandatory workflow protocol agents must follow when adding a new data source to ensure architectural consistency.

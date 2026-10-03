@@ -12,6 +12,7 @@
       "scripts/**/*.js",
       "scripts/**/*.ts",
       "package.json",
+      "contracts/**/*.ts",
       "src/**/*.ts",
       "tests/**/*.ts"
     ]
