@@ -5,11 +5,15 @@ DergiPark Raw PDF Streaming Archive Packer -- protokol-7
 Packages downloaded article PDF binaries into WebDataset/Cold Vault TAR.GZ shards,
 computes SHA-256 and MD5 checksums, and enables automated Google Drive upload
 with zero local disk residue.
+
+Supports large-scale tolerant multi-GB sharding (10 GB - 50 GB) with
+dynamic disk headroom safety guard to prevent file fragmentation.
 """
 
 import datetime
 import io
 import os
+import shutil
 import sys
 import tarfile
 from typing import Any, Callable, Dict, List, Optional
@@ -22,6 +26,7 @@ from pipelines.shared.sharder_base import compute_file_hashes
 class DergiParkPdfTarSharder:
     """
     Streaming TAR.GZ archive packer for DergiPark raw PDF files.
+    Enforces tolerant multi-GB sharding (10 GB .. 51 GB) and disk headroom safety guard.
     """
 
     def __init__(
@@ -29,15 +34,20 @@ class DergiParkPdfTarSharder:
         output_dir: str = "data/raw_archives/dergipark/pdfs",
         filename_prefix: str = "dergipark_raw_pdfs",
         snapshot_date: Optional[str] = None,
-        max_part_bytes: int = 512 * 1024 * 1024,
-        max_part_entries: int = 500,
+        target_gb: float = 10.0,
+        max_gb: float = 51.0,
+        min_free_disk_gb: float = 25.0,
+        max_part_entries: Optional[int] = None,
+        target_bytes: Optional[int] = None,
         start_part_idx: int = 0,
         on_shard_completed: Optional[Callable[[Dict[str, Any]], None]] = None,
     ):
         self.output_dir = output_dir
         self.filename_prefix = filename_prefix
         self.snapshot_date = snapshot_date or datetime.date.today().strftime("%Y%m%d")
-        self.max_part_bytes = max_part_bytes
+        self.target_bytes = target_bytes if target_bytes is not None else int(target_gb * 1024 * 1024 * 1024)
+        self.max_bytes = int(max_gb * 1024 * 1024 * 1024)
+        self.min_free_disk_bytes = int(min_free_disk_gb * 1024 * 1024 * 1024)
         self.max_part_entries = max_part_entries
         self.part_idx = start_part_idx
         self.on_shard_completed = on_shard_completed
@@ -60,7 +70,8 @@ class DergiParkPdfTarSharder:
         self.part_entries = 0
         self.part_uncompressed_bytes = 0
         self._tar = tarfile.open(self._current_path, mode="w:gz")
-        print(f"[TAR-SHARDER] Opened new PDF archive shard: {filename}", flush=True)
+        target_gb_val = self.target_bytes / (1024**3)
+        print(f"[TAR-SHARDER] Opened new PDF archive shard: {filename} (target: {target_gb_val:.1f} GB)", flush=True)
 
     def append_pdf(self, article_id: str, pdf_bytes: bytes) -> str:
         """
@@ -88,8 +99,29 @@ class DergiParkPdfTarSharder:
         self.total_entries += 1
         self.part_uncompressed_bytes += len(pdf_bytes)
 
-        # Check rotation thresholds
-        if self.part_entries >= self.max_part_entries or self.part_uncompressed_bytes >= self.max_part_bytes:
+        # Check rotation thresholds:
+        # 1. Target size reached (tolerant boundary: 10GB .. 51GB)
+        # 2. Local disk headroom safety check (if free space < min_free_disk_gb, flush immediately to Drive!)
+        # 3. Entry count limit if explicitly configured
+        should_rotate = False
+        if self.part_uncompressed_bytes >= self.target_bytes:
+            should_rotate = True
+        elif self.max_part_entries and self.part_entries >= self.max_part_entries:
+            should_rotate = True
+        else:
+            try:
+                free_disk = shutil.disk_usage(self.output_dir).free
+                if free_disk < self.min_free_disk_bytes:
+                    print(
+                        f"[TAR-SHARDER] Disk headroom warning: Free space {free_disk / (1024**3):.1f} GB < "
+                        f"{self.min_free_disk_bytes / (1024**3):.1f} GB threshold. Rotating shard early to evict to Drive.",
+                        flush=True,
+                    )
+                    should_rotate = True
+            except Exception:
+                pass
+
+        if should_rotate:
             self.close_shard()
 
         return shard_name

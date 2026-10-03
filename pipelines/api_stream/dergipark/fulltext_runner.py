@@ -15,6 +15,7 @@ import argparse
 import concurrent.futures
 import datetime
 import os
+import signal
 import sys
 import threading
 import time
@@ -121,16 +122,34 @@ def main():
         help="Local scratch directory for raw PDF TAR.GZ shards",
     )
     parser.add_argument(
-        "--max-pdf-archive-mb",
-        type=int,
-        default=512,
-        help="Max uncompressed MB per raw PDF TAR.GZ shard before rotation (default: 512)",
+        "--pdf-archive-gb",
+        type=float,
+        default=10.0,
+        help="Target size in GB for raw PDF TAR.GZ archive shards (default: 10.0, tolerant range 10.0 - 50.0)",
+    )
+    parser.add_argument(
+        "--max-pdf-archive-gb",
+        type=float,
+        default=51.0,
+        help="Maximum tolerant boundary in GB before hard shard rotation (default: 51.0)",
+    )
+    parser.add_argument(
+        "--min-free-disk-gb",
+        type=float,
+        default=25.0,
+        help="Local disk headroom safety guard in GB before early flush/eviction (default: 25.0)",
     )
     parser.add_argument(
         "--max-pdf-archive-records",
         type=int,
-        default=500,
-        help="Max PDFs per raw PDF TAR.GZ shard before rotation (default: 500)",
+        default=None,
+        help="Optional max PDF entries per shard before rotation (default: None, unconstrained)",
+    )
+    parser.add_argument(
+        "--max-pdf-archive-mb",
+        type=int,
+        default=None,
+        help="Deprecated: Max uncompressed MB per raw PDF TAR.GZ shard before rotation",
     )
     parser.add_argument(
         "--db-path",
@@ -295,13 +314,19 @@ def main():
         on_shard_completed=on_shard_completed,
     )
 
+    target_pdf_gb = args.pdf_archive_gb
+    if args.max_pdf_archive_mb is not None and args.max_pdf_archive_mb > 0:
+        target_pdf_gb = args.max_pdf_archive_mb / 1024.0
+
     pdf_tar_sharder = None
     if not args.no_archive_pdfs:
         start_archive_part = ledger.get_next_pdf_archive_part_index()
         pdf_tar_sharder = DergiParkPdfTarSharder(
             output_dir=args.pdf_archive_dir,
             filename_prefix="dergipark_raw_pdfs",
-            max_part_bytes=args.max_pdf_archive_mb * 1024 * 1024,
+            target_gb=target_pdf_gb,
+            max_gb=args.max_pdf_archive_gb,
+            min_free_disk_gb=args.min_free_disk_gb,
             max_part_entries=args.max_pdf_archive_records,
             start_part_idx=start_archive_part,
             on_shard_completed=on_pdf_shard_completed,
@@ -319,7 +344,8 @@ def main():
     print(f"[DERGIPARK-FULLTEXT] Workers: {args.workers} | Rate limit: {args.rate_limit}s/req", flush=True)
     print(f"[DERGIPARK-FULLTEXT] Parquet Shard: {args.shard_size_mb} MB | Max entries: {args.max_shard_records}", flush=True)
     if pdf_tar_sharder:
-        print(f"[DERGIPARK-FULLTEXT] PDF Archive: {args.max_pdf_archive_mb} MB | Max PDFs/shard: {args.max_pdf_archive_records}", flush=True)
+        rec_desc = f"{args.max_pdf_archive_records}" if args.max_pdf_archive_records else "None (Size-driven)"
+        print(f"[DERGIPARK-FULLTEXT] PDF Archive: target {target_pdf_gb:.1f} GB (max {args.max_pdf_archive_gb:.1f} GB, min free disk: {args.min_free_disk_gb:.1f} GB, max entries: {rec_desc})", flush=True)
         print(f"[DERGIPARK-FULLTEXT] PDF Archive Directory: {args.pdf_archive_dir}", flush=True)
     print(f"[DERGIPARK-FULLTEXT] Starting shard index: p{start_part:05d}", flush=True)
     print(f"[DERGIPARK-FULLTEXT] SQLite Database: {args.db_path}", flush=True)
@@ -338,8 +364,23 @@ def main():
     def process_item(item: Dict[str, Any]) -> Dict[str, Any]:
         return extractor.process_article(item)
 
+    shutdown_requested = False
+
+    def handle_signal(sig, frame):
+        nonlocal shutdown_requested
+        sig_name = "SIGTERM" if sig == signal.SIGTERM else "SIGINT"
+        print(f"\n[DERGIPARK-FULLTEXT] Received {sig_name}. Gracefully completing batch and closing shards...", flush=True)
+        shutdown_requested = True
+
+    signal.signal(signal.SIGINT, handle_signal)
+    signal.signal(signal.SIGTERM, handle_signal)
+
     try:
         while True:
+            if shutdown_requested:
+                print("[DERGIPARK-FULLTEXT] Shutdown requested. Halting article loop...", flush=True)
+                break
+
             remaining = (max_target - total_processed) if max_target else args.batch_size
             if remaining <= 0:
                 break
@@ -425,16 +466,10 @@ def main():
                 print(f"[DERGIPARK-FULLTEXT] Reached target limit ({max_target}). Stopping.", flush=True)
                 break
 
-        sharder.close()
-        if pdf_tar_sharder:
-            pdf_tar_sharder.close()
-
-        ledger.sync_to_central_catalog("dergipark_fulltext")
-        if pdf_tar_sharder:
-            ledger.sync_to_central_catalog("dergipark_raw_pdfs")
-
     except KeyboardInterrupt:
-        print("\n[DERGIPARK-FULLTEXT] Process interrupted by operator. Finalizing open shards...", flush=True)
+        print("\n[DERGIPARK-FULLTEXT] Process interrupted by operator.", flush=True)
+    finally:
+        print("[DERGIPARK-FULLTEXT] Finalizing active shards and syncing central catalog...", flush=True)
         sharder.close()
         if pdf_tar_sharder:
             pdf_tar_sharder.close()

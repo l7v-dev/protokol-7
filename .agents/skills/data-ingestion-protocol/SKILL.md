@@ -61,9 +61,35 @@ python -u pipelines/api_stream/<platform-adi>/orchestrator.py --all --batch-size
 ```
 
 ## PDF ve Heavy-Asset (Ağır Yük) Stratejisi
-*Kritik Kural:* Metadata (JSON/XML) çekme işlemi (hızlı) ile PDF/Asset indirme ve OCR işlemi (çok yavaş) **asla** aynı process içinde yapılamaz.
-1. Metadata pipeline'ı, PDF URL'lerini bulur ve bunları RabbitMQ/Kafka veya ayrı bir PostgreSQL "download_queue" tablosuna basar (`contracts/job.schema.json` sözleşmesiyle).
-2. Ayrı bir worker pool (ayrı sunucularda çalışan) bu kuyruktan PDF linklerini çeker, indirir, `PyMuPDF` ile metni çıkarır ve Data Lake'e (Parquet olarak) kaydeder.
+*Kritik Kural:* Metadata (JSON/XML) çekme işlemi (hızlı) ile PDF/Asset indirme ve metin çıkarma işlemi (yavaş) **asla** aynı process içinde kilitlenerek yapılamaz.
+1. Metadata pipeline'ı, PDF URL'lerini bulur ve bunları SQLite/PostgreSQL katalog tablosuna (`pdf_status = 'pending'`) kaydeder.
+2. Ayrı bir worker pool veya bağımsız full-text runner süreci bu kuyruktan PDF linklerini çeker, indirir, `PyMuPDF` ile metni çıkarır, yapısal alanları (başlık, yazarlar, yıl, dergi, abstract, sayfa sayısı, karakter/kelime sayısı) zstd/snappy sıkıştırmalı Parquet dosyalarına yazar.
 3. Ajanlar, metadata'yı çekerken PDF'leri anlık olarak indirmeye KALKIŞMAMALIDIR.
 
+## 6. Faz: Arşivleme, Paketleme ve Bellek Güvenliği (Packaging & Cold Vault)
+500+ GB ve petabayt ölçeğindeki veri çekimlerinde dosya parçalanmasını (file fragmentation) ve bulut kota kilitlenmelerini önlemek için aşağıdaki kurallar zorunludur:
+
+### 1. Toleranslı Çoklu-GB Paketleme Disiplini (10 GB - 50 GB / ~51 GB)
+- **Küçük Dosya Parçalanması Yasağı:** 500 GB bir veri seti için 50.000 adet küçük (10 MB veya 512 MB) dosya üretilemez. Binlerce küçük dosya; Google Drive API kota tükenmesine, inode tükenmesine, dosya sistemi arama gecikmelerine ve verimsiz transferlere yol açar.
+- **Toleranslı Hedef Boyut:** Ham ikili (raw PDF/EPUB/HTML) arşivleri TAR.GZ formatında **10 GB ile 50 GB** aralığında (en fazla ~51 GB üst tolerans sınırı) paketlenir. Böylece 500 GB veri yalnızca 10 ila 50 büyük arşiv parçasına bölünür.
+- **Kayıt Sayısı Serbestisi:** Arşiv rotasyonu kayıt sayısına (record count) değil, kümülatif bayt hacmine göre tetiklenir (`max_part_entries` varsayılan olarak serbest bırakılır).
+
+### 2. Dinamik Yerel Disk Headroom Güvenlik Koruması (Safety Guard)
+- Her dosya eklemesinde çalışma ortamının boş disk alanı denetlenir (`shutil.disk_usage`).
+- **Headroom Eşiği:** Yerel boş alan `min_free_disk_gb` (varsayılan: 25.0 GB) altına düşerse, aktif arşiv parçası hedef GB'ye ulaşmamış olsa dahi derhal kapatılır, mühürlenir ve uzak depolamaya (Google Drive / S3 / R2) gönderilir.
+- Bu güvenlik kalkanı, ana sunucunun `ENOSPC` (No space left on device) hatasıyla çökmesini ve veritabanı kilitlenmesini engeller.
+
+### 3. "archive_then_delete" Yaşam Döngüsü ve Sıfır Disk Artığı
+- Ham veriler için yaşam döngüsü durum makinesi:
+  `INGESTED -> EXTRACTED -> ARCHIVED -> UPLOADED -> VERIFIED -> PURGED`
+- **Çift Kriptografik Sağlama:** Her tamamlanan Parquet ve TAR.GZ parçası için yerel SHA-256 ve MD5 hash değerleri hesaplanır.
+- **Uzak MD5 Doğrulaması:** Parça Google Drive / R2 / S3'e yüklendikten sonra, uzak sunucunun döndürdüğü MD5 sağlama toplamı yerel MD5 ile eşleşmeden yerel dosya ASLA silinmez.
+- **Sıfır Disk Artığı:** Doğrulama başarılı olduğunda yerel arşiv dosyası hemen silinir (`purge_on_success=True`). Böylece yerel disk yalnızca geçici arabellek olarak kullanılır.
+
+### 4. AI/LLM Hazırlığı ve Biçim Ayrıştırması
+- **Metin ve İkili Ayrımı:** Yapılandırılmış tam metin ve öznitelikler LLM eğitimi, RAG ve değerlendirme için optimize edilmiş Parquet dosyalarında tutulur.
+- **Provenance Ham Arşivi:** Orijinal ikili dosyalar (PDF, görseller) WebDataset/Cold Vault uyumlu TAR.GZ arşivlerinde yedeklenir.
+- **Katalog Bütünlüğü:** Tüm Parquet ve TAR.GZ parçaları merkezi SQLite/PostgreSQL ledger'ında parça indeksi, kayıt sayısı, bayt boyutu, SHA-256, MD5 ve Drive dosya kimliği ile kayıt altına alınır.
+
 Bu protokole uyulduğu sürece, sistem 500 TB Data Lake hedefine sorunsuz şekilde uyum sağlayabilir.
+

@@ -688,4 +688,55 @@ def test_ledger_pdf_archive_tracking(tmp_dir):
     assert ledger.get_next_pdf_archive_part_index() == 0
 
 
+def test_pdf_tar_packer_byte_rotation(tmp_dir):
+    shards_completed = []
+
+    def on_shard(info):
+        shards_completed.append(info)
+
+    # 100 bytes target threshold
+    sharder = DergiParkPdfTarSharder(
+        output_dir=tmp_dir,
+        filename_prefix="test_byte_archive",
+        target_bytes=100,
+        on_shard_completed=on_shard,
+    )
+
+    pdf_chunk = b"%PDF-1.4 " + (b"A" * 60) + b"\n%%EOF"
+    sharder.append_pdf("art1", pdf_chunk)
+    assert len(shards_completed) == 0  # 70 bytes < 100 bytes
+
+    sharder.append_pdf("art2", pdf_chunk)
+    assert len(shards_completed) == 1  # 140 bytes >= 100 bytes -> rotated
+    assert shards_completed[0]["record_count"] == 2
+
+
+def test_pdf_tar_packer_disk_headroom_guard(tmp_dir, monkeypatch):
+    shards_completed = []
+
+    def on_shard(info):
+        shards_completed.append(info)
+
+    sharder = DergiParkPdfTarSharder(
+        output_dir=tmp_dir,
+        filename_prefix="test_headroom_archive",
+        target_bytes=10000000,  # High target
+        min_free_disk_gb=30.0,  # 30 GB threshold
+        on_shard_completed=on_shard,
+    )
+
+    # Simulate low free disk space (10 GB free < 30 GB threshold)
+    import collections
+    Usage = collections.namedtuple("Usage", ["total", "used", "free"])
+    monkeypatch.setattr("shutil.disk_usage", lambda path: Usage(total=100*(1024**3), used=90*(1024**3), free=10*(1024**3)))
+
+    pdf_chunk = b"%PDF-1.4 test\n%%EOF"
+    sharder.append_pdf("art_guard", pdf_chunk)
+
+    # Should rotate immediately due to headroom guard
+    assert len(shards_completed) == 1
+    assert shards_completed[0]["record_count"] == 1
+
+
+
 

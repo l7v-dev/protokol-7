@@ -12,9 +12,9 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 
 - [ ] **DergiPark Tam Metin Çıkarımı ve Ham PDF Arşivleme Akışı (`dergipark`)** — `Tier: 1`
-  - **Durum:** DergiPark kataloğundaki 131.122 makalenin tam metin PDF indirmesi, PyMuPDF Markdown katman çıkarımı, Zstandard Parquet sharder ve ham PDF TAR.GZ arşivleyici arka plan daemon'ı olarak yürütülüyor.
-  - **Süreç:** `python -u pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 0 --workers 4 --rate-limit 0.35 --batch-size 50 --max-shard-records 2000 --max-pdf-archive-records 500`
-  - **İlerleme:** Paralel 4 işçi ile PDF'ler çekiliyor, PyMuPDF ile Markdown metni çıkarılıp Parquet shard'larına yazılıyor, eşzamanlı olarak ham PDF ikili dosyaları 500'lük WebDataset TAR.GZ shard'larına paketlenip Google Drive `DergiPark/` ve `DergiPark/pdfs/` klasörlerine MD5 doğrulamasıyla aktarılıyor ve yerel disk sıfırlanıyor (sıfır disk artığı).
+  - **Durum:** DergiPark kataloğundaki 131.122 makalenin tam metin PDF indirmesi, PyMuPDF Markdown katman çıkarımı, Zstandard Parquet sharder ve toleranslı çoklu-GB (10-50 GB, maks 51 GB) ham PDF TAR.GZ arşivleyici arka plan daemon'ı olarak yürütülüyor.
+  - **Süreç:** `python -u pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 0 --workers 2 --rate-limit 0.75 --batch-size 50 --max-shard-records 2000 --pdf-archive-gb 10.0 --max-pdf-archive-gb 51.0 --min-free-disk-gb 25.0`
+  - **İlerleme:** Paralel 2 işçi ile Cloudflare 429 korumalı hız sınırıyla makaleler çekiliyor, PyMuPDF ile Markdown tam metni çıkarılıp Parquet shard'larına yazılıyor. Ham PDF ikili dosyaları toleranslı 10-50 GB'lık (maks 51 GB) WebDataset/Cold Vault TAR.GZ shard'larına paketlenip Google Drive `DergiPark/pdfs/` klasörüne MD5 doğrulamasıyla aktarılıyor ve yerel disk sıfırlanıyor. 25 GB disk headroom güvenlik kalkanı devrede.
   - **Takip:** `tail -f logs/dergipark_fulltext.log`
 
 - [ ] **DOAJ Canlı Tam Katalog Akışı ve Parquet Paketleme (`doaj`)** — `Tier: 1`
