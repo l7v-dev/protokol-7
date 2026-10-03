@@ -42,3 +42,4 @@
 {"tarih":"2026-09-30","faz":"Ledger-Muhur","konu":"6 gorev konsolide edildi: **Gutenberg Görüntü TAR Shard Pipeline (scripts/gutenberg_pipeline/)** — `Tier: ...","dosya":"sessions/2026-09-30--session-1790770808741.md.gz","tier_max":2}
 {"tarih":"2026-10-02","faz":"Ledger-Muhur","konu":"4 gorev konsolide edildi: **OpenAlex S3 Snapshot Temizleme, Parçalama ve Drive Yükleme Hattı** — `Tier: 2`...","dosya":"sessions/2026-10-02--session-1790944433286.md.gz","tier_max":2}
 {"tarih":"2026-10-02","faz":"Ledger-Muhur","konu":"3 gorev konsolide edildi: **Instagram Profil & Medya Akışı Çekimi ve Object Vault Senkronizasyonu (@pratik...","dosya":"sessions/2026-10-02--session-1790949093895.md.gz","tier_max":2}
+{"tarih":"2026-10-03","faz":"Ledger-Muhur","konu":"3 gorev konsolide edildi: **PubMed & PMC Canlı Veri Çekimi ve Parquet Paketleme (`pubmed`)** — `Tier: 1` —...","dosya":"sessions/2026-10-03--session-1791019152125.md.gz","tier_max":2}

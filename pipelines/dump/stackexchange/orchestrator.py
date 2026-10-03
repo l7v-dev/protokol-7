@@ -48,7 +48,7 @@ from downloader import build_dump_url, download_7z, extract_xml_files, remove_sa
 from drive_sync import StackExchangeDriveSync
 from packer import StackExchangeParquetSharder
 
-DEFAULT_DB_PATH  = "data/stackexchange_catalog.sqlite"
+DEFAULT_DB_PATH  = "data/catalogs/stackexchange_catalog.sqlite"
 DEFAULT_TEMP_DIR = "data/temp_stackexchange"
 SITES_JSON       = os.path.join(os.path.dirname(__file__), "sites.json")
 

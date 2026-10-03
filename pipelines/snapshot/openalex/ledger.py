@@ -13,7 +13,7 @@ import os
 import sqlite3
 from typing import Any, Dict, List, Optional
 
-DEFAULT_SNAPSHOT_DB_PATH = "data/openalex_snapshot_catalog.sqlite"
+DEFAULT_SNAPSHOT_DB_PATH = "data/catalogs/openalex_snapshot_catalog.sqlite"
 DEFAULT_CENTRAL_DB_PATH = "data/catalog.sqlite"
 
 

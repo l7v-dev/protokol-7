@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Starts the OpenAlex pipeline detached from the current terminal.
-# Usage: ./run_openalex.sh
+# Usage: ./scripts/run_openalex.sh
 set -euo pipefail
 
-REPO="/home/l7v/l7v-dev/play/protokol-7"
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG="$REPO/logs/openalex.log"
 PYTHON="$REPO/.venv/bin/python"
-SCRIPT="$REPO/scripts/openalex_pipeline/orchestrator.py"
+SCRIPT="$REPO/pipelines/api_stream/openalex/orchestrator.py"
 
 mkdir -p "$REPO/logs"
 

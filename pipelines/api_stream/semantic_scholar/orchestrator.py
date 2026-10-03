@@ -42,7 +42,7 @@ from drive_sync import S2DriveSync
 from packer import S2ParquetSharder
 from pdf_extractor import enrich_record_with_pdf
 
-DEFAULT_DB_PATH = "data/semanticscholar_catalog.sqlite"
+DEFAULT_DB_PATH = "data/catalogs/semanticscholar_catalog.sqlite"
 DEFAULT_OUT_DIR = "data/temp_semanticscholar"
 FLUSH_EVERY     = 10_000
 

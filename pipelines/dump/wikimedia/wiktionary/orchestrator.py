@@ -33,7 +33,7 @@ from downloader import (
 from drive_sync import WiktionaryDriveSync
 from packer import StreamingParquetSharder
 
-DEFAULT_DB_PATH = "data/wiktionary_catalog.sqlite"
+DEFAULT_DB_PATH = "data/catalogs/wiktionary_catalog.sqlite"
 DEFAULT_TEMP_DIR = "data/temp_wiktionary"
 
 ANCIENT_LANGUAGES = {"ang", "la", "sa", "grc", "yi", "fro", "non", "got", "cu", "sux", "akk", "hit", "cop"}
@@ -41,7 +41,9 @@ ANCIENT_LANGUAGES = {"ang", "la", "sa", "grc", "yi", "fro", "non", "got", "cu", 
 
 def load_wiktionary_databases() -> List[Dict[str, Any]]:
     """Loads all 198 Wiktionary database records from bundled json or fallback."""
-    json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "wiktionary_dbs.json")
+    json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "configs", "wiktionary_dbs.json")
+    if not os.path.exists(json_path):
+        json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "wiktionary_dbs.json")
     if not os.path.exists(json_path):
         json_path = os.path.abspath("scripts/wiktionary_dbs.json")
 

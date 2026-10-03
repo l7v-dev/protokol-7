@@ -33,7 +33,7 @@ from downloader import (
 from drive_sync import WikispeciesDriveSync
 from packer import StreamingParquetSharder
 
-DEFAULT_DB_PATH = "data/wikispecies_catalog.sqlite"
+DEFAULT_DB_PATH = "data/catalogs/wikispecies_catalog.sqlite"
 DEFAULT_TEMP_DIR = "data/temp_wikispecies"
 
 

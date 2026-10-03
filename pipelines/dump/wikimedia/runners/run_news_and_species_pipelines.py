@@ -21,7 +21,15 @@ import sys
 import time
 from typing import List, Dict, Any
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+def find_repo_root() -> str:
+    cur = os.path.abspath(os.path.dirname(__file__))
+    while cur and cur != os.path.dirname(cur):
+        if os.path.exists(os.path.join(cur, "package.json")):
+            return cur
+        cur = os.path.dirname(cur)
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
+
+PROJECT_ROOT = find_repo_root()
 VENV_PYTHON = os.path.join(PROJECT_ROOT, ".venv", "bin", "python")
 if not os.path.exists(VENV_PYTHON):
     VENV_PYTHON = sys.executable
@@ -29,14 +37,14 @@ if not os.path.exists(VENV_PYTHON):
 PIPELINES = [
     {
         "name": "Wikinews",
-        "script": "scripts/wikinews_pipeline/orchestrator.py",
-        "catalog": "data/wikinews_catalog.sqlite",
+        "script": "pipelines/dump/wikimedia/wikinews/orchestrator.py",
+        "catalog": "data/catalogs/wikinews_catalog.sqlite",
         "has_all_flag": True,
     },
     {
         "name": "Wikispecies",
-        "script": "scripts/wikispecies_pipeline/orchestrator.py",
-        "catalog": "data/wikispecies_catalog.sqlite",
+        "script": "pipelines/dump/wikimedia/wikispecies/orchestrator.py",
+        "catalog": "data/catalogs/wikispecies_catalog.sqlite",
         "has_all_flag": False,
     },
 ]

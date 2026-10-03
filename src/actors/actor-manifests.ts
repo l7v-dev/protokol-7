@@ -8347,34 +8347,46 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       description: "NCBI E-utilities and BioC API search and retrieval parameters",
       properties: {
         action: {
+          name: "action",
           type: "string",
+          title: "Eylem Modu",
           enum: ["search", "summary", "fetch", "bioc"],
           description: "Execution action mode: search (default), summary, fetch, or bioc",
         },
         query: {
+          name: "query",
           type: "string",
+          title: "Arama Sorgusu",
           description: "Entrez search query (e.g. 'CRISPR Cas9 cancer immunotherapy')",
         },
         pmids: {
+          name: "pmids",
           type: "array",
-          items: { type: "string" },
+          title: "PubMed ID Listesi",
           description: "List of PubMed IDs (PMIDs) to retrieve",
         },
         pmcids: {
+          name: "pmcids",
           type: "array",
-          items: { type: "string" },
+          title: "PMC ID Listesi",
           description: "List of PubMed Central IDs (PMCIDs) to retrieve",
         },
         maxResults: {
+          name: "maxResults",
           type: "number",
+          title: "Maksimum Sonuç",
           description: "Maximum records to return (1-100, default 20)",
         },
         apiKey: {
+          name: "apiKey",
           type: "string",
+          title: "NCBI API Anahtarı",
           description: "NCBI API Key for higher rate limits (up to 10 req/s)",
         },
         targetUrl: {
+          name: "targetUrl",
           type: "string",
+          title: "Özel Hedef URL",
           description: "Optional custom or proxy target URL for NCBI API requests",
         },
       },
@@ -8382,32 +8394,13 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
     },
     outputSchema: {
       type: "object",
-      properties: {
-        action: { type: "string" },
-        totalCount: { type: "number" },
-        pmids: { type: "array", items: { type: "string" } },
-        articles: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              pmid: { type: "string" },
-              pmcid: { type: "string" },
-              doi: { type: "string" },
-              title: { type: "string" },
-              abstractText: { type: "string" },
-              journalTitle: { type: "string" },
-              pubDate: { type: "string" },
-              pubYear: { type: "number" },
-              authors: { type: "array", items: { type: "string" } },
-              meshHeadings: { type: "array", items: { type: "string" } },
-              pubTypes: { type: "array", items: { type: "string" } },
-              fullTextUrl: { type: "string" },
-              markdown: { type: "string" },
-            },
-          },
-        },
-        queryUrl: { type: "string" },
+      fields: {
+        action: { type: "string", description: "Yurutulen eylem modu" },
+        totalCount: { type: "number", description: "Toplam bulunan makale sayisi" },
+        pmids: { type: "array", description: "Eslesen PubMed kimlikleri" },
+        articles: { type: "array", description: "Ayiklanan makale ve abstract kayitlari" },
+        queryUrl: { type: "string", description: "Kullanilan NCBI API sorgu adresi" },
+        markdown: { type: "string", description: "Sentezlenen LLM egitim markdown tablosu" },
       },
     },
     exampleInput: {
@@ -8475,38 +8468,54 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       description: "CSHL bioRxiv & medRxiv Details API query parameters",
       properties: {
         server: {
+          name: "server",
           type: "string",
+          title: "Sunucu",
           enum: ["biorxiv", "medrxiv"],
           description:
             "Preprint server: 'biorxiv' (biology/life sciences) or 'medrxiv' (health sciences/clinical)",
         },
         doi: {
+          name: "doi",
           type: "string",
+          title: "Preprint DOI",
           description: "Preprint DOI to retrieve (e.g. '10.1101/2026.01.01.697424')",
         },
         interval: {
+          name: "interval",
           type: "string",
+          title: "Tarih Aralığı",
           description: "Date interval format YYYY-MM-DD/YYYY-MM-DD (e.g. '2026-01-01/2026-10-02')",
         },
         category: {
+          name: "category",
           type: "string",
+          title: "Kategori Filtresi",
           description:
             "Subject category filter (e.g. 'neuroscience', 'bioinformatics', 'rheumatology')",
         },
         query: {
+          name: "query",
           type: "string",
+          title: "Arama Sorgusu",
           description: "Keyword search query for client-side filtering on title and abstract",
         },
         cursor: {
+          name: "cursor",
           type: "number",
+          title: "Sayfalama İmleci",
           description: "Pagination cursor offset (starts at 0)",
         },
         limit: {
+          name: "limit",
           type: "number",
+          title: "Maksimum Kayıt",
           description: "Maximum records to return (default 30)",
         },
         targetUrl: {
+          name: "targetUrl",
           type: "string",
+          title: "Özel Hedef URL",
           description: "Optional custom or proxy target URL for CSHL API requests",
         },
       },
@@ -8514,35 +8523,13 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
     },
     outputSchema: {
       type: "object",
-      properties: {
-        server: { type: "string" },
-        totalCount: { type: "number" },
-        cursor: { type: "number" },
-        articles: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              doi: { type: "string" },
-              title: { type: "string" },
-              server: { type: "string" },
-              category: { type: "string" },
-              pubDate: { type: "string" },
-              pubYear: { type: "number" },
-              version: { type: "number" },
-              authors: { type: "string" },
-              correspondingAuthor: { type: "string" },
-              institution: { type: "string" },
-              license: { type: "string" },
-              publishedDoi: { type: "string" },
-              abstractText: { type: "string" },
-              jatsxmlUrl: { type: "string" },
-              markdown: { type: "string" },
-            },
-          },
-        },
-        queryUrl: { type: "string" },
-        markdown: { type: "string" },
+      fields: {
+        server: { type: "string", description: "Sorgulanan preprint sunucusu" },
+        totalCount: { type: "number", description: "Toplam bulunan preprint sayisi" },
+        cursor: { type: "number", description: "Guncel sayfalama imleci" },
+        articles: { type: "array", description: "Ayiklanan preprint makale kayitlari" },
+        queryUrl: { type: "string", description: "Kullanilan CSHL API sorgu adresi" },
+        markdown: { type: "string", description: "Sentezlenen LLM egitim markdown tablosu" },
       },
     },
     exampleInput: {

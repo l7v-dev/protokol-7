@@ -45,8 +45,8 @@ from downloader import (
 from drive_sync import GutenbergDriveSync
 from packer import GutenbergParquetSharder, GutenbergImageTarSharder
 
-DEFAULT_DB_PATH   = "data/gutenberg_catalog.sqlite"
-DEFAULT_OUT_DIR   = "data/temp_gutenberg"
+DEFAULT_DB_PATH   = "data/catalogs/gutenberg_catalog.sqlite"
+DEFAULT_OUT_DIR   = "data/parquets/gutenberg"
 
 
 

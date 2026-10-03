@@ -4022,7 +4022,7 @@ export function createServer(): http.Server {
             500,
             "ACTOR_UNAVAILABLE",
             "bioRxiv extractor actor is not available.",
-            false
+            "Ensure BiorxivActor is registered in the ActorRegistry."
           );
           return;
         }

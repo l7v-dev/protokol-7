@@ -35,13 +35,15 @@ from downloader import (
 from drive_sync import WikiversityDriveSync
 from packer import StreamingParquetSharder
 
-DEFAULT_DB_PATH = "data/wikiversity_catalog.sqlite"
+DEFAULT_DB_PATH = "data/catalogs/wikiversity_catalog.sqlite"
 DEFAULT_TEMP_DIR = "data/temp_wikiversity"
 
 
 def load_wikiversity_databases() -> List[Dict[str, Any]]:
     """Loads all 17 Wikiversity database records from bundled json or fallback."""
-    json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "wikiversity_dbs.json")
+    json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "configs", "wikiversity_dbs.json")
+    if not os.path.exists(json_path):
+        json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "wikiversity_dbs.json")
     if not os.path.exists(json_path):
         json_path = os.path.abspath("scripts/wikiversity_dbs.json")
 

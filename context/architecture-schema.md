@@ -497,33 +497,37 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `scripts/stackexchange_pipeline/test_stackexchange_pipeline.py` | Test Suite | Unit tests for StackExchange HTML cleaner, thread assembler, and Parquet packer. |
 | `scripts/openalex_pipeline/orchestrator.py` | OpenAlex Harvest Orchestrator | Cursor pagination streamer, inverted index abstract reconstructor, Parquet sharder, Drive sync. |
 | `scripts/openalex_pipeline/test_openalex_pipeline.py` | Test Suite | Unit tests for OpenAlex abstract reconstruction, record cleaning, and Parquet sharder. |
-| `scripts/openalex_snapshot_pipeline/orchestrator.py` | OpenAlex S3 Snapshot Orchestrator | AWS S3 Parquet snapshot streamer, 10-50 GB Zstd sharder, Google Drive uploader, SQLite ledger, zero disk residue. |
-| `scripts/openalex_snapshot_pipeline/cleaner.py` | OpenAlex Snapshot Cleaner | Quality gate filtering paratext/retractions, abstract reconstruction from inverted index, LLM markdown synthesis. |
-| `scripts/openalex_snapshot_pipeline/packer.py` | OpenAlex Snapshot Sharder | `OpenAlexSnapshotSharder` producing compact `oa_w_YYYYMMDD_p00000.parquet` files with SHA-256 and MD5 hashing. |
-| `scripts/openalex_snapshot_pipeline/downloader.py` | OpenAlex S3 Downloader | Manifest extractor and partition streamer via AWS CLI and HTTPS with retry logic and instant cleanup. |
-| `scripts/openalex_snapshot_pipeline/drive_sync.py` | OpenAlex Drive Sync | Resumable Google Drive v3 uploader under `OpenAlex/Snapshots/`, MD5 validator, and local file cleaner. |
-| `scripts/openalex_snapshot_pipeline/ledger.py` | OpenAlex Snapshot Ledger | SQLite transactional catalog (`data/openalex_snapshot_catalog.sqlite`) tracking S3 parts and dual-syncing with `data/catalog.sqlite`. |
-| `scripts/openalex_snapshot_pipeline/test_snapshot_pipeline.py` | Test Suite | Unit tests for cleaner quality gate, sharder rotation, downloader, and transactional ledger. |
-| `scripts/semanticscholar_pipeline/orchestrator.py` | Semantic Scholar Harvest Orchestrator | S2 bulk API streamer, metadata cleaner, Zstd Parquet sharder, Drive sync. |
-| `scripts/semanticscholar_pipeline/test_semanticscholar_pipeline.py` | Test Suite | Unit tests for Semantic Scholar cleaner, field extractor, and Parquet sharder. |
-| `scripts/wikibooks_pipeline/orchestrator.py` | Wikibooks Harvest Orchestrator | 121-language XML bz2 streaming ETL, code-block preservation, Zstd Parquet sharding, Drive sync, SQLite ledger. |
-| `scripts/wikibooks_pipeline/test_wikibooks_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
-| `scripts/wikinews_pipeline/orchestrator.py` | Wikinews Harvest Orchestrator | 36-language news dump ETL, article date/category extraction, Zstd Parquet sharding, Drive sync, SQLite ledger. |
-| `scripts/wikinews_pipeline/test_wikinews_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
-| `scripts/wikiquote_pipeline/orchestrator.py` | Wikiquote Harvest Orchestrator | 100-language quote/aphorism ETL, wikitext cleaner stripping [[links]] and {{templates}}, Parquet sharding, Drive sync. |
-| `scripts/wikiquote_pipeline/test_wikiquote_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
-| `scripts/wikispecies_pipeline/orchestrator.py` | Wikispecies Harvest Orchestrator | specieswiki global taxonomy dump ETL, taxon name/classification extraction, Parquet sharding, Drive sync. |
-| `scripts/wikispecies_pipeline/test_wikispecies_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
-| `scripts/wikiversity_pipeline/orchestrator.py` | Wikiversity Harvest Orchestrator | 17-language educational content ETL, heading structure preservation, Parquet sharding, Drive sync, SQLite ledger. |
-| `scripts/wikiversity_pipeline/test_wikiversity_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
-| `scripts/wikivoyage_pipeline/orchestrator.py` | Wikivoyage Harvest Orchestrator | 27-language travel guide ETL, geo-coordinate and listing extraction, Parquet sharding, Drive sync, SQLite ledger. |
-| `scripts/wikivoyage_pipeline/test_wikivoyage_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
-| `scripts/wikisource_pipeline/orchestrator.py` | Wikisource Harvest Orchestrator | 85-language historical/classical text ETL, poetry/verse layout preservation, Parquet sharding, Drive sync, SQLite ledger. |
-| `scripts/wikisource_pipeline/test_wikisource_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
-| `scripts/wiktionary_pipeline/orchestrator.py` | Wiktionary Harvest Orchestrator | 198-language lexical definition ETL, POS/etymology extraction, Parquet sharding, Drive sync, SQLite ledger. |
-| `scripts/wiktionary_pipeline/test_wiktionary_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
-| `scripts/run_all_wikimedia_pipelines.py` | Master Coordinator | Sequential coordinator for all 8 Wikimedia dump pipelines (Wikibooks, Wikinews, Wikiquote, Wikispecies, Wikisource, Wiktionary, Wikiversity, Wikivoyage). |
-| `scripts/run_news_and_species_pipelines.py` | Partial Coordinator | Lightweight runner for Wikinews and Wikispecies pipelines. |
+| `pipelines/snapshot/openalex/orchestrator.py` | OpenAlex S3 Snapshot Orchestrator | AWS S3 Parquet snapshot streamer, 10-50 GB Zstd sharder, Google Drive uploader, SQLite ledger, zero disk residue. |
+| `pipelines/snapshot/openalex/cleaner.py` | OpenAlex Snapshot Cleaner | Quality gate filtering paratext/retractions, abstract reconstruction from inverted index, LLM markdown synthesis. |
+| `pipelines/snapshot/openalex/packer.py` | OpenAlex Snapshot Sharder | `OpenAlexSnapshotSharder` producing compact `oa_w_YYYYMMDD_p00000.parquet` files with SHA-256 and MD5 hashing. |
+| `pipelines/snapshot/openalex/downloader.py` | OpenAlex S3 Downloader | Manifest extractor and partition streamer via AWS CLI and HTTPS with retry logic and instant cleanup. |
+| `pipelines/snapshot/openalex/drive_sync.py` | OpenAlex Drive Sync | Resumable Google Drive v3 uploader under `OpenAlex/Snapshots/`, MD5 validator, and local file cleaner. |
+| `pipelines/snapshot/openalex/ledger.py` | OpenAlex Snapshot Ledger | SQLite transactional catalog (`data/catalogs/openalex_snapshot_catalog.sqlite`) tracking S3 parts and dual-syncing with `data/catalog.sqlite`. |
+| `pipelines/snapshot/openalex/test_snapshot_pipeline.py` | Test Suite | Unit tests for cleaner quality gate, sharder rotation, downloader, and transactional ledger. |
+| `pipelines/api_stream/semantic_scholar/orchestrator.py` | Semantic Scholar Harvest Orchestrator | S2 bulk API streamer, metadata cleaner, Zstd Parquet sharder, Drive sync. |
+| `pipelines/api_stream/semantic_scholar/test_semanticscholar_pipeline.py` | Test Suite | Unit tests for Semantic Scholar cleaner, field extractor, and Parquet sharder. |
+| `pipelines/dump/wikimedia/wikibooks/orchestrator.py` | Wikibooks Harvest Orchestrator | 121-language XML bz2 streaming ETL, code-block preservation, Zstd Parquet sharding, Drive sync, SQLite ledger. |
+| `pipelines/dump/wikimedia/wikibooks/test_wikibooks_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
+| `pipelines/dump/wikimedia/wikinews/orchestrator.py` | Wikinews Harvest Orchestrator | 36-language news dump ETL, article date/category extraction, Zstd Parquet sharding, Drive sync, SQLite ledger. |
+| `pipelines/dump/wikimedia/wikinews/test_wikinews_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
+| `pipelines/dump/wikimedia/wikiquote/orchestrator.py` | Wikiquote Harvest Orchestrator | 100-language quote/aphorism ETL, wikitext cleaner stripping [[links]] and {{templates}}, Parquet sharding, Drive sync. |
+| `pipelines/dump/wikimedia/wikiquote/test_wikiquote_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
+| `pipelines/dump/wikimedia/wikispecies/orchestrator.py` | Wikispecies Harvest Orchestrator | specieswiki global taxonomy dump ETL, taxon name/classification extraction, Parquet sharding, Drive sync. |
+| `pipelines/dump/wikimedia/wikispecies/test_wikispecies_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
+| `pipelines/dump/wikimedia/wikiversity/orchestrator.py` | Wikiversity Harvest Orchestrator | 17-language educational content ETL, heading structure preservation, Parquet sharding, Drive sync, SQLite ledger. |
+| `pipelines/dump/wikimedia/wikiversity/test_wikiversity_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
+| `pipelines/dump/wikimedia/wikivoyage/orchestrator.py` | Wikivoyage Harvest Orchestrator | 27-language travel guide ETL, geo-coordinate and listing extraction, Parquet sharding, Drive sync, SQLite ledger. |
+| `pipelines/dump/wikimedia/wikivoyage/test_wikivoyage_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
+| `pipelines/dump/wikimedia/wikisource/orchestrator.py` | Wikisource Harvest Orchestrator | 85-language historical/classical text ETL, poetry/verse layout preservation, Parquet sharding, Drive sync, SQLite ledger. |
+| `pipelines/dump/wikimedia/wikisource/test_wikisource_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
+| `pipelines/dump/wikimedia/wiktionary/orchestrator.py` | Wiktionary Harvest Orchestrator | 198-language lexical definition ETL, POS/etymology extraction, Parquet sharding, Drive sync, SQLite ledger. |
+| `pipelines/dump/wikimedia/wiktionary/test_wiktionary_pipeline.py` | Test Suite | 5 unit tests: cleaner, URL resolution, ledger, sharder, bz2 streaming. |
+| `pipelines/dump/wikimedia/runners/run_all_wikimedia_pipelines.py` | Master Coordinator | Sequential coordinator for all 8 Wikimedia dump pipelines (Wikibooks, Wikinews, Wikiquote, Wikispecies, Wikisource, Wiktionary, Wikiversity, Wikivoyage). |
+| `pipelines/dump/wikimedia/runners/run_news_and_species_pipelines.py` | Partial Coordinator | Lightweight runner for Wikinews and Wikispecies pipelines. |
+| `pipelines/dump/wikimedia/configs/` | Language Catalog Configs | Bundled JSON databases (`*_dbs.json`) for Wikibooks, Wikinews, Wikiquote, Wikiversity, Wikivoyage, and Wiktionary. |
+| `scripts/sync-dbx-connections.py` | DBX Connection Synchronizer | Synchronizes all SQLite catalogs and Wikipedia metadata databases into local desktop dbx (`com.dbx.app`) with stale pruning. |
+| `scripts/run_openalex.sh` | Detached Pipeline Launcher | Shell script to start the OpenAlex API harvest detached in background. |
+| `data/catalogs/` | Relational SQLite Ledgers | Domain-isolated transactional SQLite ledgers (`biorxiv`, `pubmed`, `instagram`, `openalex`, `openalex_snapshot`, `stackexchange`, `gutenberg`, `wikimedia_*`, `wikipedia/*`). |
 | `examples/actors/metamath.json` | Example Config | Standalone JSON configuration for Metamath Proof Explorer actor. |
 | `docs/actors/metamath.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Metamath Proof Explorer actor. |
 | `examples/actors/philpapers.json` | Example Config | Standalone JSON configuration for PhilPapers Archive actor. |
@@ -531,5 +535,4 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `Dockerfile` | Container Build | Multi-stage production container build with Node 22, Playwright Chromium libraries, and Python 3. |
 | `docker-compose.yml` | Container Orchestration | Docker compose deployment mapping port 4000, data volume, and healthcheck. |
 | `.github/workflows/ci.yml` | CI/CD Workflow | Continuous integration pipeline executing Biome lint, naming check, TypeScript build, test suite, and SCA audit. |
-| `trash/` | Quarantine & Deprecated | Local holding directory for standalone, deprecated, or temporary raw dump artifacts (.gitignored). |
 

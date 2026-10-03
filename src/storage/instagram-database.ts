@@ -87,7 +87,7 @@ export class InstagramDatabase {
       options?.inMemory ?? (options?.dbPath === ":memory:" || (isTest && !options?.dbPath));
     this.dbPath = this.isMemory
       ? ":memory:"
-      : options?.dbPath || process.env.INSTAGRAM_DB_PATH || "data/instagram.sqlite";
+      : options?.dbPath || process.env.INSTAGRAM_DB_PATH || "data/catalogs/instagram.sqlite";
 
     if (!this.isMemory) {
       const dir = dirname(this.dbPath);

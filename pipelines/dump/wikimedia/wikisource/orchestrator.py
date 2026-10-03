@@ -123,7 +123,7 @@ ALL_WIKISOURCE_DBS = [
     {"db": "zhwikisource", "lang": "zh", "name": "Chinese", "ancient": False},
 ]
 
-DEFAULT_DB_PATH = "data/wikisource_catalog.sqlite"
+DEFAULT_DB_PATH = "data/catalogs/wikisource_catalog.sqlite"
 DEFAULT_TEMP_DIR = "data/temp_wikisource"
 
 

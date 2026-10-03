@@ -10,6 +10,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 ## Aktif
 
 
+
 - *(Aktif görev bulunmuyor)*
 
 ## Bekleyen (Blok var)
@@ -22,15 +23,11 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Son tamamlananlar (son 3-5, eskiler ledger/'a taşınır)
 
+- [x] **Eski Yapı Tasfiyesi, Veritabanı ve Dizin Konsolidasyonu** — `Tier: 1` — Tüm korpus ve boru hattı veritabanları `data/catalogs/` altında toplandı; `scripts/sync-dbx-connections.py` güncellenerek 53 bayat host silinip 56 aktif SQLite kataloğu `dbx` arayüzüne işlendi; Wikimedia JSON dil haritaları `pipelines/dump/wikimedia/configs/` altına taşındı; kök dizindeki log ve geçici scratch dosyaları temizlendi; Biome lint ve TypeScript tip hataları (914/914 TS testi, 117 Python testi, `npm run verify` 6/6 katman) %100 yeşil tamamlandı. Walkthrough: [`docs/walkthroughs/eski-yapi-tasfiyesi-ve-dizin-konsolidasyon-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/eski-yapi-tasfiyesi-ve-dizin-konsolidasyon-walkthrough.md).
+
 - [x] **bioRxiv 2026 Canlı Veri Çekimi ve Parquet Paketleme (`biorxiv`)** — `Tier: 1` — Canlı CSHL bioRxiv API akışı üzerinden 50.000 ham kayıt işlendi (6.855s, ~7.3 rec/s); 49.999 temiz makale sürümü kabul edildi (%99,998 başarı oranı). 42.686 benzersiz makale ve 26 biyoloji disiplini ilişkisel SQLite kataloğuna (`data/catalogs/biorxiv_catalog.sqlite`) kaydedildi. 69.06 MB boyutunda Zstandard sıkıştırmalı ve SHA-256 mühürlü Parquet shard'ı (`bx_20261002_p00000.parquet`, 49.999 kayıt) üretildi ve merkezi kataloğa (`data/catalog.sqlite`) işlendi.
 
 - [x] **bioRxiv & medRxiv Biyoloji ve Tıp Ön-Baskı Boru Hattı ve Çekirdek Aktör Mimarisi (`biorxiv`)** — `Tier: 2` — Cold Spring Harbor Laboratory (CSHL) bioRxiv & medRxiv API akış boru hattı (`pipelines/api_stream/biorxiv/`), Google Drive v3 depolama senkronizasyonu (`BaseDriveSync` ile uzaktan MD5 doğrulama ve sıfır yerel disk artığı), SQLite ilişkisel makale ve kategori kataloğu (`data/catalogs/biorxiv_catalog.sqlite`, merkezi `data/catalog.sqlite` çift yönlü senkronizasyonu) ile TypeScript mikroservis aktörü (`BiorxivActor`, `POST /api/v1/biorxiv`, `query_biorxiv` MCP aracı) geliştirildi. 8 Python birim testi (107/107 korpus ETL testi), 5 TS aktör testi (914/914 toplam test), 31 MCP testi ve `npm run verify` (6/6 doğrulama katmanı) %100 başarıyla onaylandı. Canlı 100 ön-baskı çekilip 99 makale ve 21 kategori indekslendi. Walkthrough: [`docs/walkthroughs/biorxiv-pipeline-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/biorxiv-pipeline-walkthrough.md).
-
-- [x] **PubMed & PMC Canlı Veri Çekimi ve Parquet Paketleme (`pubmed`)** — `Tier: 1` — Canlı NCBI E-utilities API akışı üzerinden 9.667 hakemli biyomedikal makale (The Lancet, Nature, DEN Open vb.) başarıyla çekildi; yapılandırılmış özetler ve 100.756 MeSH konu başlığı ilişkisel SQLite kataloğuna (`data/catalogs/pubmed_catalog.sqlite`, 13 MB) kaydedildi. 17.11 MB boyutunda Zstandard sıkıştırmalı ve SHA-256 mühürlü Parquet shard'ı (`pm_20261002_p00000.parquet`) üretildi. İşlem 404 saniyede %100 başarıyla tamamlandı.
-
-- [x] **PubMed & PubMed Central (PMC) Boru Hattı ve Çekirdek Aktör Mimarisi (`pubmed`)** — `Tier: 2` — Biyomedikal tıp literatürü için NCBI E-utilities (`esearch`, `esummary`, `efetch`) ve BioC API akış boru hattı (`pipelines/api_stream/pubmed/`), Google Drive v3 depolama senkronizasyonu (`BaseDriveSync` ile uzaktan MD5 doğrulama ve sıfır yerel disk artığı), SQLite ilişkisel makale ve MeSH defteri (`data/catalogs/pubmed_catalog.sqlite`, merkezi `data/catalog.sqlite` çift yönlü senkronizasyonu) ile TypeScript mikroservis aktörü (`PubmedActor`, `POST /api/v1/pubmed`, `query_pubmed` MCP aracı) geliştirildi. 6 Python birim testi (99/99 korpus ETL testi), 6 TS aktör testi (908/908 toplam test), 30 MCP testi ve `npm run verify` (6/6 doğrulama katmanı) %100 başarıyla onaylandı. Walkthrough: [`docs/walkthroughs/pubmed-pipeline-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/pubmed-pipeline-walkthrough.md).
-
-- [x] **Instagram Profil & Medya Akışı Çekimi (@uzman.psikoloji)** — `Tier: 2` — Uzman Psikoloji (@uzman.psikoloji, 4.825 gönderi, 373.000 takipçi) profili baştan sona tarandı. Toplam 4.824 gönderi ve 4.348 slayt ilişkisel SQLite veritabanına (`data/instagram.sqlite`) kaydedildi. İlgili tüm 9.172 medya nesnesi (4.824 kapak + 4.348 slayt, toplam 1.03 GB) yerel ev dizininde `~/protokol-object-vault/instagram/uzman.psikoloji/` altına indirilip SHA-256 manifestiyle mühürlendi. Eksiksizlik oranı %100.0 olarak doğrulandı.
 
 ---
 

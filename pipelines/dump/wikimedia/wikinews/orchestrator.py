@@ -35,13 +35,15 @@ from downloader import (
 from drive_sync import WikinewsDriveSync
 from packer import StreamingParquetSharder
 
-DEFAULT_DB_PATH = "data/wikinews_catalog.sqlite"
+DEFAULT_DB_PATH = "data/catalogs/wikinews_catalog.sqlite"
 DEFAULT_TEMP_DIR = "data/temp_wikinews"
 
 
 def load_wikinews_databases() -> List[Dict[str, Any]]:
     """Loads all 36 Wikinews database records from bundled json or fallback."""
-    json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "wikinews_dbs.json")
+    json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "configs", "wikinews_dbs.json")
+    if not os.path.exists(json_path):
+        json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "wikinews_dbs.json")
     if not os.path.exists(json_path):
         json_path = os.path.abspath("scripts/wikinews_dbs.json")
 

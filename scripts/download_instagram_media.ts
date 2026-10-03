@@ -21,7 +21,12 @@ interface DownloaderOptions {
 }
 
 export async function downloadInstagramMedia(options: DownloaderOptions = {}) {
-  const { username, concurrency = 4, dbPath = "data/instagram.sqlite", vaultRoot } = options;
+  const {
+    username,
+    concurrency = 4,
+    dbPath = "data/catalogs/instagram.sqlite",
+    vaultRoot,
+  } = options;
 
   const tStart = Date.now();
   const db = new InstagramDatabase({ dbPath });

@@ -22,7 +22,15 @@ import sys
 import time
 from typing import List, Dict, Any
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+def find_repo_root() -> str:
+    cur = os.path.abspath(os.path.dirname(__file__))
+    while cur and cur != os.path.dirname(cur):
+        if os.path.exists(os.path.join(cur, "package.json")):
+            return cur
+        cur = os.path.dirname(cur)
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
+
+PROJECT_ROOT = find_repo_root()
 VENV_PYTHON = os.path.join(PROJECT_ROOT, ".venv", "bin", "python")
 if not os.path.exists(VENV_PYTHON):
     VENV_PYTHON = sys.executable
@@ -30,18 +38,18 @@ if not os.path.exists(VENV_PYTHON):
 PIPELINES = [
     {
         "name": "Wikibooks",
-        "script": "scripts/wikibooks_pipeline/orchestrator.py",
-        "catalog": "data/wikibooks_catalog.sqlite",
+        "script": "pipelines/dump/wikimedia/wikibooks/orchestrator.py",
+        "catalog": "data/catalogs/wikibooks_catalog.sqlite",
     },
     {
         "name": "Wikiversity",
-        "script": "scripts/wikiversity_pipeline/orchestrator.py",
-        "catalog": "data/wikiversity_catalog.sqlite",
+        "script": "pipelines/dump/wikimedia/wikiversity/orchestrator.py",
+        "catalog": "data/catalogs/wikiversity_catalog.sqlite",
     },
     {
         "name": "Wikivoyage",
-        "script": "scripts/wikivoyage_pipeline/orchestrator.py",
-        "catalog": "data/wikivoyage_catalog.sqlite",
+        "script": "pipelines/dump/wikimedia/wikivoyage/orchestrator.py",
+        "catalog": "data/catalogs/wikivoyage_catalog.sqlite",
     },
 ]
 

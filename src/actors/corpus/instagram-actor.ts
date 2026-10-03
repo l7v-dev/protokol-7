@@ -158,7 +158,7 @@ export class InstagramActor implements IActor<InstagramActorResult> {
 
           resultData.databaseSaved = {
             ...saveStats,
-            dbPath: options.dbPath || "data/instagram.sqlite",
+            dbPath: options.dbPath || "data/catalogs/instagram.sqlite",
           };
 
           if (!this.db) {

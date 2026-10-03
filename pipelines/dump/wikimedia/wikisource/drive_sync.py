@@ -60,7 +60,6 @@ class WikisourceDriveSync:
             token_path,
             os.path.abspath("token.json"),
             os.path.join(os.path.dirname(__file__), "token.json"),
-            os.path.abspath("trash/wikipedia_pipeline/token.json"),
         ]
         self.token_path = next((p for p in default_token_candidates if p and os.path.exists(p)), "token.json")
 
@@ -68,7 +67,6 @@ class WikisourceDriveSync:
             credentials_path,
             os.path.abspath("credentials.json"),
             os.path.join(os.path.dirname(__file__), "credentials.json"),
-            os.path.abspath("trash/wikipedia_pipeline/credentials.json"),
         ]
         self.credentials_path = next((p for p in default_creds_candidates if p and os.path.exists(p)), None)
 

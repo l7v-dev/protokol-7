@@ -35,7 +35,7 @@ from downloader import (
 from drive_sync import WikibooksDriveSync
 from packer import StreamingParquetSharder
 
-DEFAULT_DB_PATH = "data/wikibooks_catalog.sqlite"
+DEFAULT_DB_PATH = "data/catalogs/wikibooks_catalog.sqlite"
 DEFAULT_TEMP_DIR = "data/temp_wikibooks"
 
 ANCIENT_LANGUAGES = {"ang", "la", "sa", "grc", "yi", "got"}
@@ -43,7 +43,9 @@ ANCIENT_LANGUAGES = {"ang", "la", "sa", "grc", "yi", "got"}
 
 def load_wikibooks_databases() -> List[Dict[str, Any]]:
     """Loads all 122 Wikibooks database records from bundled json or fallback."""
-    json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "wikibooks_dbs.json")
+    json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "configs", "wikibooks_dbs.json")
+    if not os.path.exists(json_path):
+        json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "wikibooks_dbs.json")
     if not os.path.exists(json_path):
         json_path = os.path.abspath("scripts/wikibooks_dbs.json")
 

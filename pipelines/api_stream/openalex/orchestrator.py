@@ -47,8 +47,8 @@ from downloader import (
 from drive_sync import OpenAlexDriveSync
 from packer import OpenAlexParquetSharder
 
-DEFAULT_DB_PATH  = "data/openalex_catalog.sqlite"
-DEFAULT_OUT_DIR  = "data/temp_openalex"
+DEFAULT_DB_PATH  = "data/catalogs/openalex_catalog.sqlite"
+DEFAULT_OUT_DIR  = "data/parquets/openalex"
 FLUSH_EVERY      = 10_000   # commit shard to Drive every N works
 
 

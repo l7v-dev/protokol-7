@@ -96,19 +96,64 @@ class HarvestProgressTracker {
 /**
  * Extracts raw post nodes from Instagram GraphQL and feed JSON responses.
  */
+interface RawFeedPayload {
+  [key: string]: unknown;
+  xdt_api__v1__feed__user_timeline_graphql_connection?: {
+    edges?: Array<{ node?: { media?: Record<string, unknown> } & Record<string, unknown> }>;
+  };
+  xdt_api__v1__feed__timeline__connection?: {
+    edges?: Array<{ node?: { media?: Record<string, unknown> } & Record<string, unknown> }>;
+  };
+  xdt_api__v1__clips__user__connection_v2?: {
+    edges?: Array<{ node?: { media?: Record<string, unknown> } & Record<string, unknown> }>;
+  };
+  fetch__XDTUserDict?: {
+    clips_connection?: {
+      edges?: Array<{ node?: { media?: Record<string, unknown> } & Record<string, unknown> }>;
+    };
+  };
+  user?: {
+    edge_owner_to_timeline_media?: {
+      edges?: Array<{ node?: { media?: Record<string, unknown> } & Record<string, unknown> }>;
+    };
+  };
+  items?: Record<string, unknown>[];
+}
+
+interface RawSlideCandidate {
+  id?: string | number;
+  pk?: string | number;
+  media_type?: number;
+  video_versions?: Array<{ url?: string }>;
+  image_versions2?: { candidates?: Array<{ url?: string }> };
+  display_url?: string;
+}
+
+interface RawEdgeSlide {
+  node?: {
+    id?: string | number;
+    is_video?: boolean;
+    display_url?: string;
+    video_url?: string;
+  };
+}
+
+/**
+ * Extracts raw post nodes from Instagram GraphQL and feed JSON responses.
+ */
 function extractNodesFromPayload(
   payload: Record<string, unknown> | null | undefined
 ): Record<string, unknown>[] {
   if (!payload || typeof payload !== "object") return [];
   const nodes: Record<string, unknown>[] = [];
-  const d = (payload.data as Record<string, unknown>) || payload;
+  const d = ((payload.data as RawFeedPayload) || payload) as RawFeedPayload;
 
   const paths = [
-    (d as any)?.xdt_api__v1__feed__user_timeline_graphql_connection?.edges,
-    (d as any)?.xdt_api__v1__feed__timeline__connection?.edges,
-    (d as any)?.xdt_api__v1__clips__user__connection_v2?.edges,
-    (d as any)?.fetch__XDTUserDict?.clips_connection?.edges,
-    (d as any)?.user?.edge_owner_to_timeline_media?.edges,
+    d?.xdt_api__v1__feed__user_timeline_graphql_connection?.edges,
+    d?.xdt_api__v1__feed__timeline__connection?.edges,
+    d?.xdt_api__v1__clips__user__connection_v2?.edges,
+    d?.fetch__XDTUserDict?.clips_connection?.edges,
+    d?.user?.edge_owner_to_timeline_media?.edges,
   ];
 
   for (const p of paths) {
@@ -122,10 +167,10 @@ function extractNodesFromPayload(
     }
   }
 
-  if (Array.isArray((d as any)?.items)) {
-    for (const item of (d as any).items) {
+  if (Array.isArray(d?.items)) {
+    for (const item of d.items) {
       if (item && typeof item === "object") {
-        nodes.push(item as Record<string, unknown>);
+        nodes.push(item);
       }
     }
   }
@@ -142,8 +187,7 @@ function parseInstagramGraphQLNode(
 ): InstagramMediaRecord | null {
   if (!node || typeof node !== "object") return null;
 
-  const n = node as any;
-  const shortcode = n.code || n.shortcode;
+  const shortcode = (node.code as string) || (node.shortcode as string);
   if (!shortcode || typeof shortcode !== "string") return null;
 
   const postUrl = `https://www.instagram.com/p/${shortcode}/`;
@@ -159,7 +203,7 @@ function parseInstagramGraphQLNode(
   } else if (
     node.media_type === 2 ||
     node.__typename === "GraphVideo" ||
-    node.video_versions?.length ||
+    (node.video_versions as unknown[])?.length ||
     node.is_video
   ) {
     mediaType = "video";
@@ -172,45 +216,50 @@ function parseInstagramGraphQLNode(
   } else if (
     node.caption &&
     typeof node.caption === "object" &&
-    typeof node.caption.text === "string"
+    typeof (node.caption as Record<string, unknown>).text === "string"
   ) {
-    caption = node.caption.text;
-  } else if (node.edge_media_to_caption?.edges?.[0]?.node?.text) {
-    caption = node.edge_media_to_caption.edges[0].node.text;
+    caption = (node.caption as Record<string, unknown>).text as string;
+  } else if ((node.edge_media_to_caption as Record<string, unknown>)?.edges?.[0]?.node?.text) {
+    caption = (node.edge_media_to_caption as Record<string, unknown>).edges[0].node.text;
   }
 
   const takenAt = Number(node.taken_at || node.taken_at_timestamp || 0);
 
   const likeCount = Number(
-    node.like_count ?? node.edge_media_preview_like?.count ?? node.edge_liked_by?.count ?? 0
+    node.like_count ??
+      (node.edge_media_preview_like as Record<string, unknown>)?.count ??
+      (node.edge_liked_by as Record<string, unknown>)?.count ??
+      0
   );
-  const commentCount = Number(node.comment_count ?? node.edge_media_to_comment?.count ?? 0);
+  const commentCount = Number(
+    node.comment_count ?? (node.edge_media_to_comment as Record<string, unknown>)?.count ?? 0
+  );
 
   // Highest resolution display URL
   let displayUrl = "";
-  if (
-    Array.isArray(node.image_versions2?.candidates) &&
-    node.image_versions2.candidates.length > 0
-  ) {
-    displayUrl = node.image_versions2.candidates[0].url || "";
-  } else if (node.display_url) {
+  const imgVersions = node.image_versions2 as { candidates?: Array<{ url?: string }> } | undefined;
+  if (Array.isArray(imgVersions?.candidates) && imgVersions.candidates.length > 0) {
+    displayUrl = imgVersions.candidates[0].url || "";
+  } else if (typeof node.display_url === "string") {
     displayUrl = node.display_url;
-  } else if (node.display_uri) {
+  } else if (typeof node.display_uri === "string") {
     displayUrl = node.display_uri;
   }
 
   // Video URL
   let videoUrl: string | undefined;
-  if (Array.isArray(node.video_versions) && node.video_versions.length > 0) {
-    videoUrl = node.video_versions[0].url;
-  } else if (node.video_url) {
+  const vidVersions = node.video_versions as Array<{ url?: string }> | undefined;
+  if (Array.isArray(vidVersions) && vidVersions.length > 0) {
+    videoUrl = vidVersions[0].url;
+  } else if (typeof node.video_url === "string") {
     videoUrl = node.video_url;
   }
 
   // Carousel slides
   const slides: InstagramMediaChild[] = [];
-  if (Array.isArray(node.carousel_media) && node.carousel_media.length > 0) {
-    node.carousel_media.forEach((slideItem: any, sIdx: number) => {
+  const carouselMedia = node.carousel_media as RawSlideCandidate[] | undefined;
+  if (Array.isArray(carouselMedia) && carouselMedia.length > 0) {
+    carouselMedia.forEach((slideItem: RawSlideCandidate, sIdx: number) => {
       const slideId = String(slideItem.id || slideItem.pk || `${shortcode}_slide_${sIdx + 1}`);
       const slideType: "image" | "video" =
         slideItem.media_type === 2 || slideItem.video_versions?.length ? "video" : "image";
@@ -236,10 +285,11 @@ function parseInstagramGraphQLNode(
         });
       }
     });
-  } else if (Array.isArray(node.edge_sidecar_to_children?.edges)) {
-    node.edge_sidecar_to_children.edges.forEach((edge: any, sIdx: number) => {
+  } else if (Array.isArray((node.edge_sidecar_to_children as { edges?: RawEdgeSlide[] })?.edges)) {
+    const sidecarEdges = (node.edge_sidecar_to_children as { edges: RawEdgeSlide[] }).edges;
+    sidecarEdges.forEach((edge: RawEdgeSlide, sIdx: number) => {
       const sn = edge.node;
-      if (sn && sn.display_url) {
+      if (sn?.display_url) {
         slides.push({
           id: String(sn.id || `${shortcode}_slide_${sIdx + 1}`),
           mediaType: sn.is_video ? "video" : "image",
@@ -282,7 +332,7 @@ export async function harvestInstagramProfile(options: HarvestOptions) {
     scrollRounds = 8,
     maxPosts = 30,
     maxCommentsPerPost = 50,
-    dbPath = "data/instagram.sqlite",
+    dbPath = "data/catalogs/instagram.sqlite",
     timeoutMs = 45_000,
     downloadMedia = false,
     vaultRoot,

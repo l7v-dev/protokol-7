@@ -54,13 +54,14 @@ python3 scripts/sync-dbx-connections.py
 2. **Biyomedikal & Akademik:**
    - `protokol-biorxiv` (`data/catalogs/biorxiv_catalog.sqlite`)
    - `protokol-pubmed` (`data/catalogs/pubmed_catalog.sqlite`)
-   - `protokol-openalex` (`data/openalex_catalog.sqlite`)
-   - `protokol-openalex-snapshot` (`data/openalex_snapshot_catalog.sqlite`)
+   - `protokol-openalex` (`data/catalogs/openalex_catalog.sqlite`)
+   - `protokol-openalex-snapshot` (`data/catalogs/openalex_snapshot_catalog.sqlite`)
+   - `protokol-semanticscholar` (`data/catalogs/semanticscholar_catalog.sqlite`)
 3. **Sosyal Medya & Teknik/Edebiyat:**
-   - `protokol-instagram` (`data/instagram.sqlite`)
-   - `protokol-stackexchange` (`data/stackexchange_catalog.sqlite`)
-   - `protokol-gutenberg` (`data/gutenberg_catalog.sqlite`)
+   - `protokol-instagram` (`data/catalogs/instagram.sqlite`)
+   - `protokol-stackexchange` (`data/catalogs/stackexchange_catalog.sqlite`)
+   - `protokol-gutenberg` (`data/catalogs/gutenberg_catalog.sqlite`)
 4. **Wikimedia Külliyatı:**
-   - `protokol-wikisource`, `protokol-wiktionary`, `protokol-wikiquote`, `protokol-wikibooks`, `protokol-wikinews`, `protokol-wikispecies`, `protokol-wikiversity`, `protokol-wikivoyage`
+   - `protokol-wikisource`, `protokol-wiktionary`, `protokol-wikiquote`, `protokol-wikibooks`, `protokol-wikinews`, `protokol-wikispecies`, `protokol-wikiversity`, `protokol-wikivoyage` (`data/catalogs/wiki*_catalog.sqlite`)
 5. **Wikipedia Dil Üstverileri (40 Dil):**
-   - `protokol-wiki-<lang>` (`data/<lang>wiki_parquet/wikipedia_metadata.sqlite`)
+   - `protokol-wiki-<lang>` (`data/catalogs/wikipedia/<lang>_metadata.sqlite`)
