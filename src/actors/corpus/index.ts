@@ -13,6 +13,7 @@ export * from "./court-listener-actor";
 export * from "./danistay-actor";
 export * from "./dergipark-actor";
 export * from "./devdocs-actor";
+export * from "./doaj-actor";
 export * as CorpusDomains from "./domains";
 export * from "./eur-lex-actor";
 export * from "./europe-pmc-actor";

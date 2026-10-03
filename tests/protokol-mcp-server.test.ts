@@ -65,9 +65,10 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
       tools: Array<{ name: string; description: string; inputSchema: unknown }>;
     };
     assert.ok(Array.isArray(result.tools));
-    assert.equal(result.tools.length, 82);
+    assert.equal(result.tools.length, 83);
 
     const toolNames = result.tools.map((t) => t.name);
+    assert.ok(toolNames.includes("query_doaj"));
     assert.ok(toolNames.includes("query_biorxiv"));
     assert.ok(toolNames.includes("query_pubmed"));
     assert.ok(toolNames.includes("query_instagram"));
@@ -1418,6 +1419,68 @@ describe("ProtokolMcpServer - Native Stdio Model Context Protocol Engine", () =>
     assert.equal(typedTask.options.biorxivOptions.server, "biorxiv");
     assert.equal(typedTask.options.biorxivOptions.category, "neuroscience");
     assert.equal(typedTask.options.biorxivOptions.limit, 10);
+  });
+
+  it("dispatches query_doaj tool call to DoajActor with structured options", async () => {
+    let capturedTask: unknown;
+    const mockActor: IActor = {
+      actorType: "doaj",
+      description: "Mock DOAJ actor",
+      async run(task) {
+        capturedTask = task;
+        return {
+          taskId: task.taskId,
+          actorType: "doaj",
+          status: "completed",
+          statusCode: 200,
+          data: {
+            action: "search_articles",
+            totalCount: 1,
+            page: 1,
+            pageSize: 10,
+            articles: [],
+            queryUrl: "https://doaj.org/api/v2/search/articles/quantum?page=1&pageSize=10",
+            markdown: "# DOAJ Articles",
+          },
+          executionDurationMs: 5,
+        };
+      },
+    };
+
+    const registry = new ActorRegistry();
+    registry.register(mockActor);
+    const server = new ProtokolMcpServer(registry);
+
+    const res = await server.processRequest({
+      jsonrpc: "2.0",
+      id: "call-query-doaj",
+      method: "tools/call",
+      params: {
+        name: "query_doaj",
+        arguments: {
+          action: "search_articles",
+          query: "quantum",
+          pageSize: 10,
+        },
+      },
+    });
+
+    assert.ok(res);
+    assert.equal(res.id, "call-query-doaj");
+    assert.ok(capturedTask);
+    const typedTask = capturedTask as {
+      options?: {
+        doajOptions?: {
+          action?: string;
+          query?: string;
+          pageSize?: number;
+        };
+      };
+    };
+    assert.ok(typedTask.options?.doajOptions);
+    assert.equal(typedTask.options.doajOptions.action, "search_articles");
+    assert.equal(typedTask.options.doajOptions.query, "quantum");
+    assert.equal(typedTask.options.doajOptions.pageSize, 10);
   });
 
   it("accepts an injected RegistryDatabase and queries datasets via list_datasets", async () => {

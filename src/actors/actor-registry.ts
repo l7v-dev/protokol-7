@@ -13,6 +13,7 @@ import { CourtListenerActor } from "./corpus/court-listener-actor";
 import { DanistayActor } from "./corpus/danistay-actor";
 import { DergiParkActor } from "./corpus/dergipark-actor";
 import { DevDocsActor } from "./corpus/devdocs-actor";
+import { DoajActor } from "./corpus/doaj-actor";
 import { EurLexActor } from "./corpus/eur-lex-actor";
 import { EuropePmcActor } from "./corpus/europe-pmc-actor";
 import { GithubActor } from "./corpus/github-actor";
@@ -173,5 +174,6 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new InstagramActor());
   registry.register(new PubmedActor());
   registry.register(new BiorxivActor());
+  registry.register(new DoajActor());
   return registry;
 }

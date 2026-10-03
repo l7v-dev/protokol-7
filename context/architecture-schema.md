@@ -71,6 +71,7 @@ Categorized into 5 primary domains accessible via `src/actors/corpus/domains/`:
 | `src/actors/corpus/europe-pmc-actor.ts` | `EuropePmcActor` | Europe PMC REST API — biomedical literature and open-access full-text links. |
 | `src/actors/corpus/pubmed-actor.ts` | `PubmedActor` | NCBI E-utilities (esearch, esummary, efetch) & BioC API — peer-reviewed biomedical literature, abstracts, MeSH headings, and PMC articles. |
 | `src/actors/corpus/biorxiv-actor.ts` | `BiorxivActor` | Cold Spring Harbor Laboratory (CSHL) bioRxiv & medRxiv REST API — biology, medical preprints, abstracts, and published peer-reviewed journal mappings. |
+| `src/actors/corpus/doaj-actor.ts` | `DoajActor` | DOAJ (Directory of Open Access Journals) REST API v2 — multidisciplinary open-access articles, journals, fulltext links, and metadata. |
 | `src/actors/corpus/ietf-rfc-actor.ts` | `IetfRfcActor` | IETF RFC Editor + Datatracker — Internet standards with plain-text cleaning. |
 | `src/actors/corpus/openstax-actor.ts` | `OpenStaxActor` | OpenStax CMS API — CC-licensed peer-reviewed textbooks and chapter content. |
 | `src/actors/corpus/mit-ocw-actor.ts` | `MitOcwActor` | MIT OCW OpenSearch DSL — university curricula, syllabi, and course resources. |
@@ -298,6 +299,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `pipelines/api_stream/semantic_scholar/` | Semantic Scholar Streamer | S2 bulk API streamer, metadata cleaner, PDF extraction, Zstd Parquet sharder, Drive sync. |
 | `pipelines/api_stream/pubmed/` | PubMed / PMC API Streamer | NCBI E-utilities / BioC XML parser, rate-limited streamer, MeSH cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
 | `pipelines/api_stream/biorxiv/` | bioRxiv / medRxiv API Streamer | CSHL Details REST API streamer, rate-limited cursor pagination, preprint cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
+| `pipelines/api_stream/doaj/` | DOAJ API Streamer | DOAJ REST API v2 streamer, rate-limited pagination, multilingual article cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
 | `scripts/scaffold/scaffold-pipeline.py` | Pipeline Scaffolder CLI | Command-line code generator for new ETL pipelines (`snapshot`, `dump`, `api_stream`, `multimodal`). |
 
 ---
@@ -406,6 +408,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `tests/instagram-database.test.ts` | `InstagramDatabase` | SQLite relational database engine, profile/post/slide/comment/hashtag/mention persistence, growth snapshots, ACID transactions, and queries. |
 | `tests/pubmed-actor.test.ts` | `PubmedActor`, `src/api/server.ts` | PubMed XML parsing, structured abstracts, MeSH headings, NCBI esummary JSON, BioC JSON, SSRF guard, and REST route. |
 | `tests/biorxiv-actor.test.ts` | `BiorxivActor`, `src/api/server.ts` | CSHL bioRxiv & medRxiv preprint queries, category filters, direct DOI lookups, query text filtering, SSRF guard, and REST route. |
+| `tests/doaj-actor.test.ts` | `DoajActor`, `src/api/server.ts` | DOAJ article searches, direct ID retrieval, journal queries, error handling, SSRF guard, and REST routes. |
 
 ---
 
@@ -527,7 +530,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `pipelines/dump/wikimedia/configs/` | Language Catalog Configs | Bundled JSON databases (`*_dbs.json`) for Wikibooks, Wikinews, Wikiquote, Wikiversity, Wikivoyage, and Wiktionary. |
 | `scripts/sync-dbx-connections.py` | DBX Connection Synchronizer | Synchronizes all SQLite catalogs and Wikipedia metadata databases into local desktop dbx (`com.dbx.app`) with stale pruning. |
 | `scripts/run_openalex.sh` | Detached Pipeline Launcher | Shell script to start the OpenAlex API harvest detached in background. |
-| `data/catalogs/` | Relational SQLite Ledgers | Domain-isolated transactional SQLite ledgers (`biorxiv`, `pubmed`, `instagram`, `openalex`, `openalex_snapshot`, `stackexchange`, `gutenberg`, `wikimedia_*`, `wikipedia/*`). |
+| `data/catalogs/` | Relational SQLite Ledgers | Domain-isolated transactional SQLite ledgers (`doaj`, `biorxiv`, `pubmed`, `instagram`, `openalex`, `openalex_snapshot`, `stackexchange`, `gutenberg`, `wikimedia_*`, `wikipedia/*`). |
 | `examples/actors/metamath.json` | Example Config | Standalone JSON configuration for Metamath Proof Explorer actor. |
 | `docs/actors/metamath.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Metamath Proof Explorer actor. |
 | `examples/actors/philpapers.json` | Example Config | Standalone JSON configuration for PhilPapers Archive actor. |

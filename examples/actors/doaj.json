@@ -1,0 +1,5 @@
+{
+  "action": "search_articles",
+  "query": "quantum computing",
+  "pageSize": 10
+}

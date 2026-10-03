@@ -8587,4 +8587,126 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+  doaj: {
+    actorType: "doaj",
+    name: "doaj",
+    title: "DOAJ (Directory of Open Access Journals) Extractor",
+    category: "API",
+    version: "1.0.0",
+    description:
+      "Queries DOAJ (Directory of Open Access Journals) REST API v2 for peer-reviewed open access articles, metadata, journals, and fulltext links across all academic disciplines.",
+    author: "protokol-7",
+    tags: ["doaj", "open-access", "journals", "articles", "peer-reviewed", "academic", "llm-data"],
+    inputSchema: {
+      type: "object",
+      title: "DOAJ Extractor Input",
+      description: "DOAJ REST API v2 query and search parameters",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "İşlem Türü",
+          enum: ["search_articles", "search_journals", "get_article"],
+          description: "Operation type: 'search_articles', 'search_journals', or 'get_article'",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Arama Sorgusu",
+          description:
+            "Keyword or query syntax for searching DOAJ articles or journals (e.g. 'quantum computing')",
+        },
+        articleId: {
+          name: "articleId",
+          type: "string",
+          title: "Makale Kimliği",
+          description: "Unique DOAJ article ID for get_article action",
+        },
+        page: {
+          name: "page",
+          type: "number",
+          title: "Sayfa Numarası",
+          description: "Page number for pagination (starts at 1, default 1)",
+        },
+        pageSize: {
+          name: "pageSize",
+          type: "number",
+          title: "Sayfa Başına Kayıt",
+          description: "Number of records per page (default 20, max 100)",
+        },
+        sort: {
+          name: "sort",
+          type: "string",
+          title: "Sıralama",
+          description: "Sort order (e.g. 'year:desc')",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Özel Hedef URL",
+          description: "Optional custom or proxy target URL for DOAJ API requests",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Çalıştırılan sorgu eylemi" },
+        totalCount: { type: "number", description: "Toplam eşleşen makale veya dergi sayısı" },
+        page: { type: "number", description: "Mevcut sayfa numarası" },
+        pageSize: { type: "number", description: "Sayfa boyutu" },
+        articles: { type: "array", description: "Ayıklanan açık erişim makale kayıtları" },
+        queryUrl: { type: "string", description: "Kullanılan DOAJ API sorgu adresi" },
+        markdown: { type: "string", description: "Sentezlenen LLM eğitim markdown tablosu" },
+      },
+    },
+    exampleInput: {
+      action: "search_articles",
+      query: "quantum computing",
+      pageSize: 10,
+    },
+    readme:
+      "# DOAJ (Directory of Open Access Journals) Extractor\n\nDOAJ REST API v2 üzerinden hakemli açık erişim makaleleri, dergi üstverilerini, özetleri, lisansları ve tam metin bağlantılarını çeker.",
+    mcpTool: {
+      name: "query_doaj",
+      description:
+        "Queries DOAJ (Directory of Open Access Journals) REST API v2 for peer-reviewed open access articles, metadata, journals, and fulltext links.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["search_articles", "search_journals", "get_article"],
+            description: "Operation type: 'search_articles', 'search_journals', or 'get_article'",
+          },
+          query: {
+            type: "string",
+            description: "Search query or keyword (e.g. 'neural networks', 'biotechnology')",
+          },
+          articleId: {
+            type: "string",
+            description: "Unique DOAJ article ID to retrieve directly",
+          },
+          page: {
+            type: "number",
+            description: "1-indexed page number (default 1)",
+          },
+          pageSize: {
+            type: "number",
+            description: "Number of records to retrieve (1-100, default 20)",
+          },
+          sort: {
+            type: "string",
+            description: "Optional sort parameter (e.g. 'year:desc')",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Optional custom URL endpoint",
+          },
+        },
+        required: [],
+      },
+    },
+  },
 };

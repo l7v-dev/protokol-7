@@ -9,9 +9,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-
-
-- *(Aktif görev bulunmuyor)*
+- *(Aktif görev bulunmuyor — sıradaki platform seçimine hazır)*
 
 ## Bekleyen (Blok var)
 
@@ -22,6 +20,8 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 - *(Sağlamlaştırma bekleyen görev bulunmuyor)*
 
 ## Son tamamlananlar (son 3-5, eskiler ledger/'a taşınır)
+
+- [x] **DOAJ (Directory of Open Access Journals) Boru Hattı ve Çekirdek Aktör Mimarisi (`doaj`)** — `Tier: 2` — DOAJ REST API v2 (`search/articles`, `search/journals`, `articles/{id}`) akış boru hattı (`pipelines/api_stream/doaj/`), Google Drive senkronizasyonu, SQLite ilişkisel kataloğu (`data/catalogs/doaj_catalog.sqlite`), dbx GUI yöneticisi entegrasyonu (toplam 57 aktif veritabanı), TypeScript mikroservis aktörü (`DoajActor`, `POST /api/v1/doaj`, `query_doaj` MCP aracı), 8 Python birim testi (115/115 korpus testi), 4 TS aktör testi (919/919 test, 195 suite), 32 MCP testi, Biome lint, ve 6/6 katmanlı `npm run verify` tam başarıyla tamamlandı. Canlı dry-run ile 10 kayıt çekilip Parquet paketlendi. Walkthrough: [`docs/walkthroughs/doaj-pipeline-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/doaj-pipeline-walkthrough.md).
 
 - [x] **Eski Yapı Tasfiyesi, Veritabanı ve Dizin Konsolidasyonu** — `Tier: 1` — Tüm korpus ve boru hattı veritabanları `data/catalogs/` altında toplandı; `scripts/sync-dbx-connections.py` güncellenerek 53 bayat host silinip 56 aktif SQLite kataloğu `dbx` arayüzüne işlendi; Wikimedia JSON dil haritaları `pipelines/dump/wikimedia/configs/` altına taşındı; kök dizindeki log ve geçici scratch dosyaları temizlendi; Biome lint ve TypeScript tip hataları (914/914 TS testi, 117 Python testi, `npm run verify` 6/6 katman) %100 yeşil tamamlandı. Walkthrough: [`docs/walkthroughs/eski-yapi-tasfiyesi-ve-dizin-konsolidasyon-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/eski-yapi-tasfiyesi-ve-dizin-konsolidasyon-walkthrough.md).
 

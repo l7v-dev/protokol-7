@@ -4055,6 +4055,59 @@ export function createServer(): http.Server {
         return;
       }
 
+      // DOAJ (Directory of Open Access Journals) Extractor (/doaj or /api/v1/doaj)
+      if (method === "POST" && (pathname === "/api/v1/doaj" || pathname === "/doaj")) {
+        const body = await parseBody<{
+          action?: "search_articles" | "search_journals" | "get_article";
+          query?: string;
+          articleId?: string;
+          page?: number;
+          pageSize?: number;
+          sort?: string;
+          targetUrl?: string;
+          timeoutMs?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const doajActor = registry.get("doaj");
+        if (!doajActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "DOAJ extractor actor is not available.",
+            "Ensure DoajActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `doaj-${Date.now()}`,
+          actorType: "doaj",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            doajOptions: {
+              action: body.action,
+              query: body.query,
+              articleId: body.articleId,
+              page: body.page,
+              pageSize: body.pageSize,
+              sort: body.sort,
+              timeoutMs: body.timeoutMs,
+              ...body.options?.doajOptions,
+            },
+          },
+        };
+
+        const result = await doajActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

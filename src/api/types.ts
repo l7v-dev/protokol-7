@@ -80,7 +80,8 @@ export type ActorType =
   | "sacred-texts"
   | "instagram"
   | "pubmed"
-  | "biorxiv";
+  | "biorxiv"
+  | "doaj";
 
 export interface ExtractedTable {
   id: string;
@@ -2142,6 +2143,46 @@ export interface BiorxivActorResult {
   markdown: string;
 }
 
+export interface DoajArticleItem {
+  id: string;
+  doi?: string;
+  title: string;
+  abstract?: string;
+  journal?: string;
+  publisher?: string;
+  issn?: string;
+  language?: string;
+  year?: number;
+  authors?: string;
+  affiliations?: string;
+  keywords?: string[];
+  subjects?: string[];
+  fulltextUrl?: string;
+  charCount?: number;
+  wordCount?: number;
+  markdown?: string;
+}
+
+export interface DoajActorTaskOptions {
+  action?: "search_articles" | "search_journals" | "get_article";
+  query?: string;
+  articleId?: string;
+  page?: number;
+  pageSize?: number;
+  sort?: string;
+  timeoutMs?: number;
+}
+
+export interface DoajActorResult {
+  action: "search_articles" | "search_journals" | "get_article";
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  articles: DoajArticleItem[];
+  queryUrl: string;
+  markdown: string;
+}
+
 export interface IetfRfcItem {
   rfcNumber: number;
   title: string;
@@ -3103,6 +3144,7 @@ export interface ActorTask {
     instagramOptions?: InstagramActorTaskOptions;
     pubmedOptions?: PubmedActorTaskOptions;
     biorxivOptions?: BiorxivActorTaskOptions;
+    doajOptions?: DoajActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

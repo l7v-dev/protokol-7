@@ -29,6 +29,7 @@ import type {
   DanistayActorTaskOptions,
   DergiParkActorTaskOptions,
   DevDocsActorTaskOptions,
+  DoajActorTaskOptions,
   DocumentExtractorTaskOptions,
   EpubExtractorTaskOptions,
   EurLexActorTaskOptions,
@@ -1425,6 +1426,10 @@ export class ProtokolMcpServer {
             biorxivOptions:
               manifest.actorType === "biorxiv"
                 ? (toolArgs as unknown as BiorxivActorTaskOptions)
+                : undefined,
+            doajOptions:
+              manifest.actorType === "doaj"
+                ? (toolArgs as unknown as DoajActorTaskOptions)
                 : undefined,
           },
         };
