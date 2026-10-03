@@ -45,6 +45,7 @@ class BaseParquetSharder:
         filename_prefix: str = "shard",
         snapshot_date: Optional[str] = None,
         max_part_bytes: int = DEFAULT_MAX_PART_BYTES,
+        max_part_entries: Optional[int] = None,
         batch_size: int = DEFAULT_BATCH_SIZE,
         start_part_idx: int = 0,
         compression: str = "zstd",
@@ -56,6 +57,7 @@ class BaseParquetSharder:
         self.filename_prefix = filename_prefix
         self.snapshot_date = snapshot_date or datetime.date.today().strftime("%Y%m%d")
         self.max_part_bytes = max_part_bytes
+        self.max_part_entries = max_part_entries
         self.batch_size = batch_size
         self.part_idx = start_part_idx
         self.compression = compression
@@ -122,6 +124,9 @@ class BaseParquetSharder:
             current_size = os.path.getsize(self._current_path)
             if current_size >= self.max_part_bytes:
                 self.close_shard()
+                return
+        if self.max_part_entries and self.part_entries >= self.max_part_entries:
+            self.close_shard()
 
     def close_shard(self) -> Optional[Dict[str, Any]]:
         """Closes active shard, hashes output file, and fires completion callback."""

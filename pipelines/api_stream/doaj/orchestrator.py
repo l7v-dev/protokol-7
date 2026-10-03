@@ -24,17 +24,27 @@ from packer import DoajParquetSharder
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(line_buffering=True)
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(line_buffering=True)
+
     parser = argparse.ArgumentParser(description="DOAJ Open Access Article Ingestion Pipeline")
     parser.add_argument(
         "--query",
-        default="*:*",
-        help="Search query or keyword for DOAJ articles (default: *:* for all)",
+        default="*",
+        help="Search query or keyword for DOAJ articles (default: * for all)",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Harvest full DOAJ repository continuously via high-speed OAI-PMH service",
     )
     parser.add_argument(
         "--max-records",
         type=int,
-        default=1000,
-        help="Maximum articles to fetch",
+        default=50000,
+        help="Maximum articles to fetch (set 0 for unlimited continuous harvest)",
     )
     parser.add_argument(
         "--batch-size",
@@ -47,6 +57,17 @@ def main():
         type=int,
         default=512,
         help="Max Parquet shard size in MB",
+    )
+    parser.add_argument(
+        "--max-shard-records",
+        type=int,
+        default=50000,
+        help="Max records per Parquet shard before rotation (default: 50000)",
+    )
+    parser.add_argument(
+        "--resumption-token",
+        default=None,
+        help="Resume OAI-PMH harvest from specific resumptionToken",
     )
     parser.add_argument(
         "--output-dir",
@@ -75,13 +96,18 @@ def main():
     )
     args = parser.parse_args()
 
-    print("============================================================================")
-    print("[DOAJ] Starting DOAJ Open Access Article Ingestion Pipeline")
-    print(f"[DOAJ] Query: {args.query} | Max Records: {args.max_records}")
-    print(f"[DOAJ] Batch Size: {args.batch_size} | Shard Max MB: {args.shard_size_mb}")
-    print(f"[DOAJ] SQLite Database: {args.db_path}")
-    print(f"[DOAJ] Local Scratch: {args.output_dir}")
-    print("============================================================================")
+    max_recs = None if args.max_records == 0 else args.max_records
+    use_oai = args.all or (args.query in ("*", "*:*", "") and (max_recs is None or max_recs > 1000))
+    mode_str = "OAI-PMH Bulk Harvest (Full Catalog)" if use_oai else f"REST API v2 Search (query: {args.query})"
+
+    print("============================================================================", flush=True)
+    print("[DOAJ] Starting DOAJ Open Access Article Ingestion Pipeline", flush=True)
+    print(f"[DOAJ] Mode: {mode_str}", flush=True)
+    print(f"[DOAJ] Target records: {max_recs if max_recs else 'UNLIMITED'} | Batch size: {args.batch_size}", flush=True)
+    print(f"[DOAJ] Shard size threshold: {args.shard_size_mb} MB | Max shard records: {args.max_shard_records}", flush=True)
+    print(f"[DOAJ] SQLite Database: {args.db_path}", flush=True)
+    print(f"[DOAJ] Local Scratch: {args.output_dir}", flush=True)
+    print("============================================================================", flush=True)
 
     downloader = DoajDownloader()
     cleaner = DoajCleaner()
@@ -145,11 +171,14 @@ def main():
             except Exception as e:
                 print(f"[DRIVE-WARN] Shard upload deferred: {e}. Preserved locally at {shard_info['file_path']}")
 
+    start_part = ledger.get_next_part_index()
     sharder = DoajParquetSharder(
         output_dir=args.output_dir,
         filename_prefix="doaj",
         max_part_bytes=args.shard_size_mb * 1024 * 1024,
+        max_part_entries=args.max_shard_records,
         batch_size=min(args.batch_size, 1000),
+        start_part_idx=start_part,
         on_shard_completed=on_shard_completed,
     )
 
@@ -158,11 +187,14 @@ def main():
     clean_count = 0
     rejected_count = 0
 
+    article_stream = (
+        downloader.stream_oai_articles(max_records=max_recs, resumption_token=args.resumption_token)
+        if use_oai
+        else downloader.stream_articles(query=args.query, max_records=max_recs)
+    )
+
     try:
-        for raw_item in downloader.stream_articles(
-            query=args.query,
-            max_records=args.max_records,
-        ):
+        for raw_item in article_stream:
             raw_count += 1
             cleaned = cleaner.clean_record(raw_item)
             if not cleaned:
@@ -178,26 +210,27 @@ def main():
                 rps = raw_count / elapsed if elapsed > 0 else 0
                 print(
                     f"[DOAJ] Processed {raw_count} raw ({clean_count} clean, "
-                    f"{rejected_count} rejected) | {rps:.1f} rec/s"
+                    f"{rejected_count} rejected) | {rps:.1f} rec/s",
+                    flush=True,
                 )
 
         sharder.close()
         ledger.sync_to_central_catalog("doaj")
 
     except KeyboardInterrupt:
-        print("\n[DOAJ] Ingestion interrupted by operator. Finalizing open shards...")
+        print("\n[DOAJ] Ingestion interrupted by operator. Finalizing open shards...", flush=True)
         sharder.close()
         ledger.sync_to_central_catalog("doaj")
 
     total_time = time.time() - t0
     final_count = ledger.get_article_count()
-    print("============================================================================")
-    print(f"[DOAJ] Ingestion Complete in {total_time:.1f}s")
-    print(f"[DOAJ] Raw items processed: {raw_count}")
-    print(f"[DOAJ] Clean records accepted: {clean_count}")
-    print(f"[DOAJ] Records rejected: {rejected_count}")
-    print(f"[DOAJ] Total articles in SQLite catalog: {final_count}")
-    print("============================================================================")
+    print("============================================================================", flush=True)
+    print(f"[DOAJ] Ingestion Complete in {total_time:.1f}s", flush=True)
+    print(f"[DOAJ] Raw items processed: {raw_count}", flush=True)
+    print(f"[DOAJ] Clean records accepted: {clean_count}", flush=True)
+    print(f"[DOAJ] Records rejected: {rejected_count}", flush=True)
+    print(f"[DOAJ] Total articles in SQLite catalog: {final_count}", flush=True)
+    print("============================================================================", flush=True)
 
 
 if __name__ == "__main__":

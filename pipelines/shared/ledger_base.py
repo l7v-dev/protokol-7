@@ -189,6 +189,16 @@ class BaseLedger:
                 "failed_items": item_row["failed_items"] if item_row else 0,
             }
 
+    def get_next_part_index(self) -> int:
+        """Returns the next available partition index based on existing recorded shards."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT MAX(part_index) as max_idx FROM shards;")
+            row = cur.fetchone()
+            if row and row["max_idx"] is not None:
+                return int(row["max_idx"]) + 1
+            return 0
+
     def sync_to_central_catalog(
         self,
         dataset_name: str,
