@@ -11,11 +11,18 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 
 
+- [ ] **DergiPark Tam Metin Çıkarımı ve Ham PDF Arşivleme Akışı (`dergipark`)** — `Tier: 1`
+  - **Durum:** DergiPark kataloğundaki 131.122 makalenin tam metin PDF indirmesi, PyMuPDF Markdown katman çıkarımı, Zstandard Parquet sharder ve ham PDF TAR.GZ arşivleyici arka plan daemon'ı olarak yürütülüyor.
+  - **Süreç:** `python -u pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 0 --workers 4 --rate-limit 0.35 --batch-size 50 --max-shard-records 2000 --max-pdf-archive-records 500`
+  - **İlerleme:** Paralel 4 işçi ile PDF'ler çekiliyor, PyMuPDF ile Markdown metni çıkarılıp Parquet shard'larına yazılıyor, eşzamanlı olarak ham PDF ikili dosyaları 500'lük WebDataset TAR.GZ shard'larına paketlenip Google Drive `DergiPark/` ve `DergiPark/pdfs/` klasörlerine MD5 doğrulamasıyla aktarılıyor ve yerel disk sıfırlanıyor (sıfır disk artığı).
+  - **Takip:** `tail -f logs/dergipark_fulltext.log`
+
 - [ ] **DOAJ Canlı Tam Katalog Akışı ve Parquet Paketleme (`doaj`)** — `Tier: 1`
   - **Durum:** Canlı OAI-PMH servisi üzerinden tam DOAJ veritabanı (13,7M+ makale) arka plan daemon'ı olarak yürütülüyor.
   - **Süreç:** `python -u pipelines/api_stream/doaj/orchestrator.py --all --max-records 0 --batch-size 1000 --max-shard-records 50000 --shard-size-mb 512`
   - **İlerleme:** ~65-75 rec/s akış hızıyla makaleler çekiliyor, `data/catalogs/doaj_catalog.sqlite` tablosuna ACID indeksleniyor, 50.000'er kayıtta veya 512 MB eşiğinde Zstandard Parquet shard'ları oluşturulup Google Drive `DOAJ/` klasörüne uzaktan MD5 doğrulamasıyla aktarılıyor ve yerel disk sıfırlanıyor.
   - **Takip:** `tail -f logs/doaj.log`
+
 
 ## Bekleyen (Blok var)
 
