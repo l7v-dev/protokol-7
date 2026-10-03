@@ -24,7 +24,7 @@ Her görev aşağıdaki standart yapıda yazılmak zorundadır:
 [Yeni Fikir]
      │
      ▼
-[Sağlamlaştırma Bekliyor]  (grill-me veya to-spec sürecinden geçmemiş)
+[Sağlamlaştırma Bekliyor]  (grilling veya şartname sürecinden geçmemiş)
      │
      ▼
 [Bekleyen (Blok Var)]      (Başka bir görevin bitmesini bekliyor)
@@ -44,6 +44,6 @@ Her görev aşağıdaki standart yapıda yazılmak zorundadır:
 
 ## 3. Sabit İlkeler
 
-- **Aynı Anda Tek Aktif İş:** `## Aktif` bölümünde aynı anda birden fazla iş yürütülemez. Çok adımlı işler `to-tickets` ile atomik parçalara bölünür ve sırayla aktife alınır.
+- **Aynı Anda Tek Aktif İş:** `## Aktif` bölümünde aynı anda birden fazla iş yürütülemez. Çok adımlı işler atomik alt görevlere bölünür ve sırayla aktife alınır.
 - **Oturum Kapanış Güncellemesi:** Oturum sonlandırılmadan önce `Durum:` satırı mutlaka güncellenmelidir.
 - **5 Görev Sınırı:** "Son tamamlananlar" 5'i aştığında `npm run consolidate` çalıştırılarak çalışan bellek yalın tutulur.
