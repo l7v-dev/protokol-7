@@ -50,8 +50,12 @@ python3 scripts/sync-dbx-connections.py
 
 `npm run dbx:sync` çalıştığında aşağıdaki kategoriler otomatik taranır ve kaydedilir:
 
-1. **Master Katalog:** `protokol-catalog` (`data/catalog.sqlite`)
-2. **Biyomedikal & Akademik:**
+1. **Master & Kontrol Düzlemi Katalogları:**
+   - `protokol-catalog` (`data/catalog.sqlite`)
+   - `protokol-control-plane` (`data/catalogs/control_plane.sqlite`)
+2. **Akademik & Bilimsel Külliyat:**
+   - `protokol-dergipark` (`data/catalogs/dergipark_catalog.sqlite`)
+   - `protokol-doaj` (`data/catalogs/doaj_catalog.sqlite`)
    - `protokol-biorxiv` (`data/catalogs/biorxiv_catalog.sqlite`)
    - `protokol-pubmed` (`data/catalogs/pubmed_catalog.sqlite`)
    - `protokol-openalex` (`data/catalogs/openalex_catalog.sqlite`)
