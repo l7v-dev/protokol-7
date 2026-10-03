@@ -10,6 +10,7 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 ## Aktif
 
 
+
 - [ ] **DOAJ Canlı Tam Katalog Akışı ve Parquet Paketleme (`doaj`)** — `Tier: 1`
   - **Durum:** Canlı OAI-PMH servisi üzerinden tam DOAJ veritabanı (13,7M+ makale) arka plan daemon'ı olarak yürütülüyor.
   - **Süreç:** `python -u pipelines/api_stream/doaj/orchestrator.py --all --max-records 0 --batch-size 1000 --max-shard-records 50000 --shard-size-mb 512`
@@ -26,15 +27,11 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Son tamamlananlar (son 3-5, eskiler ledger/'a taşınır)
 
+- [x] **DergiPark Tam Metin PDF İndirme ve Markdown Çıkarma Hattı (Madde D)** — `Tier: 1` — `pdf_extractor.py` (PyMuPDF ile Türkçe diyakritik korumalı tam metin çıkarıcı, sayfa etiketleyici, 50MB sınır koruyucu ve `ThreadSafeRateLimiter`), `ledger.py` (dinamik SQLite migrasyonu, `pdf_status`, `pdf_direct_url`, `page_count` alanları ve `pdf_stat` gruplamalı istatistik raporu), `fulltext_packer.py` (Zstandard seviye 6 Parquet sharder) ve `fulltext_runner.py` (paralel çoklu iş parçacıklı çıkarma orkestratörü) kuruldu. 18/18 Python, 22/22 TS testi ve canlı test yeşil geçti. Walkthrough: [`docs/walkthroughs/dergipark-tam-metin-pdf-cikarma-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/dergipark-tam-metin-pdf-cikarma-walkthrough.md).
+
 - [x] **DergiPark V3 Kontrol Düzlemi Kaynak Tanımlayıcı Entegrasyonu (Madde C)** — `Tier: 1` — `contracts/source-descriptors/dergipark.json` (JSON Schema uyumlu) ve `contracts/field-mappings/dergipark.json` sözleşmeleri oluşturuldu. `dergipark-harvest-handler.ts` işleyici modülü kurularak `scripts/run-worker.ts` işçi daemon'ına entegre edildi. `scripts/register-source.ts` CLI aracı ile kaynak kaydı ve tarih bölüm işlerinin kuyruklanması tamamlandı. 8/8 contracts, 3/3 worker, 11/11 actor ve 12/12 pipeline testi yeşil geçti. Walkthrough: [`docs/walkthroughs/dergipark-v3-kontrol-duzlemi-entegrasyon-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/dergipark-v3-kontrol-duzlemi-entegrasyon-walkthrough.md).
 
 - [x] **DergiPark Tarih ve Kapsam Bölümlemeli Toplama (Madde B)** — `Tier: 1` — DergiPark'ın 131K sınırını aşarak 800K+ külliyatına ulaşmak için `partitioner.py` (tarih yoğunluğuna duyarlı pencere üreteci), `ledger.py` (`dergipark_partitions` ACID durum tablosu, ilerleme takibi ve bellek içi tekilleştirme) ve `orchestrator.py` (`--auto-partition`, `--status`) modülleri kuruldu. 12/12 Python ve 11/11 TS testleri yeşil geçti. Walkthrough: [`docs/walkthroughs/dergipark-bolumlemeli-toplama-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/dergipark-bolumlemeli-toplama-walkthrough.md).
-
-- [x] **DergiPark URL Eşleme ve Geriye Dönük Doldurma (Madde A)** — `Tier: 1` — `downloader.py` (`setSpec` başlık ayrıştırması) ve `cleaner.py` (`article_url`, `pdf_url` ve DOI fallback) modülleri güncellendi, 9/9 Python ve 11/11 TS testi yeşil geçti. `scripts/backfill_dergipark_urls.py` ile veritabanındaki 131.127 makalenin 126.953 adedine (%96.82) doğrudan DergiPark iniş URL'si ve kalıcı DOI linki atandı. Walkthrough: [`docs/walkthroughs/dergipark-url-esleme-ve-geriye-donuk-doldurma-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/dergipark-url-esleme-ve-geriye-donuk-doldurma-walkthrough.md).
-
-- [x] **Atıl Beceri Seti Temizliği ve Ortam Konsolidasyonu** — `Tier: 1` — `.agents/skills/` altındaki Eylül 2024 tarihli 15 atıl/şablon beceri (`grill-me`, `to-spec`, `triage`, `handoff` vb.) `ledger/legacy-skills/` dizinine arşivlendi; aktif çekirdek 16 beceri korundu. `rules/failure-checklist.md` ve `rules/task-discipline.md` çapraz referansları güncellendi. `~/.gemini/config/skills/` ve `~/.gemini/skills/` altındaki 30 mükerrer eski kopya arşivlenerek prompt context budget limits aşımı engellendi ve eklenti standardı sağlandı. Walkthrough: [`docs/walkthroughs/beceri-seti-temizligi-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/beceri-seti-temizligi-walkthrough.md).
-
-- [x] **Boru Hattı Entegrasyonu ve İşçi CLI Daemon'ı (Faz 4)** — `Tier: 1` — `ControlRouter` HTTP REST yönlendiricisi (`/api/v1/control/jobs`, `/api/v1/control/sources`, `/api/v1/control/leases/reap`), `scripts/run-worker.ts` bağımsız işçi CLI daemon'ı (`npm run worker`), `package.json` CLI betiği ve 5 HTTP REST birim testi (954/954 test yeşil) tam başarıyla tamamlandı. Walkthrough: [`docs/walkthroughs/boru-hatti-ve-isci-daemon-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/boru-hatti-ve-isci-daemon-walkthrough.md).
 
 ---
 

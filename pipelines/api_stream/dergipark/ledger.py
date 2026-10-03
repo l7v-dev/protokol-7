@@ -94,6 +94,22 @@ class DergiParkLedger(BaseLedger):
             cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_year ON dergipark_articles(year);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_shard ON dergipark_articles(shard_name);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_part_status ON dergipark_partitions(status);")
+
+            # Dynamic migration for full-text PDF status tracking
+            cur.execute("PRAGMA table_info(dergipark_articles);")
+            existing_cols = {col[1] for col in cur.fetchall()}
+            if "pdf_status" not in existing_cols:
+                cur.execute("ALTER TABLE dergipark_articles ADD COLUMN pdf_status TEXT DEFAULT 'pending';")
+            if "pdf_direct_url" not in existing_cols:
+                cur.execute("ALTER TABLE dergipark_articles ADD COLUMN pdf_direct_url TEXT;")
+            if "page_count" not in existing_cols:
+                cur.execute("ALTER TABLE dergipark_articles ADD COLUMN page_count INTEGER DEFAULT 0;")
+            if "extracted_at" not in existing_cols:
+                cur.execute("ALTER TABLE dergipark_articles ADD COLUMN extracted_at TEXT;")
+            if "pdf_shard_name" not in existing_cols:
+                cur.execute("ALTER TABLE dergipark_articles ADD COLUMN pdf_shard_name TEXT;")
+
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_pdf_status ON dergipark_articles(pdf_status);")
             conn.commit()
 
     def index_article(self, record: Dict[str, Any], shard_name: Optional[str] = None) -> None:
@@ -347,4 +363,100 @@ class DergiParkLedger(BaseLedger):
             else:
                 cur.execute("SELECT * FROM dergipark_partitions ORDER BY from_date ASC;")
             return [dict(r) for r in cur.fetchall()]
+
+    def get_pending_pdf_articles(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """Retrieves articles that have a valid fulltext_url but pending PDF extraction."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT id, title, journal, year, language, doi, fulltext_url
+                FROM dergipark_articles
+                WHERE fulltext_url IS NOT NULL 
+                  AND fulltext_url != ''
+                  AND (pdf_status IS NULL OR pdf_status = 'pending')
+                ORDER BY year DESC, id ASC
+                LIMIT ?;
+                """,
+                (limit,),
+            )
+            return [dict(r) for r in cur.fetchall()]
+
+    def mark_pdf_extracted(
+        self,
+        article_id: str,
+        pdf_url: str,
+        page_count: int,
+        char_count: int,
+        word_count: int,
+        shard_name: Optional[str] = None,
+    ) -> None:
+        """Marks article PDF as successfully extracted with metadata and char counts."""
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                UPDATE dergipark_articles
+                SET pdf_status = 'extracted',
+                    pdf_direct_url = ?,
+                    page_count = ?,
+                    char_count = ?,
+                    word_count = ?,
+                    extracted_at = ?,
+                    pdf_shard_name = COALESCE(?, pdf_shard_name)
+                WHERE id = ?;
+                """,
+                (pdf_url, page_count, char_count, word_count, now, shard_name, str(article_id).strip()),
+            )
+            conn.commit()
+
+    def mark_pdf_failed(
+        self,
+        article_id: str,
+        status: str = "failed",
+        pdf_url: Optional[str] = None,
+    ) -> None:
+        """Marks article PDF as failed, skipped, or too large."""
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                UPDATE dergipark_articles
+                SET pdf_status = ?,
+                    pdf_direct_url = COALESCE(?, pdf_direct_url),
+                    extracted_at = ?
+                WHERE id = ?;
+                """,
+                (status, pdf_url, now, str(article_id).strip()),
+            )
+            conn.commit()
+
+    def get_pdf_stats(self) -> Dict[str, int]:
+        """Returns distribution of PDF extraction statuses across catalog."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT COALESCE(pdf_status, 'pending') as pdf_stat, COUNT(*) as count
+                FROM dergipark_articles
+                GROUP BY pdf_status;
+                """
+            )
+            return {row["pdf_stat"]: row["count"] for row in cur.fetchall()}
+
+
+    def get_next_fulltext_part_index(self, prefix: str = "dergipark_fulltext") -> int:
+        """Returns next available partition index for full-text shards based on existing recorded shards."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT MAX(part_index) as max_idx FROM shards WHERE shard_name LIKE ?;",
+                (f"{prefix}%",),
+            )
+            row = cur.fetchone()
+            if row and row["max_idx"] is not None:
+                return int(row["max_idx"]) + 1
+            return 0
+
+
 

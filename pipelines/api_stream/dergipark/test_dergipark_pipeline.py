@@ -7,6 +7,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 import xml.etree.ElementTree as ET
 import pytest
 
@@ -16,8 +17,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from cleaner import DergiParkCleaner
 from downloader import DergiParkDownloader
 from drive_sync import DergiParkDriveSync
+from fulltext_packer import DergiParkFulltextSharder
 from ledger import DergiParkLedger
 from packer import DergiParkParquetSharder
+from pdf_extractor import DergiParkPdfExtractor, ThreadSafeRateLimiter
+
 
 
 @pytest.fixture
@@ -405,4 +409,216 @@ def test_downloader_token_callback(monkeypatch):
     records = list(downloader.stream_records(on_token_update=lambda t: tokens_received.append(t)))
     assert len(records) == 1
     assert tokens_received == ["next_token_abc123"]
+
+
+def test_rate_limiter_pacing():
+    limiter = ThreadSafeRateLimiter(min_interval=0.05)
+    t0 = time.time()
+    limiter.wait()
+    limiter.wait()
+    elapsed = time.time() - t0
+    assert elapsed >= 0.04
+
+
+def test_pdf_extractor_resolve_url(monkeypatch):
+    extractor = DergiParkPdfExtractor()
+    # 1. Direct PDF URL
+    direct = "https://dergipark.org.tr/tr/download/article-file/12345"
+    assert extractor.resolve_pdf_url(direct) == direct
+
+    # 2. Landing page resolving via HTML regex
+    sample_html = b"""
+    <html>
+        <body>
+            <a class="btn btn-sm btn-outline-secondary" href="/tr/download/article-file/998877">
+                <span>PDF</span>
+            </a>
+        </body>
+    </html>
+    """
+
+    class FakeResponse:
+        def __init__(self, data):
+            self.data = data
+        def read(self):
+            return self.data
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+    import urllib.request
+    monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout, context: FakeResponse(sample_html))
+
+    resolved = extractor.resolve_pdf_url("https://dergipark.org.tr/tr/pub/journal/article/100")
+    assert resolved == "https://dergipark.org.tr/tr/download/article-file/998877"
+
+
+def test_pdf_extractor_extract_text():
+    import pymupdf
+    doc = pymupdf.open()
+    page = doc.new_page()
+    sample_text = (
+        "Turkiye Bilimsel ve Teknolojik Arastirma Kurumu ULAKBIM DergiPark "
+        "acik erisimli akademik makale veri tabani tam metin katmani. "
+        "Yapay Zeka ve Dogal Dil Isleme Sistemleri Arastirmalari."
+    )
+    page.insert_text((50, 50), sample_text)
+    pdf_bytes = doc.tobytes()
+
+    extractor = DergiParkPdfExtractor()
+    res = extractor.extract_text(pdf_bytes)
+
+    assert res["status"] == "extracted"
+    assert res["page_count"] == 1
+    assert "DergiPark" in res["text"]
+    assert "ULAKBIM" in res["text"]
+    assert res["char_count"] >= 100
+    assert res["word_count"] >= 15
+
+
+    # Invalid bytes
+    res_err = extractor.extract_text(b"NOT_A_PDF")
+    assert res_err["status"] == "failed"
+
+
+def test_pdf_extractor_process_article(monkeypatch):
+    import pymupdf
+    doc = pymupdf.open()
+    page = doc.new_page()
+    page.insert_text((50, 50), "Makale özeti ve tam metni. " * 15)
+    pdf_bytes = doc.tobytes()
+
+    extractor = DergiParkPdfExtractor()
+    monkeypatch.setattr(extractor, "resolve_pdf_url", lambda u: "https://dergipark.org.tr/tr/download/article-file/111")
+    monkeypatch.setattr(extractor, "fetch_pdf_bytes", lambda u: (pdf_bytes, None))
+
+    art = {
+        "id": "dp:777",
+        "title": "Bilişim Sistemleri",
+        "journal": "Bilişim Dergisi",
+        "year": 2024,
+        "language": "tr",
+        "doi": "10.1234/dp.777",
+        "fulltext_url": "https://dergipark.org.tr/tr/pub/bilisim/article/777",
+    }
+    res = extractor.process_article(art)
+    assert res["id"] == "dp:777"
+    assert res["status"] == "extracted"
+    assert res["pdf_url"] == "https://dergipark.org.tr/tr/download/article-file/111"
+    assert res["page_count"] == 1
+    assert res["char_count"] > 100
+
+
+def test_fulltext_sharder_generation(tmp_dir):
+    shards_completed = []
+
+    def on_shard(info):
+        shards_completed.append(info)
+
+    sharder = DergiParkFulltextSharder(
+        output_dir=tmp_dir,
+        filename_prefix="test_fulltext",
+        max_part_entries=2,
+        batch_size=1,
+        on_shard_completed=on_shard,
+    )
+
+    art1 = {
+        "id": "dp:101",
+        "doi": "10.1000/101",
+        "title": "Makale 1",
+        "journal": "Dergi A",
+        "year": 2024,
+        "language": "tr",
+        "pdf_url": "https://dergipark.org.tr/download/101.pdf",
+        "page_count": 5,
+        "text": "Tam metin icerik 1",
+        "char_count": 18,
+        "word_count": 4,
+        "extracted_at": "2026-10-03T12:00:00",
+    }
+    art2 = {
+        "id": "dp:102",
+        "doi": "10.1000/102",
+        "title": "Makale 2",
+        "journal": "Dergi B",
+        "year": 2025,
+        "language": "tr",
+        "pdf_url": "https://dergipark.org.tr/download/102.pdf",
+        "page_count": 10,
+        "text": "Tam metin icerik 2",
+        "char_count": 18,
+        "word_count": 4,
+        "extracted_at": "2026-10-03T12:01:00",
+    }
+
+    assert sharder.current_shard_name.startswith("test_fulltext_")
+    sharder.append_article_fulltext(art1)
+    sharder.append_article_fulltext(art2)
+
+    assert len(shards_completed) == 1
+    s_info = shards_completed[0]
+    assert s_info["record_count"] == 2
+    assert s_info["shard_name"].startswith("test_fulltext_")
+    assert s_info["byte_size"] > 0
+    assert len(s_info["sha256"]) == 64
+    assert len(s_info["md5"]) == 32
+
+
+def test_ledger_pdf_status_and_stats(tmp_dir):
+    db_path = os.path.join(tmp_dir, "test_pdf_ledger.sqlite")
+    ledger = DergiParkLedger(db_path=db_path)
+
+    a1 = {
+        "id": "dp:pdf:1",
+        "title": "Makale PDF 1",
+        "journal": "Dergi 1",
+        "year": 2023,
+        "fulltext_url": "https://dergipark.org.tr/article/1",
+    }
+    a2 = {
+        "id": "dp:pdf:2",
+        "title": "Makale PDF 2",
+        "journal": "Dergi 2",
+        "year": 2024,
+        "fulltext_url": "https://dergipark.org.tr/article/2",
+    }
+    ledger.index_article(a1)
+    ledger.index_article(a2)
+
+    pending = ledger.get_pending_pdf_articles(limit=10)
+    assert len(pending) == 2
+    assert pending[0]["id"] == "dp:pdf:2"  # ordered by year DESC
+
+    # Mark a1 as extracted
+    ledger.mark_pdf_extracted(
+        article_id="dp:pdf:1",
+        pdf_url="https://dergipark.org.tr/download/1.pdf",
+        page_count=8,
+        char_count=15000,
+        word_count=2200,
+        shard_name="dergipark_fulltext_20261003_p00000.parquet",
+    )
+    # Mark a2 as failed
+    ledger.mark_pdf_failed(
+        article_id="dp:pdf:2",
+        status="failed",
+        pdf_url="https://dergipark.org.tr/download/2.pdf",
+    )
+
+    stats = ledger.get_pdf_stats()
+    assert stats.get("extracted") == 1
+    assert stats.get("failed") == 1
+    assert stats.get("pending", 0) == 0
+
+    art1_row = ledger.get_article("dp:pdf:1")
+    assert art1_row["pdf_status"] == "extracted"
+    assert art1_row["page_count"] == 8
+    assert art1_row["char_count"] == 15000
+    assert art1_row["pdf_shard_name"] == "dergipark_fulltext_20261003_p00000.parquet"
+
+    # Fulltext part index check
+    assert ledger.get_next_fulltext_part_index() == 0
+
 
