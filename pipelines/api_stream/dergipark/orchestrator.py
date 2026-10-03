@@ -5,6 +5,8 @@ DergiPark Ingestion Pipeline Orchestrator CLI -- protokol-7
 Executes continuous harvesting of TÜBİTAK ULAKBİM DergiPark open access articles,
 cleans records into tabular LLM-ready format, stores metadata in ACID SQLite ledger,
 packs them into Zstandard Parquet shards, and uploads to Google Drive with zero local disk residue.
+
+Supports auto-partitioned multi-year windowing to harvest the full 800K+ repository.
 """
 
 import argparse
@@ -20,6 +22,47 @@ from downloader import DergiParkDownloader
 from drive_sync import DergiParkDriveSync
 from ledger import DergiParkLedger
 from packer import DergiParkParquetSharder
+from partitioner import DergiParkPartitioner
+
+
+def print_status_report(ledger: DergiParkLedger) -> None:
+    """Displays current ingestion and partition statistics."""
+    article_count = ledger.get_article_count()
+    partitions = ledger.get_partitions()
+
+    print("============================================================================", flush=True)
+    print("[DERGIPARK] Repository Status Report", flush=True)
+    print(f"[DERGIPARK] Total articles indexed in SQLite catalog: {article_count:,}", flush=True)
+    print(f"[DERGIPARK] Total registered partitions: {len(partitions)}", flush=True)
+    print("============================================================================", flush=True)
+
+    if not partitions:
+        print("No partitioned harvest runs registered yet. Run with --auto-partition.", flush=True)
+        return
+
+    completed_parts = [p for p in partitions if p.get("status") == "completed"]
+    running_parts = [p for p in partitions if p.get("status") == "running"]
+    pending_parts = [p for p in partitions if p.get("status") == "pending"]
+    failed_parts = [p for p in partitions if p.get("status") == "failed"]
+
+    print(
+        f"Summary: {len(completed_parts)} completed, {len(running_parts)} running, "
+        f"{len(pending_parts)} pending, {len(failed_parts)} failed.",
+        flush=True,
+    )
+    print("-" * 80, flush=True)
+    print(f"{'Partition ID':<35} {'Status':<10} {'Clean':<8} {'New':<8} {'Started At'}", flush=True)
+    print("-" * 80, flush=True)
+
+    for p in partitions:
+        pid = p["partition_id"]
+        st = p.get("status", "unknown")
+        cl = p.get("clean_count", 0)
+        nw = p.get("new_count", 0)
+        sa = (p.get("started_at") or "")[:19]
+        print(f"{pid:<35} {st:<10} {cl:<8} {nw:<8} {sa}", flush=True)
+
+    print("=" * 80, flush=True)
 
 
 def main():
@@ -33,6 +76,34 @@ def main():
         "--all",
         action="store_true",
         help="Harvest full DergiPark repository continuously via high-speed OAI-PMH service",
+    )
+    parser.add_argument(
+        "--auto-partition",
+        action="store_true",
+        help="Execute auto-partitioned multi-year harvest to access the full 800K+ repository",
+    )
+    parser.add_argument(
+        "--start-year",
+        type=int,
+        default=1970,
+        help="Start year for partitioned harvest (default: 1970)",
+    )
+    parser.add_argument(
+        "--end-year",
+        type=int,
+        default=None,
+        help="End year for partitioned harvest (default: current year)",
+    )
+    parser.add_argument(
+        "--partition-mode",
+        choices=["auto", "year", "half_year"],
+        default="auto",
+        help="Partition date window mode (default: auto)",
+    )
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Print partition and catalog status report and exit",
     )
     parser.add_argument(
         "--set",
@@ -105,21 +176,17 @@ def main():
     )
     args = parser.parse_args()
 
-    max_recs = None if args.max_records == 0 else args.max_records
-    set_desc = f" (set: {args.set})" if args.set else " (all journals)"
+    ledger = DergiParkLedger(db_path=args.db_path)
 
-    print("============================================================================", flush=True)
-    print("[DERGIPARK] Starting TÜBİTAK ULAKBİM DergiPark Ingestion Pipeline", flush=True)
-    print(f"[DERGIPARK] Mode: OAI-PMH Bulk Harvest{set_desc}", flush=True)
-    print(f"[DERGIPARK] Target records: {max_recs if max_recs else 'UNLIMITED'} | Batch size: {args.batch_size}", flush=True)
-    print(f"[DERGIPARK] Shard threshold: {args.shard_size_mb} MB | Max shard records: {args.max_shard_records}", flush=True)
-    print(f"[DERGIPARK] SQLite Database: {args.db_path}", flush=True)
-    print(f"[DERGIPARK] Local Scratch: {args.output_dir}", flush=True)
-    print("============================================================================", flush=True)
+    if args.status:
+        print_status_report(ledger)
+        return
 
     downloader = DergiParkDownloader()
     cleaner = DergiParkCleaner()
-    ledger = DergiParkLedger(db_path=args.db_path)
+
+    max_recs = None if args.max_records == 0 else args.max_records
+    set_desc = f" (set: {args.set})" if args.set else " (all journals)"
 
     drive_sync = None
     if not args.no_drive:
@@ -150,6 +217,39 @@ def main():
             ledger.sync_to_central_catalog("dergipark")
         print(f"[DRIVE-SYNC] Flushed {uploaded_count} shards to Google Drive.", flush=True)
         return
+
+    # Determine partition schedule
+    is_partitioned = args.auto_partition or (args.all and not args.from_date and not args.until_date and not args.resumption_token)
+
+    if is_partitioned:
+        partition_list = DergiParkPartitioner.generate_date_partitions(
+            start_year=args.start_year,
+            end_year=args.end_year,
+            mode=args.partition_mode,
+        )
+        mode_desc = f"Auto-Partitioned ({len(partition_list)} windows, {args.start_year}..{args.end_year or 'present'})"
+    else:
+        partition_list = [{
+            "partition_id": "dp_manual_query",
+            "from_date": args.from_date,
+            "until_date": args.until_date,
+            "set_spec": args.set,
+            "label": "Manual Query",
+        }]
+        mode_desc = f"Single Query{set_desc}"
+
+    print("============================================================================", flush=True)
+    print("[DERGIPARK] Starting TÜBİTAK ULAKBİM DergiPark Ingestion Pipeline", flush=True)
+    print(f"[DERGIPARK] Mode: {mode_desc}", flush=True)
+    print(f"[DERGIPARK] Target records: {max_recs if max_recs else 'UNLIMITED'} | Batch size: {args.batch_size}", flush=True)
+    print(f"[DERGIPARK] Shard threshold: {args.shard_size_mb} MB | Max shard records: {args.max_shard_records}", flush=True)
+    print(f"[DERGIPARK] SQLite Database: {args.db_path}", flush=True)
+    print(f"[DERGIPARK] Local Scratch: {args.output_dir}", flush=True)
+    print("============================================================================", flush=True)
+
+    # Load existing IDs into memory to prevent writing duplicate articles to Parquet shards
+    existing_ids = ledger.load_existing_ids()
+    print(f"[DERGIPARK] In-memory deduplication index ready: {len(existing_ids):,} existing records.", flush=True)
 
     # Shard completion callback
     def on_shard_completed(shard_info):
@@ -191,38 +291,127 @@ def main():
     )
 
     t0 = time.time()
-    raw_count = 0
-    clean_count = 0
-    rejected_count = 0
-
-    record_stream = downloader.stream_records(
-        set_spec=args.set,
-        from_date=args.from_date,
-        until_date=args.until_date,
-        max_records=max_recs,
-        resumption_token=args.resumption_token,
-    )
+    total_raw = 0
+    total_clean = 0
+    total_new = 0
+    total_dup = 0
+    total_rejected = 0
 
     try:
-        for raw_item in record_stream:
-            raw_count += 1
-            cleaned = cleaner.clean_record(raw_item)
-            if not cleaned:
-                rejected_count += 1
-                continue
+        for idx, p_info in enumerate(partition_list, start=1):
+            part_id = p_info["partition_id"]
+            from_d = p_info.get("from_date")
+            until_d = p_info.get("until_date")
+            set_s = p_info.get("set_spec") or args.set
+            label = p_info.get("label", part_id)
 
-            clean_count += 1
-            ledger.index_article(cleaned)
-            sharder.add_record(cleaned)
+            if is_partitioned:
+                p_rec = ledger.init_partition(part_id, from_date=from_d, until_date=until_d, set_spec=set_s)
+                if p_rec.get("status") == "completed":
+                    print(f"[DERGIPARK] Partition [{idx}/{len(partition_list)}] '{label}' already completed ({p_rec.get('clean_count', 0)} recs). Skipping.", flush=True)
+                    continue
 
-            if raw_count % 100 == 0:
-                elapsed = time.time() - t0
-                rps = raw_count / elapsed if elapsed > 0 else 0
-                print(
-                    f"[DERGIPARK] Processed {raw_count} raw ({clean_count} clean, "
-                    f"{rejected_count} rejected) | {rps:.1f} rec/s",
-                    flush=True,
-                )
+                resumption_tok = p_rec.get("resumption_token")
+                ledger.start_partition(part_id)
+                print(f"[DERGIPARK] Partition [{idx}/{len(partition_list)}] '{label}' ({from_d}..{until_d}) started.", flush=True)
+            else:
+                resumption_tok = args.resumption_token
+
+            part_raw = 0
+            part_clean = 0
+            part_new = 0
+            part_dup = 0
+            reached_limit = False
+            last_token = resumption_tok
+
+            def on_token_update(token_val):
+                nonlocal last_token
+                last_token = token_val
+                if is_partitioned:
+                    ledger.update_partition_progress(
+                        partition_id=part_id,
+                        resumption_token=token_val,
+                        raw_count=part_raw,
+                        clean_count=part_clean,
+                        new_count=part_new,
+                    )
+
+            record_stream = downloader.stream_records(
+                set_spec=set_s,
+                from_date=from_d,
+                until_date=until_d,
+                max_records=max_recs - total_clean if max_recs else None,
+                resumption_token=resumption_tok,
+                on_token_update=on_token_update,
+            )
+
+            for raw_item in record_stream:
+                part_raw += 1
+                total_raw += 1
+
+                cleaned = cleaner.clean_record(raw_item)
+                if not cleaned:
+                    total_rejected += 1
+                    continue
+
+                part_clean += 1
+                total_clean += 1
+
+                is_new = cleaned["id"] not in existing_ids
+                ledger.index_article(cleaned)
+
+                if is_new:
+                    existing_ids.add(cleaned["id"])
+                    sharder.add_record(cleaned)
+                    part_new += 1
+                    total_new += 1
+                else:
+                    part_dup += 1
+                    total_dup += 1
+
+                if total_raw % 100 == 0:
+                    elapsed = time.time() - t0
+                    rps = total_raw / elapsed if elapsed > 0 else 0
+                    print(
+                        f"[DERGIPARK] Processed {total_raw} raw ({total_clean} clean, "
+                        f"{total_new} new, {total_dup} existing) | {rps:.1f} rec/s",
+                        flush=True,
+                    )
+
+                if max_recs and total_clean >= max_recs:
+                    reached_limit = True
+                    break
+
+            if is_partitioned:
+                if reached_limit:
+                    ledger.update_partition_progress(
+                        partition_id=part_id,
+                        resumption_token=last_token,
+                        raw_count=part_raw,
+                        clean_count=part_clean,
+                        new_count=part_new,
+                    )
+                    print(
+                        f"[DERGIPARK] Partition [{idx}/{len(partition_list)}] '{label}' paused at max-records limit: "
+                        f"{part_clean} clean ({part_new} new, {part_dup} existing).",
+                        flush=True,
+                    )
+                else:
+                    ledger.complete_partition(
+                        partition_id=part_id,
+                        raw_count=part_raw,
+                        clean_count=part_clean,
+                        new_count=part_new,
+                    )
+                    print(
+                        f"[DERGIPARK] Partition [{idx}/{len(partition_list)}] '{label}' finished: "
+                        f"{part_clean} clean ({part_new} new, {part_dup} existing).",
+                        flush=True,
+                    )
+
+            if max_recs and total_clean >= max_recs:
+                print(f"[DERGIPARK] Reached target max records limit ({max_recs}). Stopping.", flush=True)
+                break
 
         sharder.close()
         ledger.sync_to_central_catalog("dergipark")
@@ -236,10 +425,11 @@ def main():
     final_count = ledger.get_article_count()
     print("============================================================================", flush=True)
     print(f"[DERGIPARK] Ingestion Complete in {total_time:.1f}s", flush=True)
-    print(f"[DERGIPARK] Raw items processed: {raw_count}", flush=True)
-    print(f"[DERGIPARK] Clean records accepted: {clean_count}", flush=True)
-    print(f"[DERGIPARK] Records rejected: {rejected_count}", flush=True)
-    print(f"[DERGIPARK] Total articles in SQLite catalog: {final_count}", flush=True)
+    print(f"[DERGIPARK] Total raw items processed: {total_raw}", flush=True)
+    print(f"[DERGIPARK] Total clean records accepted: {total_clean}", flush=True)
+    print(f"[DERGIPARK] New articles sharded: {total_new}", flush=True)
+    print(f"[DERGIPARK] Existing articles deduplicated: {total_dup}", flush=True)
+    print(f"[DERGIPARK] Total articles in SQLite catalog: {final_count:,}", flush=True)
     print("============================================================================", flush=True)
 
 

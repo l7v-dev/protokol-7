@@ -195,6 +195,7 @@ class DergiParkDownloader:
         until_date: Optional[str] = None,
         max_records: Optional[int] = None,
         resumption_token: Optional[str] = None,
+        on_token_update: Optional[Any] = None,
     ) -> Generator[Dict[str, Any], None, None]:
         """
         Continuously streams records via DergiPark OAI-PMH ListRecords.
@@ -253,5 +254,10 @@ class DergiParkDownloader:
             resumption_elem = root.find(".//{http://www.openarchives.org/OAI/2.0/}resumptionToken")
             if resumption_elem is not None and resumption_elem.text:
                 token = resumption_elem.text.strip()
+                if on_token_update:
+                    try:
+                        on_token_update(token)
+                    except Exception as ex:
+                        print(f"[DERGIPARK-WARN] Token update callback error: {ex}", flush=True)
             else:
                 break

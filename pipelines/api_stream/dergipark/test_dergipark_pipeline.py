@@ -295,3 +295,114 @@ def test_drive_sync_dry_run(tmp_dir):
     res = sync.sync_shard(fake_shard, purge_on_success=True)
     assert res["status"] in ("dry_run", "simulated", "uploaded")
     assert not os.path.exists(fake_shard)
+
+
+def test_partitioner_date_windows():
+    from partitioner import DergiParkPartitioner
+
+    # 1. Auto mode
+    parts = DergiParkPartitioner.generate_date_partitions(start_year=1970, end_year=2024, mode="auto")
+    assert len(parts) > 10
+    assert parts[0]["from_date"] == "1970-01-01"
+    assert parts[-1]["until_date"] == "2024-12-31"
+
+    # Verify chronological sequence
+    for i in range(len(parts) - 1):
+        assert parts[i]["from_date"] < parts[i + 1]["from_date"]
+
+    # 2. Year mode
+    y_parts = DergiParkPartitioner.generate_date_partitions(start_year=2020, end_year=2022, mode="year")
+    assert len(y_parts) == 3
+    assert y_parts[0]["partition_id"] == "dp_date_2020-01-01_2020-12-31"
+    assert y_parts[2]["partition_id"] == "dp_date_2022-01-01_2022-12-31"
+
+    # 3. Half year mode
+    h_parts = DergiParkPartitioner.generate_date_partitions(start_year=2023, end_year=2023, mode="half_year")
+    assert len(h_parts) == 2
+    assert h_parts[0]["until_date"] == "2023-06-30"
+    assert h_parts[1]["from_date"] == "2023-07-01"
+
+    # 4. Error on inverted years
+    with pytest.raises(ValueError):
+        DergiParkPartitioner.generate_date_partitions(start_year=2025, end_year=2020)
+
+
+def test_ledger_partition_and_deduplication(tmp_dir):
+    db_path = os.path.join(tmp_dir, "test_part_dergipark.sqlite")
+    ledger = DergiParkLedger(db_path=db_path)
+
+    # 1. Deduplication helpers
+    assert not ledger.has_article("article/123")
+    assert len(ledger.load_existing_ids()) == 0
+
+    ledger.index_article({
+        "id": "article/123",
+        "title": "Test Title",
+        "journal": "Test Journal",
+        "year": 2024,
+    })
+    assert ledger.has_article("article/123")
+    existing = ledger.load_existing_ids()
+    assert "article/123" in existing
+
+    # 2. Partition tracking
+    p1 = ledger.init_partition("dp_date_2024-01-01_2024-06-30", "2024-01-01", "2024-06-30")
+    assert p1["status"] == "pending"
+    assert p1["from_date"] == "2024-01-01"
+
+    ledger.start_partition("dp_date_2024-01-01_2024-06-30")
+    p1_running = ledger.get_partition("dp_date_2024-01-01_2024-06-30")
+    assert p1_running["status"] == "running"
+    assert p1_running["started_at"] is not None
+
+    ledger.update_partition_progress("dp_date_2024-01-01_2024-06-30", resumption_token="tok_123", raw_count=100, clean_count=98, new_count=95)
+    p1_prog = ledger.get_partition("dp_date_2024-01-01_2024-06-30")
+    assert p1_prog["resumption_token"] == "tok_123"
+    assert p1_prog["clean_count"] == 98
+    assert p1_prog["new_count"] == 95
+
+    ledger.complete_partition("dp_date_2024-01-01_2024-06-30", raw_count=200, clean_count=195, new_count=190)
+    p1_done = ledger.get_partition("dp_date_2024-01-01_2024-06-30")
+    assert p1_done["status"] == "completed"
+    assert p1_done["resumption_token"] is None
+    assert p1_done["completed_at"] is not None
+
+    # List partitions
+    completed = ledger.get_partitions(status="completed")
+    assert len(completed) == 1
+    assert completed[0]["partition_id"] == "dp_date_2024-01-01_2024-06-30"
+
+
+def test_downloader_token_callback(monkeypatch):
+    downloader = DergiParkDownloader()
+    sample_xml = b"""<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/">
+        <ListRecords>
+            <record>
+                <header>
+                    <identifier>oai:dergipark.org.tr:article/1</identifier>
+                    <datestamp>2024-01-01</datestamp>
+                </header>
+                <metadata>
+                    <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+                               xmlns:dc="http://purl.org/dc/elements/1.1/">
+                        <dc:title>Test</dc:title>
+                    </oai_dc:dc>
+                </metadata>
+            </record>
+            <resumptionToken>next_token_abc123</resumptionToken>
+        </ListRecords>
+    </OAI-PMH>"""
+
+    tokens_received = []
+
+    def fake_fetch(url):
+        if "next_token_abc123" in url:
+            return b"""<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"><ListRecords></ListRecords></OAI-PMH>"""
+        return sample_xml
+
+    monkeypatch.setattr(downloader, "_fetch_raw", fake_fetch)
+
+    records = list(downloader.stream_records(on_token_update=lambda t: tokens_received.append(t)))
+    assert len(records) == 1
+    assert tokens_received == ["next_token_abc123"]
+

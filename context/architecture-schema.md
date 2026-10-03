@@ -319,6 +319,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `pipelines/api_stream/pubmed/` | PubMed / PMC API Streamer | NCBI E-utilities / BioC XML parser, rate-limited streamer, MeSH cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
 | `pipelines/api_stream/biorxiv/` | bioRxiv / medRxiv API Streamer | CSHL Details REST API streamer, rate-limited cursor pagination, preprint cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
 | `pipelines/api_stream/doaj/` | DOAJ API Streamer | DOAJ REST API v2 streamer, rate-limited pagination, multilingual article cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
+| `pipelines/api_stream/dergipark/` | DergiPark OAI-PMH Streamer | TÜBİTAK ULAKBİM OAI-PMH 2.0 streamer, date-window auto-partitioner (`partitioner.py`), landing URL/DOI cleaner, Zstd Parquet sharder, Google Drive uploader, partitioned SQLite ledger. |
 | `scripts/scaffold/scaffold-pipeline.py` | Pipeline Scaffolder CLI | Command-line code generator for new ETL pipelines (`snapshot`, `dump`, `api_stream`, `multimodal`). |
 
 ---

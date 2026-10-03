@@ -73,10 +73,27 @@ class DergiParkLedger(BaseLedger):
                 );
             """)
 
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS dergipark_partitions (
+                    partition_id TEXT PRIMARY KEY,
+                    from_date TEXT,
+                    until_date TEXT,
+                    set_spec TEXT,
+                    status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'running', 'completed', 'failed')),
+                    resumption_token TEXT,
+                    raw_count INTEGER DEFAULT 0,
+                    clean_count INTEGER DEFAULT 0,
+                    new_count INTEGER DEFAULT 0,
+                    started_at TEXT,
+                    completed_at TEXT
+                );
+            """)
+
             cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_doi ON dergipark_articles(doi);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_journal ON dergipark_articles(journal);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_year ON dergipark_articles(year);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_shard ON dergipark_articles(shard_name);")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_part_status ON dergipark_partitions(status);")
             conn.commit()
 
     def index_article(self, record: Dict[str, Any], shard_name: Optional[str] = None) -> None:
@@ -190,3 +207,144 @@ class DergiParkLedger(BaseLedger):
                 (limit,),
             )
             return [dict(r) for r in cur.fetchall()]
+
+    def has_article(self, article_id: str) -> bool:
+        """Fast existence check for an article by primary key."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT 1 FROM dergipark_articles WHERE id = ? LIMIT 1;", (str(article_id).strip(),))
+            return cur.fetchone() is not None
+
+    def load_existing_ids(self) -> set:
+        """Loads all indexed article IDs into an in-memory set for O(1) deduplication."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT id FROM dergipark_articles;")
+            return {row["id"] for row in cur.fetchall()}
+
+    def init_partition(
+        self,
+        partition_id: str,
+        from_date: Optional[str] = None,
+        until_date: Optional[str] = None,
+        set_spec: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Initializes or returns an existing partition record."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                INSERT INTO dergipark_partitions (
+                    partition_id, from_date, until_date, set_spec, status
+                ) VALUES (?, ?, ?, ?, 'pending')
+                ON CONFLICT(partition_id) DO NOTHING;
+                """,
+                (partition_id, from_date, until_date, set_spec),
+            )
+            conn.commit()
+
+        part = self.get_partition(partition_id)
+        return part if part is not None else {}
+
+    def start_partition(self, partition_id: str) -> None:
+        """Marks a partition as running and records started_at timestamp."""
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                UPDATE dergipark_partitions
+                SET status = 'running',
+                    started_at = COALESCE(started_at, ?)
+                WHERE partition_id = ?;
+                """,
+                (now, partition_id),
+            )
+            conn.commit()
+
+    def update_partition_progress(
+        self,
+        partition_id: str,
+        resumption_token: Optional[str],
+        raw_count: int,
+        clean_count: int,
+        new_count: int,
+    ) -> None:
+        """Updates in-flight partition progress counters and resumptionToken checkpoint."""
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                UPDATE dergipark_partitions
+                SET resumption_token = ?,
+                    raw_count = ?,
+                    clean_count = ?,
+                    new_count = ?
+                WHERE partition_id = ?;
+                """,
+                (resumption_token, raw_count, clean_count, new_count, partition_id),
+            )
+            conn.commit()
+
+    def complete_partition(
+        self,
+        partition_id: str,
+        raw_count: int,
+        clean_count: int,
+        new_count: int,
+    ) -> None:
+        """Marks a partition as completed, purges resumption token and sets completed_at."""
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                UPDATE dergipark_partitions
+                SET status = 'completed',
+                    resumption_token = NULL,
+                    raw_count = ?,
+                    clean_count = ?,
+                    new_count = ?,
+                    completed_at = ?
+                WHERE partition_id = ?;
+                """,
+                (raw_count, clean_count, new_count, now, partition_id),
+            )
+            conn.commit()
+
+    def fail_partition(
+        self,
+        partition_id: str,
+        resumption_token: Optional[str] = None,
+    ) -> None:
+        """Marks a partition as failed while preserving resumption token for retry."""
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                UPDATE dergipark_partitions
+                SET status = 'failed',
+                    resumption_token = COALESCE(?, resumption_token)
+                WHERE partition_id = ?;
+                """,
+                (resumption_token, partition_id),
+            )
+            conn.commit()
+
+    def get_partition(self, partition_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieves single partition metadata by partition_id."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM dergipark_partitions WHERE partition_id = ?;", (partition_id,))
+            row = cur.fetchone()
+            return dict(row) if row else None
+
+    def get_partitions(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Lists partitions, optionally filtered by status ('pending', 'running', 'completed', 'failed')."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            if status:
+                cur.execute(
+                    "SELECT * FROM dergipark_partitions WHERE status = ? ORDER BY from_date ASC;",
+                    (status,),
+                )
+            else:
+                cur.execute("SELECT * FROM dergipark_partitions ORDER BY from_date ASC;")
+            return [dict(r) for r in cur.fetchall()]
+
