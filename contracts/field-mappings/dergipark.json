@@ -1,0 +1,27 @@
+{
+  "source_id": "dergipark",
+  "schema_version": 1,
+  "mapping": {
+    "external_id": "id",
+    "title": "title",
+    "authors": "authors",
+    "abstract": "abstract",
+    "publisher": "publisher",
+    "source_created_at": "date",
+    "journal": "journal",
+    "language": "language",
+    "doi": "doi",
+    "issn": "issn",
+    "fulltext_url": "fulltext_url",
+    "identifiers": "identifiers",
+    "keywords": "keywords"
+  },
+  "missing_field_policy": "null_with_reason",
+  "unknown_fields_policy": "preserve_in_raw_not_silent_drop",
+  "observations": {
+    "article_metrics": {
+      "char_count": "char_count",
+      "word_count": "word_count"
+    }
+  }
+}

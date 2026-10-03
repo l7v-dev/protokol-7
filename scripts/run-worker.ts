@@ -11,6 +11,7 @@ import { LocalObjectStore } from "../src/storage/adapters/local-object-store.js"
 import { SqliteLedgerRepository } from "../src/storage/ledger/sqlite-ledger-repository.js";
 import { badge, banner, divider, panel } from "../src/utils/terminal-theme.js";
 import {
+  createDergiParkHarvestJobHandler,
   createDownloadJobHandler,
   createExtractJobHandler,
   WorkerPool,
@@ -87,6 +88,7 @@ async function main(): Promise<void> {
   // Register canonical task handlers
   pool.registerHandler("download", createDownloadJobHandler());
   pool.registerHandler("extract", createExtractJobHandler());
+  pool.registerHandler("dergipark_harvest", createDergiParkHarvestJobHandler());
 
   console.log(
     badge("OK", `Worker pool initialized with ${options.concurrency} concurrent workers.`)

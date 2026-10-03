@@ -296,6 +296,7 @@ Categorized into 5 primary domains accessible via `src/actors/corpus/domains/`:
 | `src/workers/worker-pool.ts` | `WorkerPool` | Concurrent worker pool coordinator managing worker instances, graceful draining, and background lease reaping. |
 | `src/workers/handlers/download-handler.ts` | `createDownloadJobHandler`, `DownloadJobInput` | SSRF-guarded HTTP asset downloader storing raw immutable blobs in ObjectStore and creating child extraction jobs. |
 | `src/workers/handlers/extract-handler.ts` | `createExtractJobHandler`, `ExtractJobInput` | Reads raw artifacts from ObjectStore, distills text/markdown, commits derived artifacts, and emits transactional outbox notifications. |
+| `src/workers/handlers/dergipark-harvest-handler.ts` | `createDergiParkHarvestJobHandler`, `DergiParkHarvestJobInput` | Executes partitioned DergiPark OAI-PMH harvest tasks with abort signal forwarding, receipts, and outbox event emissions. |
 | `src/workers/index.ts` | Workers Barrel | Re-exports all worker engines, pool coordinator, standard handlers, and contracts. |
 
 ### 1.16 Unified Ingestion Pipelines (`pipelines/`)
@@ -434,6 +435,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `tests/ledger-repository.test.ts` | `src/storage/ledger/` | Conformance suite for `SqliteLedgerRepository` (atomic job leases, `lease_epoch` fencing, transactional outbox dispatch, and lease reaping). |
 | `tests/worker-pool.test.ts` | `src/workers/` | Unit and integration test suite verifying `TaskWorker` lifecycle, heartbeats, exponential backoff retries, terminal/quarantine error states, operation filtering, epoch fencing, `WorkerPool` concurrency, and end-to-end `download` -> `extract` pipeline. |
 | `tests/control-router.test.ts` | `src/api/routers/control-router.ts` | Conformance suite for HTTP control plane REST API (job submission, status lookup, source registration, lease reaping, and validation errors). |
+| `tests/dergipark-worker.test.ts` | `src/workers/handlers/dergipark-harvest-handler.ts` | Unit and integration test suite verifying DergiPark harvest worker handler execution, dry-run, abort signal handling, and task worker lease lifecycle. |
 
 ---
 

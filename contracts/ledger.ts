@@ -136,6 +136,7 @@ export type TaskHandler = (ctx: TaskContext) => Promise<TaskResult | void>;
 
 export interface LedgerRepository {
   createSource(source: {
+    id?: string;
     name: string;
     descriptor: Record<string, unknown>;
     enabled?: boolean;

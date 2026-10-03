@@ -85,4 +85,32 @@ describe("Contracts and Schemas Validation Suite", () => {
       assert.ok(content.length > 50, `Migration ${file} must not be empty`);
     }
   });
+
+  it("validates that contracts/source-descriptors/dergipark.json conforms to source-descriptor.schema.json", () => {
+    const descriptorPath = path.join(contractsDir, "source-descriptors/dergipark.json");
+    assert.ok(fs.existsSync(descriptorPath), "dergipark.json descriptor must exist");
+
+    const descriptor: SourceDescriptor = JSON.parse(fs.readFileSync(descriptorPath, "utf-8"));
+    assert.equal(descriptor.source_id, "dergipark");
+    assert.equal(descriptor.method, "oai_pmh");
+    assert.equal(descriptor.rights_status, "approved");
+    assert.equal(descriptor.pagination.mode, "resumption_token");
+    assert.equal(descriptor.pagination.checkpoint_after_durable_commit, true);
+    assert.ok(descriptor.budget.max_requests >= 1000);
+    assert.ok(descriptor.budget.max_bytes >= 1048576);
+    assert.ok(descriptor.budget.max_seconds >= 60);
+  });
+
+  it("validates that contracts/field-mappings/dergipark.json defines valid mapping", () => {
+    const mappingPath = path.join(contractsDir, "field-mappings/dergipark.json");
+    assert.ok(fs.existsSync(mappingPath), "dergipark.json field mapping must exist");
+
+    const mapping = JSON.parse(fs.readFileSync(mappingPath, "utf-8"));
+    assert.equal(mapping.source_id, "dergipark");
+    assert.equal(mapping.schema_version, 1);
+    assert.ok(mapping.mapping.external_id, "Must map external_id");
+    assert.ok(mapping.mapping.title, "Must map title");
+    assert.ok(mapping.mapping.fulltext_url, "Must map fulltext_url");
+    assert.equal(mapping.unknown_fields_policy, "preserve_in_raw_not_silent_drop");
+  });
 });

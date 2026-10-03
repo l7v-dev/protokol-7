@@ -1,0 +1,20 @@
+{
+  "source_id": "dergipark",
+  "name": "TUBITAK ULAKBIM DergiPark Academic Journals",
+  "method": "oai_pmh",
+  "adapter_version": "1.0.0",
+  "record_type": "academic_article",
+  "external_id_field": "id",
+  "pagination": {
+    "mode": "resumption_token",
+    "checkpoint_after_durable_commit": true
+  },
+  "budget": {
+    "max_requests": 1000000,
+    "max_bytes": 53687091200,
+    "max_seconds": 86400
+  },
+  "purpose": "LLM Pre-training and Academic RAG Corpus",
+  "rights_status": "approved",
+  "retention_policy_id": "raw-default"
+}

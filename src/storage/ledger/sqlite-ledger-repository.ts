@@ -150,15 +150,20 @@ export class SqliteLedgerRepository implements LedgerRepository {
   }
 
   async createSource(source: {
+    id?: string;
     name: string;
     descriptor: Record<string, unknown>;
     enabled?: boolean;
   }): Promise<SourceRecord> {
-    const id = randomUUID();
+    const id = source.id || randomUUID();
     const enabledVal = source.enabled ? 1 : 0;
     const stmt = this.db.prepare(`
       INSERT INTO sources (id, name, descriptor, enabled)
       VALUES (?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        descriptor = excluded.descriptor,
+        enabled = excluded.enabled
     `);
     stmt.run(id, source.name, JSON.stringify(source.descriptor), enabledVal);
 
