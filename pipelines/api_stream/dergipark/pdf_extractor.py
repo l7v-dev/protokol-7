@@ -97,7 +97,6 @@ class DergiParkPdfExtractor:
         if "/download/article-file/" in clean_url or clean_url.endswith(".pdf"):
             return clean_url
 
-        self._wait_for_rate_limit()
         req = urllib.request.Request(
             clean_url,
             headers={
@@ -106,18 +105,29 @@ class DergiParkPdfExtractor:
             },
         )
 
-        try:
-            with urllib.request.urlopen(req, timeout=self.timeout, context=_SSL_CONTEXT) as resp:
-                html = resp.read().decode("utf-8", errors="ignore")
+        for attempt in range(1, 4):
+            self._wait_for_rate_limit()
+            try:
+                with urllib.request.urlopen(req, timeout=self.timeout, context=_SSL_CONTEXT) as resp:
+                    html = resp.read().decode("utf-8", errors="ignore")
 
-                # Match canonical DergiPark download button pattern
-                match = re.search(r'href=[\'"]([^\'"]*download/article-file[^\'"]*)[\'"]', html)
-                if match:
-                    rel_path = match.group(1).strip()
-                    return urllib.parse.urljoin("https://dergipark.org.tr", rel_path)
+                    # Match canonical DergiPark download button pattern
+                    match = re.search(r'href=[\'"]([^\'"]*download/article-file[^\'"]*)[\'"]', html)
+                    if match:
+                        rel_path = match.group(1).strip()
+                        return urllib.parse.urljoin("https://dergipark.org.tr", rel_path)
+                    return None
 
-        except Exception as ex:
-            return None
+            except urllib.error.HTTPError as he:
+                if he.code in (429, 503) and attempt < 3:
+                    time.sleep(3.0 * attempt)
+                    continue
+                return None
+            except Exception:
+                if attempt < 3:
+                    time.sleep(1.5 * attempt)
+                    continue
+                return None
 
         return None
 
@@ -129,7 +139,6 @@ class DergiParkPdfExtractor:
         if not pdf_url:
             return None, "empty_url"
 
-        self._wait_for_rate_limit()
         req = urllib.request.Request(
             pdf_url,
             headers={
@@ -138,8 +147,9 @@ class DergiParkPdfExtractor:
             },
         )
 
-        backoff = 1.0
+        backoff = 2.0
         for attempt in range(1, 4):
+            self._wait_for_rate_limit()
             try:
                 with urllib.request.urlopen(req, timeout=self.timeout, context=_SSL_CONTEXT) as resp:
                     cl = resp.headers.get("Content-Length")

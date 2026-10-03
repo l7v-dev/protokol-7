@@ -84,14 +84,14 @@ def main():
     parser.add_argument(
         "--workers",
         type=int,
-        default=4,
-        help="Number of concurrent worker threads (default: 4)",
+        default=2,
+        help="Number of concurrent worker threads (default: 2)",
     )
     parser.add_argument(
         "--rate-limit",
         type=float,
-        default=0.35,
-        help="Minimum seconds between requests across all workers (default: 0.35s)",
+        default=0.75,
+        help="Minimum seconds between requests across all workers (default: 0.75s)",
     )
     parser.add_argument(
         "--shard-size-mb",
@@ -395,12 +395,20 @@ def main():
                             total_chars += c_cnt
                             total_pages += p_cnt
                         else:
-                            ledger.mark_pdf_failed(
-                                article_id=art_id,
-                                status=status,
-                                pdf_url=res.get("pdf_url"),
-                            )
-                            total_failed += 1
+                            # Only permanently mark failed for permanent non-extractable conditions
+                            if status in ("scanned_or_sparse", "invalid_magic", "too_large", "no_url", "invalid_pdf_bytes"):
+                                ledger.mark_pdf_failed(
+                                    article_id=art_id,
+                                    status=status,
+                                    pdf_url=res.get("pdf_url"),
+                                )
+                                total_failed += 1
+                            else:
+                                # Transient rate limit or temporary network pause: leave as pending for retry
+                                if "429" in status:
+                                    print(f"[DERGIPARK-RATE] Received HTTP 429 rate limit. Cooling down 6s...", flush=True)
+                                    time.sleep(6.0)
+
 
                     if total_processed % 10 == 0 or total_processed == max_target:
                         elapsed = time.time() - t0
