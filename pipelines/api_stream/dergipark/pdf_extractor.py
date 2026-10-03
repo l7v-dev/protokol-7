@@ -276,9 +276,11 @@ class DergiParkPdfExtractor:
         res = self.extract_text(pdf_bytes)
         res["id"] = article.get("id")
         res["pdf_url"] = pdf_url
+        res["pdf_bytes"] = pdf_bytes
         res["title"] = article.get("title", "")
         res["journal"] = article.get("journal", "")
         res["year"] = article.get("year", 0)
         res["language"] = article.get("language", "tr")
         res["doi"] = article.get("doi", "")
         return res
+

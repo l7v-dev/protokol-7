@@ -6,8 +6,9 @@ Fetches open-access academic article PDFs from TÜBİTAK ULAKBİM DergiPark,
 resolves landing page URLs to direct article-file download streams,
 extracts full text with PyMuPDF, and formats text into LLM-ready markdown.
 
-Streams extracted articles into Zstandard-compressed Parquet shards and
-syncs completed shards to Google Drive with zero local disk residue.
+Packages extracted articles into Zstandard-compressed Parquet shards,
+packages original raw PDF binaries into WebDataset/Cold Vault TAR.GZ shards,
+and streams completed shards to Google Drive with zero local disk residue.
 """
 
 import argparse
@@ -25,6 +26,7 @@ from drive_sync import DergiParkDriveSync
 from fulltext_packer import DergiParkFulltextSharder
 from ledger import DergiParkLedger
 from pdf_extractor import DergiParkPdfExtractor, ThreadSafeRateLimiter
+from pdf_tar_packer import DergiParkPdfTarSharder
 
 
 def print_status_report(ledger: DergiParkLedger) -> None:
@@ -109,6 +111,28 @@ def main():
         help="Local Parquet scratch directory (default: data/parquets/dergipark/fulltext)",
     )
     parser.add_argument(
+        "--no-archive-pdfs",
+        action="store_true",
+        help="Disable archiving raw PDF binaries to TAR.GZ shards",
+    )
+    parser.add_argument(
+        "--pdf-archive-dir",
+        default="data/raw_archives/dergipark/pdfs",
+        help="Local scratch directory for raw PDF TAR.GZ shards",
+    )
+    parser.add_argument(
+        "--max-pdf-archive-mb",
+        type=int,
+        default=512,
+        help="Max uncompressed MB per raw PDF TAR.GZ shard before rotation (default: 512)",
+    )
+    parser.add_argument(
+        "--max-pdf-archive-records",
+        type=int,
+        default=500,
+        help="Max PDFs per raw PDF TAR.GZ shard before rotation (default: 500)",
+    )
+    parser.add_argument(
         "--db-path",
         default="data/catalogs/dergipark_catalog.sqlite",
         help="SQLite ledger path",
@@ -131,7 +155,7 @@ def main():
     parser.add_argument(
         "--sync-shards",
         action="store_true",
-        help="Flush un-uploaded local fulltext shards to Google Drive and exit",
+        help="Flush un-uploaded local fulltext shards and PDF archives to Google Drive and exit",
     )
     args = parser.parse_args()
 
@@ -142,25 +166,30 @@ def main():
         return
 
     drive_sync = None
+    pdf_drive_folder_id = None
     if not args.no_drive:
         try:
             drive_sync = DergiParkDriveSync(subfolder_name="DergiPark", dry_run=args.dry_run)
+            dergipark_root_fid = drive_sync.get_dergipark_folder_id()
+            pdf_drive_folder_id = drive_sync.get_or_create_subfolder("pdfs", parent_id=dergipark_root_fid)
         except Exception as e:
             print(f"[DRIVE-WARN] Google Drive authentication unavailable: {e}", flush=True)
-            print(f"[DRIVE-WARN] Falling back to local storage buffer mode in {args.output_dir}.", flush=True)
+            print(f"[DRIVE-WARN] Falling back to local storage buffer mode.", flush=True)
             print("[DRIVE-WARN] Run 'npm run auth:gdrive' to refresh Google Drive token and flush shards.", flush=True)
 
     if args.sync_shards:
-        print("[DERGIPARK-FULLTEXT] Scanning for un-uploaded local fulltext shards...", flush=True)
+        print("[DERGIPARK-FULLTEXT] Scanning for un-uploaded local fulltext and PDF shards...", flush=True)
         if not drive_sync:
             print("[ERROR] Cannot sync shards without active Google Drive authentication.", flush=True)
             sys.exit(1)
         uploaded_count = 0
+
+        # 1. Sync Parquet shards
         if os.path.exists(args.output_dir):
             for fname in sorted(os.listdir(args.output_dir)):
                 if fname.endswith(".parquet"):
                     fpath = os.path.join(args.output_dir, fname)
-                    print(f"[DRIVE-SYNC] Uploading {fname} to Drive...", flush=True)
+                    print(f"[DRIVE-SYNC] Uploading Parquet {fname} to Drive...", flush=True)
                     res = drive_sync.sync_shard(fpath, purge_on_success=True)
                     fid = res.get("file_id") or ""
                     vmd5 = res.get("md5")
@@ -168,10 +197,30 @@ def main():
                         ledger.mark_shard_uploaded(fname, drive_file_id=fid, verified_md5=vmd5)
                         uploaded_count += 1
             ledger.sync_to_central_catalog("dergipark_fulltext")
-        print(f"[DRIVE-SYNC] Flushed {uploaded_count} fulltext shards to Google Drive.", flush=True)
+
+        # 2. Sync PDF TAR archives
+        if os.path.exists(args.pdf_archive_dir) and pdf_drive_folder_id:
+            for fname in sorted(os.listdir(args.pdf_archive_dir)):
+                if fname.endswith(".tar.gz") or fname.endswith(".tar"):
+                    fpath = os.path.join(args.pdf_archive_dir, fname)
+                    print(f"[DRIVE-SYNC] Uploading PDF archive {fname} to Drive (pdfs/)...", flush=True)
+                    res = drive_sync.upload_file(
+                        local_path=fpath,
+                        target_folder_id=pdf_drive_folder_id,
+                        purge_on_success=True,
+                        verify_md5=True,
+                    )
+                    fid = res.get("file_id") or ""
+                    vmd5 = res.get("md5")
+                    if fid:
+                        ledger.mark_shard_uploaded(fname, drive_file_id=fid, verified_md5=vmd5)
+                        uploaded_count += 1
+            ledger.sync_to_central_catalog("dergipark_raw_pdfs")
+
+        print(f"[DRIVE-SYNC] Flushed {uploaded_count} total shards to Google Drive.", flush=True)
         return
 
-    # Shard completion callback
+    # Shard completion callback for Parquet full-text
     def on_shard_completed(shard_info: Dict[str, Any]) -> None:
         ledger.register_shard(
             shard_name=shard_info["shard_name"],
@@ -198,7 +247,40 @@ def main():
                     ledger.sync_to_central_catalog("dergipark_fulltext")
             except Exception as e:
                 print(
-                    f"[DRIVE-WARN] Shard upload deferred: {e}. Preserved locally at {shard_info['file_path']}",
+                    f"[DRIVE-WARN] Parquet shard upload deferred: {e}. Preserved locally at {shard_info['file_path']}",
+                    flush=True,
+                )
+
+    # Shard completion callback for raw PDF TAR archives
+    def on_pdf_shard_completed(shard_info: Dict[str, Any]) -> None:
+        ledger.register_shard(
+            shard_name=shard_info["shard_name"],
+            part_index=shard_info["part_index"],
+            record_count=shard_info["record_count"],
+            byte_size=shard_info["byte_size"],
+            sha256=shard_info["sha256"],
+            md5=shard_info["md5"],
+        )
+        if drive_sync and pdf_drive_folder_id:
+            try:
+                sync_res = drive_sync.upload_file(
+                    local_path=shard_info["file_path"],
+                    target_folder_id=pdf_drive_folder_id,
+                    purge_on_success=True,
+                    verify_md5=True,
+                )
+                file_id = sync_res.get("file_id") or ""
+                verified_md5 = sync_res.get("md5")
+                if file_id:
+                    ledger.mark_shard_uploaded(
+                        shard_name=shard_info["shard_name"],
+                        drive_file_id=file_id,
+                        verified_md5=verified_md5,
+                    )
+                    ledger.sync_to_central_catalog("dergipark_raw_pdfs")
+            except Exception as e:
+                print(
+                    f"[DRIVE-WARN] PDF archive upload deferred: {e}. Preserved locally at {shard_info['file_path']}",
                     flush=True,
                 )
 
@@ -213,6 +295,18 @@ def main():
         on_shard_completed=on_shard_completed,
     )
 
+    pdf_tar_sharder = None
+    if not args.no_archive_pdfs:
+        start_archive_part = ledger.get_next_pdf_archive_part_index()
+        pdf_tar_sharder = DergiParkPdfTarSharder(
+            output_dir=args.pdf_archive_dir,
+            filename_prefix="dergipark_raw_pdfs",
+            max_part_bytes=args.max_pdf_archive_mb * 1024 * 1024,
+            max_part_entries=args.max_pdf_archive_records,
+            start_part_idx=start_archive_part,
+            on_shard_completed=on_pdf_shard_completed,
+        )
+
     rate_limiter = ThreadSafeRateLimiter(min_interval=args.rate_limit)
     extractor = DergiParkPdfExtractor(rate_limiter=rate_limiter)
 
@@ -223,10 +317,13 @@ def main():
     print("[DERGIPARK-FULLTEXT] Starting TÜBİTAK ULAKBİM DergiPark Full-Text Extraction", flush=True)
     print(f"[DERGIPARK-FULLTEXT] Target articles: {max_desc} | Batch size: {args.batch_size}", flush=True)
     print(f"[DERGIPARK-FULLTEXT] Workers: {args.workers} | Rate limit: {args.rate_limit}s/req", flush=True)
-    print(f"[DERGIPARK-FULLTEXT] Shard threshold: {args.shard_size_mb} MB | Max shard entries: {args.max_shard_records}", flush=True)
+    print(f"[DERGIPARK-FULLTEXT] Parquet Shard: {args.shard_size_mb} MB | Max entries: {args.max_shard_records}", flush=True)
+    if pdf_tar_sharder:
+        print(f"[DERGIPARK-FULLTEXT] PDF Archive: {args.max_pdf_archive_mb} MB | Max PDFs/shard: {args.max_pdf_archive_records}", flush=True)
+        print(f"[DERGIPARK-FULLTEXT] PDF Archive Directory: {args.pdf_archive_dir}", flush=True)
     print(f"[DERGIPARK-FULLTEXT] Starting shard index: p{start_part:05d}", flush=True)
     print(f"[DERGIPARK-FULLTEXT] SQLite Database: {args.db_path}", flush=True)
-    print(f"[DERGIPARK-FULLTEXT] Local Scratch: {args.output_dir}", flush=True)
+    print(f"[DERGIPARK-FULLTEXT] Parquet Scratch: {args.output_dir}", flush=True)
     print("============================================================================", flush=True)
 
     t0 = time.time()
@@ -275,6 +372,11 @@ def main():
                         if status == "extracted":
                             current_shard = sharder.current_shard_name
                             sharder.append_article_fulltext(res)
+
+                            archive_name = None
+                            if pdf_tar_sharder and res.get("pdf_bytes"):
+                                archive_name = pdf_tar_sharder.append_pdf(art_id, res["pdf_bytes"])
+
                             p_cnt = res.get("page_count", 0)
                             c_cnt = res.get("char_count", 0)
                             w_cnt = res.get("word_count", 0)
@@ -287,6 +389,7 @@ def main():
                                 char_count=c_cnt,
                                 word_count=w_cnt,
                                 shard_name=current_shard,
+                                archive_name=archive_name,
                             )
                             total_extracted += 1
                             total_chars += c_cnt
@@ -302,10 +405,11 @@ def main():
                     if total_processed % 10 == 0 or total_processed == max_target:
                         elapsed = time.time() - t0
                         speed = total_processed / elapsed if elapsed > 0 else 0
+                        archive_str = f" | Archive: {pdf_tar_sharder.current_shard_name}" if pdf_tar_sharder else ""
                         print(
                             f"[DERGIPARK-FULLTEXT] Processed {total_processed} articles "
                             f"({total_extracted} extracted, {total_failed} non-extractable) | "
-                            f"{speed:.1f} art/s | Current Shard: {sharder.current_shard_name}",
+                            f"{speed:.1f} art/s | Current Shard: {sharder.current_shard_name}{archive_str}",
                             flush=True,
                         )
 
@@ -314,12 +418,21 @@ def main():
                 break
 
         sharder.close()
+        if pdf_tar_sharder:
+            pdf_tar_sharder.close()
+
         ledger.sync_to_central_catalog("dergipark_fulltext")
+        if pdf_tar_sharder:
+            ledger.sync_to_central_catalog("dergipark_raw_pdfs")
 
     except KeyboardInterrupt:
         print("\n[DERGIPARK-FULLTEXT] Process interrupted by operator. Finalizing open shards...", flush=True)
         sharder.close()
+        if pdf_tar_sharder:
+            pdf_tar_sharder.close()
         ledger.sync_to_central_catalog("dergipark_fulltext")
+        if pdf_tar_sharder:
+            ledger.sync_to_central_catalog("dergipark_raw_pdfs")
 
     total_time = time.time() - t0
     print("============================================================================", flush=True)

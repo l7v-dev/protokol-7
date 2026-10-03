@@ -36,15 +36,24 @@ TÜBİTAK ULAKBİM DergiPark açık erişimli akademik makale kataloğunda bulun
   - SHA-256 ve MD5 kriptografik bütünlük özetleri.
   - `current_shard_name` dinamik mülkü ile yazılmakta olan shard adını anlık raporlar.
 
-### D. Tam Metin Orkestratör CLI (`pipelines/api_stream/dergipark/fulltext_runner.py`)
+### D. Ham PDF Arşivleyici TAR.GZ Sharder (`pipelines/api_stream/dergipark/pdf_tar_packer.py`)
+- `DergiParkPdfTarSharder`:
+  - İndirilen ham PDF ikili verilerini (`pdf_bytes`) bellekten doğrudan WebDataset/Cold Vault uyumlu `dergipark_raw_pdfs_{date}_p{part:05d}.tar.gz` paketlerine aktarır.
+  - 512 MB veya 500 PDF eşiğinde otomatik rotasyon yapar.
+  - SHA-256 ve MD5 hash özetleri çıkarır, Google Drive `DergiPark/pdfs/` klasörüne aktarır.
+  - Uzak MD5 doğrulandıktan sonra yerel `.tar.gz` arşivini diskten silerek sıfır artık (zero-disk residue) bırakır.
+
+### E. Tam Metin Orkestratör CLI (`pipelines/api_stream/dergipark/fulltext_runner.py`)
 - CLI parametreleri:
   - `--batch-size` (varsayılan 50), `--max-articles` (0: sınırsız), `--workers` (varsayılan 4), `--rate-limit` (varsayılan 0.35s).
   - `--shard-size-mb`, `--max-shard-records`, `--output-dir`, `--db-path`.
+  - `--pdf-archive-dir`, `--max-pdf-archive-mb`, `--max-pdf-archive-records`, `--no-archive-pdfs`.
   - `--status`: Durum dağılım tablosunu yazdırıp çıkar.
   - `--dry-run`, `--no-drive`, `--sync-shards`.
-- `ThreadPoolExecutor` ile paralel çekim ve thread-safe SQLite/Parquet yazımı.
-- Her tamamlanan shard'ı otomatik Google Drive `DergiPark/` klasörüne aktarır, MD5 doğrular ve yerel diski sıfırlar.
-- Merkezi katalogla (`data/catalog.sqlite`) çift yönlü senkronizasyon (`sync_to_central_catalog("dergipark_fulltext")`).
+- `ThreadPoolExecutor` ile paralel indirme; tek bir HTTP isteğiyle hem metin çıkarımı hem de ham PDF arşivlemesi gerçekleştirilir.
+- Hem Parquet tam metin hem de TAR.GZ ham PDF arşivleri Google Drive'a aktarılır, MD5 doğrulanır ve yerel disk sıfırlanır.
+- Merkezi katalogla (`data/catalog.sqlite`) çift yönlü senkronizasyon (`dergipark_fulltext` ve `dergipark_raw_pdfs`).
+
 
 ## 3. Doğrulama ve Test Sonuçları
 
@@ -70,15 +79,19 @@ TÜBİTAK ULAKBİM DergiPark açık erişimli akademik makale kataloğunda bulun
 - `test_pdf_extractor_process_article` PASSED
 - `test_fulltext_sharder_generation` PASSED
 - `test_ledger_pdf_status_and_stats` PASSED
-**Sonuç:** 18/18 test yeşil geçti (1.20s).
+- `test_pdf_tar_packer` PASSED
+- `test_ledger_pdf_archive_tracking` PASSED
+**Sonuç:** 20/20 test yeşil geçti (0.91s).
 
-### Canlı Çıkarım Doğrulaması (Canlı DergiPark Makaleleri)
+### Canlı Çıkarım ve Drive Senkronizasyon Doğrulaması
 ```bash
-.venv/bin/python pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 3 --workers 2 --no-drive
+.venv/bin/python pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 2 --workers 2
 ```
-- 3 makale 2.8 saniyede başarıyla çekildi (ortalama 1.1 makale/sn).
-- Toplam 65 sayfa, 170.779 karakter tam metin çıkarıldı.
-- `data/parquets/dergipark/fulltext/dergipark_fulltext_20261003_p00000.parquet` (0.06 MB) üretildi ve PyArrow ile şema/veri doğrulaması yapıldı.
+- 2 makale 6.6 saniyede başarıyla çekildi; 73 sayfa, 237.460 karakter tam metin çıkarıldı.
+- `dergipark_fulltext_20261003_p00001.parquet` (0.08 MB) Google Drive `DergiPark/` klasörüne aktarıldı, MD5 doğrulandı, yerel dosya diskten silindi.
+- `dergipark_raw_pdfs_20261003_p00000.tar.gz` (1.82 MB) Google Drive `DergiPark/pdfs/` klasörüne aktarıldı, MD5 doğrulandı, yerel dosya diskten silindi.
+- Yerel diskte sıfır artık (0 bayt) bırakıldı.
+
 
 ### TypeScript ve Kontrol Düzlemi Testleri
 ```bash

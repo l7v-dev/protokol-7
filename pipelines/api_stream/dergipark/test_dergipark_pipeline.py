@@ -21,6 +21,8 @@ from fulltext_packer import DergiParkFulltextSharder
 from ledger import DergiParkLedger
 from packer import DergiParkParquetSharder
 from pdf_extractor import DergiParkPdfExtractor, ThreadSafeRateLimiter
+from pdf_tar_packer import DergiParkPdfTarSharder
+
 
 
 
@@ -620,5 +622,70 @@ def test_ledger_pdf_status_and_stats(tmp_dir):
 
     # Fulltext part index check
     assert ledger.get_next_fulltext_part_index() == 0
+
+
+def test_pdf_tar_packer(tmp_dir):
+    shards_completed = []
+
+    def on_shard(info):
+        shards_completed.append(info)
+
+    sharder = DergiParkPdfTarSharder(
+        output_dir=tmp_dir,
+        filename_prefix="test_pdf_archive",
+        max_part_entries=2,
+        on_shard_completed=on_shard,
+    )
+
+    pdf1 = b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF"
+    pdf2 = b"%PDF-1.7\n2 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF"
+
+    sh1 = sharder.append_pdf("article/1001", pdf1)
+    assert sh1.startswith("test_pdf_archive_")
+    sh2 = sharder.append_pdf("article/1002", pdf2)
+
+    assert len(shards_completed) == 1
+    s_info = shards_completed[0]
+    assert s_info["record_count"] == 2
+    assert s_info["shard_name"].endswith(".tar.gz")
+    assert s_info["byte_size"] > 0
+    assert len(s_info["sha256"]) == 64
+    assert len(s_info["md5"]) == 32
+
+    # Verify tar contents
+    import tarfile
+    with tarfile.open(s_info["file_path"], "r:gz") as tar:
+        names = tar.getnames()
+        assert "article_1001.pdf" in names
+        assert "article_1002.pdf" in names
+
+
+def test_ledger_pdf_archive_tracking(tmp_dir):
+    db_path = os.path.join(tmp_dir, "test_archive_ledger.sqlite")
+    ledger = DergiParkLedger(db_path=db_path)
+
+    ledger.index_article({
+        "id": "dp:art:1",
+        "title": "Test Title",
+        "journal": "Test Journal",
+        "fulltext_url": "https://dergipark.org.tr/article/1",
+    })
+
+    ledger.mark_pdf_extracted(
+        article_id="dp:art:1",
+        pdf_url="https://dergipark.org.tr/download/1.pdf",
+        page_count=12,
+        char_count=20000,
+        word_count=3000,
+        shard_name="dergipark_fulltext_20261003_p00000.parquet",
+        archive_name="dergipark_raw_pdfs_20261003_p00000.tar.gz",
+    )
+
+    art = ledger.get_article("dp:art:1")
+    assert art["pdf_status"] == "extracted"
+    assert art["pdf_archive_name"] == "dergipark_raw_pdfs_20261003_p00000.tar.gz"
+    assert art["pdf_shard_name"] == "dergipark_fulltext_20261003_p00000.parquet"
+    assert ledger.get_next_pdf_archive_part_index() == 0
+
 
 

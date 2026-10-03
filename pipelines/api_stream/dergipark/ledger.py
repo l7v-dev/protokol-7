@@ -108,6 +108,8 @@ class DergiParkLedger(BaseLedger):
                 cur.execute("ALTER TABLE dergipark_articles ADD COLUMN extracted_at TEXT;")
             if "pdf_shard_name" not in existing_cols:
                 cur.execute("ALTER TABLE dergipark_articles ADD COLUMN pdf_shard_name TEXT;")
+            if "pdf_archive_name" not in existing_cols:
+                cur.execute("ALTER TABLE dergipark_articles ADD COLUMN pdf_archive_name TEXT;")
 
             cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_pdf_status ON dergipark_articles(pdf_status);")
             conn.commit()
@@ -390,6 +392,7 @@ class DergiParkLedger(BaseLedger):
         char_count: int,
         word_count: int,
         shard_name: Optional[str] = None,
+        archive_name: Optional[str] = None,
     ) -> None:
         """Marks article PDF as successfully extracted with metadata and char counts."""
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -403,12 +406,14 @@ class DergiParkLedger(BaseLedger):
                     char_count = ?,
                     word_count = ?,
                     extracted_at = ?,
-                    pdf_shard_name = COALESCE(?, pdf_shard_name)
+                    pdf_shard_name = COALESCE(?, pdf_shard_name),
+                    pdf_archive_name = COALESCE(?, pdf_archive_name)
                 WHERE id = ?;
                 """,
-                (pdf_url, page_count, char_count, word_count, now, shard_name, str(article_id).strip()),
+                (pdf_url, page_count, char_count, word_count, now, shard_name, archive_name, str(article_id).strip()),
             )
             conn.commit()
+
 
     def mark_pdf_failed(
         self,
@@ -457,6 +462,20 @@ class DergiParkLedger(BaseLedger):
             if row and row["max_idx"] is not None:
                 return int(row["max_idx"]) + 1
             return 0
+
+    def get_next_pdf_archive_part_index(self, prefix: str = "dergipark_raw_pdfs") -> int:
+        """Returns next available partition index for raw PDF archive shards."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT MAX(part_index) as max_idx FROM shards WHERE shard_name LIKE ?;",
+                (f"{prefix}%",),
+            )
+            row = cur.fetchone()
+            if row and row["max_idx"] is not None:
+                return int(row["max_idx"]) + 1
+            return 0
+
 
 
 
