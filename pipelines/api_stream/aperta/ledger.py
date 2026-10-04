@@ -70,7 +70,7 @@ class ApertaLedger(BaseLedger):
                     size INTEGER,
                     checksum TEXT,
                     download_url TEXT,
-                    status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'downloaded', 'failed', 'skipped')),
+                    status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'downloaded', 'archived', 'failed', 'skipped')),
                     created_at TEXT,
                     FOREIGN KEY (record_id) REFERENCES aperta_records(id) ON DELETE CASCADE
                 );

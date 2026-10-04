@@ -118,10 +118,10 @@ class ApertaPdfDownloader:
                         subfolder_name="Raw_Archives",
                     )
                     if upload_res.get("file_id"):
-                        self.ledger.update_shard_status(
+                        self.ledger.mark_shard_uploaded(
                             shard_name=shard_name,
-                            status="verified",
                             drive_file_id=upload_res["file_id"],
+                            verified_md5=upload_res.get("md5"),
                         )
                         log(f"TAR.GZ archive uploaded & verified: {shard_name} (Drive ID: {upload_res['file_id']})")
                 except Exception as ex:
@@ -164,88 +164,100 @@ class ApertaPdfDownloader:
                     return None
         return None
 
-    def process_pending_files(self, batch_size: int = 50, max_files: int = 0) -> int:
+    def process_pending_files(self, batch_size: int = 50, max_files: int = 0, continuous: bool = False, idle_sleep: float = 15.0) -> int:
         """
         Polls pending files from SQLite, downloads each, archives into TAR.GZ,
-        and marks status='archived'.
+        and marks status='archived'. If continuous is True, sleeps and polls repeatedly.
         """
         total_processed = 0
 
-        with self.ledger._get_conn() as conn:
-            cur = conn.cursor()
-            cur.execute(
-                """
-                SELECT file_id, record_id, key, size, download_url
-                FROM aperta_files
-                WHERE status = 'pending'
-                ORDER BY created_at ASC
-                LIMIT ?
-                """,
-                (max_files if max_files > 0 else 50000,),
-            )
-            pending_files = [dict(r) for r in cur.fetchall()]
-
-        log(f"Found {len(pending_files)} pending files to download.")
-        if not pending_files:
-            return 0
-
-        for file_meta in pending_files:
-            f_id = file_meta["file_id"]
-            rec_id = file_meta["record_id"]
-            key = file_meta["key"]
-            url = file_meta["download_url"]
-
-            if not url:
-                url = f"https://aperta.ulakbim.gov.tr/api/records/{rec_id}/files/{key}/content"
-
-            log(f"Downloading [{rec_id}] {key} ({url})...")
-            file_bytes = self.download_file_bytes(url)
-
+        while True:
             with self.ledger._get_conn() as conn:
                 cur = conn.cursor()
-                if file_bytes:
-                    # Save local copy if requested
-                    if self.local_copy_dir:
-                        out_local = os.path.join(self.local_copy_dir, f"{rec_id}_{key}")
-                        with open(out_local, "wb") as f_out:
-                            f_out.write(file_bytes)
+                limit_chunk = batch_size if continuous else (max_files if max_files > 0 else 50000)
+                cur.execute(
+                    """
+                    SELECT file_id, record_id, key, size, download_url
+                    FROM aperta_files
+                    WHERE status = 'pending'
+                    ORDER BY created_at ASC
+                    LIMIT ?
+                    """,
+                    (limit_chunk,),
+                )
+                pending_files = [dict(r) for r in cur.fetchall()]
 
-                    # Append to TAR.GZ shard
-                    shard_name = self.sharder.append_file(f"{rec_id}_{key}", file_bytes)
-
-                    cur.execute(
-                        "UPDATE aperta_files SET status = 'archived' WHERE file_id = ?",
-                        (f_id,),
-                    )
-                    log(f"Archived {key} ({len(file_bytes)} bytes) into {shard_name}")
+            if not pending_files:
+                if continuous:
+                    time.sleep(idle_sleep)
+                    continue
                 else:
-                    cur.execute(
-                        "UPDATE aperta_files SET status = 'failed' WHERE file_id = ?",
-                        (f_id,),
-                    )
-                    log(f"Failed to fetch {key}, marked failed", level="WARN")
-                conn.commit()
+                    log(f"No pending files found to process.")
+                    break
 
-            total_processed += 1
+            log(f"Found {len(pending_files)} pending files to download in current batch.")
+
+            for file_meta in pending_files:
+                f_id = file_meta["file_id"]
+                rec_id = file_meta["record_id"]
+                key = file_meta["key"]
+                url = file_meta["download_url"]
+
+                if not url:
+                    url = f"https://aperta.ulakbim.gov.tr/api/records/{rec_id}/files/{key}/content"
+
+                log(f"Downloading [{rec_id}] {key} ({url})...")
+                file_bytes = self.download_file_bytes(url)
+
+                with self.ledger._get_conn() as conn:
+                    cur = conn.cursor()
+                    if file_bytes:
+                        # Save local copy if requested
+                        if self.local_copy_dir:
+                            out_local = os.path.join(self.local_copy_dir, f"{rec_id}_{key}")
+                            with open(out_local, "wb") as f_out:
+                                f_out.write(file_bytes)
+
+                        # Append to TAR.GZ shard
+                        shard_name = self.sharder.append_file(f"{rec_id}_{key}", file_bytes)
+
+                        cur.execute(
+                            "UPDATE aperta_files SET status = 'archived' WHERE file_id = ?",
+                            (f_id,),
+                        )
+                        log(f"Archived {key} ({len(file_bytes)} bytes) into {shard_name}")
+                    else:
+                        cur.execute(
+                            "UPDATE aperta_files SET status = 'failed' WHERE file_id = ?",
+                            (f_id,),
+                        )
+                        log(f"Failed to fetch {key}, marked failed", level="WARN")
+                    conn.commit()
+
+                total_processed += 1
+                if 0 < max_files <= total_processed:
+                    break
+
             if 0 < max_files <= total_processed:
                 break
 
         # Flush active shard
         self.sharder.close()
-        log(f"Finished processing batch. Total processed: {total_processed}")
+        log(f"Finished processing. Total processed: {total_processed}")
         return total_processed
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Aperta Raw PDF and Asset Archiver")
+    parser = argparse.ArgumentParser(description="Aperta Raw PDF and Multi-Format Asset Archiver")
     parser.add_argument("--db-path", default="data/catalogs/aperta_catalog.sqlite", help="SQLite database path")
     parser.add_argument("--output-dir", default="data/raw_archives/aperta/pdfs", help="Archive output directory")
-    parser.add_argument("--keep-local-copy", default=None, help="Directory to save a permanent local copy of PDFs")
+    parser.add_argument("--keep-local-copy", default=None, help="Directory to save a permanent local copy of files")
     parser.add_argument("--target-gb", type=float, default=10.0, help="Target TAR.GZ shard size in GB (default: 10.0)")
     parser.add_argument("--max-gb", type=float, default=51.0, help="Max TAR.GZ shard size in GB (default: 51.0)")
     parser.add_argument("--min-free-disk-gb", type=float, default=25.0, help="Min free disk space in GB before flush")
     parser.add_argument("--rate-limit", type=float, default=1.0, help="Rate limit seconds between downloads")
     parser.add_argument("--max-files", type=int, default=0, help="Max files to process (0 for all)")
+    parser.add_argument("--continuous", action="store_true", help="Run continuously polling for newly harvested files")
     parser.add_argument("--no-sync-drive", dest="sync_drive", action="store_false", help="Disable Drive upload")
     parser.add_argument("--dry-run", action="store_true", help="Simulate run without writing files")
 
@@ -263,7 +275,11 @@ def main():
         dry_run=args.dry_run,
     )
 
-    downloader.process_pending_files(max_files=args.max_files)
+    downloader.process_pending_files(
+        max_files=args.max_files,
+        continuous=args.continuous,
+    )
+
 
 
 if __name__ == "__main__":

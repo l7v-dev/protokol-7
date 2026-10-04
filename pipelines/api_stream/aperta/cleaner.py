@@ -54,21 +54,29 @@ class ApertaCleaner(BaseCleaner):
         if not record_id:
             return None
 
+        marc = raw_oai.get("marc")
         dc = raw_oai.get("dc", {})
 
         # Title
         titles = dc.get("title", [])
         title = clean_text(" ".join(titles)) if titles else ""
+        if not title and marc and marc.get("title"):
+            title = clean_text(marc["title"])
+
         if len(title) < self.min_title_len or (self.filter_paratext and self.is_paratext(title)):
             return None
 
         # Creators
         creators_list = dc.get("creator", [])
         creators = "; ".join(c.strip() for c in creators_list if c.strip())
+        if not creators and marc and marc.get("creators"):
+            creators = "; ".join(marc["creators"])
 
         # Description / Abstract
         desc_list = dc.get("description", [])
         description = clean_text("\n\n".join(desc_list)) if desc_list else ""
+        if not description and marc and marc.get("description"):
+            description = clean_text(marc["description"])
 
         # Identifiers & DOI
         identifiers = dc.get("identifier", [])
@@ -79,10 +87,14 @@ class ApertaCleaner(BaseCleaner):
                 doi = ident_clean.split("doi.org/")[-1].strip()
             elif ident_clean.startswith("10."):
                 doi = ident_clean
+        if not doi and marc and marc.get("doi"):
+            doi = marc["doi"]
 
         # Publication Date
         dates = dc.get("date", [])
         publication_date = dates[0].strip() if dates else raw_oai.get("datestamp", "")[:10]
+        if (not publication_date or publication_date == raw_oai.get("datestamp", "")[:10]) and marc and marc.get("publication_date"):
+            publication_date = marc["publication_date"]
 
         # Resource Type
         type_list = dc.get("type", [])
@@ -90,6 +102,8 @@ class ApertaCleaner(BaseCleaner):
         if type_list:
             raw_type = type_list[0]
             resource_type = raw_type.split("/")[-1].replace("info:eu-repo:semantics:", "")
+        elif marc and marc.get("resource_types"):
+            resource_type = "; ".join(marc["resource_types"])
 
         # Language
         lang_list = dc.get("language", [])
@@ -102,15 +116,29 @@ class ApertaCleaner(BaseCleaner):
         # Rights / License
         rights_list = dc.get("rights", [])
         rights = "; ".join(r.strip() for r in rights_list if r.strip())
+        if not rights and marc and marc.get("license"):
+            rights = marc["license"]
 
         # Publisher
         pub_list = dc.get("publisher", [])
         publisher = pub_list[0].strip() if pub_list else "TUBITAK ULAKBIM"
 
+        # File Manifests
+        files_json = "[]"
+        file_count = 0
+        total_file_size = 0
+        if marc:
+            marc_files = marc.get("files", [])
+            if marc_files:
+                file_count = len(marc_files)
+                total_file_size = sum(f.get("size", 0) for f in marc_files)
+                files_json = json.dumps(marc_files, ensure_ascii=False)
+
         # Text Metrics
         combined_text = f"{title} {description}".strip()
         char_count = len(combined_text)
         word_count = len(combined_text.split())
+
 
         if char_count < self.min_char_count or word_count < self.min_word_count:
             return None
@@ -128,9 +156,9 @@ class ApertaCleaner(BaseCleaner):
             "keywords": subjects,
             "subjects": subjects,
             "rights": rights,
-            "file_count": 0,
-            "total_file_size": 0,
-            "files_json": "[]",
+            "file_count": file_count,
+            "total_file_size": total_file_size,
+            "files_json": files_json,
             "char_count": char_count,
             "word_count": word_count,
         }

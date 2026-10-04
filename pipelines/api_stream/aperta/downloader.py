@@ -28,6 +28,7 @@ OAI_NS = {
     "oai": "http://www.openarchives.org/OAI/2.0/",
     "oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
     "dc": "http://purl.org/dc/elements/1.1/",
+    "marc": "http://www.loc.gov/MARC21/slim",
 }
 
 
@@ -194,6 +195,7 @@ class ApertaDownloader:
 
         metadata_elem = record_elem.find("oai:metadata", OAI_NS)
         dc_data: Dict[str, List[str]] = {}
+        marc_data: Optional[Dict[str, Any]] = None
 
         if metadata_elem is not None:
             dc_elem = metadata_elem.find("oai_dc:dc", OAI_NS)
@@ -206,6 +208,10 @@ class ApertaDownloader:
                             dc_data[tag] = []
                         dc_data[tag].append(text)
 
+            marc_elem = metadata_elem.find("marc:record", OAI_NS)
+            if marc_elem is not None:
+                marc_data = self._parse_marc_element(marc_elem)
+
         # Extract record ID from identifier (e.g., oai:aperta.ulakbim.gov.tr:241793 -> 241793)
         record_id = ""
         if identifier:
@@ -215,13 +221,79 @@ class ApertaDownloader:
             else:
                 record_id = identifier
 
-        return {
+        if marc_data and marc_data.get("rec_id"):
+            record_id = marc_data["rec_id"]
+
+        result: Dict[str, Any] = {
             "id": record_id,
             "oai_identifier": identifier,
             "datestamp": datestamp,
             "sets": set_specs,
             "dc": dc_data,
         }
+        if marc_data:
+            result["marc"] = marc_data
+        return result
+
+    def _parse_marc_element(self, rec: ET.Element) -> Dict[str, Any]:
+        """Extracts fields and all attached file manifests from MARCXML record."""
+        rec_id = rec.findtext(".//marc:controlfield[@tag='001']", namespaces=OAI_NS)
+        title = rec.findtext(".//marc:datafield[@tag='245']/marc:subfield[@code='a']", namespaces=OAI_NS) or ""
+
+        creators = []
+        for df in rec.findall(".//marc:datafield[@tag='100']", OAI_NS) + rec.findall(".//marc:datafield[@tag='700']", OAI_NS):
+            c_name = df.findtext("marc:subfield[@code='a']", namespaces=OAI_NS)
+            if c_name:
+                creators.append(c_name.strip())
+
+        desc = rec.findtext(".//marc:datafield[@tag='520']/marc:subfield[@code='a']", namespaces=OAI_NS) or ""
+        date = rec.findtext(".//marc:datafield[@tag='260']/marc:subfield[@code='c']", namespaces=OAI_NS) or ""
+
+        doi = ""
+        for df in rec.findall(".//marc:datafield[@tag='024']", OAI_NS):
+            code = df.findtext("marc:subfield[@code='2']", namespaces=OAI_NS)
+            val = df.findtext("marc:subfield[@code='a']", namespaces=OAI_NS)
+            if code == "doi" and val:
+                doi = val.strip()
+
+        res_types = [
+            t.text.strip()
+            for t in rec.findall(".//marc:datafield[@tag='980']/marc:subfield[@code='a']", OAI_NS)
+            if t.text
+        ]
+
+        license_url = rec.findtext(".//marc:datafield[@tag='540']/marc:subfield[@code='u']", namespaces=OAI_NS) or ""
+        license_code = rec.findtext(".//marc:datafield[@tag='540']/marc:subfield[@code='a']", namespaces=OAI_NS) or ""
+        license_str = license_url or license_code
+
+        # Extract all file attachments from MARC 856 (electronic location)
+        files = []
+        for df in rec.findall(".//marc:datafield[@tag='856']", OAI_NS):
+            u = df.findtext("marc:subfield[@code='u']", namespaces=OAI_NS)
+            s = df.findtext("marc:subfield[@code='s']", namespaces=OAI_NS)
+            z = df.findtext("marc:subfield[@code='z']", namespaces=OAI_NS)
+            if u and ("/files/" in u or s):
+                file_name = u.split("/")[-1] if u else ""
+                files.append({
+                    "id": f"{rec_id}_{file_name}",
+                    "key": file_name,
+                    "size": int(s or 0),
+                    "checksum": (z or "").strip(),
+                    "download_url": u.strip(),
+                })
+
+        return {
+            "rec_id": rec_id,
+            "title": title,
+            "creators": creators,
+            "description": desc,
+            "publication_date": date,
+            "doi": doi,
+            "resource_types": res_types,
+            "license": license_str,
+            "files": files,
+        }
+
 
     def stream_oai_records(
         self,

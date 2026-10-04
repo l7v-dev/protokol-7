@@ -48,6 +48,12 @@ def main():
         help="Harvest method: 'oai' for OAI-PMH streaming or 'rest' for Invenio search API (default: oai)",
     )
     parser.add_argument(
+        "--metadata-prefix",
+        default="marcxml",
+        choices=["marcxml", "oai_dc"],
+        help="OAI-PMH metadata format: 'marcxml' (includes file attachments) or 'oai_dc' (default: marcxml)",
+    )
+    parser.add_argument(
         "--query",
         default="*",
         help="Search query for REST method (default: * for all)",
@@ -178,10 +184,10 @@ def main():
                     log(f"Syncing shard to Google Drive (Aperta/): {shard_name}...")
                     upload_res = drive_sync.sync_shard(shard_path, purge_on_success=True)
                     if upload_res.get("file_id"):
-                        ledger.update_shard_status(
+                        ledger.mark_shard_uploaded(
                             shard_name=shard_name,
-                            status="verified",
                             drive_file_id=upload_res["file_id"],
+                            verified_md5=upload_res.get("md5"),
                         )
                         log(f"Shard uploaded & verified: {shard_name} (Drive ID: {upload_res['file_id']})")
                 except Exception as ex:
@@ -219,19 +225,28 @@ def main():
     records_processed = 0
     records_indexed = 0
     start_time = time.time()
-
     try:
         if args.method == "oai":
             current_token = token
             while True:
-                records, next_token, cursor, total = downloader.fetch_oai_page(
-                    resumption_token=current_token,
-                    metadata_prefix="oai_dc",
-                )
+                try:
+                    records, next_token, cursor, total = downloader.fetch_oai_page(
+                        resumption_token=current_token,
+                        metadata_prefix=args.metadata_prefix,
+                    )
+                except Exception as ex:
+                    if "422" in str(ex) and current_token:
+                        log(f"Resumption token expired or invalid (HTTP 422). Resetting checkpoint to restart clean.", level="WARN")
+                        ledger.save_resumption_token(None, cursor=0, total=0)
+                        current_token = None
+                        time.sleep(2.0)
+                        continue
+                    raise
 
                 if not records:
                     log("No records returned from OAI-PMH endpoint.")
                     break
+
 
                 batch_cleaned: List[Dict[str, Any]] = []
                 for raw_rec in records:

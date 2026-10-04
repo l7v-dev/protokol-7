@@ -21,6 +21,14 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
   - **İlerleme:** 3.100.000+ makale çekildi. ~35-40 rec/s akış hızıyla makaleler çekiliyor, `data/catalogs/doaj_catalog.sqlite` tablosuna ACID indeksleniyor, 50.000'er kayıtta veya 512 MB eşiğinde Zstandard Parquet shard'ları oluşturulup Google Drive `DOAJ/` klasörüne uzaktan MD5 doğrulamasıyla aktarılıyor ve yerel disk sıfırlanıyor.
   - **Takip:** `tail -f logs/doaj.log`
 
+- [ ] **TÜBİTAK ULAKBİM Aperta Tam Depo & Çok Formatlı İkili Veri Arşivleme Akışı (`aperta`)** — `Tier: 1`
+  - **Durum:** Canlı OAI-PMH MARCXML servisi üzerinden 91.188 kaydın tüm metadata'sı ile ilişkili tüm dosya formatlarının (PDF, TAR.GZ, ZIP, CSV, XLSX, DOCX, TXT vb.) indirilip 10-50 GB WebDataset TAR.GZ Cold Vault arşivleriyle Google Drive'a aktarılması arka planda eş zamanlı iki daemon olarak yürütülüyor.
+  - **Süreç 1 (Metadata & Parquet Sharder):** `.venv/bin/python -u pipelines/api_stream/aperta/orchestrator.py --all --max-records 0 --metadata-prefix marcxml --batch-size 500 --max-shard-records 20000 --shard-size-mb 512`
+  - **Süreç 2 (Çok Formatlı Varlık İndirici & TAR.GZ Arşivleyici):** `.venv/bin/python -u pipelines/api_stream/aperta/pdf_downloader.py --max-files 0 --continuous --target-gb 10.0 --max-gb 51.0 --rate-limit 0.8`
+  - **İlerleme:** OAI-PMH MARCXML protokolü üzerinden tüm kayıtlar dosyalarıyla birlikte çekiliyor, `aperta_records` ve `aperta_files` tablolarına ACID yazılıyor. Parquet shard'ları Google Drive `Aperta/`, 10-50 GB TAR.GZ Cold Vault arşivleri ise `Aperta/Raw_Archives/` klasörüne aktarılıyor.
+  - **Takip:** `tail -f logs/aperta.log` ve `tail -f logs/aperta_assets.log`
+
+
 
 ## Bekleyen (Blok var)
 
