@@ -9,8 +9,6 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
-
-
 - [ ] **DergiPark Tam Metin Çıkarımı ve Ham PDF Arşivleme Akışı (`dergipark`)** — `Tier: 1`
   - **Durum:** DergiPark kataloğundaki 131.127 makalenin tam metin PDF indirmesi, PyMuPDF Markdown katman çıkarımı, Zstandard Parquet sharder ve toleranslı çoklu-GB (10-50 GB, maks 51 GB) ham PDF TAR.GZ arşivleyici arka plan daemon'ı olarak yürütülüyor.
   - **Süreç:** `python -u pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 0 --workers 2 --rate-limit 1.75 --batch-size 50 --max-shard-records 2000 --pdf-archive-gb 10.0 --max-pdf-archive-gb 51.0 --min-free-disk-gb 25.0`
@@ -33,6 +31,12 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 - *(Sağlamlaştırma bekleyen görev bulunmuyor)*
 
 ## Son tamamlananlar (son 3-5, eskiler ledger/'a taşınır)
+
+- [x] **Binance Vision Public Data Boru Hattı ve Çekirdek Aktör Entegrasyonu (`binance-vision`)** — `Tier: 1` — Amazon S3 ListBucket XML akış tarayıcısı (`downloader.py`), resmi SHA-256 `.CHECKSUM` doğrulayıcısı, ham verilerin diskte tutulmadan bellek içi akışla PyArrow tablolarına dönüştürülmesi (`cleaner.py`), ACID SQLite katalog defteri (`data/catalogs/binance_catalog.sqlite`), Zstd Parquet sharder (`packer.py`), Google Drive'a aktarım sonrası yerel temizleme (`drive_sync.py`, `purge_on_success=True`), CLI orkestratörü (`orchestrator.py`), TypeScript mikroservis aktörü (`BinanceVisionActor`, `POST /api/v1/binance-vision`, `query_binance_vision` MCP aracı), `contracts/` şemaları ve dbx bağlantısı tamamlandı. 7/7 Python, 4/4 TS, 12/12 sözleşme testleri, canlı S3 pilot çekimi ve `npm run verify` tam doğrulama hattı başarıyla geçti. Walkthrough: [`docs/walkthroughs/binance-vision-pipeline-ve-aktor-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/binance-vision-pipeline-ve-aktor-walkthrough.md).
+
+- [x] **TÜBİTAK ULAKBİM Aperta Boru Hattı, PDF Arşivleme ve Çekirdek Aktör Entegrasyonu (`aperta`)** — `Tier: 1` — OAI-PMH 2.0 streaming akışı (`downloader.py`), Invenio REST istemcisi, çift dilli bilim dalları ve dosya temizleyici (`cleaner.py`), ACID SQLite katalog tablosu (`data/catalogs/aperta_catalog.sqlite`), Zstd Parquet sharder (`packer.py`), ham PDF/veri ikililerinin silinmeden Google Drive'a aktarılmasını sağlayan 10-50 GB TAR.GZ Cold Vault archiver (`pdf_tar_packer.py`), asenkron PDF indirme ve arşivleme işçisi (`pdf_downloader.py`), Google Drive senkronizasyonu (`drive_sync.py`), CLI orkestratörü (`orchestrator.py`), TypeScript mikroservis aktörü (`ApertaActor`, `POST /api/v1/aperta`, `query_aperta` MCP aracı), `contracts/` şemaları ve dbx bağlantısı kuruldu. 11/11 Python, 4/4 TS, 10/10 sözleşme testleri ve `npm run verify` tam doğrulama hattı yeşil geçti. Walkthrough: [`docs/walkthroughs/aperta-pipeline-ve-aktor-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/aperta-pipeline-ve-aktor-walkthrough.md).
+
+
 
 - [x] **DergiPark Tam Metin PDF İndirme ve Markdown Çıkarma Hattı (Madde D)** — `Tier: 1` — `pdf_extractor.py` (PyMuPDF ile Türkçe diyakritik korumalı tam metin çıkarıcı, sayfa etiketleyici, 50MB sınır koruyucu ve `ThreadSafeRateLimiter`), `ledger.py` (dinamik SQLite migrasyonu, `pdf_status`, `pdf_direct_url`, `page_count` alanları ve `pdf_stat` gruplamalı istatistik raporu), `fulltext_packer.py` (Zstandard seviye 6 Parquet sharder) ve `fulltext_runner.py` (paralel çoklu iş parçacıklı çıkarma orkestratörü) kuruldu. 18/18 Python, 22/22 TS testi ve canlı test yeşil geçti. Walkthrough: [`docs/walkthroughs/dergipark-tam-metin-pdf-cikarma-walkthrough.md`](file:///home/l7v/l7v-dev/play/protokol-7/docs/walkthroughs/dergipark-tam-metin-pdf-cikarma-walkthrough.md).
 

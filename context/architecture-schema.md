@@ -73,7 +73,10 @@ Categorized into 5 primary domains accessible via `src/actors/corpus/domains/`:
 | `src/actors/corpus/pubmed-actor.ts` | `PubmedActor` | NCBI E-utilities (esearch, esummary, efetch) & BioC API — peer-reviewed biomedical literature, abstracts, MeSH headings, and PMC articles. |
 | `src/actors/corpus/biorxiv-actor.ts` | `BiorxivActor` | Cold Spring Harbor Laboratory (CSHL) bioRxiv & medRxiv REST API — biology, medical preprints, abstracts, and published peer-reviewed journal mappings. |
 | `src/actors/corpus/doaj-actor.ts` | `DoajActor` | DOAJ (Directory of Open Access Journals) REST API v2 — multidisciplinary open-access articles, journals, fulltext links, and metadata. |
+| `src/actors/corpus/aperta-actor.ts` | `ApertaActor` | TÜBİTAK ULAKBİM Aperta (Türkiye Açık Arşivi) Invenio REST API — open science datasets, publications, theses, attached files, and direct download links. |
+| `src/actors/corpus/binance-vision-actor.ts` | `BinanceVisionActor` | Binance Vision Amazon S3 Public Data Store — historical cryptocurrency timeseries (klines OHLCV, trades, aggTrades), S3 XML bucket crawler, and direct download links. |
 | `src/actors/corpus/ietf-rfc-actor.ts` | `IetfRfcActor` | IETF RFC Editor + Datatracker — Internet standards with plain-text cleaning. |
+
 | `src/actors/corpus/openstax-actor.ts` | `OpenStaxActor` | OpenStax CMS API — CC-licensed peer-reviewed textbooks and chapter content. |
 | `src/actors/corpus/mit-ocw-actor.ts` | `MitOcwActor` | MIT OCW OpenSearch DSL — university curricula, syllabi, and course resources. |
 | `src/actors/corpus/software-heritage-actor.ts` | `SoftwareHeritageActor` | Software Heritage Archive — persistent SWHIDs, code blobs, directory trees. |
@@ -321,6 +324,9 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `pipelines/api_stream/biorxiv/` | bioRxiv / medRxiv API Streamer | CSHL Details REST API streamer, rate-limited cursor pagination, preprint cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
 | `pipelines/api_stream/doaj/` | DOAJ API Streamer | DOAJ REST API v2 streamer, rate-limited pagination, multilingual article cleaner, Zstd Parquet sharder, Google Drive uploader, SQLite catalog ledger. |
 | `pipelines/api_stream/dergipark/` | DergiPark OAI-PMH & Full-Text Engine | TÜBİTAK ULAKBİM OAI-PMH 2.0 streamer, date-window auto-partitioner (`partitioner.py`), landing URL/DOI cleaner, PyMuPDF full-text PDF extractor (`pdf_extractor.py`), Zstd Parquet full-text sharder (`fulltext_packer.py`), raw PDF TAR.GZ archive packer (`pdf_tar_packer.py`), extraction runner CLI (`fulltext_runner.py`), Google Drive uploader, partitioned SQLite ledger. |
+| `pipelines/api_stream/aperta/` | Aperta OAI-PMH & Asset Ingestion Engine | TÜBİTAK ULAKBİM Aperta OAI-PMH 2.0 streamer & Invenio REST API client (`downloader.py`), record normalizer (`cleaner.py`), Zstd Parquet sharder (`packer.py`), WebDataset TAR.GZ multi-GB PDF archiver (`pdf_tar_packer.py`), asynchronous PDF/asset downloader (`pdf_downloader.py`), Google Drive uploader (`drive_sync.py`), orchestrator CLI (`orchestrator.py`), ACID SQLite ledger (`ledger.py`). |
+| `pipelines/api_stream/binance_vision/` | Binance Vision S3 Timeseries Streamer | Amazon S3 ListBucket XML crawler (`downloader.py`), in-memory ZIP CSV extractor & PyArrow Table cleaner (`cleaner.py`), Zstd Parquet sharder (`packer.py`), Google Drive uploader with purge on success (`drive_sync.py`), orchestrator CLI (`orchestrator.py`), and ACID SQLite ledger (`ledger.py`). |
+
 
 
 | `scripts/scaffold/scaffold-pipeline.py` | Pipeline Scaffolder CLI | Command-line code generator for new ETL pipelines (`snapshot`, `dump`, `api_stream`, `multimodal`). |
@@ -432,7 +438,10 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `tests/pubmed-actor.test.ts` | `PubmedActor`, `src/api/server.ts` | PubMed XML parsing, structured abstracts, MeSH headings, NCBI esummary JSON, BioC JSON, SSRF guard, and REST route. |
 | `tests/biorxiv-actor.test.ts` | `BiorxivActor`, `src/api/server.ts` | CSHL bioRxiv & medRxiv preprint queries, category filters, direct DOI lookups, query text filtering, SSRF guard, and REST route. |
 | `tests/doaj-actor.test.ts` | `DoajActor`, `src/api/server.ts` | DOAJ article searches, direct ID retrieval, journal queries, error handling, SSRF guard, and REST routes. |
+| `tests/aperta-actor.test.ts` | `ApertaActor`, `src/api/server.ts` | Aperta search records, direct record retrieval, file manifest table, error handling, SSRF guard, and REST routes. |
+| `tests/binance-vision-actor.test.ts` | `BinanceVisionActor`, `src/api/server.ts` | S3 XML file listing, symbol directory discovery, file metadata extraction, SSRF defense, and REST routes. |
 | `tests/contracts.test.ts` | `contracts/` | JSON Schema validation for source-descriptor and job contracts, example payloads, and migration schemas. |
+
 | `tests/object-store-adapters.test.ts` | `src/storage/adapters/` | Conformance suite for `LocalObjectStore` and `R2ObjectStore` (path traversal guards, atomic fsync, immutable conflict defense, ranged reads). |
 | `tests/ledger-repository.test.ts` | `src/storage/ledger/` | Conformance suite for `SqliteLedgerRepository` (atomic job leases, `lease_epoch` fencing, transactional outbox dispatch, and lease reaping). |
 | `tests/worker-pool.test.ts` | `src/workers/` | Unit and integration test suite verifying `TaskWorker` lifecycle, heartbeats, exponential backoff retries, terminal/quarantine error states, operation filtering, epoch fencing, `WorkerPool` concurrency, and end-to-end `download` -> `extract` pipeline. |
@@ -559,7 +568,8 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `pipelines/dump/wikimedia/configs/` | Language Catalog Configs | Bundled JSON databases (`*_dbs.json`) for Wikibooks, Wikinews, Wikiquote, Wikiversity, Wikivoyage, and Wiktionary. |
 | `scripts/sync-dbx-connections.py` | DBX Connection Synchronizer | Synchronizes all SQLite catalogs and Wikipedia metadata databases into local desktop dbx (`com.dbx.app`) with stale pruning. |
 | `scripts/run_openalex.sh` | Detached Pipeline Launcher | Shell script to start the OpenAlex API harvest detached in background. |
-| `data/catalogs/` | Relational SQLite Ledgers | Domain-isolated transactional SQLite ledgers (`doaj`, `biorxiv`, `pubmed`, `instagram`, `openalex`, `openalex_snapshot`, `stackexchange`, `gutenberg`, `wikimedia_*`, `wikipedia/*`). |
+| `data/catalogs/` | Relational SQLite Ledgers | Domain-isolated transactional SQLite ledgers (`binance`, `aperta`, `dergipark`, `doaj`, `biorxiv`, `pubmed`, `instagram`, `openalex`, `openalex_snapshot`, `stackexchange`, `gutenberg`, `wikimedia_*`, `wikipedia/*`). |
+
 | `examples/actors/metamath.json` | Example Config | Standalone JSON configuration for Metamath Proof Explorer actor. |
 | `docs/actors/metamath.md` | Technical Wiki | Architectural specification with Mermaid diagrams for Metamath Proof Explorer actor. |
 | `examples/actors/philpapers.json` | Example Config | Standalone JSON configuration for PhilPapers Archive actor. |
