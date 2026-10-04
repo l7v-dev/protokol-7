@@ -12,15 +12,15 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 
 - [ ] **DergiPark Tam Metin Çıkarımı ve Ham PDF Arşivleme Akışı (`dergipark`)** — `Tier: 1`
-  - **Durum:** DergiPark kataloğundaki 131.122 makalenin tam metin PDF indirmesi, PyMuPDF Markdown katman çıkarımı, Zstandard Parquet sharder ve toleranslı çoklu-GB (10-50 GB, maks 51 GB) ham PDF TAR.GZ arşivleyici arka plan daemon'ı olarak yürütülüyor.
-  - **Süreç:** `python -u pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 0 --workers 2 --rate-limit 0.75 --batch-size 50 --max-shard-records 2000 --pdf-archive-gb 10.0 --max-pdf-archive-gb 51.0 --min-free-disk-gb 25.0`
-  - **İlerleme:** Paralel 2 işçi ile Cloudflare 429 korumalı hız sınırıyla makaleler çekiliyor, PyMuPDF ile Markdown tam metni çıkarılıp Parquet shard'larına yazılıyor. Ham PDF ikili dosyaları toleranslı 10-50 GB'lık (maks 51 GB) WebDataset/Cold Vault TAR.GZ shard'larına paketlenip Google Drive `DergiPark/pdfs/` klasörüne MD5 doğrulamasıyla aktarılıyor ve yerel disk sıfırlanıyor. 25 GB disk headroom güvenlik kalkanı devrede.
+  - **Durum:** DergiPark kataloğundaki 131.127 makalenin tam metin PDF indirmesi, PyMuPDF Markdown katman çıkarımı, Zstandard Parquet sharder ve toleranslı çoklu-GB (10-50 GB, maks 51 GB) ham PDF TAR.GZ arşivleyici arka plan daemon'ı olarak yürütülüyor.
+  - **Süreç:** `python -u pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 0 --workers 2 --rate-limit 1.15 --batch-size 50 --max-shard-records 2000 --pdf-archive-gb 10.0 --max-pdf-archive-gb 51.0 --min-free-disk-gb 25.0`
+  - **İlerleme:** Cloudflare 429 hız aşımı önlenerek 2 paralel işçi ve 1.15s nezaket aralığıyla kararlı baz hızına sabitlendi. 429 yanıtlarında geçici bekleme (soğuma) uygulanırken kalıcı bozuk bağlantılar kaydedilerek kuyruk akıcı şekilde ilerletiliyor. Çıkarılan tam metinler Zstandard Parquet shard'larına, ham PDF ikilileri ise 10-50 GB'lık WebDataset TAR.GZ arşivlerine yazılıp doğrudan Google Drive'a aktarılıyor.
   - **Takip:** `tail -f logs/dergipark_fulltext.log`
 
 - [ ] **DOAJ Canlı Tam Katalog Akışı ve Parquet Paketleme (`doaj`)** — `Tier: 1`
   - **Durum:** Canlı OAI-PMH servisi üzerinden tam DOAJ veritabanı (13,7M+ makale) arka plan daemon'ı olarak yürütülüyor.
   - **Süreç:** `python -u pipelines/api_stream/doaj/orchestrator.py --all --max-records 0 --batch-size 1000 --max-shard-records 50000 --shard-size-mb 512`
-  - **İlerleme:** ~65-75 rec/s akış hızıyla makaleler çekiliyor, `data/catalogs/doaj_catalog.sqlite` tablosuna ACID indeksleniyor, 50.000'er kayıtta veya 512 MB eşiğinde Zstandard Parquet shard'ları oluşturulup Google Drive `DOAJ/` klasörüne uzaktan MD5 doğrulamasıyla aktarılıyor ve yerel disk sıfırlanıyor.
+  - **İlerleme:** 3.100.000+ makale çekildi. ~35-40 rec/s akış hızıyla makaleler çekiliyor, `data/catalogs/doaj_catalog.sqlite` tablosuna ACID indeksleniyor, 50.000'er kayıtta veya 512 MB eşiğinde Zstandard Parquet shard'ları oluşturulup Google Drive `DOAJ/` klasörüne uzaktan MD5 doğrulamasıyla aktarılıyor ve yerel disk sıfırlanıyor.
   - **Takip:** `tail -f logs/doaj.log`
 
 

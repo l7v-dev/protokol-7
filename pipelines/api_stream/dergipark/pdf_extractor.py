@@ -84,18 +84,19 @@ class DergiParkPdfExtractor:
             time.sleep(self.min_interval - elapsed)
         self._last_request_time = time.time()
 
-    def resolve_pdf_url(self, landing_url: str) -> Optional[str]:
+    def resolve_pdf_url_with_error(self, landing_url: str) -> Tuple[Optional[str], Optional[str]]:
         """
         Resolves a DergiPark landing page URL or DOI link to direct PDF download link.
+        Returns (resolved_url, error_reason).
         """
         if not landing_url:
-            return None
+            return None, "missing_url"
 
         clean_url = landing_url.strip()
 
         # If already a direct download link
         if "/download/article-file/" in clean_url or clean_url.endswith(".pdf"):
-            return clean_url
+            return clean_url, None
 
         req = urllib.request.Request(
             clean_url,
@@ -115,21 +116,29 @@ class DergiParkPdfExtractor:
                     match = re.search(r'href=[\'"]([^\'"]*download/article-file[^\'"]*)[\'"]', html)
                     if match:
                         rel_path = match.group(1).strip()
-                        return urllib.parse.urljoin("https://dergipark.org.tr", rel_path)
-                    return None
+                        return urllib.parse.urljoin("https://dergipark.org.tr", rel_path), None
+                    return None, "could_not_resolve_pdf_link"
 
             except urllib.error.HTTPError as he:
                 if he.code in (429, 503) and attempt < 3:
                     time.sleep(3.0 * attempt)
                     continue
-                return None
-            except Exception:
+                return None, f"http_{he.code}"
+            except Exception as e:
                 if attempt < 3:
                     time.sleep(1.5 * attempt)
                     continue
-                return None
+                return None, str(e)
 
-        return None
+        return None, "resolve_timeout"
+
+    def resolve_pdf_url(self, landing_url: str) -> Optional[str]:
+        """
+        Resolves a DergiPark landing page URL or DOI link to direct PDF download link.
+        """
+        url, err = self.resolve_pdf_url_with_error(landing_url)
+        self._last_resolve_error = err
+        return url
 
     def fetch_pdf_bytes(self, pdf_url: str) -> Tuple[Optional[bytes], Optional[str]]:
         """
@@ -268,18 +277,21 @@ class DergiParkPdfExtractor:
 
         pdf_url = self.resolve_pdf_url(landing_url)
         if not pdf_url:
+            resolve_err = getattr(self, "_last_resolve_error", None)
+            status = "rate_limited_429" if (resolve_err and "429" in resolve_err) else "failed"
             return {
                 "id": article.get("id"),
-                "status": "failed",
-                "error": "could_not_resolve_pdf_link",
+                "status": status,
+                "error": resolve_err or "could_not_resolve_pdf_link",
             }
 
         pdf_bytes, err = self.fetch_pdf_bytes(pdf_url)
         if err or not pdf_bytes:
+            status = "rate_limited_429" if (err and "429" in err) else (err if err in ("too_large",) else "failed")
             return {
                 "id": article.get("id"),
                 "pdf_url": pdf_url,
-                "status": err if err in ("too_large",) else "failed",
+                "status": status,
                 "error": err or "empty_bytes",
             }
 

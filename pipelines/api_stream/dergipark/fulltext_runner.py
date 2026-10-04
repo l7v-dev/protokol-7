@@ -91,8 +91,8 @@ def main():
     parser.add_argument(
         "--rate-limit",
         type=float,
-        default=0.75,
-        help="Minimum seconds between requests across all workers (default: 0.75s)",
+        default=1.15,
+        help="Minimum seconds between requests across all workers (default: 1.15s)",
     )
     parser.add_argument(
         "--shard-size-mb",
