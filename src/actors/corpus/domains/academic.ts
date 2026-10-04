@@ -4,7 +4,9 @@
  * clinical trials, and regulatory filings.
  */
 
+export * from "../aperta-actor";
 export * from "../arxiv-actor";
+export * from "../binance-vision-actor";
 export * from "../biorxiv-actor";
 export * from "../clinical-trials-actor";
 export * from "../dergipark-actor";

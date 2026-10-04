@@ -4114,6 +4114,121 @@ export function createServer(): http.Server {
         return;
       }
 
+      // TUBITAK ULAKBIM Aperta Extractor (/aperta or /api/v1/aperta)
+      if (method === "POST" && (pathname === "/api/v1/aperta" || pathname === "/aperta")) {
+        const body = await parseBody<{
+          action?: "search_records" | "get_record" | "list_files";
+          query?: string;
+          recordId?: string;
+          page?: number;
+          pageSize?: number;
+          sort?: string;
+          targetUrl?: string;
+          timeoutMs?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const apertaActor = registry.get("aperta");
+        if (!apertaActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Aperta extractor actor is not available.",
+            "Ensure ApertaActor is registered in the ActorRegistry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `aperta-${Date.now()}`,
+          actorType: "aperta",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            apertaOptions: {
+              action: body.action,
+              query: body.query,
+              recordId: body.recordId,
+              page: body.page,
+              pageSize: body.pageSize,
+              sort: body.sort,
+              timeoutMs: body.timeoutMs,
+              ...body.options?.apertaOptions,
+            },
+          },
+        };
+
+        const result = await apertaActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
+      // Binance Vision Public Data Extractor (/binance-vision or /api/v1/binance-vision)
+      if (
+        method === "POST" &&
+        (pathname === "/api/v1/binance-vision" || pathname === "/binance-vision")
+      ) {
+        const body = await parseBody<{
+          action?: "list_files" | "list_symbols" | "get_file_info";
+          market?: "spot" | "futures_um" | "futures_cm";
+          dataType?: "klines" | "trades" | "aggTrades";
+          symbol?: string;
+          interval?: string;
+          periodType?: "monthly" | "daily";
+          year?: string;
+          month?: string;
+          limit?: number;
+          targetUrl?: string;
+          timeoutMs?: number;
+          options?: ActorTask["options"];
+        }>(req);
+
+        const binanceActor = registry.get("binance-vision");
+        if (!binanceActor) {
+          sendError(
+            res,
+            500,
+            "ACTOR_UNAVAILABLE",
+            "Binance Vision extractor actor is not available.",
+            "Verify actor registration in actor-registry."
+          );
+          return;
+        }
+
+        const task: ActorTask = {
+          taskId: `binance-vision-${Date.now()}`,
+          actorType: "binance-vision",
+          targetUrl: body.targetUrl || "",
+          options: {
+            ...body.options,
+            binanceVisionOptions: {
+              action: body.action,
+              market: body.market,
+              dataType: body.dataType,
+              symbol: body.symbol,
+              interval: body.interval,
+              periodType: body.periodType,
+              year: body.year,
+              month: body.month,
+              limit: body.limit,
+              timeoutMs: body.timeoutMs,
+              ...body.options?.binanceVisionOptions,
+            },
+          },
+        };
+
+        const result = await binanceActor.run(task, { task, startTime: Date.now() });
+        sendJson(res, result.status === "completed" ? 200 : result.statusCode || 500, {
+          success: result.status === "completed",
+          ...result,
+        });
+        return;
+      }
+
       // 5. Interactive browser action (/browser/action or /api/v1/browser/action)
       if (
         method === "POST" &&

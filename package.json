@@ -55,6 +55,9 @@
     "biorxiv:pipeline": ".venv/bin/python pipelines/api_stream/biorxiv/orchestrator.py",
     "doaj:pipeline": ".venv/bin/python pipelines/api_stream/doaj/orchestrator.py",
     "dergipark:pipeline": ".venv/bin/python pipelines/api_stream/dergipark/orchestrator.py",
+    "aperta:pipeline": ".venv/bin/python pipelines/api_stream/aperta/orchestrator.py",
+    "aperta:pdf:pipeline": ".venv/bin/python pipelines/api_stream/aperta/pdf_downloader.py",
+    "binance-vision:pipeline": ".venv/bin/python pipelines/api_stream/binance_vision/orchestrator.py",
     "auth:gdrive": ".venv/bin/python scripts/auth_gdrive.py",
     "test:gutenberg": ".venv/bin/python pipelines/dump/gutenberg/test_gutenberg_pipeline.py",
     "test:stackexchange": ".venv/bin/python pipelines/dump/stackexchange/test_stackexchange_pipeline.py",
@@ -65,8 +68,11 @@
     "test:biorxiv": ".venv/bin/python pipelines/api_stream/biorxiv/test_biorxiv_pipeline.py",
     "test:doaj": ".venv/bin/python pipelines/api_stream/doaj/test_doaj_pipeline.py",
     "test:dergipark": ".venv/bin/python pipelines/api_stream/dergipark/test_dergipark_pipeline.py",
+    "test:aperta": ".venv/bin/python -m unittest pipelines/api_stream/aperta/test_aperta_pipeline.py",
+    "test:binance-vision": ".venv/bin/python -m unittest pipelines/api_stream/binance_vision/test_binance_vision_pipeline.py",
     "test:shared-pipelines": ".venv/bin/python pipelines/shared/test_shared_pipeline.py && .venv/bin/python pipelines/shared/test_object_store.py",
-    "test:corpus-pipelines": ".venv/bin/python pipelines/dump/gutenberg/test_gutenberg_pipeline.py && .venv/bin/python pipelines/dump/stackexchange/test_stackexchange_pipeline.py && .venv/bin/python pipelines/api_stream/openalex/test_openalex_pipeline.py && .venv/bin/python pipelines/snapshot/openalex/test_snapshot_pipeline.py && .venv/bin/python pipelines/api_stream/semantic_scholar/test_semanticscholar_pipeline.py && .venv/bin/python pipelines/shared/test_shared_pipeline.py && .venv/bin/python pipelines/api_stream/pubmed/test_pubmed_pipeline.py && .venv/bin/python pipelines/api_stream/biorxiv/test_biorxiv_pipeline.py && .venv/bin/python pipelines/api_stream/doaj/test_doaj_pipeline.py && .venv/bin/python pipelines/api_stream/dergipark/test_dergipark_pipeline.py",
+    "test:corpus-pipelines": ".venv/bin/python pipelines/dump/gutenberg/test_gutenberg_pipeline.py && .venv/bin/python pipelines/dump/stackexchange/test_stackexchange_pipeline.py && .venv/bin/python pipelines/api_stream/openalex/test_openalex_pipeline.py && .venv/bin/python pipelines/snapshot/openalex/test_snapshot_pipeline.py && .venv/bin/python pipelines/api_stream/semantic_scholar/test_semanticscholar_pipeline.py && .venv/bin/python pipelines/shared/test_shared_pipeline.py && .venv/bin/python pipelines/api_stream/pubmed/test_pubmed_pipeline.py && .venv/bin/python pipelines/api_stream/biorxiv/test_biorxiv_pipeline.py && .venv/bin/python pipelines/api_stream/doaj/test_doaj_pipeline.py && .venv/bin/python pipelines/api_stream/dergipark/test_dergipark_pipeline.py && .venv/bin/python -m unittest pipelines/api_stream/aperta/test_aperta_pipeline.py && .venv/bin/python -m unittest pipelines/api_stream/binance_vision/test_binance_vision_pipeline.py",
+
     "source:register": "tsx scripts/register-source.ts",
     "make:actor": "node scripts/scaffold-actor.mjs",
     "make:pipeline": ".venv/bin/python scripts/scaffold/scaffold-pipeline.py"

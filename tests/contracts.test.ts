@@ -113,4 +113,61 @@ describe("Contracts and Schemas Validation Suite", () => {
     assert.ok(mapping.mapping.fulltext_url, "Must map fulltext_url");
     assert.equal(mapping.unknown_fields_policy, "preserve_in_raw_not_silent_drop");
   });
+
+  it("validates that contracts/source-descriptors/aperta.json conforms to source-descriptor.schema.json", () => {
+    const descriptorPath = path.join(contractsDir, "source-descriptors/aperta.json");
+    assert.ok(fs.existsSync(descriptorPath), "aperta.json descriptor must exist");
+
+    const descriptor: SourceDescriptor = JSON.parse(fs.readFileSync(descriptorPath, "utf-8"));
+    assert.equal(descriptor.source_id, "aperta");
+    assert.equal(descriptor.method, "oai_pmh");
+    assert.equal(descriptor.rights_status, "approved");
+    assert.equal(descriptor.pagination.mode, "resumption_token");
+    assert.equal(descriptor.pagination.checkpoint_after_durable_commit, true);
+    assert.ok(descriptor.budget.max_requests >= 1000);
+    assert.ok(descriptor.budget.max_bytes >= 1048576);
+    assert.ok(descriptor.budget.max_seconds >= 60);
+  });
+
+  it("validates that contracts/field-mappings/aperta.json defines valid mapping", () => {
+    const mappingPath = path.join(contractsDir, "field-mappings/aperta.json");
+    assert.ok(fs.existsSync(mappingPath), "aperta.json field mapping must exist");
+
+    const mapping = JSON.parse(fs.readFileSync(mappingPath, "utf-8"));
+    assert.equal(mapping.source_id, "aperta");
+    assert.equal(mapping.schema_version, 1);
+    assert.ok(mapping.mapping.external_id, "Must map external_id");
+    assert.ok(mapping.mapping.title, "Must map title");
+    assert.ok(mapping.mapping.files, "Must map files");
+    assert.equal(mapping.unknown_fields_policy, "preserve_in_raw_not_silent_drop");
+  });
+
+  it("validates that contracts/source-descriptors/binance-vision.json conforms to source-descriptor.schema.json", () => {
+    const descriptorPath = path.join(contractsDir, "source-descriptors/binance-vision.json");
+    assert.ok(fs.existsSync(descriptorPath), "binance-vision.json descriptor must exist");
+
+    const descriptor: SourceDescriptor = JSON.parse(fs.readFileSync(descriptorPath, "utf-8"));
+    assert.equal(descriptor.source_id, "binance-vision");
+    assert.equal(descriptor.method, "http");
+    assert.equal(descriptor.rights_status, "approved");
+    assert.equal(descriptor.pagination.mode, "cursor");
+    assert.equal(descriptor.pagination.checkpoint_after_durable_commit, true);
+    assert.ok(descriptor.budget.max_requests >= 1000);
+    assert.ok(descriptor.budget.max_bytes >= 1048576);
+    assert.ok(descriptor.budget.max_seconds >= 60);
+  });
+
+  it("validates that contracts/field-mappings/binance-vision.json defines valid mapping", () => {
+    const mappingPath = path.join(contractsDir, "field-mappings/binance-vision.json");
+    assert.ok(fs.existsSync(mappingPath), "binance-vision.json field mapping must exist");
+
+    const mapping = JSON.parse(fs.readFileSync(mappingPath, "utf-8"));
+    assert.equal(mapping.source_id, "binance-vision");
+    assert.equal(mapping.schema_version, 1);
+    assert.ok(mapping.mapping.external_id, "Must map external_id");
+    assert.ok(mapping.mapping.symbol, "Must map symbol");
+    assert.ok(mapping.mapping.open_time, "Must map open_time");
+    assert.ok(mapping.mapping.close, "Must map close");
+    assert.equal(mapping.unknown_fields_policy, "preserve_in_raw_not_silent_drop");
+  });
 });

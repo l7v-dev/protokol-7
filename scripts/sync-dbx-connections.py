@@ -58,7 +58,10 @@ def sync_dbx_connections():
         ("protokol-control-plane", os.path.join(base_dir, "data/catalogs/control_plane.sqlite")),
         ("protokol-dergipark", os.path.join(base_dir, "data/catalogs/dergipark_catalog.sqlite")),
         ("protokol-doaj", os.path.join(base_dir, "data/catalogs/doaj_catalog.sqlite")),
+        ("protokol-aperta", os.path.join(base_dir, "data/catalogs/aperta_catalog.sqlite")),
+        ("protokol-binance", os.path.join(base_dir, "data/catalogs/binance_catalog.sqlite")),
         ("protokol-biorxiv", os.path.join(base_dir, "data/catalogs/biorxiv_catalog.sqlite")),
+
         ("protokol-pubmed", os.path.join(base_dir, "data/catalogs/pubmed_catalog.sqlite")),
         ("protokol-instagram", os.path.join(base_dir, "data/catalogs/instagram.sqlite")),
         ("protokol-openalex", os.path.join(base_dir, "data/catalogs/openalex_catalog.sqlite")),

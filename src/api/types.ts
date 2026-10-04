@@ -81,7 +81,9 @@ export type ActorType =
   | "instagram"
   | "pubmed"
   | "biorxiv"
-  | "doaj";
+  | "doaj"
+  | "aperta"
+  | "binance-vision";
 
 export interface ExtractedTable {
   id: string;
@@ -2183,6 +2185,108 @@ export interface DoajActorResult {
   markdown: string;
 }
 
+export interface ApertaFileItem {
+  id?: string;
+  key?: string;
+  size?: number;
+  checksum?: string;
+  downloadUrl?: string;
+}
+
+export interface ApertaRecordItem {
+  id: string;
+  doi?: string;
+  title: string;
+  creators?: string;
+  description?: string;
+  publisher?: string;
+  publicationDate?: string;
+  resourceType?: string;
+  language?: string;
+  keywords?: string[];
+  subjects?: string[];
+  rights?: string;
+  files?: ApertaFileItem[];
+  fileCount?: number;
+  totalFileSize?: number;
+  charCount?: number;
+  wordCount?: number;
+  markdown?: string;
+}
+
+export interface ApertaActorTaskOptions {
+  action?: "search_records" | "get_record" | "list_files";
+  query?: string;
+  recordId?: string;
+  page?: number;
+  pageSize?: number;
+  sort?: string;
+  timeoutMs?: number;
+}
+
+export interface ApertaActorResult {
+  action: "search_records" | "get_record" | "list_files";
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  records: ApertaRecordItem[];
+  queryUrl: string;
+  markdown: string;
+}
+
+export interface BinanceVisionFileItem {
+  key: string;
+  size: number;
+  lastModified?: string;
+  downloadUrl: string;
+  checksumUrl?: string;
+}
+
+export interface BinanceVisionKlineItem {
+  openTime: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  closeTime: number;
+  quoteAssetVolume: number;
+  numberOfTrades: number;
+  takerBuyBaseAssetVolume: number;
+  takerBuyQuoteAssetVolume: number;
+  symbol: string;
+  market: string;
+  interval: string;
+}
+
+export interface BinanceVisionActorTaskOptions {
+  action?: "list_files" | "list_symbols" | "get_latest_klines" | "get_file_info";
+  market?: "spot" | "futures_um" | "futures_cm";
+  dataType?: "klines" | "trades" | "aggTrades";
+  symbol?: string;
+  interval?: string;
+  periodType?: "monthly" | "daily";
+  year?: string;
+  month?: string;
+  limit?: number;
+  timeoutMs?: number;
+}
+
+export interface BinanceVisionActorResult {
+  action: "list_files" | "list_symbols" | "get_latest_klines" | "get_file_info";
+  market: string;
+  dataType: string;
+  symbol?: string;
+  interval?: string;
+  periodType?: string;
+  totalCount: number;
+  files?: BinanceVisionFileItem[];
+  klines?: BinanceVisionKlineItem[];
+  symbols?: string[];
+  queryUrl: string;
+  markdown: string;
+}
+
 export interface IetfRfcItem {
   rfcNumber: number;
   title: string;
@@ -3145,6 +3249,8 @@ export interface ActorTask {
     pubmedOptions?: PubmedActorTaskOptions;
     biorxivOptions?: BiorxivActorTaskOptions;
     doajOptions?: DoajActorTaskOptions;
+    apertaOptions?: ApertaActorTaskOptions;
+    binanceVisionOptions?: BinanceVisionActorTaskOptions;
     contentType?: "markdown" | "text" | "html";
     proxy?: ProxyConfig;
     storageState?: string | StoredSessionState;

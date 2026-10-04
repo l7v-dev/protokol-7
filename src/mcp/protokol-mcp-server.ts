@@ -19,9 +19,11 @@ import type {
   ActorTask,
   ActorType,
   AnayasaMahkemesiActorTaskOptions,
+  ApertaActorTaskOptions,
   ApiExtractorTaskOptions,
   ArchiveExtractorTaskOptions,
   ArxivActorTaskOptions,
+  BinanceVisionActorTaskOptions,
   BiorxivActorTaskOptions,
   ClinicalTrialsActorTaskOptions,
   CodeEvalActorTaskOptions,
@@ -1430,6 +1432,14 @@ export class ProtokolMcpServer {
             doajOptions:
               manifest.actorType === "doaj"
                 ? (toolArgs as unknown as DoajActorTaskOptions)
+                : undefined,
+            apertaOptions:
+              manifest.actorType === "aperta"
+                ? (toolArgs as unknown as ApertaActorTaskOptions)
+                : undefined,
+            binanceVisionOptions:
+              manifest.actorType === "binance-vision"
+                ? (toolArgs as unknown as BinanceVisionActorTaskOptions)
                 : undefined,
           },
         };

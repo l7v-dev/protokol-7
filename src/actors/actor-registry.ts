@@ -3,9 +3,11 @@
  */
 
 import type { ActorType, IActor } from "../api/types";
-// corpus: LLM training data source actors
 import { AnayasaMahkemesiActor } from "./corpus/anayasa-mahkemesi-actor";
+// corpus: LLM training data source actors
+import { ApertaActor } from "./corpus/aperta-actor";
 import { ArxivActor } from "./corpus/arxiv-actor";
+import { BinanceVisionActor } from "./corpus/binance-vision-actor";
 import { BiorxivActor } from "./corpus/biorxiv-actor";
 import { ClinicalTrialsActor } from "./corpus/clinical-trials-actor";
 import { CodeEvalActor } from "./corpus/code-eval-actor";
@@ -175,5 +177,7 @@ export function createDefaultActorRegistry(): ActorRegistry {
   registry.register(new PubmedActor());
   registry.register(new BiorxivActor());
   registry.register(new DoajActor());
+  registry.register(new ApertaActor());
+  registry.register(new BinanceVisionActor());
   return registry;
 }

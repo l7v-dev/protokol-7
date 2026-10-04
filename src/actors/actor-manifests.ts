@@ -8709,4 +8709,292 @@ export const ACTOR_MANIFESTS: Record<string, ActorManifest> = {
       },
     },
   },
+  aperta: {
+    actorType: "aperta",
+    name: "aperta",
+    title: "TUBITAK ULAKBIM Aperta (Turkiye Acik Arsivi) Extractor",
+    category: "API",
+    version: "1.0.0",
+    description:
+      "Queries TUBITAK ULAKBIM Aperta Invenio REST API for open science research datasets, publications, theses, metadata, and direct file download links.",
+    author: "protokol-7",
+    tags: [
+      "aperta",
+      "tubitak",
+      "ulakbim",
+      "open-archive",
+      "datasets",
+      "academic",
+      "invenio",
+      "llm-data",
+    ],
+    inputSchema: {
+      type: "object",
+      title: "Aperta Extractor Input",
+      description: "Aperta Invenio REST API query and search parameters",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "İşlem Türü",
+          enum: ["search_records", "get_record", "list_files"],
+          description: "Operation type: 'search_records', 'get_record', or 'list_files'",
+        },
+        query: {
+          name: "query",
+          type: "string",
+          title: "Arama Sorgusu",
+          description:
+            "Keyword or query syntax for searching Aperta records and datasets (e.g. 'biyoinformatik', 'yapay zeka')",
+        },
+        recordId: {
+          name: "recordId",
+          type: "string",
+          title: "Kayıt Kimliği",
+          description: "Unique Aperta record ID for get_record action (e.g. '241793')",
+        },
+        page: {
+          name: "page",
+          type: "number",
+          title: "Sayfa Numarası",
+          description: "Page number for pagination (starts at 1, default 1)",
+        },
+        pageSize: {
+          name: "pageSize",
+          type: "number",
+          title: "Sayfa Başına Kayıt",
+          description: "Number of records per page (default 20, max 100)",
+        },
+        sort: {
+          name: "sort",
+          type: "string",
+          title: "Sıralama",
+          description: "Sort order (e.g. 'mostrecent')",
+        },
+        targetUrl: {
+          name: "targetUrl",
+          type: "string",
+          title: "Özel Hedef URL",
+          description: "Optional custom or proxy target URL for Aperta API requests",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Çalıştırılan sorgu eylemi" },
+        totalCount: { type: "number", description: "Toplam eşleşen kayıt sayısı" },
+        page: { type: "number", description: "Mevcut sayfa numarası" },
+        pageSize: { type: "number", description: "Sayfa boyutu" },
+        records: {
+          type: "array",
+          description: "Ayıklanan Aperta açık arşiv ve veri seti kayıtları",
+        },
+        queryUrl: { type: "string", description: "Kullanılan Aperta API sorgu adresi" },
+        markdown: { type: "string", description: "Sentezlenen LLM eğitim markdown tablosu" },
+      },
+    },
+    exampleInput: {
+      action: "search_records",
+      query: "biyoloji",
+      pageSize: 10,
+    },
+    readme:
+      "# TUBITAK ULAKBIM Aperta Extractor\n\nAperta Invenio REST API üzerinden araştırma veri setlerini, tezleri, yayınları, üstverileri ve dosya indirme bağlantılarını çeker.",
+    mcpTool: {
+      name: "query_aperta",
+      description:
+        "Queries TUBITAK ULAKBIM Aperta (Turkiye Acik Arsivi) for open science datasets, publications, metadata, and files.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["search_records", "get_record", "list_files"],
+            description: "Operation type: 'search_records', 'get_record', or 'list_files'",
+          },
+          query: {
+            type: "string",
+            description: "Search query or keyword (e.g. 'derin ogrenme', 'genetik', 'dataset')",
+          },
+          recordId: {
+            type: "string",
+            description: "Unique Aperta record ID to retrieve directly (e.g. '241793')",
+          },
+          page: {
+            type: "number",
+            description: "1-indexed page number (default 1)",
+          },
+          pageSize: {
+            type: "number",
+            description: "Number of records to retrieve (1-100, default 20)",
+          },
+          sort: {
+            type: "string",
+            description: "Optional sort parameter (e.g. 'mostrecent')",
+          },
+          targetUrl: {
+            type: "string",
+            description: "Optional custom URL endpoint",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  "binance-vision": {
+    actorType: "binance-vision",
+    name: "binance-vision",
+    title: "Binance Vision Public Data Extractor",
+    category: "API",
+    version: "1.0.0",
+    description:
+      "Queries and streams historical cryptocurrency market datasets (klines, trades, aggTrades) from Binance Vision public Amazon S3 repository.",
+    author: "protokol-7",
+    tags: ["binance", "crypto", "timeseries", "market-data", "klines", "trades", "financial", "s3"],
+    inputSchema: {
+      type: "object",
+      title: "Binance Vision Extractor Input",
+      description: "Binance Vision S3 query parameters",
+      properties: {
+        action: {
+          name: "action",
+          type: "string",
+          title: "İşlem Türü",
+          enum: ["list_files", "list_symbols", "get_file_info"],
+          description: "Operation type: 'list_files', 'list_symbols', or 'get_file_info'",
+        },
+        market: {
+          name: "market",
+          type: "string",
+          title: "Piyasa Segmenti",
+          enum: ["spot", "futures_um", "futures_cm"],
+          description: "Market segment: 'spot', 'futures_um', or 'futures_cm'",
+        },
+        dataType: {
+          name: "dataType",
+          type: "string",
+          title: "Veri Türü",
+          enum: ["klines", "trades", "aggTrades"],
+          description: "Data category: 'klines', 'trades', or 'aggTrades'",
+        },
+        symbol: {
+          name: "symbol",
+          type: "string",
+          title: "İşlem Çifti",
+          description: "Trading pair symbol (e.g. 'BTCUSDT', 'ETHUSDT')",
+        },
+        interval: {
+          name: "interval",
+          type: "string",
+          title: "Mum Periyodu",
+          description: "Kline interval (e.g. '1d', '1h', '1m')",
+        },
+        periodType: {
+          name: "periodType",
+          type: "string",
+          title: "Arşiv Frekansı",
+          enum: ["monthly", "daily"],
+          description: "Archive granularity: 'monthly' or 'daily'",
+        },
+        year: {
+          name: "year",
+          type: "string",
+          title: "Hedef Yıl",
+          description: "Target year for get_file_info (e.g. '2024')",
+        },
+        month: {
+          name: "month",
+          type: "string",
+          title: "Hedef Ay",
+          description: "Target month for get_file_info (e.g. '01')",
+        },
+        limit: {
+          name: "limit",
+          type: "number",
+          title: "Kayıt Limiti",
+          description: "Max number of items to return (default 50)",
+        },
+      },
+      required: [],
+    },
+    outputSchema: {
+      type: "object",
+      fields: {
+        action: { type: "string", description: "Çalıştırılan sorgu eylemi" },
+        market: { type: "string", description: "Piyasa türü" },
+        dataType: { type: "string", description: "Veri kategorisi" },
+        symbol: { type: "string", description: "İşlem sembolü" },
+        totalCount: { type: "number", description: "Toplam bulunan öğe sayısı" },
+        files: { type: "array", description: "Bulunan S3 ZIP arşivleri listesi" },
+        symbols: { type: "array", description: "Bulunan semboller listesi" },
+        queryUrl: { type: "string", description: "Kullanılan S3 sorgu adresi" },
+        markdown: { type: "string", description: "Sentezlenen GFM markdown tablosu" },
+      },
+    },
+    exampleInput: {
+      action: "list_files",
+      market: "spot",
+      dataType: "klines",
+      symbol: "BTCUSDT",
+      interval: "1d",
+      periodType: "monthly",
+      limit: 50,
+    },
+
+    readme:
+      "# Binance Vision Public Data Extractor\n\nBinance Vision Amazon S3 deposu üzerinden Spot ve Futures piyasalarına ait tarihsel mum (kline OHLCV), işlem (trade) ve toplu işlem (aggTrade) arşivlerini, dosya anahtarlarını ve indirme bağlantılarını sorgular.",
+    mcpTool: {
+      name: "query_binance_vision",
+      description:
+        "Queries Binance Vision public S3 storage for historical cryptocurrency datasets, file keys, and direct download links.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["list_files", "list_symbols", "get_file_info"],
+            description: "Operation type: 'list_files', 'list_symbols', or 'get_file_info'",
+          },
+          market: {
+            type: "string",
+            enum: ["spot", "futures_um", "futures_cm"],
+            description: "Market segment: 'spot', 'futures_um', or 'futures_cm' (default 'spot')",
+          },
+          dataType: {
+            type: "string",
+            enum: ["klines", "trades", "aggTrades"],
+            description: "Data category: 'klines', 'trades', or 'aggTrades' (default 'klines')",
+          },
+          symbol: {
+            type: "string",
+            description: "Trading pair symbol (e.g. 'BTCUSDT', 'ETHUSDT')",
+          },
+          interval: {
+            type: "string",
+            description: "Kline interval: '1m', '5m', '15m', '1h', '4h', '1d', '1w' (default '1d')",
+          },
+          periodType: {
+            type: "string",
+            enum: ["monthly", "daily"],
+            description: "Archive granularity: 'monthly' or 'daily' (default 'monthly')",
+          },
+          year: {
+            type: "string",
+            description: "Target year for get_file_info (e.g. '2024')",
+          },
+          month: {
+            type: "string",
+            description: "Target month for get_file_info (e.g. '01', '08')",
+          },
+          limit: {
+            type: "number",
+            description: "Max number of items to return (default 50)",
+          },
+        },
+        required: [],
+      },
+    },
+  },
 };
