@@ -1,0 +1,20 @@
+{
+  "source_id": "binance-vision",
+  "name": "Binance Vision Public Data Repository",
+  "method": "http",
+  "adapter_version": "1.0.0",
+  "record_type": "financial_timeseries_record",
+  "external_id_field": "file_key",
+  "pagination": {
+    "mode": "cursor",
+    "checkpoint_after_durable_commit": true
+  },
+  "budget": {
+    "max_requests": 1000000,
+    "max_bytes": 10995116277760,
+    "max_seconds": 604800
+  },
+  "purpose": "Financial Timeseries & Quantitative LLM Reasoning Corpus",
+  "rights_status": "approved",
+  "retention_policy_id": "raw-default"
+}

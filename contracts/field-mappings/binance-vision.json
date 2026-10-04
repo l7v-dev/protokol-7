@@ -1,0 +1,32 @@
+{
+  "source_id": "binance-vision",
+  "schema_version": 1,
+  "mapping": {
+    "external_id": "file_key",
+    "symbol": "symbol",
+    "market": "market",
+    "interval": "interval",
+    "period_type": "period_type",
+    "open_time": "open_time",
+    "open": "open",
+    "high": "high",
+    "low": "low",
+    "close": "close",
+    "volume": "volume",
+    "close_time": "close_time",
+    "quote_asset_volume": "quote_asset_volume",
+    "number_of_trades": "number_of_trades",
+    "taker_buy_base_volume": "taker_buy_base_asset_volume",
+    "taker_buy_quote_volume": "taker_buy_quote_asset_volume"
+  },
+  "missing_field_policy": "null_with_reason",
+  "unknown_fields_policy": "preserve_in_raw_not_silent_drop",
+  "observations": {
+    "record_metrics": {
+      "row_count": "row_count",
+      "start_time": "start_time",
+      "end_time": "end_time",
+      "file_size_bytes": "file_size_bytes"
+    }
+  }
+}
