@@ -1,0 +1,20 @@
+{
+  "source_id": "aperta",
+  "name": "TUBITAK ULAKBIM Aperta Open Science Archive",
+  "method": "oai_pmh",
+  "adapter_version": "1.0.0",
+  "record_type": "open_archive_record",
+  "external_id_field": "id",
+  "pagination": {
+    "mode": "resumption_token",
+    "checkpoint_after_durable_commit": true
+  },
+  "budget": {
+    "max_requests": 200000,
+    "max_bytes": 107374182400,
+    "max_seconds": 86400
+  },
+  "purpose": "LLM Pre-training and Academic RAG Corpus",
+  "rights_status": "approved",
+  "retention_policy_id": "raw-default"
+}

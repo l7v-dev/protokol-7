@@ -1,0 +1,30 @@
+{
+  "source_id": "aperta",
+  "schema_version": 1,
+  "mapping": {
+    "external_id": "id",
+    "title": "title",
+    "authors": "creators",
+    "abstract": "description",
+    "publisher": "publisher",
+    "source_created_at": "publication_date",
+    "resource_type": "resource_type",
+    "language": "language",
+    "doi": "doi",
+    "identifiers": "identifiers",
+    "keywords": "keywords",
+    "subjects": "science_branches",
+    "license": "rights",
+    "files": "files"
+  },
+  "missing_field_policy": "null_with_reason",
+  "unknown_fields_policy": "preserve_in_raw_not_silent_drop",
+  "observations": {
+    "record_metrics": {
+      "char_count": "char_count",
+      "word_count": "word_count",
+      "file_count": "file_count",
+      "total_file_size": "total_file_size"
+    }
+  }
+}
