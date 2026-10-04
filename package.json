@@ -1,7 +1,8 @@
 {
   "name": "protokol-7",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
+
   "description": "Headless Web Scraping, Deep Crawling & Anti-Detection Browser Automation Microservice",
   "main": "dist/index.js",
   "scripts": {
