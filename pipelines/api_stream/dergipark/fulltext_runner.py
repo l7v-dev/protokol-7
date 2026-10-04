@@ -436,17 +436,20 @@ def main():
                             total_chars += c_cnt
                             total_pages += p_cnt
                         else:
-                            # Only permanently mark failed for permanent non-extractable conditions
-                            if status in ("scanned_or_sparse", "invalid_magic", "too_large", "no_url", "invalid_pdf_bytes"):
+                            err_msg = str(res.get("error") or "")
+                            status_str = str(status or "")
+                            # Rate limits and server busy timeouts are transient (retry later)
+                            is_transient = "429" in err_msg or "429" in status_str or "503" in err_msg or "timed out" in err_msg
+                            if not is_transient:
+                                fail_reason = status if status not in ("failed", None, "") else (err_msg or "failed")
                                 ledger.mark_pdf_failed(
                                     article_id=art_id,
-                                    status=status,
+                                    status=fail_reason,
                                     pdf_url=res.get("pdf_url"),
                                 )
                                 total_failed += 1
                             else:
-                                # Transient rate limit or temporary network pause: leave as pending for retry
-                                if "429" in status:
+                                if "429" in err_msg or "429" in status_str:
                                     print(f"[DERGIPARK-RATE] Received HTTP 429 rate limit. Cooling down 6s...", flush=True)
                                     time.sleep(6.0)
 
