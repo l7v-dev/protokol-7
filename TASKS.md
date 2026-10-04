@@ -13,8 +13,8 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 - [ ] **DergiPark Tam Metin Çıkarımı ve Ham PDF Arşivleme Akışı (`dergipark`)** — `Tier: 1`
   - **Durum:** DergiPark kataloğundaki 131.127 makalenin tam metin PDF indirmesi, PyMuPDF Markdown katman çıkarımı, Zstandard Parquet sharder ve toleranslı çoklu-GB (10-50 GB, maks 51 GB) ham PDF TAR.GZ arşivleyici arka plan daemon'ı olarak yürütülüyor.
-  - **Süreç:** `python -u pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 0 --workers 2 --rate-limit 1.15 --batch-size 50 --max-shard-records 2000 --pdf-archive-gb 10.0 --max-pdf-archive-gb 51.0 --min-free-disk-gb 25.0`
-  - **İlerleme:** Cloudflare 429 hız aşımı önlenerek 2 paralel işçi ve 1.15s nezaket aralığıyla kararlı baz hızına sabitlendi. 429 yanıtlarında geçici bekleme (soğuma) uygulanırken kalıcı bozuk bağlantılar kaydedilerek kuyruk akıcı şekilde ilerletiliyor. Çıkarılan tam metinler Zstandard Parquet shard'larına, ham PDF ikilileri ise 10-50 GB'lık WebDataset TAR.GZ arşivlerine yazılıp doğrudan Google Drive'a aktarılıyor.
+  - **Süreç:** `python -u pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 0 --workers 2 --rate-limit 1.75 --batch-size 50 --max-shard-records 2000 --pdf-archive-gb 10.0 --max-pdf-archive-gb 51.0 --min-free-disk-gb 25.0`
+  - **İlerleme:** Cloudflare 429 hız aşımı önlenerek 2 paralel işçi ve 1.75s nezaket aralığıyla kararlı baz hızına sabitlendi. ThreadSafeRateLimiter küresel soğuma desteğiyle tüm işçiler tek noktadan koordine ediliyor. Çıkarılan tam metinler Zstandard Parquet shard'larına, ham PDF ikilileri ise 10-50 GB'lık WebDataset TAR.GZ arşivlerine yazılıp doğrudan Google Drive'a aktarılıyor.
   - **Takip:** `tail -f logs/dergipark_fulltext.log`
 
 - [ ] **DOAJ Canlı Tam Katalog Akışı ve Parquet Paketleme (`doaj`)** — `Tier: 1`

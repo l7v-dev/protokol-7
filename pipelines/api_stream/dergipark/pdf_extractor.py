@@ -54,6 +54,14 @@ class ThreadSafeRateLimiter:
                 time.sleep(self.min_interval - elapsed)
             self._last_time = time.time()
 
+    def cooldown(self, seconds: float = 8.0) -> None:
+        """
+        Forces all worker threads to wait for specified cooldown duration.
+        """
+        with self._lock:
+            now = time.time()
+            self._last_time = max(self._last_time, now + seconds)
+
 
 class DergiParkPdfExtractor:
     """
@@ -120,9 +128,12 @@ class DergiParkPdfExtractor:
                     return None, "could_not_resolve_pdf_link"
 
             except urllib.error.HTTPError as he:
-                if he.code in (429, 503) and attempt < 3:
-                    time.sleep(3.0 * attempt)
-                    continue
+                if he.code in (429, 503):
+                    if self.rate_limiter and hasattr(self.rate_limiter, "cooldown"):
+                        self.rate_limiter.cooldown(8.0)
+                    if attempt < 3:
+                        time.sleep(3.0 * attempt)
+                        continue
                 return None, f"http_{he.code}"
             except Exception as e:
                 if attempt < 3:
@@ -183,10 +194,13 @@ class DergiParkPdfExtractor:
                     return pdf_bytes, None
 
             except urllib.error.HTTPError as he:
-                if he.code in (429, 503) and attempt < 3:
-                    time.sleep(backoff)
-                    backoff *= 2.0
-                    continue
+                if he.code in (429, 503):
+                    if self.rate_limiter and hasattr(self.rate_limiter, "cooldown"):
+                        self.rate_limiter.cooldown(8.0)
+                    if attempt < 3:
+                        time.sleep(backoff)
+                        backoff *= 2.0
+                        continue
                 return None, f"http_{he.code}"
             except Exception as e:
                 if attempt < 3:

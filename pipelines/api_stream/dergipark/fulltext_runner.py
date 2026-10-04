@@ -91,8 +91,8 @@ def main():
     parser.add_argument(
         "--rate-limit",
         type=float,
-        default=1.15,
-        help="Minimum seconds between requests across all workers (default: 1.15s)",
+        default=1.75,
+        help="Minimum seconds between requests across all workers (default: 1.75s)",
     )
     parser.add_argument(
         "--shard-size-mb",
@@ -450,8 +450,9 @@ def main():
                                 total_failed += 1
                             else:
                                 if "429" in err_msg or "429" in status_str:
-                                    print(f"[DERGIPARK-RATE] Received HTTP 429 rate limit. Cooling down 6s...", flush=True)
-                                    time.sleep(6.0)
+                                    print(f"[DERGIPARK-RATE] Received HTTP 429 rate limit. Cooling down 8s...", flush=True)
+                                    rate_limiter.cooldown(8.0)
+                                    time.sleep(8.0)
 
 
                     if total_processed % 10 == 0 or total_processed == max_target:
