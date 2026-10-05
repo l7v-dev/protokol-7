@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "log-event.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "log-event.v1"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "observed_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "event_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "severity_text": {
+      "enum": [
+        "DEBUG",
+        "INFO",
+        "WARN",
+        "ERROR"
+      ]
+    },
+    "severity_number": {
+      "enum": [
+        5,
+        9,
+        13,
+        17
+      ]
+    },
+    "body": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trace_id": {
+      "type": "string",
+      "pattern": "^(?!0{32}$)[0-9a-f]{32}$"
+    },
+    "span_id": {
+      "type": "string",
+      "pattern": "^(?!0{16}$)[0-9a-f]{16}$"
+    },
+    "service_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "deployment_env": {
+      "type": "string",
+      "minLength": 1
+    },
+    "content_capture": {
+      "const": false
+    },
+    "blueprint_run_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "blueprint_agent_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "blueprint_skill_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "blueprint_status": {
+      "enum": [
+        "success",
+        "partial",
+        "failed",
+        "aborted"
+      ]
+    },
+    "blueprint_duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "schema_version",
+    "timestamp",
+    "observed_timestamp",
+    "event_name",
+    "severity_text",
+    "severity_number",
+    "body",
+    "trace_id",
+    "span_id",
+    "service_name",
+    "service_version",
+    "deployment_env",
+    "content_capture"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "severity_text": {
+            "const": "DEBUG"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "severity_number": {
+            "const": 5
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "severity_text": {
+            "const": "INFO"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "severity_number": {
+            "const": 9
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "severity_text": {
+            "const": "WARN"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "severity_number": {
+            "const": 13
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "severity_text": {
+            "const": "ERROR"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "severity_number": {
+            "const": 17
+          }
+        }
+      }
+    }
+  ]
+}

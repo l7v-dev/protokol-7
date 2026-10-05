@@ -21,7 +21,8 @@ Bilerek **kısa** tutulur — her oturumda tam bağlamla yüklenen tek dosya bud
 | **Bazal Ganglia** | `rules/failure-checklist.md` | İş bitmeden önce (%79,5 hata önleme) |
 | **Loglama Disiplini** | `rules/logging-discipline.md` | Sıfır emoji, standart ASCII loglama |
 | **Üst-Biliş** | `rules/metacognition.md` | Döngüye girildiğinde veya 3+ dosyada |
-| **Serebellum** | `skills/` | İhtiyaç duyulan teknik prosedürlerde |
+| **Serebellum (dev)** | `.agents/skills/dev/` | Kod geliştirme, hata teşhisi ve incelemede |
+| **Serebellum (ops)** | `.agents/skills/ops/` | Veri toplama, kalite, provenance ve yayımlamada |
 | **Korteks** | `context/` | Proje standartları ve mimari sözleşmelerde |
 | **Planlama Deposu**| `docs/plans/` | `<gorev-adi>-plani.md` kalıcı depolanır |
 | **Doğrulama Deposu**| `docs/walkthroughs/` | `<gorev-adi>-walkthrough.md` kalıcı depolanır |
@@ -34,3 +35,13 @@ Bilerek **kısa** tutulur — her oturumda tam bağlamla yüklenen tek dosya bud
 - **Sıfır Emoji:** Hiçbir logda, kod yorumunda veya commit mesajında emoji kullanılamaz.
 - **Kalıcı Görev Planları:** Antigravity ile üretilen planlar `docs/plans/<gorev-adi>-plani.md`, walkthrough'lar `docs/walkthroughs/<gorev-adi>-walkthrough.md` olarak saklanır.
 - **Dürüst Mimari Danışmanlık ve Erken Uyarı:** Kullanıcı anti-pattern, katman kirliliği (ör. aktör içine transport/mcp gömme) veya verimsiz/hatalı bir yaklaşım önerdiğinde, ajanın körü körüne uygulaması kesinlikle yasaktır. Ajan derhal durup teknik riskleri açıkça belirtmeli, kullanıcıyı uyarmalı ve temiz standardı savunmalıdır.
+
+## Mimari Sınırlar
+
+- **Agent:** Görev kapsamındaki kararları verir; ActorRegistry aktör çözümlemesini, WorkerPool yürütmeyi sağlar.
+- **Skill:** Sürüm ve girdi/çıktı sözleşmesiyle prosedürü tanımlar; araç yetkisi sağlamaz.
+- **Tool:** Aktör metodu veya processor ile işlemi gerçekleştirir.
+- **Connector:** `src/pipeline/connectors/` ve `src/pipeline/storage/` üzerinden dış sisteme erişir.
+- **Workflow:** Pipeline yapılandırması ve ScheduleBroker ile adım sırasını yürütür.
+
+`skills/` kök symlink'i korunur. Ops becerisinin çalışma zamanı bağımlılıkları eksikse sonuç `blocked` olur; planlanan tablolar veya release kapıları uygulanmış kabul edilmez.

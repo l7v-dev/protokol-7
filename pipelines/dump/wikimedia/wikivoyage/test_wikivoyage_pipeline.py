@@ -12,6 +12,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+import pyarrow as pa
 import pyarrow.parquet as pq
 
 from cleaner import clean_wikivoyage_text, stream_wikivoyage_entries
@@ -128,7 +129,8 @@ Istanbul is Turkey's most populous city and its cultural, economic and historic 
 
         table = pq.read_table(shards[0])
         self.assertEqual(table.num_rows, 2)
-        self.assertEqual(table.schema, WIKIVOYAGE_SCHEMA)
+        self.assertEqual(table.schema, WIKIVOYAGE_SCHEMA.append(pa.field("pii_status", pa.string())))
+        self.assertEqual(table.column("pii_status").to_pylist(), ["unchecked"] * table.num_rows)
         self.assertEqual(table["title"][0].as_py(), "Istanbul")
 
     def test_ledger_manager_initialization(self):

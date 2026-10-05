@@ -9,9 +9,14 @@ from dataclasses import dataclass
 import datetime
 import hashlib
 import os
+import sys
 from typing import Any, Dict, List, Optional
+from pathlib import Path
+
 import pyarrow as pa
 import pyarrow.parquet as pq
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from pipelines.shared.pii_status import with_pii_schema, with_pii_table
 
 # Standard Schema for LLM Pre-training / Fine-tuning Shards
 PARQUET_SCHEMA = pa.schema([
@@ -86,7 +91,7 @@ class StreamingParquetPacker:
 
         self.current_writer = pq.ParquetWriter(
             self.current_filepath,
-            PARQUET_SCHEMA,
+            with_pii_schema(PARQUET_SCHEMA),
             compression="zstd",
             compression_level=self.compression_level,
         )
@@ -118,6 +123,7 @@ class StreamingParquetPacker:
             pa.array([r["created_at"] for r in self.buffer], type=pa.string()),
         ]
         table = pa.Table.from_arrays(arrays, schema=PARQUET_SCHEMA)
+        table = with_pii_table(table, self.buffer)
         self.current_writer.write_table(table)
         self.current_row_groups += 1
 

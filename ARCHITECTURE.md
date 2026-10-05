@@ -9,7 +9,9 @@ This document defines the root-to-leaf directory taxonomy, component responsibil
 ```text
 protokol-7/
 ├── .agents/                 # AI engineering skills library (Serebellum)
-│   └── skills/              # Domain-specific procedures (naming, review, debugging)
+│   └── skills/
+│       ├── dev/             # Development, review and debugging procedures
+│       └── ops/             # Versioned data operations and input/output schemas
 ├── rules/                   # Deterministic cognitive invariants (Amygdala & Basal Ganglia)
 │   ├── trust-tiers.md       # Blast radius operational constraints (Tier 0 - Tier 3)
 │   ├── failure-checklist.md # Verification checklist before code completion
@@ -23,14 +25,17 @@ protokol-7/
 ├── docs/                    # Persistent records, engineering plans, and walkthroughs
 │   ├── plans/               # Task implementation plans (<task>-plani.md)
 │   ├── walkthroughs/        # Execution verifications (<task>-walkthrough.md)
-│   ├── adr/                 # Architecture Decision Records (ADR 0001 - 0004)
+│   ├── archive/             # Completed plans and walkthroughs
+│   ├── adr/                 # Architecture Decision Records
 │   └── git-commit-convention.md # Conventional Commits v1.0 specification
+├── contracts/schemas/       # Blueprint v1 JSON Schema contracts
+├── infra/compose/           # Docker Compose deployment
 ├── scripts/                 # Deterministic verification and system map generators
 │   ├── verify-pipeline.mjs  # Five-stage project verification runner
 │   ├── generate-connectome.mjs # AST/regex connectome system map generator
 │   └── sca-check.mjs        # Live npm registry supply chain security validator
 ├── src/                     # Core application source code (Domain-driven structure)
-│   ├── core/                # System runtime contracts, HTTP router, barrel entry
+│   ├── api/                 # Runtime contracts, REST routers and registry database
 │   ├── actors/              # Specialized web scraping, crawling, and extraction actors
 │   ├── browser/             # Playwright pool, session isolation, stealth, and DOM indexing
 │   ├── extractors/          # Readability markdown distillation, table parsing, robots parser
@@ -50,7 +55,7 @@ protokol-7/
 
 ```mermaid
 graph TD
-    Client["HTTP Client / CLI"] --> Server["src/core/server.ts"]
+    Client["HTTP Client / CLI"] --> Server["src/server.ts"]
     Server --> Registry["src/actors/actor-registry.ts"]
     
     subgraph "Actors Layer (src/actors/)"
@@ -93,10 +98,10 @@ graph TD
     end
 ```
 
-### 2.1 Core Runtime (`src/core/`)
-- **`types.ts`**: TypeScript interfaces defining `ActorTask`, `ActorResult`, `ScrapedPageResult`, `CrawlerResult`, `BrowserActionResult`.
-- **`server.ts`**: Native Node.js HTTP router handling REST endpoints (`/health`, `/api/v1/actors`, `/api/v1/scrape`, `/api/v1/crawl`, `/api/v1/sitemap`, `/api/v1/reader`, `/api/v1/network/intercept`, `/api/v1/search`, `/api/v1/pdf`, `/api/v1/browser/action`, `/api/v1/browser/session/:id`).
-- **`index.ts`**: Central domain barrel export aggregating actors, browser, extractors, and network modules.
+### 2.1 Runtime (`src/api/` and root entry points)
+- **`src/api/types.ts`**: TypeScript interfaces defining `ActorTask`, `ActorResult`, `ScrapedPageResult`, `CrawlerResult`, `BrowserActionResult`.
+- **`src/server.ts`**: Native Node.js HTTP router handling REST endpoints (`/health`, `/api/v1/actors`, `/api/v1/scrape`, `/api/v1/crawl`, `/api/v1/sitemap`, `/api/v1/reader`, `/api/v1/network/intercept`, `/api/v1/search`, `/api/v1/pdf`, `/api/v1/browser/action`, `/api/v1/browser/session/:id`).
+- **`src/index.ts` and `src/api/index.ts`**: Central domain barrel export aggregating actors, browser, extractors, and network modules.
 
 ### 2.2 Actors Layer (`src/actors/`)
 - **`actor-registry.ts`**: Singleton registry instantiating and resolving actors by string identifier (`ActorType`).
@@ -141,3 +146,51 @@ graph TD
 3. **Reproducibility**:
    - Development environment is pinned via Nix Flake (`flake.nix`), locking Node.js 22, pnpm, and Chromium.
    - All tests run via pure Node.js test runner (`tsx --test`) with zero mock frameworks.
+
+
+## 4. Agent, Skill, Tool, Connector and Workflow
+
+An agent chooses actions within the task scope. ActorRegistry resolves actors and WorkerPool executes work; neither is an independent reasoning agent. A skill defines a procedure in `.agents/skills/dev/` or `.agents/skills/ops/`. A tool performs an actor method or pipeline processor operation. A connector accesses an external system through `src/pipeline/connectors/` or `src/pipeline/storage/`. Pipeline configurations and ScheduleBroker determine workflow execution. Transport remains in the REST/MCP layers.
+
+Ops skills declare their version, category, allowed tools and relative input/output schema paths. Their tool list describes procedure requirements and does not grant permissions. The `skills/` root symlink remains the project library entry point. An unavailable processor, provenance table or release gate returns a blocked operation.
+
+## 5. Provenance and Release Contracts
+
+`contracts/schemas/` contains repository-authored Draft 2020-12 contracts derived from the architecture plan: document.v1, manifest.v1, log-event.v1, source.v1 and dataset-release.v1. These are local contract definitions; they are not copied or certified against an external Blueprint distribution. See ADR 0010 and `contracts/schemas/README.md` for compatibility and enforcement boundaries.
+
+Content SHA-256 identifies a canonical document; each source acquisition remains a separate occurrence. Raw artifacts are immutable. A canonicalization version records the exact normalization policy: the existing TextNormalizer uses NFKC, so an NFC label cannot describe its current output. Changes to canonicalization require an explicit version and identity migration.
+
+Release requires schema, quality, privacy, contamination and rights evidence for the same snapshot. The release schema rejects a released record with any false gate. Runtime enforcement and atomic release transitions belong to phases 2-3; the existing DatasetPublisher is not protected by these new schema files yet. Source permissions are declarative until middleware is implemented.
+
+OTel log events use trace/span IDs and paired severity text/number. `content_capture` is false; schema validation cannot detect sensitive text in a free-form body. LogEmitter and the registry writer enforce metadata identifiers and body=event_name. Anomalies persist through this emitter; their legacy JSONL mirror keeps sanitized compatibility fields. SQLite DDL is loaded from infra/migrations/0002-blueprint-provenance.sql inside a transaction. Existing columns are skipped on reopen, and failed migrations roll back. Production Docker includes this SQL asset. The live shared registry has not been migrated; activation requires a maintenance window for writers.
+
+### Dataset candidate and release boundaries
+
+DatasetPublisher creates immutable candidate artifacts: manifest.json, statistics.json,
+checksums.sha256 and README.md. Run/trace IDs identify publication; a supplied git commit is
+preserved. Token counts are estimates. Unmeasured language distribution and quality metrics
+are explicitly unavailable; caller-supplied measurements are not automatically audited.
+
+SQLite migration 0003 stores manifest-bound review evidence, publication namespace reservations
+and occurrence/run associations. Namespace reservation precedes asynchronous work; dataset/version
+and output-directory uniqueness prevent overwrite. A failed attempt retains its namespace;
+retry under a new version and directory. Existing snapshot rows seed reservations without alteration.
+Remote manifests use datasets/{prefix}/{snapshot_id}/manifest.json. Shard IDs derived from file paths
+include dataset, path and content hash; unchanged registered shards are not replaced.
+
+Release is a separate reviewer attestation: all five gates must pass, every gate has an evidence
+URI, and reviewer/timestamp match the exact immutable manifest SHA-256. The registry transaction
+persists gates, evidence and released state together. It does not execute audits or fetch evidence
+URIs. Creation-time artifacts retain candidate gate values; current release state and review live
+in the registry. GET dataset gates/lineage, POST dataset release and GET run lineage expose these records.
+
+TextNormalizer records a versioned policy fingerprint only when text was normalized. BaseLedger
+get_cursor/commit_cursor stores stream-specific JSON checkpoints locally; callers commit after
+durable output. No existing live producer is automatically restarted or migrated. New document
+provenance/occurrence writers support explicit run links; lineage includes only persisted links,
+not inferred historical records. Artifact prefix construction validates tier names and relative
+segments. Opaque Drive IDs require explicit path_tier metadata; legacy tiers remain unknown.
+
+## Phase 4 processing and CDC
+
+OpenAlex metadata CDC uses an isolated local ledger with fixed-window watermark, durable raw pages and compare-and-swap page transactions. Train decontamination compares SHA-256 against a frozen evaluation index before quality/dedup; evaluation records remain unchanged. Quarantine/report receipts persist in pipeline execution processing_metadata_json through migration 0004. TypeScript Parquet and shared Python sharders require a typed document pii_status column, default unchecked. Independent legacy packers still require migration. The optional infra/monitoring collector is configuration-only; the SQL emitter has no OTLP exporter yet. Live catalog migration and producer activation require a maintenance window.

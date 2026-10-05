@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "deduplicate-corpus-input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "records_uri": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_uri": {
+      "type": "string",
+      "minLength": 1
+    },
+    "near_duplicate": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "records_uri",
+    "output_uri",
+    "near_duplicate"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "profile-dataset-input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "shards_uri": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_uri": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "shards_uri",
+    "output_uri"
+  ]
+}

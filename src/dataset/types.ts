@@ -1,3 +1,21 @@
+export const RELEASE_GATE_NAMES = [
+  "schema",
+  "quality",
+  "privacy",
+  "contamination",
+  "rights",
+] as const;
+export type ReleaseGateName = (typeof RELEASE_GATE_NAMES)[number];
+export type ReleaseGates = Record<ReleaseGateName, boolean>;
+export interface ReleaseReview {
+  snapshotId: string;
+  manifestSha256: string;
+  gates: ReleaseGates;
+  evidence: Record<ReleaseGateName, string>;
+  reviewedBy: string;
+  reviewedAt: string;
+}
+
 export interface ShardManifestEntry {
   shardId: string;
   fileName: string;
@@ -17,6 +35,10 @@ export interface SplitDefinition {
 
 export interface TrainingDatasetManifest {
   schemaVersion: "1.0.0";
+  run_id: string;
+  trace_id: string;
+  git_commit?: string;
+  gates: ReleaseGates;
   snapshotId: string;
   datasetName: string;
   version: string;
@@ -46,6 +68,9 @@ export interface SplitRatios {
 }
 
 export interface PublishDatasetOptions {
+  runId?: string;
+  traceId?: string;
+  gitCommit?: string;
   datasetName: string;
   version?: string;
   title?: string;

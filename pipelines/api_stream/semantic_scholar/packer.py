@@ -5,10 +5,15 @@ Semantic Scholar Streaming Parquet Sharder -- protokol-7
 
 import datetime
 import os
+import sys
 from typing import Dict, Any, List, Optional, Callable
+
+from pathlib import Path
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from pipelines.shared.pii_status import with_pii_schema, with_pii_table
 
 S2_SCHEMA = pa.schema([
     ("paper_id",          pa.string()),
@@ -81,7 +86,7 @@ class S2ParquetSharder:
         self.part_entries = 0
         self._writer = pq.ParquetWriter(
             self._part_path,
-            schema=S2_SCHEMA,
+            schema=with_pii_schema(S2_SCHEMA),
             compression=self.compression,
             compression_level=self.compression_level,
         )
@@ -123,6 +128,7 @@ class S2ParquetSharder:
         }, schema=S2_SCHEMA)
 
         assert self._writer is not None
+        table = with_pii_table(table, self.buffer)
         self._writer.write_table(table)
         self.part_entries  += len(self.buffer)
         self.total_entries += len(self.buffer)

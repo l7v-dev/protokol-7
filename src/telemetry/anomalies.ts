@@ -11,6 +11,7 @@
 import { randomUUID } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { LogEmitter } from "./log-emitter";
 
 export type AnomalyCode =
   | "STALL_TIMEOUT"
@@ -34,37 +35,55 @@ export interface AnomalyEvent {
   backoffMs?: number;
   message: string;
   metadata?: Record<string, unknown>;
+  traceId?: string;
+  spanId?: string;
 }
 
 const DEFAULT_TELEMETRY_PATH = "ledger/telemetry.jsonl";
 
 /**
- * Anomali olayini ledger/telemetry.jsonl kütügüne atomik olarak yazar.
+ * Persists OTel metadata and mirrors identifiers to the optional JSONL ledger.
  */
 export function recordAnomaly(
   anomaly: Omit<AnomalyEvent, "eventId" | "timestamp">,
-  filePath = DEFAULT_TELEMETRY_PATH
+  filePath: string | null = DEFAULT_TELEMETRY_PATH,
+  emitter = new LogEmitter()
 ): AnomalyEvent {
-  const dir = dirname(filePath);
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
-
+  const log = emitter.emit({
+    eventName: `anomaly.${anomaly.anomalyCode}`,
+    severity: anomaly.severity === "CRITICAL" ? "ERROR" : anomaly.severity,
+    traceId: anomaly.traceId,
+    spanId: anomaly.spanId,
+    durationMs: anomaly.durationMs,
+  });
   const event: AnomalyEvent = {
     eventId: `anom_${randomUUID().substring(0, 8)}`,
     timestamp: new Date().toISOString(),
     ...anomaly,
+    traceId: log.trace_id,
+    spanId: log.span_id,
   };
 
-  const line = `${JSON.stringify({
-    type: "ANOMALY_TELEMETRY",
-    ...event,
-  })}\n`;
-
-  try {
-    appendFileSync(filePath, line, "utf8");
-  } catch (err) {
-    console.error(`[TELEMETRY_ERROR] Anomali kaydedilemedi:`, err);
+  if (filePath !== null) {
+    try {
+      const dir = dirname(filePath);
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true });
+      }
+      const line = `${JSON.stringify({
+        type: "ANOMALY_TELEMETRY",
+        eventId: event.eventId,
+        anomalyCode: event.anomalyCode,
+        component: /^[a-zA-Z][a-zA-Z0-9_.-]{0,127}$/.test(event.component)
+          ? event.component
+          : "unknown",
+        message: log.body,
+        ...log,
+      })}\n`;
+      appendFileSync(filePath, line, "utf8");
+    } catch {
+      console.error("[TELEMETRY_ERROR] JSONL mirror unavailable; SQLite event persisted.");
+    }
   }
 
   return event;

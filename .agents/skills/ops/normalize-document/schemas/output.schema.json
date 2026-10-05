@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "normalize-document-output",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "enum": [
+        "success",
+        "blocked",
+        "failed"
+      ]
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "records_checked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "normalized": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "canonicalization_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "records_uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "records_checked",
+        "normalized",
+        "canonicalization_version",
+        "records_uri"
+      ]
+    }
+  },
+  "required": [
+    "status",
+    "artifacts",
+    "blockers"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "success"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "blocked",
+              "failed"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

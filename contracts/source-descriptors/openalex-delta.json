@@ -1,0 +1,39 @@
+{
+  "source_id": "openalex-delta",
+  "name": "OpenAlex paid works delta API",
+  "method": "rest",
+  "adapter_version": "1.0.0",
+  "record_type": "work-metadata",
+  "external_id_field": "id",
+  "pagination": {
+    "mode": "cursor",
+    "checkpoint_after_durable_commit": true
+  },
+  "budget": {
+    "max_requests": 10,
+    "max_bytes": 10485760,
+    "max_seconds": 300
+  },
+  "purpose": "RAG",
+  "rights_status": "pending",
+  "retention_policy_id": "raw-default",
+  "verification_level": "docs_inspected",
+  "evidence": [
+    {
+      "verification_level": "docs_inspected",
+      "uri": "https://help.openalex.org/access/sync/",
+      "checked_at": "2026-10-05T00:00:00Z",
+      "finding": "Paid sync filters support updated-date windows; API results require upserts and separate deletion reconciliation. No live access tested."
+    }
+  ],
+  "streams": [
+    {
+      "name": "works-delta",
+      "record_type": "work-metadata",
+      "primary_key": [
+        "id"
+      ],
+      "cursor_field": "updated_date"
+    }
+  ]
+}

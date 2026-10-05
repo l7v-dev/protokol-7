@@ -178,7 +178,7 @@ Arşive taşı: `mv GEMINI.md docs/archive/`
 | verification_audit_ledger | Saglam | raw_purged lifecycle var |
 | dataset_snapshots | Saglam, genişletilecek | release_state + run_id + trace_id |
 
-### 4.2 Eklenecek 5 Tablo + 4 Alter + Index'ler
+### 4.2 Eklenecek 6 Tablo + 4 Mevcut Tabloda 9 Kolon + Index'ler
 
 Tüm DDL `context/schema.sql`'e eklenecek, `infra/migrations/` altına migration dosyası yazılacak.
 
@@ -215,7 +215,7 @@ CREATE TABLE IF NOT EXISTS pipeline_run_manifests (
 -- Tablo 11: Document Provenance (per-record, document.v1 uyumlu)
 CREATE TABLE IF NOT EXISTS document_provenance (
     document_id             TEXT PRIMARY KEY,
-    canonicalization_version TEXT NOT NULL DEFAULT 'nfc-lf-strip-v1',
+    canonicalization_version TEXT NOT NULL,
     language                TEXT NOT NULL,
     pii_status              TEXT NOT NULL DEFAULT 'unchecked'
         CHECK(pii_status IN ('unchecked','clear','redacted','quarantined')),
@@ -602,7 +602,7 @@ protokol-7/
 │
 ├── context/
 │   ├── architecture-schema.md  [GÜNCELLE] — skills ayrımı, CDC, telemetri bölümü
-│   ├── schema.sql              [GÜNCELLE] — 5 yeni tablo + 4 ALTER + path_tier
+│   ├── schema.sql              [GÜNCELLE] — 6 yeni tablo + 9 kolon (path_tier dahil)
 │   └── ...
 │
 ├── contracts/
@@ -691,60 +691,69 @@ protokol-7/
 ### Faz 0: Temizlik (1-2 gün — sıfır kod değişikliği)
 
 ```
-[  ] ledger/telemetry.jsonl → .gitignore
-[  ] Uncommitted dosyaları commit et
-[  ] docs/archive/ oluştur, 83+86 dosyayı taşı
-[  ] GEMINI.md → docs/archive/
-[  ] 26 merged branch sil (local + remote)
-[  ] git gc --prune=now
-[  ] scripts/ uzantısız dosyalar → scripts/runners/*.py
-[  ] docker-compose.yml → infra/compose/
+[x] ledger/telemetry.jsonl → .gitignore
+[x] Uncommitted dosyaları commit et (33b2e72; bu oturumun değişiklikleri henüz commit edilmedi)
+[x] docs/archive/ oluştur, tamamlanmış dosyaları taşı (44e294f)
+[x] GEMINI.md → docs/archive/ (arşiv mevcut; kökteki silme çalışma ağacında)
+[x] Merged branch temizliği: varsayılan branch main yapıldı; feature/github-actions-wikipedia-etl main içinde doğrulandı ve silindi; legacy korundu.
+[x] git gc (standart saklama süresi korundu; prune=now kullanılmadı)
+[x] scripts/ uzantısız dosyaları denetle: düzenli uzantısız dosya yok; mevcut girdiler pipeline dizin symlinkleri, korunur
+[x] docker-compose.yml → infra/compose/ (build context ve volume yolları düzeltildi)
 ```
 
 ### Faz 1: Yapısal (3-5 gün)
 
 ```
-[  ] .agents/skills/dev/ + ops/ oluştur, skill'leri taşı
-[  ] 9 yeni ops SKILL.md yaz (genişletilmiş format)
-[  ] contracts/schemas/ oluştur, Blueprint JSON Schema'ları kopyala
-[  ] source-descriptor.schema.json genişletme (verification_level + streams[] + agent_permissions)
-[  ] AGENTS.md güncellemesi (dev/ops satırları + agent/skill/tool/connector ayrımı)
-[  ] ARCHITECTURE.md revize
-[  ] ADR-0010 yaz: provenance model ve immutable artifact kararı
+[x] .agents/skills/dev/ + ops/ oluştur, skill'leri taşı
+[x] 9 yeni ops SKILL.md yaz (genişletilmiş format)
+[x] contracts/schemas/ oluştur; plandan türetilen 5 yerel v1 sözleşme yazıldı (özgün Blueprint dosyaları repoda yok; dış uyumluluk iddiası yok)
+[x] source-descriptor.schema.json genişletme (verification_level + streams[] + agent_permissions)
+[x] AGENTS.md güncellemesi (dev/ops satırları + agent/skill/tool/connector ayrımı)
+[x] ARCHITECTURE.md revize
+[x] ADR-0010 yaz: provenance model ve immutable artifact kararı
 ```
 
 ### Faz 2: Şema + Telemetri (1 hafta)
 
 ```
-[  ] infra/migrations/0002-blueprint-provenance.sql
-[  ] context/schema.sql güncelle (5 tablo + ALTER'lar + path_tier)
-[  ] src/api/registry-database.ts — yeni tablolar TypeScript tarafına
-[  ] src/telemetry/log-emitter.ts — OTel log-event.v1 emitter
-[  ] src/telemetry/anomalies.ts — log-emitter.ts kullan
+[x] infra/migrations/0002-blueprint-provenance.sql
+[x] context/schema.sql güncelle (6 tablo + 9 kolon; path_tier dahil)
+[x] src/api/registry-database.ts — yeni tablolar TypeScript tarafına
+[x] src/telemetry/log-emitter.ts — OTel log-event.v1 emitter
+[x] src/telemetry/anomalies.ts — log-emitter.ts kullan
 ```
+
+Faz 2 kodu bellek ve geçici kataloglarla doğrulandı. Canlı `data/catalog.sqlite` migration'ı bakım penceresine bırakıldı; bu katalog aktif Python pipeline'larıyla paylaşılıyor. Ayrıntılar: `docs/walkthroughs/mimari-faz-2-sema-ve-telemetri-walkthrough.md`.
 
 ### Faz 3: Provenance + Release Kapıları (2-3 hafta)
 
 ```
-[  ] src/dataset/types.ts — run_id, trace_id, git_commit, gates alanları
-[  ] src/dataset/dataset-publisher.ts — 5 gate enforcement
-[  ] src/api/routers/dataset-router.ts — /gates + /release + /lineage
-[  ] src/pipeline/processors/text-normalizer.ts — canonicalization_version kayıt
-[  ] pipelines/shared/ledger_base.py — get_cursor() / commit_cursor() standardı
-[  ] storage_replicas path_tier convention
-[  ] Dataset Card README.md şablonu (araştırma §24)
-[  ] statistics.json üretimi (DatasetPublisher'a ek çıktı)
+[x] src/dataset/types.ts — run_id, trace_id, git_commit, gates alanları
+[x] src/dataset/dataset-publisher.ts — 5 gate enforcement
+[x] src/api/routers/dataset-router.ts — /gates + /release + /lineage
+[x] src/pipeline/processors/text-normalizer.ts — canonicalization_version kayıt
+[x] pipelines/shared/ledger_base.py — get_cursor() / commit_cursor() standardı
+[x] storage_replicas path_tier convention
+[x] Dataset Card README.md şablonu (araştırma §24)
+[x] statistics.json üretimi (DatasetPublisher'a ek çıktı)
 ```
+
+Faz 3 uygulama notu: Release, beş kapının kanıt URI'leriyle reviewer attestation'ıdır;
+otomatik audit çalıştırmaz. Review tam manifest baytlarının SHA-256'sına bağlıdır.
+0003 migration namespace rezervasyonu, review kanıtı ve occurrence/run bağlantılarını ekler.
+Dil/kalite ölçümü yoksa statistics.json bunu unavailable olarak belirtir. Canlı Python
+üreticileri yeni provenance arayüzlerine henüz geçirilmedi; geçmiş kaynak bağları türetilmez.
+Canlı migration ve süreç yeniden başlatma bakım penceresine bırakıldı.
 
 ### Faz 4: Uzun Vadeli
 
 ```
-[  ] pipelines/cdc/ — ilk CDC pipeline (OpenAlex delta watermark)
-[  ] src/pipeline/processors/decontaminate-filter.ts
-[  ] Document-level pii_status Parquet kolonları
+[x] pipelines/cdc/ — ilk CDC pipeline (OpenAlex delta watermark); yerel testler tamam, canlı erişim/pilot yapılmadı
+[x] src/pipeline/processors/decontaminate-filter.ts
+[x] Document-level pii_status Parquet kolonları — TS, shared Python sharder ve 13 non-OpenAlex bağımsız packer kodda tamam; aktif Python süreçleri kontrollü restart bekliyor
 [  ] Croissant JSON-LD metadata (public yayın öncesi)
 [  ] OpenLineage entegrasyonu (ekip büyüdüğünde)
-[  ] infra/monitoring/ — OTel collector
+[x] infra/monitoring/ — OTel collector; collector ve metadata-only SQLite→OTLP exporter etkin; sentetik uçtan uca test geçti
 ```
 
 ---
@@ -781,3 +790,5 @@ protokol-7/
 | MCP server (protokol-mcp-server.ts) | Sağlam |
 | Trust-tier + failure-checklist | Dokunma |
 | npm run verify (5 katman) | Dokunma |
+
+2026-10-05 canlı geçiş güncellemesi: 0002–0004 migration uygulandı, online backup ve prova kayıtları data/migration-activation-20261005 altında. Collector ve metadata-only SQL→OTLP worker etkin; Python stdout export edilmez. Non-OpenAlex bağımsız packer PII geçişi kodda tamam; aktif süreçler kontrollü restart bekler. OpenAlex sonraki işleri kullanıcı tarafından kapsam dışı bırakıldı. Ayrıntılar docs/plans/mimari-canli-gecis-plani.md.

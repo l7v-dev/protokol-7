@@ -6,7 +6,7 @@
 
 import type http from "node:http";
 import { DatasetPublisher } from "../../dataset/dataset-publisher";
-import type { PublishDatasetOptions } from "../../dataset/types";
+import type { PublishDatasetOptions, ReleaseReview } from "../../dataset/types";
 import { getDefaultRegistryDatabase, type RegistryDatabase } from "../registry-database";
 
 function sendJson(res: http.ServerResponse, statusCode: number, data: unknown): void {
@@ -46,6 +46,100 @@ export class DatasetRouter {
   constructor(publisher?: DatasetPublisher, registryDb?: RegistryDatabase) {
     this.registryDb = registryDb ?? getDefaultRegistryDatabase();
     this.publisher = publisher || new DatasetPublisher({ registryDb: this.registryDb });
+  }
+
+  handleGetGates(res: http.ServerResponse, datasetName: string): void {
+    const snapshot = this.publisher.getLatestSnapshot(
+      decodeURIComponent(datasetName).trim().toLowerCase()
+    );
+    if (!snapshot) {
+      sendError(
+        res,
+        404,
+        "SNAPSHOT_NOT_FOUND",
+        "Snapshot not found.",
+        "Create a candidate snapshot first."
+      );
+      return;
+    }
+    sendJson(res, 200, {
+      snapshotId: snapshot.snapshotId,
+      releaseState: snapshot.releaseState,
+      manifestSha256: this.registryDb.getSnapshotManifestHash(snapshot.snapshotId),
+      gates: this.publisher.getGates(snapshot.snapshotId) ?? {
+        schemaGate: false,
+        qualityGate: false,
+        privacyGate: false,
+        contaminationGate: false,
+        rightsGate: false,
+      },
+      review: this.registryDb.getDatasetReleaseReview(snapshot.snapshotId),
+    });
+  }
+
+  handleRelease(res: http.ServerResponse, datasetName: string, review: ReleaseReview): void {
+    const snapshot = review?.snapshotId ? this.publisher.getSnapshot(review.snapshotId) : undefined;
+    if (
+      !snapshot ||
+      snapshot.datasetName !== decodeURIComponent(datasetName).trim().toLowerCase()
+    ) {
+      sendError(
+        res,
+        404,
+        "SNAPSHOT_NOT_FOUND",
+        "Snapshot not found for this dataset.",
+        "Provide the candidate snapshotId."
+      );
+      return;
+    }
+    try {
+      sendJson(res, 200, { success: true, snapshot: this.publisher.releaseSnapshot(review) });
+    } catch (error) {
+      sendError(
+        res,
+        409,
+        "RELEASE_BLOCKED",
+        error instanceof Error ? error.message : String(error),
+        "Provide five passing gates, evidence URIs and a review bound to this manifest."
+      );
+    }
+  }
+
+  handleDatasetLineage(res: http.ServerResponse, datasetName: string): void {
+    const snapshot = this.publisher.getLatestSnapshot(
+      decodeURIComponent(datasetName).trim().toLowerCase()
+    );
+    if (!snapshot) {
+      sendError(
+        res,
+        404,
+        "SNAPSHOT_NOT_FOUND",
+        "Snapshot not found.",
+        "Create a candidate snapshot first."
+      );
+      return;
+    }
+    sendJson(res, 200, this.publisher.getLineage(snapshot.snapshotId));
+  }
+
+  handleRunLineage(res: http.ServerResponse, runId: string): void {
+    const lineage = this.registryDb.getRunLineage(decodeURIComponent(runId));
+    if (
+      !lineage.manifests.length &&
+      !lineage.snapshots.length &&
+      !lineage.shards.length &&
+      !lineage.occurrences.length
+    ) {
+      sendError(
+        res,
+        404,
+        "LINEAGE_NOT_FOUND",
+        "No recorded lineage for this run.",
+        "Record a manifest or snapshot with this run_id."
+      );
+      return;
+    }
+    sendJson(res, 200, lineage);
   }
 
   getPublisher(): DatasetPublisher {

@@ -9,10 +9,15 @@ LLM pre-training pipelines can consume it as a flat text corpus.
 
 import datetime
 import os
+import sys
 from typing import Dict, Any, List, Optional, Callable
+
+from pathlib import Path
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from pipelines.shared.pii_status import with_pii_schema, with_pii_table
 
 # ------------------------------------------------------------------
 # Arrow schema
@@ -84,7 +89,7 @@ class StackExchangeParquetSharder:
         self.part_entries = 0
         self._writer = pq.ParquetWriter(
             self._part_path,
-            schema=SE_SCHEMA,
+            schema=with_pii_schema(SE_SCHEMA),
             compression=self.compression,
             compression_level=self.compression_level,
         )
@@ -117,6 +122,7 @@ class StackExchangeParquetSharder:
             schema=SE_SCHEMA,
         )
         assert self._writer is not None
+        table = with_pii_table(table, self.buffer)
         self._writer.write_table(table)
         self.part_entries  += len(self.buffer)
         self.total_entries += len(self.buffer)

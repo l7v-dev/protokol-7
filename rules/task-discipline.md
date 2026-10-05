@@ -15,7 +15,7 @@ Her görev aşağıdaki standart yapıda yazılmak zorundadır:
 
 ### Kurallar:
 1. **Belirsizlik Yasağı:** Kabul kriteri asla "düzgün çalışmalı", "güzel olmalı", "tamamlanmalı" gibi öznel ifadeler içeremez. Mutlaka çalıştırılabilir bir test, API yanıt kodu veya dosya varlığı belirtilmelidir (ör. `npm test test/auth.test.ts 0 fail vermeli`).
-2. **Teknik Başlık:** Başlıkta pazarlama buzzword'ü kullanılamaz (Ref: `skills/naming-discipline`).
+2. **Teknik Başlık:** Başlıkta pazarlama buzzword'ü kullanılamaz (Ref: `skills/dev/naming-discipline`).
 3. **Zorunlu Tier Etiketi:** Her görevin başında `Tier: 0`, `1`, `2` veya `3` belirtilmelidir (Ref: `rules/trust-tiers.md`).
 
 ## 2. Görev Yaşam Döngüsü (Task Lifecycle)

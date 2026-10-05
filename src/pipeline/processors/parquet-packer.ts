@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { OutputProcessor, ProcessedOutput } from "./index";
 import { JsonlWriter } from "./jsonl-writer";
+import { withPiiStatus } from "./pii-status";
 
 export class ParquetPacker implements OutputProcessor {
   readonly format = "parquet";
@@ -21,6 +22,7 @@ export class ParquetPacker implements OutputProcessor {
   ) {}
 
   async process(items: unknown[], baseName: string): Promise<ProcessedOutput> {
+    const annotatedItems = withPiiStatus(items);
     const pythonPath = this.options?.pythonPath || process.env.PYTHON_PATH || "python3";
 
     // Write items to a temporary JSONL file and run duckdb/pyarrow conversion script
@@ -29,7 +31,7 @@ export class ParquetPacker implements OutputProcessor {
     const tempParquet = join(tempDir, `${baseName}.parquet`);
 
     try {
-      const jsonlLines = items.map((item) => JSON.stringify(item)).join("\n");
+      const jsonlLines = annotatedItems.map((item) => JSON.stringify(item)).join("\n");
       writeFileSync(tempJsonl, jsonlLines, "utf8");
 
       const script = `
@@ -49,9 +51,11 @@ with open(input_path, 'r', encoding='utf-8') as f:
 
 if not records:
     # Empty table
-    table = pa.Table.from_arrays([], names=[])
+    table = pa.table({"pii_status": pa.array([], type=pa.string())})
 else:
     table = pa.Table.from_pylist(records)
+    # PyArrow infers columns from the first record; status is present on every row.
+    table = table.set_column(table.schema.get_field_index("pii_status"), "pii_status", pa.array([r["pii_status"] for r in records], type=pa.string()))
 
 pq.write_table(table, output_path, compression='zstd', compression_level=6)
 `;
@@ -78,12 +82,12 @@ pq.write_table(table, output_path, compression='zstd', compression_level=6)
       }
 
       // Graceful fallback to JSONL per architectural invariant
-      return await this.jsonlFallbackWriter.process(items, baseName);
+      return await this.jsonlFallbackWriter.process(annotatedItems, baseName);
     } catch (err) {
       if (this.options?.disableFallback) {
         throw err;
       }
-      return await this.jsonlFallbackWriter.process(items, baseName);
+      return await this.jsonlFallbackWriter.process(annotatedItems, baseName);
     } finally {
       try {
         rmSync(tempDir, { recursive: true, force: true });

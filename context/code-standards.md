@@ -15,7 +15,7 @@
 - **Banned Words**: `smart`, `intelligent`, `advanced`, `next-gen`, `ultra`, `super`, `enhanced`, `optimized`, `seamless`, `powerful`, `ai-powered`, `autonomous`, `robust`, `magical`, `lightning`.
 - Do not use marketing adjectives or buzzwords in identifiers, filenames, folders, functions, types, or commit messages.
 - Name only the technical mechanism, protocol, data structure, or domain entity.
-- Run `npm run lint:naming` or `./.agents/skills/naming-discipline/scripts/check-naming.sh` to verify compliance.
+- Run `npm run lint:naming` or `./.agents/skills/dev/naming-discipline/scripts/check-naming.sh` to verify compliance.
 
 ---
 

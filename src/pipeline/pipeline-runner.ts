@@ -3,6 +3,7 @@
  * Coordinates validation, actor resolution, execution target dispatch, output processing, and storage routing.
  */
 
+import { randomUUID } from "node:crypto";
 import { getDefaultRegistryDatabase, type RegistryDatabase } from "../api/registry-database";
 import { ActorResolver } from "./actor-resolver";
 import { ConnectorRegistry } from "./connectors/connector-registry";
@@ -14,6 +15,7 @@ import { RemoteHttpExecutor } from "./execution/remote-http-executor";
 import { BufferedSink, type OutputSink } from "./output-sink";
 import type { OutputProcessor } from "./processors";
 import { CsvWriter } from "./processors/csv-writer";
+import { DecontaminateFilter, type DecontaminationReport } from "./processors/decontaminate-filter";
 import { DedupFilter } from "./processors/dedup-filter";
 import { JsonlWriter } from "./processors/jsonl-writer";
 import { ParquetPacker } from "./processors/parquet-packer";
@@ -29,6 +31,7 @@ import {
   parsePipelineYaml,
 } from "./schema";
 import type { StorageBackend, StorageReceipt } from "./storage";
+import { buildArtifactPrefix } from "./storage/artifact-path";
 import { B2Storage } from "./storage/b2-storage";
 import { GoogleDriveStorage } from "./storage/google-drive-storage";
 import { LocalStorage } from "./storage/local-storage";
@@ -43,6 +46,9 @@ export interface PipelineRunResult {
   itemCount: number;
   durationMs: number;
   receipt?: StorageReceipt;
+  contamination?: DecontaminationReport;
+  quarantineReceipt?: StorageReceipt;
+  contaminationReceipt?: StorageReceipt;
   error?: string;
   startedAt: string;
   completedAt: string;
@@ -260,7 +266,43 @@ export class PipelineRunner {
           collapseWhitespace: config.normalization.collapse_whitespace,
           maxConsecutiveNewlines: config.normalization.max_consecutive_newlines,
         });
-        itemsToProcess = normalizer.processBatch(itemsToProcess);
+        itemsToProcess = config.decontamination?.enabled
+          ? itemsToProcess.map((record) =>
+              record.split === "train" ? normalizer.processItem(record).item : record
+            )
+          : normalizer.processBatch(itemsToProcess);
+      }
+
+      let evaluationItems: Record<string, unknown>[] = [];
+      let contamination: DecontaminationReport | undefined;
+      let quarantineReceipt: StorageReceipt | undefined;
+      let contaminationReceipt: StorageReceipt | undefined;
+      if (config.decontamination?.enabled) {
+        const partition = new DecontaminateFilter(config.decontamination).partition(itemsToProcess);
+        evaluationItems = partition.retained.filter(
+          (record) => record.split === "validation" || record.split === "test"
+        );
+        itemsToProcess = partition.retained.filter((record) => record.split === "train");
+        contamination = partition.report;
+        const quarantineStorage =
+          this.storageBackends.get("quarantine") ?? new LocalStorage({ baseDir: "data" });
+        const quarantinePrefix = buildArtifactPrefix(
+          "quarantine",
+          `${config.name}/${runId}/${randomUUID()}`
+        );
+        contaminationReceipt = await quarantineStorage.upload(
+          "contamination-report.json",
+          Buffer.from(JSON.stringify(partition.report, null, 2)),
+          quarantinePrefix
+        );
+        if (partition.quarantined.length) {
+          const quarantine = await new JsonlWriter().process(partition.quarantined, "quarantine");
+          quarantineReceipt = await quarantineStorage.upload(
+            quarantine.fileName,
+            quarantine.buffer,
+            quarantinePrefix
+          );
+        }
       }
 
       // 3.2 Quality Gate Stage (FineWeb / Gopher heuristic thresholds)
@@ -289,6 +331,7 @@ export class PipelineRunner {
         itemsToProcess = dedupFilter.filterBatch(itemsToProcess);
       }
 
+      itemsToProcess = [...itemsToProcess, ...evaluationItems];
       const sink: OutputSink = new BufferedSink();
       sink.write(itemsToProcess);
       sink.close();
@@ -323,6 +366,9 @@ export class PipelineRunner {
         itemCount: processedOutput.rowCount,
         durationMs: Date.now() - startTime,
         receipt,
+        contamination,
+        quarantineReceipt,
+        contaminationReceipt,
         startedAt,
         completedAt: new Date().toISOString(),
       };

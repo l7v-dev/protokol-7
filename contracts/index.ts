@@ -5,7 +5,10 @@
  * compliant with Protokol-7 Developer Package V3 specification.
  */
 
+import type { SourceVerificationLevel } from "./provenance.js";
+
 export * from "./ledger.js";
+export * from "./provenance.js";
 export * from "./storage.js";
 
 export interface SourceDescriptorBudget {
@@ -37,6 +40,29 @@ export type IngestionMethod =
   | "media"
   | "partner";
 
+export interface SourceVerificationEvidence {
+  verification_level: SourceVerificationLevel;
+  uri: string;
+  checked_at: string;
+  finding: string;
+}
+
+export interface SourceStreamDescriptor {
+  name: string;
+  record_type: string;
+  primary_key: string[];
+  cursor_field?: string;
+  schema_uri?: string;
+}
+
+/** Declarative policy; runtime enforcement is a separate middleware concern. */
+export interface SourceAgentPermissions {
+  read: string[];
+  write: string[];
+  delete: boolean;
+  shell: boolean;
+}
+
 export interface SourceDescriptor {
   source_id: string;
   name: string;
@@ -49,6 +75,10 @@ export interface SourceDescriptor {
   purpose: string;
   rights_status: "approved" | "pending" | "denied";
   retention_policy_id: string;
+  verification_level?: SourceVerificationLevel;
+  evidence?: SourceVerificationEvidence[];
+  streams?: SourceStreamDescriptor[];
+  agent_permissions?: SourceAgentPermissions;
 }
 
 export interface JobNotification {

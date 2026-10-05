@@ -13,7 +13,7 @@
     "build": "tsc",
     "test": "NODE_ENV=test tsx --test 'tests/**/*.test.ts'",
     "lint": "biome check",
-    "lint:naming": "./.agents/skills/naming-discipline/scripts/check-naming.sh",
+    "lint:naming": "./.agents/skills/dev/naming-discipline/scripts/check-naming.sh",
     "typecheck": "tsc --noEmit",
     "verify": "node scripts/verify-pipeline.mjs",
     "format": "biome format --write",

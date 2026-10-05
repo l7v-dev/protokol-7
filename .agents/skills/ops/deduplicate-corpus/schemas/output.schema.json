@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "deduplicate-corpus-output",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "enum": [
+        "success",
+        "blocked",
+        "failed"
+      ]
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "records_checked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exact_duplicates": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "near_duplicates": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "occurrences_uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "records_checked",
+        "exact_duplicates",
+        "near_duplicates",
+        "occurrences_uri"
+      ]
+    }
+  },
+  "required": [
+    "status",
+    "artifacts",
+    "blockers"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "success"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "blocked",
+              "failed"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

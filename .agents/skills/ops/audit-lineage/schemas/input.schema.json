@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "audit-lineage-input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "registry_uri": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_uri": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "registry_uri",
+    "run_id",
+    "output_uri"
+  ]
+}

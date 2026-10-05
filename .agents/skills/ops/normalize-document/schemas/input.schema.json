@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "normalize-document-input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "records_uri": {
+      "type": "string",
+      "minLength": 1
+    },
+    "canonicalization_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_uri": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "records_uri",
+    "canonicalization_version",
+    "output_uri"
+  ]
+}

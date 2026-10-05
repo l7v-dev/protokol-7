@@ -76,6 +76,31 @@ class BaseLedger:
             """)
             conn.commit()
 
+    def get_cursor(self, stream: str) -> Optional[Any]:
+        """Read the last committed JSON cursor; None means no checkpoint exists."""
+        if not isinstance(stream, str) or not stream.strip():
+            raise ValueError("stream must be a non-empty string")
+        with self._get_conn() as conn:
+            conn.execute("CREATE TABLE IF NOT EXISTS stream_cursors (stream TEXT PRIMARY KEY, cursor_json TEXT NOT NULL, committed_at TEXT NOT NULL)")
+            row = conn.execute("SELECT cursor_json FROM stream_cursors WHERE stream = ?", (stream,)).fetchone()
+            conn.commit()
+            return json.loads(row["cursor_json"]) if row else None
+
+    def commit_cursor(self, stream: str, cursor: Any) -> None:
+        """Commit only after the corresponding output has been durably persisted.
+
+        A failed serialization or SQL write preserves the previous checkpoint.
+        This method never modifies the central catalog.
+        """
+        if not isinstance(stream, str) or not stream.strip():
+            raise ValueError("stream must be a non-empty string")
+        encoded = json.dumps(cursor, ensure_ascii=False, allow_nan=False)
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        with self._get_conn() as conn:
+            conn.execute("CREATE TABLE IF NOT EXISTS stream_cursors (stream TEXT PRIMARY KEY, cursor_json TEXT NOT NULL, committed_at TEXT NOT NULL)")
+            conn.execute("INSERT INTO stream_cursors VALUES (?, ?, ?) ON CONFLICT(stream) DO UPDATE SET cursor_json = excluded.cursor_json, committed_at = excluded.committed_at", (stream, encoded, now))
+            conn.commit()
+
     def register_shard(
         self,
         shard_name: str,

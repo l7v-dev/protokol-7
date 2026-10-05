@@ -1,5 +1,5 @@
 # 13 — AI/LLM yeni kaynak ekleme protokolü
-Bu belge repository becerisinin ayrıntılı spesifikasyonudur. ChatGPT'ye kişisel skill kurulmadı. Repo alındığında AGENTS.md ve mevcut data-ingestion-protocol önce okunur; ekip bu protokolü .agents/skills/source-onboarding altında uygular.
+Bu belge repository becerisinin ayrıntılı spesifikasyonudur. ChatGPT'ye kişisel skill kurulmadı. Repo alındığında AGENTS.md ve mevcut data-ingestion-protocol önce okunur; ekip bu protokolü .agents/skills/ops/data-ingestion-protocol altında uygular.
 
 ## Zorunlu sıra
 1. Purpose, source/account/resource scope, veri türü, freshness ve request/bytes/runtime/cost budget tanımla. Belirsiz kapsam için bounded plan çıkar; tahminle geniş crawl başlatma.

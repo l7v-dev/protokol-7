@@ -12,6 +12,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+import pyarrow as pa
 import pyarrow.parquet as pq
 
 from cleaner import clean_wikinews_text, stream_wikinews_entries
@@ -124,7 +125,8 @@ Delegates from 195 nations reached an agreement on renewable energy transitions 
 
         table = pq.read_table(shards[0])
         self.assertEqual(table.num_rows, 2)
-        self.assertEqual(table.schema, WIKINEWS_SCHEMA)
+        self.assertEqual(table.schema, WIKINEWS_SCHEMA.append(pa.field("pii_status", pa.string())))
+        self.assertEqual(table.column("pii_status").to_pylist(), ["unchecked"] * table.num_rows)
         self.assertEqual(table["title"][0].as_py(), "News 1")
 
     def test_ledger_manager_initialization(self):

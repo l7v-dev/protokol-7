@@ -14,7 +14,7 @@ Previously `src/core/`. Renamed to reflect actual responsibility: HTTP API layer
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/api/types.ts` | `ScrapedPageResult`, `ActorTask`, `BrowserActionResult`, `CrawlerResult` | Shared TypeScript interfaces and contract definitions for all modules. |
-| `src/api/registry-database.ts` | `RegistryDatabase`, `getDefaultRegistryDatabase`, `DatasetShardRecord` | ACID SQLite persistence layer for actor runs, event logs, pipeline executions, scheduled jobs, and dataset shards using native `node:sqlite` with zero external dependencies. WAL mode for concurrent access; in-memory for test isolation. |
+| `src/api/registry-database.ts` | `RegistryDatabase`, `getDefaultRegistryDatabase`, `DatasetShardRecord` | ACID SQLite persistence with trace/span actor metadata, six Blueprint tables and validated metadata-only OTel write/query methods. WAL mode for concurrent access; in-memory for test isolation. |
 | `src/api/run-registry.ts` | `RunRegistry`, `RunRecord`, `globalRunRegistry` | Tracks execution runs with dual-layer storage: in-memory Map for SSE event delivery and `RegistryDatabase` for cross-restart ACID persistence. Emits live log events per run. |
 | `src/api/openapi-spec.ts` | `OPENAPI_SPECIFICATION`, `renderDocsHtml` | OpenAPI 3.1.0 schema specification and zero-dependency interactive documentation HTML generator. |
 | `src/api/context-guard.ts` | `ContextGuard` | LLM token estimation, context window budgeting, and hierarchical semantic boundary truncation. |
@@ -228,7 +228,7 @@ Categorized into 5 primary domains accessible via `src/actors/corpus/domains/`:
 | `src/pipeline/execution/remote-http-executor.ts` | `RemoteHttpExecutor` | Dispatches actor execution tasks to remote Protokol-7 instances via REST. |
 | `src/pipeline/execution/pipedream-executor.ts` | `PipedreamExecutor` | Dispatches extraction payloads to Pipedream webhook workflows. |
 | `src/pipeline/processors/index.ts` | `OutputProcessor`, `ProcessedOutput` | Output processor interfaces and format transformation contracts. |
-| `src/pipeline/processors/text-normalizer.ts` | `TextNormalizer` | Unicode NFKC normalization, control character stripping, whitespace canonicalization, and cryptographic SHA-256 lineage tracking. |
+| `src/pipeline/processors/text-normalizer.ts` | `TextNormalizer` | Unicode NFKC normalization, whitespace canonicalization, SHA-256 lineage and exact policy fingerprints. |
 | `src/pipeline/processors/quality-filter.ts` | `QualityFilter` | FineWeb and Gopher heuristic metrics evaluation (word count, symbol ratio, alpha ratio, duplicate line fraction) and quality gate enforcement. |
 | `src/pipeline/processors/dedup-filter.ts` | `DedupFilter` | Exact SHA-256 fingerprinting and 64-bit SimHash near-duplicate detection with Hamming distance thresholding. |
 | `src/pipeline/processors/jsonl-writer.ts` | `JsonlWriter` | Formats extracted records into newline-delimited JSON (JSONL). |
@@ -254,7 +254,7 @@ Categorized into 5 primary domains accessible via `src/actors/corpus/domains/`:
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
 | `src/dataset/types.ts` | `TrainingDatasetManifest`, `PublishDatasetOptions`, `PublishDatasetResult`, `SplitDefinition` | Type contracts and schema definitions for dataset snapshots and training manifests. |
-| `src/dataset/dataset-publisher.ts` | `DatasetPublisher`, `DatasetPublisherOptions` | Training dataset snapshot engine, train/val/test split partitioning, SHA-256 manifest.json sealer, and remote storage uploader. |
+| `src/dataset/dataset-publisher.ts` | `DatasetPublisher`, `DatasetPublisherOptions` | Immutable candidate snapshots, statistics/cards, splits, atomic namespace reservation and separate five-gate reviewer release. |
 | `src/dataset/index.ts` | Dataset Barrel | Re-exports dataset contracts and publisher class. |
 
 ### 1.11 Cold Vault Subsystem (`src/vault/`)
@@ -269,7 +269,11 @@ Categorized into 5 primary domains accessible via `src/actors/corpus/domains/`:
 
 | File Path | Primary Export / Class | Technical Responsibility |
 |---|---|---|
-| `src/telemetry/anomalies.ts` | `recordAnomaly`, `AnomalyEvent`, `AnomalyCode` | System stall, rate limit backoff, circuit breaker, memory pressure, and retry exhaustion telemetry logger with structured JSONL persistence. |
+| `src/api/blueprint-migration.ts` | `applyBlueprintMigration` | Transactional registry extensions from infra/migrations/0002-blueprint-provenance.sql and 0003-release-reviews.sql; existing columns skipped; errors rolled back. |
+| `src/telemetry/log-event.ts` | `LogEventSchema`, `MetadataLogEventSchema` | Versioned log validation and metadata-only persistence policy. |
+| `src/telemetry/log-emitter.ts` | `LogEmitter` | SQLite OTel emitter with trace/span identity, paired severity and content_capture=false; body is event identifier. |
+| `contracts/provenance.ts` | Provenance records | Typed manifest, document, occurrence, gate, evidence records and status unions. |
+| `src/telemetry/anomalies.ts` | `recordAnomaly`, `AnomalyEvent`, `AnomalyCode` | Anomaly metadata persisted through LogEmitter to SQLite and optional legacy JSONL mirror; raw URL, message and metadata excluded. CRITICAL maps to ERROR/17. |
 
 ### 1.13 Utility Subsystem (`src/utils/`)
 
@@ -459,7 +463,9 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `src/types/node-sqlite.d.ts` | Ambient Declaration | TypeScript type declaration for `node:sqlite` (DatabaseSync, StatementSync). Required because `@types/node@20` does not include Node 22 built-in SQLite types. |
 | `AGENTS.md` | Agent Context | Operational rules, naming discipline, neuro-ergonomic communication rules. |
 | `GEMINI.md` | Agent Context | Project rules and architectural integrity instructions. |
-| `.agents/skills/` | Skill Library | Curated technical skill definitions (naming discipline, code review, tdd, etc.) with symlink at `skills/`. |
+| `.agents/skills/dev/` | Development Skills | 14 development procedures; root `skills/` symlink points to the parent library. |
+| `.agents/skills/ops/` | Operational Skills | 2 existing procedures and 9 versioned ops procedures with input/output schemas; missing runtime dependencies produce blocked results. |
+| `contracts/schemas/` | Blueprint v1 Contracts | Local document, run manifest, log event, source and dataset release Draft 2020-12 schemas; runtime integration follows in phases 2-3. |
 | `context/system-manifest.md` | System Map | Compact single-page operational runtime manifest (DB paths, routers, storage, actors). |
 | `ledger/` | Append-Only Ledger | Immutable task ledger (`index.jsonl`), gzipped session checkpoints (`sessions/`), and telemetry. |
 | `docs/git-commit-convention.md` | Engineering Standard | Git Commit Convention v1.0 specification and agent attribution rules. |
@@ -575,7 +581,7 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `examples/actors/philpapers.json` | Example Config | Standalone JSON configuration for PhilPapers Archive actor. |
 | `docs/actors/philpapers.md` | Technical Wiki | Architectural specification with Mermaid diagrams for PhilPapers Archive actor. |
 | `Dockerfile` | Container Build | Multi-stage production container build with Node 22, Playwright Chromium libraries, and Python 3. |
-| `docker-compose.yml` | Container Orchestration | Docker compose deployment mapping port 4000, data volume, and healthcheck. |
+| `infra/compose/docker-compose.yml` | Container Orchestration | Docker compose deployment mapping port 4000, data volume, and healthcheck. |
 | `.github/workflows/ci.yml` | CI/CD Workflow | Continuous integration pipeline executing Biome lint, naming check, TypeScript build, test suite, and SCA audit. |
 | `contracts/` | Canonical System Contracts | JSON Schemas (Draft 2020-12) for `source-descriptor.schema.json`, `job.schema.json`, example payloads, and `storage.ts` ObjectStore contract interfaces. |
 | `contracts/ledger.ts` | Ledger and Control Plane Contracts | TypeScript contracts defining `LedgerRepository`, `SourceRecord`, `CrawlPartition`, `DocumentRecord`, `ArtifactRecord`, `JobRecord`, and `OutboxEventRecord`. |
@@ -585,3 +591,23 @@ Standardized high-throughput ETL pipelines organized across 7 ingestion paradigm
 | `docs/architecture-rfcs/` | Architecture RFC Specifications | Developer Package V3 specifications (docs 01-13) defining storage registries, worker control plane, failure matrix, connector permissions, retention state machines, and source onboarding protocol. |
 
 
+
+## Phase 3 provenance and release modules
+
+| File | Contract | Responsibility |
+|---|---|---|
+| `src/dataset/release-review.ts` | `validateReleaseReview` | Five passing gates, evidence URIs, reviewer/timestamp and exact manifest hash. |
+| `src/pipeline/storage/artifact-path.ts` | `buildArtifactPrefix` | Tier-prefixed object keys with relative path validation. |
+| `pipelines/shared/ledger_base.py` | `get_cursor`, `commit_cursor` | Local stream-scoped durable JSON checkpoints; no central catalog migration. |
+| `infra/migrations/0003-release-reviews.sql` | Review/reservation/occurrence links | Immutable publication namespaces and atomic review evidence. |
+| `docs/templates/dataset-card-README.md` | Dataset card template | License, language, task, usage, statistics and release limitations. |
+
+## Phase 4 modules
+
+| File | Responsibility |
+|---|---|
+| `pipelines/cdc/openalex/` | Bounded metadata delta client, durable raw pages and transactional watermark ledger. |
+| `src/pipeline/processors/decontaminate-filter.ts` | Frozen exact-hash evaluation index, train quarantine and overlap report. |
+| `src/pipeline/processors/pii-status.ts` | Validated document status annotation shared by Parquet/fallback paths. |
+| `infra/migrations/0004-processing-evidence.sql` | Durable processing report and artifact receipts on pipeline executions. |
+| `infra/monitoring/` | Version-pinned optional OTLP log collector; no active application exporter. |

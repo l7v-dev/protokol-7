@@ -12,6 +12,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+import pyarrow as pa
 import pyarrow.parquet as pq
 
 from cleaner import clean_wikiversity_text, stream_wikiversity_entries
@@ -129,7 +130,8 @@ Quantum mechanics is a fundamental theory in physics that provides a description
 
         table = pq.read_table(shards[0])
         self.assertEqual(table.num_rows, 2)
-        self.assertEqual(table.schema, WIKIVERSITY_SCHEMA)
+        self.assertEqual(table.schema, WIKIVERSITY_SCHEMA.append(pa.field("pii_status", pa.string())))
+        self.assertEqual(table.column("pii_status").to_pylist(), ["unchecked"] * table.num_rows)
         self.assertEqual(table["title"][0].as_py(), "Module 1")
 
     def test_ledger_manager_initialization(self):

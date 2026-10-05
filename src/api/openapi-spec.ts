@@ -3644,6 +3644,100 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/datasets/{name}/gates": {
+      get: {
+        tags: ["Datasets"],
+        summary: "Get latest snapshot gates and manifest hash",
+        parameters: [{ name: "name", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Candidate/released state, manifestSha256, gates and evidence." },
+          "404": { description: "No snapshot." },
+        },
+      },
+    },
+    "/api/v1/datasets/{name}/release": {
+      post: {
+        tags: ["Datasets"],
+        summary: "Release an explicitly reviewed immutable snapshot",
+        description:
+          "Reviewer attestation: all five gates require passing values and evidence URIs bound to the candidate manifest hash. This endpoint does not execute audits.",
+        parameters: [{ name: "name", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                additionalProperties: false,
+                required: [
+                  "snapshotId",
+                  "manifestSha256",
+                  "gates",
+                  "evidence",
+                  "reviewedBy",
+                  "reviewedAt",
+                ],
+                properties: {
+                  snapshotId: { type: "string" },
+                  manifestSha256: { type: "string", pattern: "^[0-9a-f]{64}$" },
+                  reviewedBy: { type: "string", minLength: 1 },
+                  reviewedAt: { type: "string", format: "date-time" },
+                  gates: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["schema", "quality", "privacy", "contamination", "rights"],
+                    properties: Object.fromEntries(
+                      ["schema", "quality", "privacy", "contamination", "rights"].map((gate) => [
+                        gate,
+                        { type: "boolean", enum: [true] },
+                      ])
+                    ),
+                  },
+                  evidence: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["schema", "quality", "privacy", "contamination", "rights"],
+                    properties: Object.fromEntries(
+                      ["schema", "quality", "privacy", "contamination", "rights"].map((gate) => [
+                        gate,
+                        { type: "string", format: "uri" },
+                      ])
+                    ),
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Atomic released state and persisted review." },
+          "404": { description: "Wrong dataset or snapshot." },
+          "409": { description: "Review missing, stale or gates failed." },
+        },
+      },
+    },
+    "/api/v1/datasets/{name}/lineage": {
+      get: {
+        tags: ["Datasets"],
+        summary: "Get latest snapshot provenance and shard references",
+        parameters: [{ name: "name", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Run, trace, commit, gates, review and split shards." },
+          "404": { description: "No snapshot." },
+        },
+      },
+    },
+    "/api/v1/lineage/{run_id}": {
+      get: {
+        tags: ["Datasets"],
+        summary: "Get recorded run manifests, snapshots and shards",
+        parameters: [{ name: "run_id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Recorded provenance only; missing producers are not inferred." },
+          "404": { description: "No recorded provenance." },
+        },
+      },
+    },
     "/api/v1/datasets/publish": {
       post: {
         tags: ["Datasets"],

@@ -1,7 +1,7 @@
 services:
   protokol-7:
     build:
-      context: .
+      context: ../..
       dockerfile: Dockerfile
     image: protokol-7:latest
     container_name: protokol-7-service
@@ -17,9 +17,9 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - PIPEDREAM_PROJECT_ID=${PIPEDREAM_PROJECT_ID:-}
     volumes:
-      - ./data:/app/data
-      - ./output:/app/output
-      - ./examples:/app/examples
+      - ../../data:/app/data
+      - ../../output:/app/output
+      - ../../examples:/app/examples
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
       interval: 30s

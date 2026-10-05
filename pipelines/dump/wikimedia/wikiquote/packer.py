@@ -8,9 +8,14 @@ Parquet shards with RowGroup buffering.
 
 import datetime
 import os
+import sys
 from typing import List, Dict, Any, Callable, Optional
+from pathlib import Path
+
 import pyarrow as pa
 import pyarrow.parquet as pq
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
+from pipelines.shared.pii_status import with_pii_schema, with_pii_table
 
 WIKIQUOTE_SCHEMA = pa.schema(
     [
@@ -74,7 +79,7 @@ class StreamingParquetSharder:
 
         self.current_writer = pq.ParquetWriter(
             self.current_part_path,
-            schema=WIKIQUOTE_SCHEMA,
+            schema=with_pii_schema(WIKIQUOTE_SCHEMA),
             compression=self.compression,
             compression_level=self.compression_level,
         )
@@ -112,6 +117,7 @@ class StreamingParquetSharder:
         )
 
         assert self.current_writer is not None
+        table = with_pii_table(table, self.buffer)
         self.current_writer.write_table(table)
 
         self.current_part_entries += len(self.buffer)

@@ -5,7 +5,7 @@
  * with SHA-256 checksums, and persists snapshot lineage in RegistryDatabase.
  */
 
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { basename, isAbsolute, join, normalize, resolve } from "node:path";
 import {
@@ -16,6 +16,7 @@ import {
   RegistryDatabase,
 } from "../api/registry-database";
 import { ConnectorRegistry } from "../pipeline/connectors/connector-registry";
+import { buildArtifactPrefix } from "../pipeline/storage/artifact-path";
 import { B2Storage } from "../pipeline/storage/b2-storage";
 import { LocalStorage } from "../pipeline/storage/local-storage";
 import { R2Storage } from "../pipeline/storage/r2-storage";
@@ -23,6 +24,7 @@ import { S3Storage } from "../pipeline/storage/s3-storage";
 import type {
   PublishDatasetOptions,
   PublishDatasetResult,
+  ReleaseReview,
   ShardManifestEntry,
   SplitDefinition,
   SplitRatios,
@@ -58,7 +60,23 @@ export class DatasetPublisher {
     const now = new Date();
     const dateStamp = now.toISOString().slice(0, 10).replace(/-/g, ".");
     const version = options.version?.trim() || `${dateStamp}.1`;
+    if (!/^[a-z0-9][a-z0-9_-]*$/.test(datasetName)) throw new Error("Invalid dataset name.");
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(version) || version.includes(".."))
+      throw new Error("Invalid dataset version.");
     const snapshotId = `dss_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
+
+    const runId = options.runId ?? randomUUID();
+    const traceId = options.traceId ?? randomBytes(16).toString("hex");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(runId))
+      throw new Error("Invalid runId.");
+    if (!/^(?!0{32}$)[0-9a-f]{32}$/.test(traceId)) throw new Error("Invalid traceId.");
+    if (options.gitCommit && !/^[0-9a-f]{40}$/.test(options.gitCommit))
+      throw new Error("Invalid gitCommit.");
+
+    const safeOutputDir = this.resolveSafeOutputDir(options.outputDir, datasetName, version);
+    if (existsSync(join(safeOutputDir, "manifest.json")))
+      throw new Error("Output artifact already exists; use a new immutable directory.");
+    this.registryDb.reserveDatasetPublication(datasetName, version, snapshotId, safeOutputDir);
 
     // 1. Resolve Shards
     const shards = await this.resolveShards(datasetName, options);
@@ -98,13 +116,15 @@ export class DatasetPublisher {
     // 5. Assemble Training Dataset Manifest
     const manifest: TrainingDatasetManifest = {
       schemaVersion: "1.0.0",
+      run_id: runId,
+      trace_id: traceId,
+      git_commit: options.gitCommit,
+      gates: { schema: false, quality: false, privacy: false, contamination: false, rights: false },
       snapshotId,
       datasetName,
       version,
       title: options.title || `${datasetName} Training Dataset`,
-      description:
-        options.description ||
-        `Cryptographically verified training dataset snapshot for ${datasetName}.`,
+      description: options.description || `Candidate training dataset snapshot for ${datasetName}.`,
       createdAt: now.toISOString(),
       license: {
         group: options.licenseGroup || "permissive_commercial",
@@ -123,19 +143,57 @@ export class DatasetPublisher {
     };
 
     // 6. Write Manifest to Local Output Directory
-    const safeOutputDir = this.resolveSafeOutputDir(options.outputDir, datasetName, version);
-    if (!existsSync(safeOutputDir)) {
-      mkdirSync(safeOutputDir, { recursive: true });
-    }
-
+    mkdirSync(safeOutputDir, { recursive: true });
+    const manifestJson = JSON.stringify(manifest, null, 2);
     const localManifestPath = join(safeOutputDir, "manifest.json");
-    writeFileSync(localManifestPath, JSON.stringify(manifest, null, 2), "utf-8");
+    writeFileSync(localManifestPath, manifestJson, { encoding: "utf8", flag: "wx" });
+
+    writeFileSync(
+      join(safeOutputDir, "statistics.json"),
+      JSON.stringify(
+        {
+          snapshotId,
+          run_id: runId,
+          trace_id: traceId,
+          ...manifest.statistics,
+          tokenCountMethod: "estimate",
+          languageDistribution: options.metadata?.languageDistribution ?? {
+            status: "unavailable",
+            reason: "No measured language distribution supplied.",
+          },
+          qualityMetrics: options.metadata?.qualityMetrics ?? {
+            status: "unavailable",
+            reason: "No measured quality report supplied.",
+          },
+          splits: Object.fromEntries(
+            Object.entries(splits).map(([name, split]) => [
+              name,
+              {
+                shardCount: split.shardCount,
+                recordCount: split.recordCount,
+                sizeBytes: split.sizeBytes,
+              },
+            ])
+          ),
+        },
+        null,
+        2
+      ),
+      { encoding: "utf8", flag: "wx" }
+    );
+    writeFileSync(join(safeOutputDir, "README.md"), this.renderDatasetCard(manifest), {
+      encoding: "utf8",
+      flag: "wx",
+    });
 
     // Write standard checksums.sha256 file
     const checksumLines = Object.entries(checksumsSha256)
       .map(([fileName, hash]) => `${hash}  ${fileName}`)
       .join("\n");
-    writeFileSync(join(safeOutputDir, "checksums.sha256"), `${checksumLines}\n`, "utf-8");
+    writeFileSync(join(safeOutputDir, "checksums.sha256"), `${checksumLines}\n`, {
+      encoding: "utf8",
+      flag: "wx",
+    });
 
     let manifestUri = localManifestPath;
     let remoteReceipt: PublishDatasetResult["remoteReceipt"];
@@ -144,8 +202,11 @@ export class DatasetPublisher {
     if (options.connectorName) {
       const uploadResult = await this.uploadManifestToRemote(
         options.connectorName,
-        options.connectorPrefix || `datasets/${datasetName}/${version}`,
-        Buffer.from(JSON.stringify(manifest, null, 2), "utf-8")
+        buildArtifactPrefix(
+          "datasets",
+          `${options.connectorPrefix || `${datasetName}/${version}`}/${snapshotId}`
+        ),
+        Buffer.from(manifestJson, "utf8")
       );
       manifestUri = uploadResult.uri;
       remoteReceipt = uploadResult;
@@ -158,6 +219,9 @@ export class DatasetPublisher {
     }
 
     const snapshotRecord: DatasetSnapshotRecord = {
+      runId,
+      traceId,
+      gitCommit: options.gitCommit,
       snapshotId,
       datasetName,
       version,
@@ -167,7 +231,7 @@ export class DatasetPublisher {
       totalSizeBytes,
       totalTokensEstimated,
       manifestUri,
-      manifestJson: JSON.stringify(manifest),
+      manifestJson,
       createdAt: now.toISOString(),
     };
 
@@ -235,6 +299,75 @@ export class DatasetPublisher {
     }
   }
 
+  releaseSnapshot(review: ReleaseReview): DatasetSnapshotRecord {
+    return this.registryDb.releaseDatasetSnapshot(review);
+  }
+
+  getGates(snapshotId: string) {
+    return this.registryDb.getDatasetReleaseGates(snapshotId);
+  }
+
+  getLineage(snapshotId: string) {
+    const snapshot = this.getSnapshot(snapshotId);
+    if (!snapshot) return undefined;
+    const manifest = this.getManifest(snapshotId);
+    return {
+      snapshotId,
+      datasetName: snapshot.datasetName,
+      version: snapshot.version,
+      run_id: snapshot.runId,
+      trace_id: snapshot.traceId,
+      git_commit: snapshot.gitCommit,
+      releaseState: snapshot.releaseState,
+      gates: this.getGates(snapshotId),
+      review: this.registryDb.getDatasetReleaseReview(snapshotId),
+      shards: manifest?.splits,
+      run: snapshot.runId ? this.registryDb.getRunLineage(snapshot.runId) : undefined,
+    };
+  }
+
+  private renderDatasetCard(manifest: TrainingDatasetManifest): string {
+    return `# ${manifest.datasetName}
+
+Version: ${manifest.version}
+Snapshot: ${manifest.snapshotId}
+
+## Source and processing
+
+Run: ${manifest.run_id}
+Trace: ${manifest.trace_id}
+Commit: ${manifest.git_commit ?? "not recorded"}
+Language: ${String(manifest.metadata?.language ?? "unavailable")}
+Task: ${String(manifest.metadata?.intendedTask ?? "not recorded")}
+
+${manifest.description ?? ""}
+
+## License and intended use
+
+License group: ${manifest.license.group}
+${manifest.license.details ?? "Rights review required before release."}
+
+## Statistics and splits
+
+Records: ${manifest.statistics.totalRecords}
+Shards: ${manifest.statistics.totalShards}
+Bytes: ${manifest.statistics.totalSizeBytes}
+Tokens (estimated): ${manifest.statistics.totalTokensEstimated}
+
+See statistics.json for split counts and checksums.sha256 for integrity.
+
+## Usage
+
+Read manifest.json, select a split and verify checksums before training. Check the registry release state for this exact snapshot.
+
+## Release review and limitations
+
+Candidate snapshot. Schema, quality, privacy, contamination and rights reviews are required.
+Gate evidence and release state are recorded in the registry; this immutable card records creation-time state.
+Record counts from filePaths may be estimates; token counts are estimates.
+`;
+  }
+
   // --- Internal Helpers ---
 
   private async resolveShards(
@@ -256,7 +389,7 @@ export class DatasetPublisher {
         const buffer = readFileSync(fullPath);
         const hash = createHash("sha256").update(buffer).digest("hex");
         const fileName = basename(fullPath);
-        const shardId = `sh_${createHash("sha256").update(fullPath).digest("hex").slice(0, 14)}`;
+        const shardId = `sh_${createHash("sha256").update(`${datasetName}\0${fullPath}\0${hash}`).digest("hex").slice(0, 14)}`;
 
         // Approximate records if not specified in metadata
         const recordsPerFile = Number(options.metadata?.recordCountPerFile) || 100;
@@ -275,7 +408,8 @@ export class DatasetPublisher {
           createdAt: new Date().toISOString(),
         };
 
-        this.registryDb.recordDatasetShard(shardRecord);
+        if (!this.registryDb.getDatasetShard(shardId))
+          this.registryDb.recordDatasetShard(shardRecord);
         records.push(shardRecord);
       }
       return records;

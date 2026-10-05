@@ -111,4 +111,4 @@ The interactive Swagger API documentation will be available at `http://localhost
 
 Protokol-7 is built in collaboration with advanced AI agents. The repository enforces strict rules via:
 - `AGENTS.md` and `GEMINI.md`: Project rules and cognitive routing for agents.
-- `.agents/skills/data-ingestion-protocol/SKILL.md`: The mandatory workflow protocol agents must follow when adding a new data source to ensure architectural consistency.
+- `.agents/skills/ops/data-ingestion-protocol/SKILL.md`: The mandatory workflow protocol agents must follow when adding a new data source to ensure architectural consistency.

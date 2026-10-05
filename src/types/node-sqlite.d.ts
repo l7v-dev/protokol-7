@@ -16,4 +16,5 @@ declare module "node:sqlite" {
     exec(sql: string): void;
     prepare(sql: string): StatementSync;
   }
+  export function backup(sourceDb: DatabaseSync, path: string): Promise<number>;
 }

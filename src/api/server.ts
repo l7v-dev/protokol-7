@@ -4518,6 +4518,20 @@ export function createServer(): http.Server {
         return;
       }
 
+      if (method === "GET" && pathname.startsWith("/api/v1/lineage/")) {
+        datasetRouter.handleRunLineage(res, pathname.slice("/api/v1/lineage/".length));
+        return;
+      }
+      if (method === "POST" && /^\/api\/v1\/datasets\/[^/]+\/release$/.test(pathname)) {
+        const parts = pathname.split("/");
+        datasetRouter.handleRelease(
+          res,
+          parts[4],
+          await parseBody<import("../dataset/types").ReleaseReview>(req)
+        );
+        return;
+      }
+
       // 9. Training Dataset Snapshot & Manifest Routes
       if (method === "POST" && pathname === "/api/v1/datasets/publish") {
         const body = await parseBody<PublishDatasetOptions>(req);
@@ -4533,6 +4547,15 @@ export function createServer(): http.Server {
       if (method === "GET" && pathname.startsWith("/api/v1/datasets/")) {
         const subPath = pathname.slice("/api/v1/datasets/".length);
         const parts = subPath.split("/").filter(Boolean);
+
+        if (parts.length === 2 && parts[1] === "gates") {
+          datasetRouter.handleGetGates(res, parts[0]);
+          return;
+        }
+        if (parts.length === 2 && parts[1] === "lineage") {
+          datasetRouter.handleDatasetLineage(res, parts[0]);
+          return;
+        }
 
         // /api/v1/datasets/:name
         if (parts.length === 1) {

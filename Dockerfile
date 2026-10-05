@@ -76,6 +76,7 @@ COPY --from=builder /app/context ./context
 COPY --from=builder /app/rules ./rules
 COPY examples/ ./examples/
 COPY scripts/ ./scripts/
+COPY infra/migrations/ ./infra/migrations/
 
 # Create runtime directories with correct permissions for node user
 RUN mkdir -p /app/data /app/output /app/scratch && \

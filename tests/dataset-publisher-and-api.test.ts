@@ -257,6 +257,55 @@ describe("Dataset Publisher & Training Manifest API", () => {
     assert.equal(data.statistics.totalShards, 1);
   });
 
+  it("HTTP gates, release and lineage preserve snapshot-specific reviews", async () => {
+    const gatesResponse = await fetch(`${baseUrl}/api/v1/datasets/http_api_dataset/gates`);
+    assert.equal(gatesResponse.status, 200);
+    const gates = (await gatesResponse.json()) as {
+      snapshotId: string;
+      manifestSha256: string;
+      releaseState: string;
+    };
+    assert.equal(gates.releaseState, "candidate");
+    const input = {
+      snapshotId: gates.snapshotId,
+      manifestSha256: gates.manifestSha256,
+      gates: { schema: true, quality: true, privacy: true, contamination: false, rights: true },
+      evidence: {
+        schema: "file:///audit/schema.json",
+        quality: "file:///audit/quality.json",
+        privacy: "file:///audit/privacy.json",
+        contamination: "file:///audit/contamination.json",
+        rights: "file:///audit/rights.json",
+      },
+      reviewedBy: "http-reviewer",
+      reviewedAt: new Date().toISOString(),
+    };
+    const release = (name: string) =>
+      fetch(`${baseUrl}/api/v1/datasets/${name}/release`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+    assert.equal((await release("http_api_dataset")).status, 409);
+    input.gates.contamination = true;
+    assert.equal((await release("wrong_dataset")).status, 404);
+    const released = await release("http_api_dataset");
+    assert.equal(released.status, 200);
+    assert.equal(
+      ((await released.json()) as { snapshot: { releaseState: string } }).snapshot.releaseState,
+      "released"
+    );
+    const lineageResponse = await fetch(`${baseUrl}/api/v1/datasets/http_api_dataset/lineage`);
+    assert.equal(lineageResponse.status, 200);
+    const lineage = (await lineageResponse.json()) as {
+      run_id: string;
+      review: { manifestSha256: string };
+    };
+    assert.equal(lineage.review.manifestSha256, gates.manifestSha256);
+    assert.equal((await fetch(`${baseUrl}/api/v1/lineage/${lineage.run_id}`)).status, 200);
+    assert.equal((await fetch(`${baseUrl}/api/v1/lineage/unknown-run`)).status, 404);
+  });
+
   it("MCP tools/call executes publish_dataset, list_datasets, and get_dataset_manifest", async () => {
     const mcp = new ProtokolMcpServer();
     const testShard = join(testShardsDir, "mcp-shard.parquet");

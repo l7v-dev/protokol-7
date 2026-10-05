@@ -55,6 +55,6 @@ Aynı yaklaşımı 2. kez sözdizimsel varyasyonla deniyorsam **dur** — bu,
 ajan trajektorilerinin ~%65'inde görülen "bilişsel kilitlenme" belirtisidir
 ve insan psikolojisindeki batık maliyet safsatasının doğrudan karşılığıdır:
 "bu kadar zaman harcadım, bırakamam" mantığı ajanı da yanlış yönde tutar.
-Planı terk et, `skills/grilling` veya üst-biliş (`rules/metacognition.md`) ile durumu yeniden çerçevele.
+Planı terk et, `skills/dev/grilling` veya üst-biliş (`rules/metacognition.md`) ile durumu yeniden çerçevele.
 
 - [ ] **Epipleksite ve Duraklama İndeksi:** Harcanan jeton/araç sayısına rağmen çalışma alanında doğrulanabilir durum farkı (`git diff`) 3 adım boyunca sıfır kaldıysa yürütmeyi derhal durdur; döngüyü kır ve üst bilişsel değerlendirme (`rules/metacognition.md`) başlat.

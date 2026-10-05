@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "dataset-release.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "dataset-release.v1"
+    },
+    "snapshot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^v(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$"
+    },
+    "run_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "trace_id": {
+      "type": "string",
+      "pattern": "^(?!0{32}$)[0-9a-f]{32}$"
+    },
+    "manifest_uri": {
+      "type": "string",
+      "format": "uri"
+    },
+    "release_state": {
+      "enum": [
+        "candidate",
+        "released",
+        "withdrawn"
+      ]
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "type": "boolean"
+        },
+        "quality": {
+          "type": "boolean"
+        },
+        "privacy": {
+          "type": "boolean"
+        },
+        "contamination": {
+          "type": "boolean"
+        },
+        "rights": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "schema",
+        "quality",
+        "privacy",
+        "contamination",
+        "rights"
+      ]
+    },
+    "reviewed_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "dataset_id",
+    "version",
+    "run_id",
+    "trace_id",
+    "manifest_uri",
+    "release_state",
+    "gates",
+    "created_at"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "release_state": {
+            "const": "released"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reviewed_by",
+          "reviewed_at"
+        ],
+        "properties": {
+          "gates": {
+            "properties": {
+              "schema": {
+                "const": true
+              },
+              "quality": {
+                "const": true
+              },
+              "privacy": {
+                "const": true
+              },
+              "contamination": {
+                "const": true
+              },
+              "rights": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

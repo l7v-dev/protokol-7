@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "decontaminate-dataset-input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "train_uri": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evaluation_uri": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_uri": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "train_uri",
+    "evaluation_uri",
+    "output_uri"
+  ]
+}

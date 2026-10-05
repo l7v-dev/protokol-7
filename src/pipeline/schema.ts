@@ -5,6 +5,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import yaml from "js-yaml";
 import { z } from "zod";
+import { DecontaminationConfigSchema } from "./processors/decontaminate-filter";
 
 export class PipelineError extends Error {
   readonly code: string;
@@ -121,6 +122,7 @@ export const PipelineConfigSchema = z.object({
   normalization: PipelineNormalizationConfigSchema.optional(),
   quality_gate: PipelineQualityGateConfigSchema.optional(),
   dedup: PipelineDedupConfigSchema.optional(),
+  decontamination: DecontaminationConfigSchema.optional(),
   connectors: z.record(ConnectorConfigSchema).optional(),
 });
 

@@ -53,7 +53,9 @@ class BaseParquetSharder:
         on_shard_completed: Optional[Callable[[Dict[str, Any]], None]] = None,
     ):
         self.output_dir = output_dir
-        self.schema = schema
+        if "pii_status" in schema.names and not pa.types.is_string(schema.field("pii_status").type):
+            raise ValueError("pii_status must be a string column")
+        self.schema = schema if "pii_status" in schema.names else schema.append(pa.field("pii_status", pa.string()))
         self.filename_prefix = filename_prefix
         self.snapshot_date = snapshot_date or datetime.date.today().strftime("%Y%m%d")
         self.max_part_bytes = max_part_bytes
@@ -109,7 +111,10 @@ class BaseParquetSharder:
 
     def add_record(self, record: Dict[str, Any]) -> None:
         """Adds a single record to write buffer, checking size thresholds."""
-        self.buffer.append(record)
+        status = record.get("pii_status", "unchecked")
+        if status not in ("unchecked", "clear", "redacted", "quarantined"):
+            raise ValueError("Invalid pii_status")
+        self.buffer.append({**record, "pii_status": status})
         if len(self.buffer) >= self.batch_size:
             self._flush_buffer()
             self._check_rotation()

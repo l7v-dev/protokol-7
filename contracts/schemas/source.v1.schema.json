@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "source.v1",
+  "description": "Repository source contract; optional extensions retain existing descriptor compatibility.",
+  "allOf": [
+    {
+      "$ref": "../source-descriptor.schema.json"
+    }
+  ]
+}

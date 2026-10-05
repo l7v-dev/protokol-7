@@ -19,6 +19,8 @@ export interface RunMetadata {
   retryCount?: number;
   byteSizeOutput?: number;
   pipelineRunId?: string;
+  traceId?: string;
+  spanId?: string;
 }
 
 export interface RunRecord {

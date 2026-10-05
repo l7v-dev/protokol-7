@@ -17,6 +17,7 @@ export interface NormalizerOptions {
 
 export interface NormalizedItemResult<T = Record<string, unknown>> {
   item: T;
+  canonicalizationVersion?: string;
   rawSha256: string;
   normalizedSha256: string;
   charCountOriginal: number;
@@ -34,9 +35,16 @@ const DEFAULT_OPTIONS: Required<NormalizerOptions> = {
 
 export class TextNormalizer {
   private readonly options: Required<NormalizerOptions>;
+  readonly canonicalizationVersion: string;
 
   constructor(options?: NormalizerOptions) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
+    // The policy fingerprint changes whenever any text transformation option changes.
+    const { contentFieldNames: _fields, ...policy } = this.options;
+    this.canonicalizationVersion = `text-normalizer.v1.${createHash("sha256")
+      .update(JSON.stringify(policy))
+      .digest("hex")
+      .slice(0, 16)}`;
   }
 
   /**
@@ -132,9 +140,11 @@ export class TextNormalizer {
     cloned[primaryField] = normalizedText;
     cloned.raw_sha256 = rawSha256;
     cloned.normalized_sha256 = normalizedSha256;
+    cloned.canonicalization_version = this.canonicalizationVersion;
 
     return {
       item: cloned as T,
+      canonicalizationVersion: this.canonicalizationVersion,
       rawSha256,
       normalizedSha256,
       charCountOriginal: originalText.length,

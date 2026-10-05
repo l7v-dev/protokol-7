@@ -81,8 +81,12 @@ describe("Anomaly Telemetry - Stall and Error Tracking", () => {
 
     assert.ok(existsSync(testTelemetryFile));
     const content = readFileSync(testTelemetryFile, "utf8");
-    assert.ok(content.includes("STALL_TIMEOUT"));
-    assert.ok(content.includes("https://example.com/slow-page"));
+    const log = JSON.parse(content);
+    assert.equal(log.event_name, "anomaly.STALL_TIMEOUT");
+    assert.equal(log.content_capture, false);
+    assert.equal(log.trace_id, event.traceId);
+    assert.ok(!content.includes("https://example.com/slow-page"));
+    assert.ok(!content.includes("Playwright navigation timed out after 30s"));
 
     unlinkSync(testTelemetryFile);
   });

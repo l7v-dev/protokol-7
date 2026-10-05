@@ -4,11 +4,23 @@
  * using native node:sqlite with zero external dependencies.
  */
 
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync, type StatementSync } from "node:sqlite";
+import type {
+  ArtifactPathTier,
+  DatasetReleaseGateRecord,
+  DocumentOccurrenceRecord,
+  DocumentProvenanceRecord,
+  ReleaseState,
+} from "../../contracts/provenance";
+import { validateReleaseReview } from "../dataset/release-review";
+import type { ReleaseReview } from "../dataset/types";
 import type { PipelineRunResult } from "../pipeline/pipeline-runner";
 import type { ScheduledJobInfo } from "../pipeline/schedule-broker";
+import { type LogEvent, MetadataLogEventSchema, type StoredLogEvent } from "../telemetry/log-event";
+import { applyBlueprintMigration } from "./blueprint-migration";
 import type { RunMetadata, RunRecord, RunStatus } from "./run-registry";
 
 export interface DatasetShardRecord {
@@ -26,6 +38,10 @@ export interface DatasetShardRecord {
 }
 
 export interface DatasetSnapshotRecord {
+  releaseState?: ReleaseState;
+  runId?: string;
+  traceId?: string;
+  gitCommit?: string;
   snapshotId: string;
   datasetName: string;
   version: string;
@@ -54,6 +70,7 @@ export interface DatasetRecord {
 }
 
 export interface StorageReplicaRecord {
+  pathTier?: ArtifactPathTier;
   replicaId: string;
   shardId: string;
   storageProvider: string;
@@ -136,6 +153,9 @@ export class RegistryDatabase {
 
   private stmtInsertAudit!: StatementSync;
   private stmtListAuditByRun!: StatementSync;
+  private stmtInsertOtelLog!: StatementSync;
+  private stmtListOtelLogs!: StatementSync;
+  private stmtListOtelLogsByTrace!: StatementSync;
 
   constructor(options?: RegistryDatabaseOptions) {
     const isTest = process.env.NODE_ENV === "test";
@@ -153,8 +173,13 @@ export class RegistryDatabase {
     }
 
     this.db = new DatabaseSync(this.dbPath);
-    this.initDatabase();
-    this.prepareStatements();
+    try {
+      this.initDatabase();
+      this.prepareStatements();
+    } catch (error) {
+      this.db.close();
+      throw error;
+    }
   }
 
   private initDatabase(): void {
@@ -371,6 +396,7 @@ export class RegistryDatabase {
     `);
 
     // Indexes
+    applyBlueprintMigration(this.db);
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_actor_runs_status ON actor_runs(status);
       CREATE INDEX IF NOT EXISTS idx_actor_runs_started_at ON actor_runs(started_at DESC);
@@ -394,8 +420,9 @@ export class RegistryDatabase {
     this.stmtInsertRun = this.db.prepare(`
       INSERT OR REPLACE INTO actor_runs (
         run_id, actor_name, status, input_json, actor_version, actor_category,
-        execution_target, source_url, source_domain, content_language, pipeline_run_id, started_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        execution_target, source_url, source_domain, content_language, pipeline_run_id, started_at,
+        trace_id, span_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     this.stmtUpdateRunStatus = this.db.prepare(`
@@ -431,7 +458,7 @@ export class RegistryDatabase {
              item_count, duration_ms, actor_version, actor_category,
              execution_target, source_url, source_domain, content_language,
              http_status_code, retry_count, byte_size_output, pipeline_run_id,
-             started_at, finished_at
+             started_at, finished_at, trace_id, span_id
       FROM actor_runs WHERE run_id = ?
     `);
 
@@ -440,7 +467,7 @@ export class RegistryDatabase {
              item_count, duration_ms, actor_version, actor_category,
              execution_target, source_url, source_domain, content_language,
              http_status_code, retry_count, byte_size_output, pipeline_run_id,
-             started_at, finished_at
+             started_at, finished_at, trace_id, span_id
       FROM actor_runs ORDER BY started_at DESC LIMIT ?
     `);
 
@@ -457,13 +484,13 @@ export class RegistryDatabase {
     this.stmtInsertPipelineExec = this.db.prepare(`
       INSERT OR REPLACE INTO pipeline_executions (
         execution_id, pipeline_name, actor_id, status, item_count,
-        duration_ms, receipt_json, error_message, started_at, completed_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        duration_ms, receipt_json, error_message, started_at, completed_at, processing_metadata_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     this.stmtListPipelineExecs = this.db.prepare(`
       SELECT execution_id, pipeline_name, actor_id, status, item_count,
-             duration_ms, receipt_json, error_message, started_at, completed_at
+             duration_ms, receipt_json, error_message, started_at, completed_at, processing_metadata_json
       FROM pipeline_executions ORDER BY started_at DESC LIMIT ?
     `);
 
@@ -578,38 +605,38 @@ export class RegistryDatabase {
     `);
 
     this.stmtInsertSnapshot = this.db.prepare(`
-      INSERT OR REPLACE INTO dataset_snapshots (
+      INSERT INTO dataset_snapshots (
         snapshot_id, dataset_name, version, splits_json, shard_count,
         total_record_count, total_size_bytes, total_tokens_estimated,
-        manifest_uri, manifest_json, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        manifest_uri, manifest_json, created_at, run_id, trace_id, git_commit
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     this.stmtListSnapshotsByName = this.db.prepare(`
       SELECT snapshot_id, dataset_name, version, splits_json, shard_count,
              total_record_count, total_size_bytes, total_tokens_estimated,
-             manifest_uri, manifest_json, created_at
+             manifest_uri, manifest_json, created_at, release_state, run_id, trace_id, git_commit
       FROM dataset_snapshots WHERE dataset_name = ? ORDER BY created_at DESC LIMIT ?
     `);
 
     this.stmtListSnapshotsAll = this.db.prepare(`
       SELECT snapshot_id, dataset_name, version, splits_json, shard_count,
              total_record_count, total_size_bytes, total_tokens_estimated,
-             manifest_uri, manifest_json, created_at
+             manifest_uri, manifest_json, created_at, release_state, run_id, trace_id, git_commit
       FROM dataset_snapshots ORDER BY created_at DESC LIMIT ?
     `);
 
     this.stmtGetSnapshot = this.db.prepare(`
       SELECT snapshot_id, dataset_name, version, splits_json, shard_count,
              total_record_count, total_size_bytes, total_tokens_estimated,
-             manifest_uri, manifest_json, created_at
+             manifest_uri, manifest_json, created_at, release_state, run_id, trace_id, git_commit
       FROM dataset_snapshots WHERE snapshot_id = ?
     `);
 
     this.stmtGetLatestSnapshotByName = this.db.prepare(`
       SELECT snapshot_id, dataset_name, version, splits_json, shard_count,
              total_record_count, total_size_bytes, total_tokens_estimated,
-             manifest_uri, manifest_json, created_at
+             manifest_uri, manifest_json, created_at, release_state, run_id, trace_id, git_commit
       FROM dataset_snapshots WHERE dataset_name = ? ORDER BY created_at DESC LIMIT 1
     `);
 
@@ -620,13 +647,13 @@ export class RegistryDatabase {
     this.stmtInsertReplica = this.db.prepare(`
       INSERT OR REPLACE INTO storage_replicas (
         replica_id, shard_id, storage_provider, remote_uri, remote_sha256_hash,
-        remote_size_bytes, sync_status, verified_at, last_error
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        remote_size_bytes, sync_status, verified_at, last_error, path_tier
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     this.stmtListReplicasByShard = this.db.prepare(`
       SELECT replica_id, shard_id, storage_provider, remote_uri, remote_sha256_hash,
-             remote_size_bytes, sync_status, verified_at, last_error
+             remote_size_bytes, sync_status, verified_at, last_error, path_tier
       FROM storage_replicas WHERE shard_id = ? ORDER BY verified_at DESC
     `);
 
@@ -644,6 +671,20 @@ export class RegistryDatabase {
              raw_purged, purged_at, verifier_identity, notes, created_at
       FROM verification_audit_ledger WHERE run_id = ? ORDER BY created_at DESC
     `);
+    this.stmtInsertOtelLog = this.db.prepare(`
+      INSERT INTO otel_log_events (
+        timestamp, observed_timestamp, event_name, severity_text, severity_number, body,
+        trace_id, span_id, service_name, service_version, deployment_env,
+        blueprint_run_id, blueprint_agent_id, blueprint_skill_id, blueprint_status,
+        blueprint_duration_ms, content_capture
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    this.stmtListOtelLogs = this.db.prepare(
+      "SELECT * FROM otel_log_events ORDER BY event_id DESC LIMIT ?"
+    );
+    this.stmtListOtelLogsByTrace = this.db.prepare(
+      "SELECT * FROM otel_log_events WHERE trace_id = ? ORDER BY event_id DESC LIMIT ?"
+    );
   }
 
   // --- Actor Runs & Logs API ---
@@ -668,7 +709,9 @@ export class RegistryDatabase {
       meta?.sourceDomain || null,
       meta?.contentLanguage || null,
       meta?.pipelineRunId || null,
-      record.startedAt
+      record.startedAt,
+      meta?.traceId ?? null,
+      meta?.spanId ?? null
     );
   }
 
@@ -784,7 +827,9 @@ export class RegistryDatabase {
       row.http_status_code !== null ||
       row.retry_count !== null ||
       row.byte_size_output !== null ||
-      row.pipeline_run_id;
+      row.pipeline_run_id ||
+      row.trace_id ||
+      row.span_id;
 
     const metadata: RunMetadata | undefined = hasMetadata
       ? {
@@ -807,6 +852,8 @@ export class RegistryDatabase {
               ? Number(row.byte_size_output)
               : undefined,
           pipelineRunId: row.pipeline_run_id ? String(row.pipeline_run_id) : undefined,
+          traceId: row.trace_id ? String(row.trace_id) : undefined,
+          spanId: row.span_id ? String(row.span_id) : undefined,
         }
       : undefined;
 
@@ -845,7 +892,14 @@ export class RegistryDatabase {
       result.receipt ? JSON.stringify(result.receipt) : null,
       result.error || null,
       result.startedAt,
-      result.completedAt
+      result.completedAt,
+      result.contamination
+        ? JSON.stringify({
+            contamination: result.contamination,
+            quarantineReceipt: result.quarantineReceipt,
+            contaminationReceipt: result.contaminationReceipt,
+          })
+        : null
     );
   }
 
@@ -859,6 +913,7 @@ export class RegistryDatabase {
       itemCount: Number(row.item_count),
       durationMs: Number(row.duration_ms),
       receipt: row.receipt_json ? JSON.parse(String(row.receipt_json)) : undefined,
+      ...(row.processing_metadata_json ? JSON.parse(String(row.processing_metadata_json)) : {}),
       error: row.error_message ? String(row.error_message) : undefined,
       startedAt: String(row.started_at),
       completedAt: String(row.completed_at),
@@ -1064,19 +1119,42 @@ export class RegistryDatabase {
   // --- Dataset Snapshots API ---
 
   recordDatasetSnapshot(snapshot: DatasetSnapshotRecord): void {
-    this.stmtInsertSnapshot.run(
-      snapshot.snapshotId,
-      snapshot.datasetName,
-      snapshot.version,
-      snapshot.splitsJson,
-      snapshot.shardCount,
-      snapshot.totalRecordCount,
-      snapshot.totalSizeBytes,
-      snapshot.totalTokensEstimated,
-      snapshot.manifestUri,
-      snapshot.manifestJson,
-      snapshot.createdAt
-    );
+    this.db.exec("BEGIN IMMEDIATE");
+    try {
+      const reservation = this.db
+        .prepare(
+          "SELECT snapshot_id FROM dataset_publication_reservations WHERE dataset_name = ? AND version = ?"
+        )
+        .get(snapshot.datasetName, snapshot.version);
+      if (reservation && reservation.snapshot_id !== snapshot.snapshotId)
+        throw new Error("Dataset version already exists.");
+      if (!reservation)
+        this.db
+          .prepare(
+            "INSERT INTO dataset_publication_reservations (dataset_name, version, snapshot_id) VALUES (?, ?, ?)"
+          )
+          .run(snapshot.datasetName, snapshot.version, snapshot.snapshotId);
+      this.stmtInsertSnapshot.run(
+        snapshot.snapshotId,
+        snapshot.datasetName,
+        snapshot.version,
+        snapshot.splitsJson,
+        snapshot.shardCount,
+        snapshot.totalRecordCount,
+        snapshot.totalSizeBytes,
+        snapshot.totalTokensEstimated,
+        snapshot.manifestUri,
+        snapshot.manifestJson,
+        snapshot.createdAt,
+        snapshot.runId ?? null,
+        snapshot.traceId ?? null,
+        snapshot.gitCommit ?? null
+      );
+      this.db.exec("COMMIT");
+    } catch (error) {
+      this.db.exec("ROLLBACK");
+      throw error;
+    }
   }
 
   listDatasetSnapshots(datasetName?: string, limit = 50): DatasetSnapshotRecord[] {
@@ -1098,6 +1176,10 @@ export class RegistryDatabase {
       manifestUri: String(row.manifest_uri),
       manifestJson: String(row.manifest_json),
       createdAt: String(row.created_at),
+      releaseState: row.release_state as ReleaseState,
+      runId: row.run_id ? String(row.run_id) : undefined,
+      traceId: row.trace_id ? String(row.trace_id) : undefined,
+      gitCommit: row.git_commit ? String(row.git_commit) : undefined,
     }));
   }
 
@@ -1116,6 +1198,10 @@ export class RegistryDatabase {
       manifestUri: String(row.manifest_uri),
       manifestJson: String(row.manifest_json),
       createdAt: String(row.created_at),
+      releaseState: row.release_state as ReleaseState,
+      runId: row.run_id ? String(row.run_id) : undefined,
+      traceId: row.trace_id ? String(row.trace_id) : undefined,
+      gitCommit: row.git_commit ? String(row.git_commit) : undefined,
     };
   }
 
@@ -1136,12 +1222,191 @@ export class RegistryDatabase {
       manifestUri: String(row.manifest_uri),
       manifestJson: String(row.manifest_json),
       createdAt: String(row.created_at),
+      releaseState: row.release_state as ReleaseState,
+      runId: row.run_id ? String(row.run_id) : undefined,
+      traceId: row.trace_id ? String(row.trace_id) : undefined,
+      gitCommit: row.git_commit ? String(row.git_commit) : undefined,
     };
   }
 
   deleteDatasetSnapshot(snapshotId: string): boolean {
     const result = this.stmtDeleteSnapshot.run(snapshotId);
     return Number(result.changes) > 0;
+  }
+
+  reserveDatasetPublication(
+    datasetName: string,
+    version: string,
+    snapshotId: string,
+    outputDir: string
+  ): void {
+    try {
+      this.db
+        .prepare(
+          "INSERT INTO dataset_publication_reservations (dataset_name, version, snapshot_id, output_dir) VALUES (?, ?, ?, ?)"
+        )
+        .run(datasetName, version, snapshotId, outputDir);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("UNIQUE"))
+        throw new Error(
+          "Dataset version or output directory already exists; use a new immutable namespace."
+        );
+      throw error;
+    }
+  }
+
+  recordDocumentProvenance(record: DocumentProvenanceRecord): void {
+    this.db
+      .prepare(
+        `INSERT INTO document_provenance (document_id, canonicalization_version, language, pii_status, split, rights_license, rights_evidence_uri, rights_reviewed_at, rights_allowed_purposes, rights_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .run(
+        record.documentId,
+        record.canonicalizationVersion,
+        record.language,
+        record.piiStatus,
+        record.split,
+        record.rightsLicense ?? null,
+        record.rightsEvidenceUri ?? null,
+        record.rightsReviewedAt ?? null,
+        record.rightsAllowedPurposes ?? null,
+        record.rightsStatus,
+        record.createdAt
+      );
+  }
+
+  recordDocumentOccurrence(record: DocumentOccurrenceRecord, runId: string): number {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(runId))
+      throw new Error("Invalid runId.");
+    this.db.exec("BEGIN IMMEDIATE");
+    try {
+      const inserted = this.db
+        .prepare(
+          "INSERT INTO document_occurrences (document_id, source_id, source_record_id, source_uri, acquired_at, raw_artifact_id) VALUES (?, ?, ?, ?, ?, ?)"
+        )
+        .run(
+          record.documentId,
+          record.sourceId,
+          record.sourceRecordId,
+          record.sourceUri,
+          record.acquiredAt,
+          record.rawArtifactId
+        );
+      const occurrenceId = Number(inserted.lastInsertRowid);
+      this.db
+        .prepare("INSERT INTO document_occurrence_runs (occurrence_id, run_id) VALUES (?, ?)")
+        .run(occurrenceId, runId);
+      this.db.exec("COMMIT");
+      return occurrenceId;
+    } catch (error) {
+      this.db.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
+  getSnapshotManifestHash(snapshotId: string): string | undefined {
+    const snapshot = this.getDatasetSnapshot(snapshotId);
+    return snapshot ? createHash("sha256").update(snapshot.manifestJson).digest("hex") : undefined;
+  }
+
+  getRunLineage(runId: string) {
+    const manifests = this.db
+      .prepare("SELECT * FROM pipeline_run_manifests WHERE run_id = ?")
+      .all(runId);
+    const snapshotRows = this.db
+      .prepare(
+        "SELECT snapshot_id FROM dataset_snapshots WHERE run_id = ? ORDER BY created_at DESC"
+      )
+      .all(runId);
+    const snapshots = snapshotRows.map((row) => this.getDatasetSnapshot(String(row.snapshot_id))!);
+    const shards = this.db
+      .prepare("SELECT * FROM dataset_shards WHERE pipeline_run_id = ?")
+      .all(runId);
+    const occurrences = this.db
+      .prepare(
+        "SELECT o.* FROM document_occurrences o JOIN document_occurrence_runs r ON r.occurrence_id = o.occurrence_id WHERE r.run_id = ?"
+      )
+      .all(runId);
+    const documents = this.db
+      .prepare(
+        "SELECT DISTINCT p.* FROM document_provenance p JOIN document_occurrences o ON o.document_id = p.document_id JOIN document_occurrence_runs r ON r.occurrence_id = o.occurrence_id WHERE r.run_id = ?"
+      )
+      .all(runId);
+    const sourceEvidence = this.db
+      .prepare(
+        "SELECT DISTINCT e.* FROM source_verification_evidence e JOIN document_occurrences o ON o.source_id = e.source_id JOIN document_occurrence_runs r ON r.occurrence_id = o.occurrence_id WHERE r.run_id = ?"
+      )
+      .all(runId);
+    return { run_id: runId, manifests, snapshots, shards, occurrences, documents, sourceEvidence };
+  }
+
+  getDatasetReleaseGates(snapshotId: string): DatasetReleaseGateRecord | undefined {
+    const row = this.db
+      .prepare(
+        "SELECT * FROM dataset_release_gates WHERE snapshot_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1"
+      )
+      .get(snapshotId);
+    if (!row) return undefined;
+    return {
+      gateId: String(row.gate_id),
+      snapshotId: String(row.snapshot_id),
+      schemaGate: row.schema_gate === 1,
+      qualityGate: row.quality_gate === 1,
+      privacyGate: row.privacy_gate === 1,
+      contaminationGate: row.contamination_gate === 1,
+      rightsGate: row.rights_gate === 1,
+      releaseState: row.release_state as ReleaseState,
+      reviewedBy: row.reviewed_by ? String(row.reviewed_by) : undefined,
+      reviewedAt: row.reviewed_at ? String(row.reviewed_at) : undefined,
+      createdAt: String(row.created_at),
+    };
+  }
+
+  releaseDatasetSnapshot(review: ReleaseReview): DatasetSnapshotRecord {
+    this.db.exec("BEGIN IMMEDIATE");
+    try {
+      const snapshot = this.getDatasetSnapshot(review.snapshotId);
+      if (!snapshot) throw new Error("Snapshot not found.");
+      if (snapshot.releaseState !== "candidate")
+        throw new Error("Only candidate snapshots can be released.");
+      validateReleaseReview(review, snapshot.manifestJson);
+      const now = new Date().toISOString();
+      this.db
+        .prepare(
+          `INSERT INTO dataset_release_gates (gate_id, snapshot_id, schema_gate, quality_gate, privacy_gate, contamination_gate, rights_gate, release_state, reviewed_by, reviewed_at, created_at) VALUES (?, ?, 1, 1, 1, 1, 1, 'released', ?, ?, ?)`
+        )
+        .run(
+          `review_${review.snapshotId}`,
+          review.snapshotId,
+          review.reviewedBy,
+          review.reviewedAt,
+          now
+        );
+      this.db
+        .prepare(
+          "INSERT INTO dataset_release_reviews (snapshot_id, manifest_sha256, evidence_json) VALUES (?, ?, ?)"
+        )
+        .run(review.snapshotId, review.manifestSha256, JSON.stringify(review.evidence));
+      this.db
+        .prepare("UPDATE dataset_snapshots SET release_state = 'released' WHERE snapshot_id = ?")
+        .run(review.snapshotId);
+      this.db.exec("COMMIT");
+      return this.getDatasetSnapshot(review.snapshotId)!;
+    } catch (error) {
+      this.db.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
+  getDatasetReleaseReview(snapshotId: string): Record<string, unknown> | undefined {
+    const row = this.db
+      .prepare(
+        "SELECT manifest_sha256, evidence_json FROM dataset_release_reviews WHERE snapshot_id = ?"
+      )
+      .get(snapshotId);
+    return row
+      ? { manifestSha256: row.manifest_sha256, evidence: JSON.parse(String(row.evidence_json)) }
+      : undefined;
   }
 
   // --- Storage Replicas API ---
@@ -1156,7 +1421,8 @@ export class RegistryDatabase {
       replica.remoteSizeBytes,
       replica.syncStatus,
       replica.verifiedAt || null,
-      replica.lastError || null
+      replica.lastError || null,
+      replica.pathTier ?? null
     );
   }
 
@@ -1172,6 +1438,7 @@ export class RegistryDatabase {
       syncStatus: row.sync_status as StorageReplicaRecord["syncStatus"],
       verifiedAt: row.verified_at ? String(row.verified_at) : undefined,
       lastError: row.last_error ? String(row.last_error) : undefined,
+      pathTier: row.path_tier ? (row.path_tier as ArtifactPathTier) : undefined,
     }));
   }
 
@@ -1214,6 +1481,53 @@ export class RegistryDatabase {
       notes: row.notes ? String(row.notes) : undefined,
       createdAt: String(row.created_at),
     }));
+  }
+
+  recordOtelLogEvent(input: LogEvent): number {
+    const event = MetadataLogEventSchema.parse(input);
+    const result = this.stmtInsertOtelLog.run(
+      event.timestamp,
+      event.observed_timestamp,
+      event.event_name,
+      event.severity_text,
+      event.severity_number,
+      event.body,
+      event.trace_id,
+      event.span_id,
+      event.service_name,
+      event.service_version,
+      event.deployment_env,
+      event.blueprint_run_id ?? null,
+      event.blueprint_agent_id ?? null,
+      event.blueprint_skill_id ?? null,
+      event.blueprint_status ?? null,
+      event.blueprint_duration_ms ?? null,
+      0
+    );
+    return Number(result.lastInsertRowid);
+  }
+
+  listOtelLogEvents(traceId?: string, limit = 100): StoredLogEvent[] {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 10000) {
+      throw new Error("Log query limit must be between 1 and 10000.");
+    }
+    const rows = traceId
+      ? this.stmtListOtelLogsByTrace.all(traceId, limit)
+      : this.stmtListOtelLogs.all(limit);
+    return rows.map((row) => {
+      const { event_id, ...fields } = row;
+      for (const key of Object.keys(fields)) {
+        if (fields[key] === null) {
+          delete fields[key];
+        }
+      }
+      const event = MetadataLogEventSchema.parse({
+        ...fields,
+        schema_version: "log-event.v1",
+        content_capture: Boolean(fields.content_capture),
+      });
+      return { ...event, event_id: Number(event_id) };
+    });
   }
 
   close(): void {

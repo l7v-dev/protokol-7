@@ -11,8 +11,12 @@ import hashlib
 import os
 import sys
 from typing import Any, Dict, Optional, Tuple
+from pathlib import Path
+
 import pyarrow as pa
 import pyarrow.parquet as pq
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from pipelines.shared.pii_status import with_pii_table
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
@@ -61,7 +65,7 @@ class BinanceVisionParquetSharder:
         file_path = os.path.join(subfolder, shard_name)
 
         pq.write_table(
-            table,
+            with_pii_table(table),
             file_path,
             compression="zstd",
             compression_level=6,

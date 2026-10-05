@@ -12,6 +12,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+import pyarrow as pa
 import pyarrow.parquet as pq
 
 from cleaner import clean_wikibooks_text, stream_wikibooks_entries
@@ -116,7 +117,8 @@ Python modern ve dinamik bir programlama dilidir.
         self.assertEqual(len(parquet_files), 1)
         table = pq.read_table(parquet_files[0])
         self.assertEqual(table.num_rows, 2)
-        self.assertEqual(table.schema, WIKIBOOKS_SCHEMA)
+        self.assertEqual(table.schema, WIKIBOOKS_SCHEMA.append(pa.field("pii_status", pa.string())))
+        self.assertEqual(table.column("pii_status").to_pylist(), ["unchecked"] * table.num_rows)
 
     def test_ledger_manager_sqlite(self):
         db_path = os.path.join(self.test_dir, "test_books_catalog.sqlite")
