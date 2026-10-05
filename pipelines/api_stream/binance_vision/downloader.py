@@ -165,6 +165,33 @@ class BinanceVisionDownloader:
                 break
             marker = result["next_marker"]
 
+    def list_symbols(
+        self,
+        market: str = "spot",
+        period_type: str = "monthly",
+        data_type: str = "klines",
+    ) -> List[str]:
+        """
+        Discovers all available symbols for a given market, period, and data type using S3 delimiter hierarchy.
+        """
+        market_path = market.replace("_", "/")
+        prefix = f"data/{market_path}/{period_type}/{data_type}/"
+        symbols: List[str] = []
+        marker = None
+
+        while True:
+            result = self.list_bucket(prefix=prefix, delimiter="/", marker=marker, max_keys=1000)
+            for common_prefix in result.get("common_prefixes", []):
+                sym = common_prefix.rstrip("/").split("/")[-1].strip().upper()
+                if sym:
+                    symbols.append(sym)
+
+            if not result["is_truncated"] or not result["next_marker"]:
+                break
+            marker = result["next_marker"]
+
+        return sorted(list(set(symbols)))
+
     def download_file_bytes(self, key: str) -> bytes:
         """Downloads raw bytes of an S3 object key."""
         encoded_key = urllib.parse.quote(key)

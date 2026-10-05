@@ -42,7 +42,6 @@ class BinanceVisionOrchestrator:
         self.market = market
         self.data_type = data_type
         self.period_type = period_type
-        self.symbols = [s.strip().upper() for s in (symbols or ["BTCUSDT"]) if s.strip()]
         self.interval = interval
         self.upload_drive = upload_drive
         self.purge_local = purge_local
@@ -54,6 +53,19 @@ class BinanceVisionOrchestrator:
         self.sharder = BinanceVisionParquetSharder()
         self.drive_sync = BinanceVisionDriveSync(dry_run=dry_run) if upload_drive else None
 
+        self.all_symbols = False
+        if symbols and any(s in ("ALL", "*") for s in symbols):
+            self.all_symbols = True
+            print(f"[*] Discovering ALL available symbols for market={self.market}, type={self.data_type} from S3...")
+            self.symbols = self.downloader.list_symbols(
+                market=self.market,
+                period_type=self.period_type,
+                data_type=self.data_type,
+            )
+            print(f"[*] Discovered {len(self.symbols)} available symbols.")
+        else:
+            self.symbols = [s.strip().upper() for s in (symbols or ["BTCUSDT"]) if s.strip()]
+
     def build_s3_prefix(self, symbol: str) -> str:
         """
         Constructs the S3 directory prefix for the given parameters.
@@ -61,6 +73,8 @@ class BinanceVisionOrchestrator:
         """
         market_path = self.market.replace("_", "/")
         if self.data_type == "klines":
+            if self.interval == "all" or not self.interval:
+                return f"data/{market_path}/{self.period_type}/{self.data_type}/{symbol}/"
             return f"data/{market_path}/{self.period_type}/{self.data_type}/{symbol}/{self.interval}/"
         return f"data/{market_path}/{self.period_type}/{self.data_type}/{symbol}/"
 
@@ -94,22 +108,32 @@ class BinanceVisionOrchestrator:
             print("[*] Dry-run enabled. Skipping download and conversion.")
             return {"status": "dry_run_complete", "discovered": total_discovered}
 
-        # Query pending files
-        pending = self.ledger.get_pending_files(
-            market=self.market,
-            data_type=self.data_type,
-            limit=max_files if max_files > 0 else 10000,
-        )
-
-        print(f"[*] Processing {len(pending)} pending files...")
         processed_count = 0
         total_rows = 0
         seq = int(time.time()) % 100000
 
-        for file_meta in pending:
-            file_key = file_meta["file_key"]
-            symbol = file_meta["symbol"]
-            interval = file_meta["interval"]
+        while True:
+            # Query pending files batch
+            batch_limit = 500 if max_files == 0 else min(500, max_files - processed_count)
+            if batch_limit <= 0:
+                break
+
+            pending = self.ledger.get_pending_files(
+                market=self.market,
+                data_type=self.data_type,
+                limit=batch_limit,
+            )
+
+            if not pending:
+                print("[*] No further pending files to process.")
+                break
+
+            print(f"[*] Processing batch of {len(pending)} pending files (overall processed: {processed_count})...")
+
+            for file_meta in pending:
+                file_key = file_meta["file_key"]
+                symbol = file_meta["symbol"]
+                interval = file_meta["interval"]
 
             try:
                 print(f"[>] Downloading & verifying: {file_key} ...")
@@ -203,8 +227,9 @@ def main() -> None:
     parser.add_argument("--market", default="spot", choices=["spot", "futures_um", "futures_cm"], help="Market type")
     parser.add_argument("--type", dest="data_type", default="klines", choices=["klines", "trades", "aggTrades"], help="Data type")
     parser.add_argument("--period", dest="period_type", default="monthly", choices=["monthly", "daily"], help="Period granularity")
-    parser.add_argument("--symbols", default="BTCUSDT", help="Comma-separated symbols (e.g. BTCUSDT,ETHUSDT)")
-    parser.add_argument("--interval", default="1d", help="Kline interval (e.g. 1d, 1h, 15m, 1m)")
+    parser.add_argument("--symbols", default="BTCUSDT", help="Comma-separated symbols, or 'ALL' for every symbol on S3")
+    parser.add_argument("--all", action="store_true", help="Harvest all available symbols across the market")
+    parser.add_argument("--interval", default="1d", help="Kline interval (e.g. 1d, 1h, 15m, 1m, or 'all')")
     parser.add_argument("--max-files", type=int, default=0, help="Max files to process (0 = all)")
     parser.add_argument("--no-drive", action="store_true", help="Disable Google Drive upload")
     parser.add_argument("--keep-local", action="store_true", help="Keep local Parquet files (do not purge)")
@@ -217,7 +242,10 @@ def main() -> None:
         print_status()
         return
 
-    symbol_list = [s.strip() for s in args.symbols.split(",") if s.strip()]
+    if args.all:
+        symbol_list = ["ALL"]
+    else:
+        symbol_list = [s.strip() for s in args.symbols.split(",") if s.strip()]
 
     orchestrator = BinanceVisionOrchestrator(
         market=args.market,

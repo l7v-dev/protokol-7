@@ -81,9 +81,9 @@ class ApertaDownloader:
                 with urllib.request.urlopen(req, timeout=self.timeout, context=self._ssl_context) as resp:
                     return resp.read()
             except urllib.error.HTTPError as he:
-                if he.code == 429:
+                if he.code in (403, 429):
                     retry_after = he.headers.get("Retry-After")
-                    sleep_time = float(retry_after) if retry_after else (backoff * 2)
+                    sleep_time = float(retry_after) if retry_after else (max(backoff * 3.0, 15.0))
                     time.sleep(sleep_time)
                     backoff *= 2.0
                     continue

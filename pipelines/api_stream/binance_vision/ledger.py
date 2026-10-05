@@ -284,13 +284,10 @@ class BinanceVisionLedger(BaseLedger):
             conn.commit()
 
         # Dual-sync to central catalog
-        self._sync_central_dataset(
-            name=f"binance_{shard_name}",
-            category="financial_timeseries",
-            record_count=0,
-            file_path=f"gdrive://Binance/{shard_name}",
-            file_size=0,
-        )
+        try:
+            self.sync_to_central_catalog(dataset_name="binance_vision")
+        except Exception:
+            pass
 
     def get_stats(self) -> Dict[str, Any]:
         """
