@@ -9,6 +9,15 @@ Her görev bir güven kademesi (Trust-Tier) taşır — bkz. `rules/trust-tiers.
 
 ## Aktif
 
+- [ ] **Hugging Face Veri Toplama ve Arşivleme (`huggingface`)** — `Tier: 1`
+  - **Durum:** Kullanıcının Türkiye LLM araştırmasındaki 12 doğrudan dataset ve OttomanNLP kuruluşundaki 5 veri seti sabitlendi. Erişilebilir 15 kaynakta 565 dosya / 471.801.019.644 bayt keşfedildi. 30 dosyalık pilot Drive MD5/boyut doğrulamasıyla tamamlandı; kalan dosyalar arka planda tek işçi ve 25 GiB disk rezerviyle aktarılıyor.
+  - **Süreç:** `.venv/bin/python -u pipelines/snapshot/huggingface/orchestrator.py run --min-free-disk-gb 25` (PID dosyası: `data/huggingface/runner.pid`).
+  - **Takip:** `tail -f logs/huggingface.log`; durum: `.venv/bin/python pipelines/snapshot/huggingface/orchestrator.py status`.
+  - **Arşiv:** Drive `protokol-object-vault/HuggingFace/`; katalog `data/huggingface/catalog.sqlite`; manifesto `data/huggingface/manifest.json`. Ham dosyalar korunuyor; normalizasyon yapılmadı.
+  - **Erişim bekleyen:** `uonlp/CulturaX` ve `yagmurtuncer/turkasr-bench`, mevcut HF tokenı ile 403. Hesaba erişim verildikten sonra `discover` tekrar çalıştırılmalı.
+  - **Doğrulama:** 10/10 Python testi, 30 dosya canlı pilot ve `npm run verify` başarılı. Yürütme kaydı: `docs/walkthroughs/huggingface-veri-toplama-walkthrough.md`.
+  - **Plan:** [`docs/plans/huggingface-veri-toplama-plani.md`](docs/plans/huggingface-veri-toplama-plani.md).
+
 - [ ] **DergiPark Tam Metin Çıkarımı ve Ham PDF Arşivleme Akışı (`dergipark`)** — `Tier: 1`
   - **Durum:** DergiPark kataloğundaki 131.127 makalenin tam metin PDF indirmesi, PyMuPDF Markdown katman çıkarımı, Zstandard Parquet sharder ve toleranslı çoklu-GB (10-50 GB, maks 51 GB) ham PDF TAR.GZ arşivleyici arka plan daemon'ı olarak yürütülüyor.
   - **Süreç:** `python -u pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 0 --workers 2 --rate-limit 1.75 --batch-size 50 --max-shard-records 2000 --pdf-archive-gb 10.0 --max-pdf-archive-gb 51.0 --min-free-disk-gb 25.0`

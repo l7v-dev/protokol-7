@@ -1,0 +1,257 @@
+{
+  "research_file": "turkiye_llm_veri_ekosistemi.md",
+  "selection_notes": [
+    "Language catalog is an index, not a dataset.",
+    "MADLAD original clean Turkish subset; noisy and alternate v1p5 excluded.",
+    "FineWeb2 retained Turkish data; removed subset excluded.",
+    "FLEURS Turkish Parquet includes audio; duplicate TAR representation excluded.",
+    "OttomanNLP data/ Parquet preferred over duplicate root files or ZIP."
+  ],
+  "sources": [
+    {
+      "repo": "Swagvictoria/tr-dpo-preferences",
+      "revision": "5fc3df95890977b78c7d60f794388f01ff998c44",
+      "roots": [
+        ""
+      ],
+      "patterns": [
+        "*.jsonl"
+      ],
+      "gated": false,
+      "license": "apache-2.0",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "Taklaxbr/Turkish-STEM-DPO-Dataset",
+      "revision": "be3d341d0d52f64c886ac02666046c928d417375",
+      "roots": [
+        "data"
+      ],
+      "patterns": [
+        "data/*.csv"
+      ],
+      "gated": false,
+      "license": "other",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "erenfazlioglu/turkish-instruct-reasoning-dpo-3.4m",
+      "revision": "ff022effd2654bf9fa781df8090bfa08606931a3",
+      "roots": [
+        ""
+      ],
+      "patterns": [
+        "*.parquet"
+      ],
+      "gated": false,
+      "license": "other",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "mcemilg/tquad",
+      "revision": "7b6e463a8340b2d20fc5f8c8f8bba20ccccd7242",
+      "roots": [
+        ""
+      ],
+      "patterns": [],
+      "gated": false,
+      "license": "unknown",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "google/fleurs",
+      "revision": "70bb2e84b976b7e960aa89f1c648e09c59f894dd",
+      "roots": [
+        "parquet-data/tr_tr"
+      ],
+      "patterns": [
+        "parquet-data/tr_tr/*.parquet"
+      ],
+      "gated": false,
+      "license": [
+        "cc-by-4.0"
+      ],
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "vngrs-ai/vngrs-web-corpus",
+      "revision": "ee5c6201ee84457a18182bfc483a7d8a7f3655ba",
+      "roots": [
+        "data"
+      ],
+      "patterns": [
+        "data/*.parquet"
+      ],
+      "gated": false,
+      "license": "cc-by-nc-sa-4.0",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "HuggingFaceFW/fineweb-2",
+      "revision": "af9c13333eb981300149d5ca60a8e9d659b276b9",
+      "roots": [
+        "data/tur_Latn"
+      ],
+      "patterns": [
+        "data/tur_Latn/**/*.parquet"
+      ],
+      "gated": false,
+      "license": "odc-by",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "allenai/c4",
+      "revision": "72e0114db351d5c830998a3f56de21899cc37373",
+      "roots": [
+        "multilingual"
+      ],
+      "patterns": [
+        "multilingual/c4-tr.*.json.gz"
+      ],
+      "gated": false,
+      "license": "unknown",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "allenai/MADLAD-400",
+      "revision": "9d886a76bd8fa69b294f2dd3843dacb8388ee5a5",
+      "roots": [
+        "data/tr"
+      ],
+      "patterns": [
+        "data/tr/tr_clean_*.jsonl.gz"
+      ],
+      "gated": false,
+      "license": "odc-by",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "oscar-corpus/mOSCAR",
+      "revision": "a2d98c4103c6dbd05f4c6f02c33376a9942ccb20",
+      "roots": [
+        "data/tur_Latn"
+      ],
+      "patterns": [
+        "data/tur_Latn/*.parquet"
+      ],
+      "gated": false,
+      "license": "cc-by-4.0",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "uonlp/CulturaX",
+      "revision": "6a8734bc69fefcbb7735f4f9250f43e4cd7a442e",
+      "roots": [
+        "tr"
+      ],
+      "patterns": [
+        "tr/*.parquet",
+        "tr/checksum.sha256"
+      ],
+      "gated": "auto",
+      "license": "unknown",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "yagmurtuncer/turkasr-bench",
+      "revision": "289d6fc36eba2314ef9bb7bad8c01df0c725cd73",
+      "roots": [
+        "data"
+      ],
+      "patterns": [
+        "data/**/*.parquet"
+      ],
+      "gated": "auto",
+      "license": "other",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "OttomanNLP/ottoman-place-names-gazetteer",
+      "revision": "e5273def2e29b4a72dda91e2eba00ff634f14f7e",
+      "roots": [
+        ""
+      ],
+      "patterns": [
+        "data/*.parquet"
+      ],
+      "gated": false,
+      "license": "cc-by-nc-4.0",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "OttomanNLP/OpenITI-MAKHZAN-Ottoman-Lines",
+      "revision": "2ccb777c5c9ff9bcbcff9bcd7923cf45e94de8a8",
+      "roots": [
+        ""
+      ],
+      "patterns": [
+        "data/*.parquet"
+      ],
+      "gated": false,
+      "license": "unknown",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "OttomanNLP/OsmanlicaEkmekveNisastaKitabi",
+      "revision": "bc79f270b034b8e18e4e9d7f38ec3613a74da6c9",
+      "roots": [
+        ""
+      ],
+      "patterns": [
+        "images/*",
+        "*.json",
+        "*.jsonl",
+        "*.csv",
+        "*.tsv",
+        "*.txt"
+      ],
+      "gated": false,
+      "license": "cc-by-4.0",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "OttomanNLP/Akis-Ottoman-Dataset",
+      "revision": "bb9fd3d28a371c4d14d1faffdba7a93c7b537190",
+      "roots": [
+        ""
+      ],
+      "patterns": [
+        "data/*.parquet"
+      ],
+      "gated": false,
+      "license": "apache-2.0",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    },
+    {
+      "repo": "OttomanNLP/CHURRO-Ottoman-Turkish-Subset",
+      "revision": "a2db19cbc83b9d4e8aeace96d7ccfdef614f8c69",
+      "roots": [
+        ""
+      ],
+      "patterns": [
+        "data/*.parquet"
+      ],
+      "gated": false,
+      "license": "cc-by-4.0",
+      "scope": "Turkish; original splits retained",
+      "status": "pending"
+    }
+  ],
+  "research_sha256": "c07ffcecc97037664972c146ef902280206c0c99c0377052fcfe10aa759621c5"
+}
