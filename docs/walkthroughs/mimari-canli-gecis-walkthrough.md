@@ -22,6 +22,8 @@ Standards/spec incelemelerinde OTLP response cap, partial replay engeli, lock ya
 
 ## Git ve kalan sıra
 
-GitHub compare: main feature/github-actions-wikipedia-etl'den96 commit ileride, behind0. Varsayılan branch main yapıldı; feature branch silindi, legacy/monolith-initial korundu. Yerel mimari değişiklikler codex branch'inde commit hazırlanıyor.
+GitHub compare: main feature/github-actions-wikipedia-etl'den96 commit ileride, behind0. Varsayılan branch main yapıldı; feature branch silindi, legacy/monolith-initial korundu. Yerel mimari değişiklikler codex/mimari-canli-gecis branch inde 10bc687 commit i ile kaydedildi; push/merge yapılmadı.
 
 Canlı producer belge provenance/raw evidence geçişi ve kontrollü restart kalan işlerdir. DergiPark batch/shard/arşiv tamamlayarak kapanır; DOAJ KeyboardInterrupt finalization yapar. Mevcut Binance işlemi asset upload ortasında güvenle sonlandırılabileceği kanıtlanmadığı için kesilmedi. Geçmiş raw kaynak bağlantıları türetilmez. Croissant public yayın, OpenLineage ekip/makine genişlemesi koşullarını bekler.
+
+Teslim öncesi süreç kontrolü: DOAJ1849813, Binance2120155, HuggingFace2288251, DergiPark3124682 aynı PID lerle aktif; metadata exporter2852185 aktif oturumda.
