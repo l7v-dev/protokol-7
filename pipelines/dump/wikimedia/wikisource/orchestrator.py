@@ -20,6 +20,8 @@ import urllib.error
 import urllib.request
 from typing import Dict, List, Optional, Tuple, Any
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, capture_path, record_output
 from cleaner import stream_wikisource_articles
 from downloader import (
     build_dump_urls,
@@ -281,11 +283,16 @@ def process_language_dump(
     # Step 1: Download dump
     try:
         download_dump_file(dump_url, dump_path)
+    except EvidenceWriteError:
+        raise
     except Exception as e:
+        report_producer_error(e)
         print(f"[ERROR] Failed to download {dump_url}: {e}")
         ledger.update_status(db_name, "failed", error_message=str(e))
         remove_file_safely(dump_path)
         return False
+
+    raw_evidence = capture_path(dump_path, "wikisource", dump_url)
 
     dump_size_mb = os.path.getsize(dump_path) / (1024 * 1024)
     ledger.update_status(db_name, "processing", dump_size_mb=dump_size_mb)
@@ -302,13 +309,17 @@ def process_language_dump(
     start_clean = time.time()
     try:
         for article in stream_wikisource_articles(dump_path, lang=lang, min_length=min_length, limit=limit):
+            record_output(article, raw_evidence, source_record_id=f"{lang}:{article['article_id']}")
             sharder.add_article(article)
             article_count += 1
             if article_count % 5000 == 0:
                 print(f"[STREAM] {db_name}: Processed {article_count:,} articles...")
 
         parquet_files = sharder.close()
+    except EvidenceWriteError:
+        raise
     except Exception as e:
+        report_producer_error(e)
         print(f"[ERROR] Parsing failed for {dump_path}: {e}")
         ledger.update_status(db_name, "failed", error_message=str(e))
         remove_file_safely(dump_path)
@@ -345,7 +356,10 @@ def process_language_dump(
             upload_res = drive_sync.upload_file_and_cleanup(p_file, lang=lang)
             drive_ids.append(upload_res["drive_file_id"])
             total_parquet_size_mb += p_size_mb
+        except EvidenceWriteError:
+            raise
         except Exception as e:
+            report_producer_error(e)
             print(f"[ERROR] Upload failed for {p_file}: {e}")
             ledger.update_status(db_name, "failed", error_message=str(e))
             return False
@@ -421,6 +435,7 @@ def run_pipeline(
     ledger.print_summary()
 
 
+@producer_run("wikisource")
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Wikisource Multi-Language Dump Harvest Pipeline — protokol-7"

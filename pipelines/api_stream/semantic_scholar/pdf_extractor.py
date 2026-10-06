@@ -49,6 +49,10 @@ MIN_TEXT_CHARS   = 200
 USER_AGENT = "protokol-7/1.0 (+https://github.com/protokol-7; s2-pdf-extractor)"
 
 
+from contextvars import ContextVar
+from pipelines.shared.producer_provenance import capture_bytes
+_PDF_EVIDENCE = ContextVar("s2_pdf_evidence", default=None)
+
 def _fetch_pdf_bytes(url: str) -> Optional[bytes]:
     """
     Downloads a PDF from url. Returns raw bytes or None on error/size-exceeded.
@@ -132,6 +136,7 @@ def extract_pdf(url: str) -> Tuple[str, int, int]:
         pdf_ocr_needed: 1 if OCR is needed (no/minimal text extracted), else 0.
         pdf_char_count: len(pdf_text).
     """
+    _PDF_EVIDENCE.set(None)
     if not url:
         return "", 0, 0
 
@@ -140,6 +145,7 @@ def extract_pdf(url: str) -> Tuple[str, int, int]:
         # Could not download. Not flagging as ocr_needed -- may be access-gated.
         return "", 0, 0
 
+    _PDF_EVIDENCE.set(capture_bytes(pdf_bytes, "semantic_scholar", url))
     text = _extract_text_pdfminer(pdf_bytes)
     char_count = len(text)
 
@@ -164,6 +170,7 @@ def enrich_record_with_pdf(record: Dict[str, Any]) -> Dict[str, Any]:
     record["pdf_text"]       = pdf_text
     record["pdf_ocr_needed"] = pdf_ocr_needed
     record["pdf_char_count"] = pdf_char_count
+    record["_pdf_raw_evidence"] = _PDF_EVIDENCE.get()
     return record
 
 

@@ -9,6 +9,10 @@ import time
 import tempfile
 from pathlib import Path
 
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, producer_run
+
 from pipelines.cdc.openalex.downloader import DeltaClient, DeltaError
 from pipelines.cdc.openalex.ledger import DeltaLedger
 
@@ -79,6 +83,7 @@ def run_delta(ledger, fetch_page, output_dir, since, until, max_pages=10, delay_
     return {"status": "partial", "records": processed, "watermark": state["watermark"]}
 
 
+@producer_run("openalex-cdc")
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--since", required=True)

@@ -1,0 +1,14 @@
+[Unit]
+Description=Protokol-7 dergipark producer
+[Service]
+Type=simple
+WorkingDirectory=%h/l7v-dev/play/protokol-7
+EnvironmentFile=%h/l7v-dev/play/protokol-7/data/maintenance/pipeline-runtime.env
+ExecStart=%h/l7v-dev/play/protokol-7/.venv/bin/python -u %h/l7v-dev/play/protokol-7/pipelines/api_stream/dergipark/fulltext_runner.py --max-articles 0 --workers 2 --rate-limit 1.75 --batch-size 50 --max-shard-records 2000 --pdf-archive-gb 10 --max-pdf-archive-gb 51 --min-free-disk-gb 25
+Restart=no
+KillMode=mixed
+TimeoutStopSec=infinity
+MemoryMax=1G
+MemorySwapMax=0
+[Install]
+WantedBy=default.target

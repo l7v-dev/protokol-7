@@ -17,6 +17,9 @@ from typing import Any, Dict, Generator, List, Optional
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import capture_fetch
+
 BIORXIV_API_BASE = "https://api.biorxiv.org/details"
 DEFAULT_USER_AGENT = "protokol-7/1.0.0 (Preprint Ingestion Engine; mailto:l7v-dev@protokol.local)"
 
@@ -50,6 +53,7 @@ class BiorxivDownloader:
             time.sleep(self.min_interval - elapsed)
         self._last_request_time = time.time()
 
+    @capture_fetch("biorxiv")
     def _fetch_url(self, url: str) -> bytes:
         headers = {"User-Agent": DEFAULT_USER_AGENT}
 

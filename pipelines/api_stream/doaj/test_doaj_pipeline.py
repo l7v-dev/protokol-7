@@ -243,7 +243,7 @@ class TestDoajDriveSync(unittest.TestCase):
         self.assertEqual(res["status"], "dry_run")
         self.assertTrue(res["file_id"].startswith("dry_run_"))
         self.assertEqual(len(res["md5"]), 32)
-        self.assertFalse(os.path.exists(self.test_file))
+        self.assertTrue(os.path.exists(self.test_file))
 
 
 if __name__ == "__main__":

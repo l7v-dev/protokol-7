@@ -6,6 +6,8 @@ const MIGRATION_FILES = [
   "infra/migrations/0002-blueprint-provenance.sql",
   "infra/migrations/0003-release-reviews.sql",
   "infra/migrations/0004-processing-evidence.sql",
+  "infra/migrations/0011-producer-raw-evidence.sql",
+  "infra/migrations/0012-corpus-producer-runs.sql",
 ];
 
 export function applyBlueprintMigration(db: DatabaseSync): void {

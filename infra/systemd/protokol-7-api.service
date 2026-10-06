@@ -1,0 +1,16 @@
+[Unit]
+Description=Protokol-7 API with shared daemon monitoring
+[Service]
+Type=simple
+WorkingDirectory=%h/l7v-dev/play/protokol-7
+EnvironmentFile=%h/l7v-dev/play/protokol-7/data/maintenance/pipeline-runtime.env
+Environment=HOST=127.0.0.1
+Environment=PORT=4000
+ExecStart=/etc/profiles/per-user/l7v/bin/node %h/l7v-dev/play/protokol-7/node_modules/tsx/dist/cli.mjs %h/l7v-dev/play/protokol-7/src/api/server.ts
+Restart=no
+KillMode=mixed
+TimeoutStopSec=180
+MemoryMax=1G
+MemorySwapMax=0
+[Install]
+WantedBy=default.target

@@ -16,6 +16,12 @@ import time
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, record_output
+from pipelines.shared.daemon_run import monitor_daemon, current_checkpoint
+from pipelines.shared.pipeline_runtime import current_stopper
+from pipelines.shared.shard_namespace import next_part_index
+
 from cleaner import DoajCleaner
 from downloader import DoajDownloader
 from drive_sync import DoajDriveSync
@@ -23,6 +29,7 @@ from ledger import DoajLedger
 from packer import DoajParquetSharder
 
 
+@producer_run("doaj")
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(line_buffering=True)
@@ -94,7 +101,14 @@ def main():
         action="store_true",
         help="Flush un-uploaded local shards to Google Drive and exit",
     )
-    args = parser.parse_args()
+    parser.add_argument("--async-upload", action="store_true", help="Use a bounded upload queue and drain it before run completion")
+    from pipelines.shared.cli_validation import validate_cli
+    args = validate_cli(parser, parser.parse_args())
+    return run(args)
+
+
+@monitor_daemon('doaj', enabled=lambda args: not args.sync_shards)
+def run(args):
 
     max_recs = None if args.max_records == 0 else args.max_records
     use_oai = args.all or (args.query in ("*", "*:*", "") and (max_recs is None or max_recs > 1000))
@@ -112,12 +126,20 @@ def main():
     downloader = DoajDownloader()
     cleaner = DoajCleaner()
     ledger = DoajLedger(db_path=args.db_path)
+    checkpoint = current_checkpoint(f"doaj:{os.path.abspath(args.db_path)}:oai") if use_oai else None
+    resume_token = args.resumption_token
+    if checkpoint and resume_token is None:
+        previous_cursor = checkpoint.state['state_payload'].get('cursor') or {}
+        resume_token = previous_cursor.get('oai_token')
 
     drive_sync = None
     if not args.no_drive:
         try:
             drive_sync = DoajDriveSync(dry_run=args.dry_run)
+        except EvidenceWriteError:
+            raise
         except Exception as e:
+            report_producer_error(e)
             print(f"[DRIVE-WARN] Google Drive authentication unavailable: {e}")
             print(f"[DRIVE-WARN] Falling back to local storage buffer mode in {args.output_dir}.")
             print("[DRIVE-WARN] Run 'npm run auth:gdrive' to refresh Google Drive token and flush shards.")
@@ -153,7 +175,19 @@ def main():
             sha256=shard_info["sha256"],
             md5=shard_info["md5"],
         )
-        if drive_sync:
+        if checkpoint:
+            checkpoint.advance({'oai_token': getattr(downloader, 'oai_page_token', resume_token),
+                                'closed_shard': shard_info['shard_name']})
+        if drive_sync and getattr(args, "async_upload", False):
+            def uploaded(result):
+                ledger.mark_shard_uploaded(shard_info["shard_name"], result["file_id"], result["md5"])
+                ledger.sync_to_central_catalog("doaj")
+            def failed(error):
+                ledger.mark_shard_failed(shard_info["shard_name"])
+                print(f"[DRIVE-WARN] Queued upload deferred: {type(error).__name__}", flush=True)
+            drive_sync.upload_async(shard_info["file_path"], drive_sync.get_doaj_folder_id(),
+                                    on_success=uploaded, on_failure=failed)
+        elif drive_sync:
             try:
                 sync_res = drive_sync.sync_shard(
                     local_path=shard_info["file_path"],
@@ -168,10 +202,13 @@ def main():
                         verified_md5=verified_md5,
                     )
                     ledger.sync_to_central_catalog("doaj")
+            except EvidenceWriteError:
+                raise
             except Exception as e:
+                report_producer_error(e)
                 print(f"[DRIVE-WARN] Shard upload deferred: {e}. Preserved locally at {shard_info['file_path']}")
 
-    start_part = ledger.get_next_part_index()
+    start_part = next_part_index(args.output_dir, 'doaj', ledger.get_next_part_index())
     sharder = DoajParquetSharder(
         output_dir=args.output_dir,
         filename_prefix="doaj",
@@ -188,20 +225,28 @@ def main():
     rejected_count = 0
 
     article_stream = (
-        downloader.stream_oai_articles(max_records=max_recs, resumption_token=args.resumption_token)
+        downloader.stream_oai_articles(max_records=max_recs, resumption_token=resume_token)
         if use_oai
         else downloader.stream_articles(query=args.query, max_records=max_recs)
     )
 
     try:
         for raw_item in article_stream:
+            stopper = current_stopper()
+            if stopper and stopper.should_stop()[0]:
+                break
+            if stopper:
+                stopper.record_processed()
             raw_count += 1
             cleaned = cleaner.clean_record(raw_item)
             if not cleaned:
                 rejected_count += 1
+                if stopper:
+                    stopper.record_error()
                 continue
 
             clean_count += 1
+            record_output(cleaned, getattr(downloader, "raw_evidence", None))
             ledger.index_article(cleaned)
             sharder.add_record(cleaned)
 
@@ -216,11 +261,18 @@ def main():
 
         sharder.close()
         ledger.sync_to_central_catalog("doaj")
+        if checkpoint and getattr(downloader, 'oai_snapshot_complete', False):
+            checkpoint.advance({'oai_token': None, 'records': raw_count})
+            checkpoint.complete()
 
     except KeyboardInterrupt:
         print("\n[DOAJ] Ingestion interrupted by operator. Finalizing open shards...", flush=True)
         sharder.close()
         ledger.sync_to_central_catalog("doaj")
+
+    finally:
+        if drive_sync and getattr(args, "async_upload", False):
+            drive_sync.close_uploads()
 
     total_time = time.time() - t0
     final_count = ledger.get_article_count()

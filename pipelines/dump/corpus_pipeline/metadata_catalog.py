@@ -9,17 +9,13 @@ import hashlib
 import json
 import os
 import sqlite3
+from pathlib import Path
 from contextlib import contextmanager
 from typing import Any, Dict, List, Optional
 
 DEFAULT_CATALOG_DB = os.environ.get("PROTOKOL_DB_PATH", "data/catalog.sqlite")
-SCHEMA_FILE_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "context",
-    "schema.sql",
-)
-if not os.path.exists(SCHEMA_FILE_PATH):
-    SCHEMA_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "schema.sql")
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+SCHEMA_FILE_PATH = str(REPOSITORY_ROOT / "context/schema.sql")
 
 
 def get_utc_iso_now() -> str:
@@ -79,7 +75,8 @@ class MetadataCatalog:
             with open(SCHEMA_FILE_PATH, "r", encoding="utf-8") as f:
                 ddl = f.read()
             with self._get_connection() as conn:
-                conn.executescript(ddl)
+                extension = (REPOSITORY_ROOT / "infra/migrations/0012-corpus-producer-runs.sql").read_text()
+                conn.executescript("BEGIN IMMEDIATE;" + ddl + extension + "COMMIT;")
 
     def register_dataset(
         self,
@@ -116,7 +113,7 @@ class MetadataCatalog:
         with self._get_connection() as conn:
             conn.execute(
                 """
-                INSERT INTO pipeline_runs (
+                INSERT INTO corpus_pipeline_runs (
                     run_id, dataset_id, status, target_storage_provider, created_at
                 ) VALUES (?, ?, 'INITIALIZING', ?, ?)
                 """,
@@ -129,7 +126,7 @@ class MetadataCatalog:
         with self._get_connection() as conn:
             conn.execute(
                 """
-                UPDATE pipeline_runs SET
+                UPDATE corpus_pipeline_runs SET
                     status = ?,
                     completed_at = COALESCE(?, completed_at),
                     error_message = ?
@@ -154,7 +151,7 @@ class MetadataCatalog:
         with self._get_connection() as conn:
             conn.execute(
                 """
-                UPDATE pipeline_runs SET
+                UPDATE corpus_pipeline_runs SET
                     total_raw_documents = ?,
                     total_clean_documents = ?,
                     total_rejected_documents = ?,
@@ -195,42 +192,25 @@ class MetadataCatalog:
         compression_codec: str = "zstd",
         compression_level: int = 6,
         dataset_name: Optional[str] = None,
+        storage_uri: Optional[str] = None,
     ) -> None:
         """Registers a packaged Parquet shard."""
         now = get_utc_iso_now()
         with self._get_connection() as conn:
             actual_dataset_name = dataset_name
             if not actual_dataset_name:
-                row = conn.execute("SELECT dataset_id FROM pipeline_runs WHERE run_id = ?", (run_id,)).fetchone()
+                row = conn.execute("SELECT dataset_id FROM corpus_pipeline_runs WHERE run_id = ?", (run_id,)).fetchone()
                 actual_dataset_name = row[0] if (row and row[0]) else "default"
 
             conn.execute(
-                """
-                INSERT INTO dataset_shards (
-                    shard_id, run_id, shard_index, dataset_name, filename, record_count, size_bytes,
-                    compression_codec, compression_level, sha256_hash, blake3_hash,
-                    row_group_count, char_count, word_count, estimated_tokens, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    shard_id,
-                    run_id,
-                    shard_index,
-                    actual_dataset_name,
-                    filename,
-                    record_count,
-                    size_bytes,
-                    compression_codec,
-                    compression_level,
-                    sha256_hash,
-                    blake3_hash,
-                    row_group_count,
-                    char_count,
-                    word_count,
-                    estimated_tokens,
-                    now,
-                ),
+                "INSERT INTO dataset_shards (shard_id,pipeline_run_id,dataset_name,file_name,storage_uri,storage_backend,record_count,size_bytes,sha256_hash,compression_codec,created_at) VALUES (?,?,?,?,?,'local_staging',?,?,?,?,?)",
+                (shard_id,run_id,actual_dataset_name,filename,storage_uri or filename,record_count,size_bytes,sha256_hash,compression_codec,now),
             )
+            conn.execute(
+                "INSERT INTO corpus_shard_runs VALUES (?,?,?,?,?,?,?,?,?)",
+                (shard_id,run_id,shard_index,blake3_hash,row_group_count,char_count,word_count,estimated_tokens,compression_level),
+            )
+
 
     def register_replica(
         self,
@@ -341,14 +321,14 @@ class MetadataCatalog:
     def get_run(self, run_id: str) -> Optional[Dict[str, Any]]:
         """Fetches pipeline run record by ID."""
         with self._get_connection() as conn:
-            cur = conn.execute("SELECT * FROM pipeline_runs WHERE run_id = ?", (run_id,))
+            cur = conn.execute("SELECT * FROM corpus_pipeline_runs WHERE run_id = ?", (run_id,))
             row = cur.fetchone()
             return dict(row) if row else None
 
     def get_shard(self, shard_id: str) -> Optional[Dict[str, Any]]:
         """Fetches shard record by ID."""
         with self._get_connection() as conn:
-            cur = conn.execute("SELECT * FROM dataset_shards WHERE shard_id = ?", (shard_id,))
+            cur = conn.execute("SELECT s.*, c.*, s.file_name AS filename FROM dataset_shards s LEFT JOIN corpus_shard_runs c USING(shard_id) WHERE s.shard_id = ?", (shard_id,))
             row = cur.fetchone()
             return dict(row) if row else None
 
@@ -356,7 +336,7 @@ class MetadataCatalog:
         """Lists all shards for a given run in index order."""
         with self._get_connection() as conn:
             cur = conn.execute(
-                "SELECT * FROM dataset_shards WHERE run_id = ? ORDER BY shard_index ASC",
+                "SELECT s.*, c.*, s.file_name AS filename FROM dataset_shards s JOIN corpus_shard_runs c USING(shard_id) WHERE c.run_id = ? ORDER BY c.shard_index ASC",
                 (run_id,),
             )
             return [dict(row) for row in cur.fetchall()]
@@ -377,12 +357,13 @@ class MetadataCatalog:
         with self._get_connection() as conn:
             cur = conn.execute(
                 """
-                SELECT s.*, r.storage_provider, r.remote_uri, r.sync_status, r.verified_at
+                SELECT s.*, c.*, s.file_name AS filename, r.storage_provider, r.remote_uri, r.sync_status, r.verified_at
                 FROM dataset_shards s
-                JOIN pipeline_runs pr ON s.run_id = pr.run_id
+                JOIN corpus_shard_runs c ON s.shard_id=c.shard_id
+                JOIN corpus_pipeline_runs pr ON c.run_id = pr.run_id
                 LEFT JOIN storage_replicas r ON s.shard_id = r.shard_id
                 WHERE pr.dataset_id = ?
-                ORDER BY s.shard_index ASC
+                ORDER BY c.shard_index ASC
                 """,
                 (dataset_id,),
             )

@@ -39,6 +39,9 @@ except ImportError:
     SSL_CONTEXT = ssl.create_default_context()
 
 USER_AGENT   = "protokol-7/1.0 (+https://github.com/protokol-7; semanticscholar-pipeline)"
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import EvidenceWriteError, capture_bytes
 GRAPH_API    = "https://api.semanticscholar.org/graph/v1/paper/search/bulk"
 DATASET_API  = "https://api.semanticscholar.org/datasets/v1"
 PAGE_SIZE    = 500   # max for bulk endpoint
@@ -79,7 +82,10 @@ def _get(url: str, retries: int = 5) -> Dict[str, Any]:
     for attempt in range(1, retries + 1):
         try:
             with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=60) as resp:
-                return json.loads(resp.read().decode("utf-8"))
+                payload = resp.read()
+                data = json.loads(payload.decode("utf-8"))
+                data["_raw_evidence"] = capture_bytes(payload, "semantic_scholar", url)
+                return data
         except urllib.error.HTTPError as e:
             if e.code == 429:
                 wait = 2 ** attempt * 10
@@ -89,6 +95,8 @@ def _get(url: str, retries: int = 5) -> Dict[str, Any]:
                 time.sleep(15 * attempt)
             else:
                 raise
+        except EvidenceWriteError:
+            raise
         except Exception:
             if attempt == retries:
                 raise
@@ -141,6 +149,8 @@ def iter_papers_bulk(
         if not papers:
             break
 
+        for paper in papers:
+            paper["_raw_evidence"] = data.get("_raw_evidence")
         yield papers
 
         if not token:

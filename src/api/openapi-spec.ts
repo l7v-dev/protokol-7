@@ -70,18 +70,23 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
       get: {
         tags: ["System"],
         summary: "System Health Status",
-        description: "Returns health status, active session counts, and memory telemetry.",
+        description:
+          "Returns service health, active browser contexts, and opt-in daemon heartbeat monitoring.",
         responses: {
           "200": {
-            description: "Service is healthy and operating within nominal parameters.",
+            description: "Service responds with healthy or degraded monitoring status.",
             content: {
               "application/json": {
                 schema: {
                   type: "object",
                   properties: {
-                    status: { type: "string", example: "ok" },
-                    activeSessions: { type: "integer", example: 0 },
-                    uptime: { type: "number", example: 124.5 },
+                    status: { type: "string", enum: ["healthy", "degraded"] },
+                    activeBrowserContexts: { type: "integer", example: 0 },
+                    daemonMonitoring: {
+                      type: "string",
+                      enum: ["disabled", "ready", "unavailable"],
+                    },
+                    stale_runs: { type: "array", items: { type: "object" } },
                   },
                 },
               },
@@ -90,6 +95,7 @@ export const OPENAPI_SPECIFICATION: Record<string, unknown> = {
         },
       },
     },
+    "/api/v1/health": { $ref: "#/paths/~1health" },
     "/.well-known/mcp.json": {
       get: {
         tags: ["System"],

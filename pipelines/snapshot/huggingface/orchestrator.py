@@ -19,6 +19,10 @@ import requests
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 from pipelines.shared.drive_sync_base import BaseDriveSync
+from pipelines.shared.daemon_run import monitor_daemon, current_checkpoint
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, record_raw_receipt
+from pipelines.shared.url_dedup import DiskUrlDedup
+from pipelines.shared.pipeline_runtime import current_stopper
 
 BASE = ROOT / 'data/huggingface'
 CONFIG = Path(__file__).with_name('sources.json')
@@ -266,7 +270,15 @@ def ensure_remote(sync, path, folder, row, sha, md5):
     return item['id']
 
 
+@monitor_daemon("huggingface")
 def run(db, reserve, max_files):
+    inventory = [(row['repo'], row['revision']) for row in db.execute(
+        "SELECT repo,revision FROM sources WHERE status='discovered' ORDER BY repo,revision")]
+    scope = hashlib.sha256(json.dumps(inventory, sort_keys=True).encode()).hexdigest()
+    checkpoint = current_checkpoint(f"huggingface:{BASE.resolve()}:{scope}")
+    with DiskUrlDedup(str(BASE / 'url-receipts.sqlite')) as urls:
+        for previous in db.execute("SELECT url FROM files WHERE status='remote_verified'"):
+            urls.mark_seen(previous['url'])
     sync = BaseDriveSync()
     folder = sync.get_or_create_subfolder('HuggingFace')
     meta = sync.service.files().get(fileId=folder, fields='id,name,webViewLink').execute()
@@ -276,7 +288,10 @@ def run(db, reserve, max_files):
     count = 0
     rows = db.execute('''SELECT f.* FROM files f JOIN sources s ON f.repo=s.repo AND f.revision=s.revision
         WHERE s.status='discovered' AND f.status != 'remote_verified' ORDER BY f.size, f.repo, f.path''').fetchall()
+    stopper = current_stopper()
     for row in rows:
+        if stopper and stopper.should_stop()[0]:
+            break
         if max_files and count >= max_files:
             break
         key = (row['repo'], row['revision'], row['path'])
@@ -293,19 +308,38 @@ def run(db, reserve, max_files):
             db.execute('UPDATE files SET status=?,drive_id=? WHERE repo=? AND revision=? AND path=?',
                        ('remote_verified', remote_id, *key))
             db.commit()
+            record_raw_receipt(sha, row["size"], "https://drive.google.com/file/d/"+remote_id+"/view", "huggingface", source_uri=row["url"], source_record_id=row["repo"]+"@"+row["revision"]+":"+row["path"])
             path.unlink()
             count += 1
             print(f'[VERIFIED] {row["repo"]}/{row["path"]} drive_id={remote_id}', flush=True)
             export_manifest(db)
+        except EvidenceWriteError:
+            raise
         except Exception as exc:
+            report_producer_error(exc)
+            if stopper:
+                stopper.record_error()
             db.execute('UPDATE files SET status=?,error=? WHERE repo=? AND revision=? AND path=?',
                        ('failed', type(exc).__name__, *key))
             db.commit()
             export_manifest(db)
             print(f'[STOP] {type(exc).__name__}; source retained; rerun resumes manifest', flush=True)
             raise
+        if stopper:
+            stopper.record_processed()
+        with DiskUrlDedup(str(BASE / 'url-receipts.sqlite')) as urls:
+            urls.mark_seen(row['url'])
+        if checkpoint:
+            checkpoint.advance({'repo': row['repo'], 'revision': row['revision'],
+                                'path': row['path'], 'drive_id': remote_id})
     export_manifest(db)
     archive_manifest(sync, folder, 'inventory-current.json')
+    if checkpoint:
+        remaining = db.execute("""SELECT COUNT(*) FROM files f JOIN sources s
+            ON f.repo=s.repo AND f.revision=s.revision
+            WHERE s.status='discovered' AND f.status!='remote_verified'""").fetchone()[0]
+        if not remaining:
+            checkpoint.complete()
     print_status(db)
 
 
@@ -323,12 +357,14 @@ def print_status(db):
         print('[FILES]', dict(row))
 
 
+@producer_run("huggingface")
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('action', choices=['discover', 'run', 'status'])
     parser.add_argument('--min-free-disk-gb', type=float, default=25)
     parser.add_argument('--max-files', type=int, default=0)
-    args = parser.parse_args()
+    from pipelines.shared.cli_validation import validate_cli
+    args = validate_cli(parser, parser.parse_args())
     if args.min_free_disk_gb < 0 or args.max_files < 0:
         parser.error('Limits must be nonnegative')
     db = connect()
@@ -348,6 +384,9 @@ def main():
 if __name__ == '__main__':
     try:
         main()
+    except EvidenceWriteError:
+        raise
     except Exception as exc:
+        report_producer_error(exc)
         print(f'[FAILED] {type(exc).__name__}; inspect catalog and retry', flush=True)
         sys.exit(1)

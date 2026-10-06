@@ -7,6 +7,11 @@ import threading
 import time
 import urllib.parse
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import capture_bytes
+
 
 class DeltaError(RuntimeError):
     pass
@@ -81,7 +86,9 @@ class DeltaClient:
                             if time.monotonic() > self.deadline:
                                 raise DeltaError("Delta time budget exhausted. Resume the saved window.")
                             if not chunk:
-                                return json.loads(payload)
+                                result = json.loads(payload)
+                                result["_raw_evidence"] = capture_bytes(bytes(payload), "openalex-cdc", "https://api.openalex.org/works?"+query)
+                                return result
                             payload.extend(chunk)
             except (TimeoutError, OSError, http.client.HTTPException):
                 pass

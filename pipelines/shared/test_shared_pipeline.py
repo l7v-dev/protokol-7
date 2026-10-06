@@ -94,7 +94,8 @@ class TestSharderBase(unittest.TestCase):
         # Validate with pyarrow
         table = pq.read_table(shards[0]["file_path"])
         self.assertEqual(table.num_rows, 12)
-        self.assertEqual(table.column_names, ["id", "title", "val"])
+        self.assertEqual(table.column_names, ["id", "title", "val", "pii_status"])
+        self.assertEqual(table.column("pii_status").to_pylist(), ["unchecked"] * 12)
 
 
 class TestLedgerBase(unittest.TestCase):
@@ -163,11 +164,13 @@ class TestDriveSyncBase(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_dry_run_upload_and_purge(self):
+    def test_dry_run_preserves_file_despite_purge_request(self):
         sync = BaseDriveSync(dry_run=True)
         res = sync.upload_file(self.test_file, purge_on_success=True)
         self.assertEqual(res["status"], "dry_run")
-        self.assertFalse(os.path.exists(self.test_file))
+        self.assertTrue(os.path.exists(self.test_file))
+        with open(self.test_file, 'rb') as retained:
+            self.assertEqual(retained.read(), b"protokol-7 drive sync test data" * 100)
 
 
 if __name__ == "__main__":

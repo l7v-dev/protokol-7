@@ -1,0 +1,2 @@
+# Optional TLS impersonation backend; default transport uses the standard library.
+curl-cffi==0.15.0

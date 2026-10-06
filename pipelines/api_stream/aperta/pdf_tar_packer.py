@@ -23,6 +23,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from pipelines.shared.sharder_base import compute_file_hashes
 
 
+def archive_member_name(filename: str) -> str:
+    name = str(filename).strip().replace(":", "_").lstrip("/")
+    if ".." in name.split("/"):
+        raise ValueError("Archive member must not contain parent traversal")
+    return name
+
+
 class ApertaPdfTarSharder:
     """
     Streaming TAR.GZ archive packer for Aperta raw PDF and asset files.
@@ -49,7 +56,8 @@ class ApertaPdfTarSharder:
         self.max_bytes = int(max_gb * 1024 * 1024 * 1024)
         self.min_free_disk_bytes = int(min_free_disk_gb * 1024 * 1024 * 1024)
         self.max_part_entries = max_part_entries
-        self.part_idx = start_part_idx
+        from pipelines.shared.shard_namespace import next_part_index
+        self.part_idx = next_part_index(output_dir, filename_prefix, start_part_idx)
         self.on_shard_completed = on_shard_completed
 
         self.part_entries = 0
@@ -69,7 +77,8 @@ class ApertaPdfTarSharder:
         self._current_path = os.path.join(self.output_dir, filename)
         self.part_entries = 0
         self.part_uncompressed_bytes = 0
-        self._tar = tarfile.open(self._current_path, mode="w:gz")
+        # Exclusive creation prevents overwrite even if another writer races the inventory.
+        self._tar = tarfile.open(self._current_path, mode="x:gz")
         target_gb_val = self.target_bytes / (1024**3)
         print(f"[TAR-SHARDER] Opened new PDF archive shard: {filename} (target: {target_gb_val:.1f} GB)", flush=True)
 
@@ -80,24 +89,41 @@ class ApertaPdfTarSharder:
         """
         if not file_bytes:
             return ""
+        self.prepare_file(len(file_bytes))
+        return self._append_stream(filename, io.BytesIO(file_bytes), len(file_bytes))
 
+    def prepare_file(self, size: int) -> None:
+        """Rotate before the caller records the receiving archive association."""
+        if size > self.max_bytes:
+            raise ValueError("Asset exceeds archive size limit")
+        if self.part_entries and self.part_uncompressed_bytes + size > self.max_bytes:
+            self.close_shard()
+        if shutil.disk_usage(self.output_dir).free < self.min_free_disk_bytes + size + 1024 * 1024:
+            raise OSError("Insufficient archive disk reserve")
+
+    def append_path(self, filename: str, path: str) -> str:
+        with open(path, "rb") as stream:
+            size = os.fstat(stream.fileno()).st_size
+            return self._append_stream(filename, stream, size)
+
+    def _append_stream(self, filename: str, stream, size: int) -> str:
         if self._tar is None:
             self._open_shard()
 
         shard_name = self.current_shard_name
 
-        clean_name = str(filename).strip().replace(":", "_").lstrip("/")
+        clean_name = archive_member_name(filename)
         if not clean_name:
             clean_name = f"aperta_file_{self.total_entries:06d}.pdf"
 
         tarinfo = tarfile.TarInfo(name=clean_name)
-        tarinfo.size = len(file_bytes)
+        tarinfo.size = size
         tarinfo.mtime = int(datetime.datetime.now().timestamp())
 
-        self._tar.addfile(tarinfo, io.BytesIO(file_bytes))
+        self._tar.addfile(tarinfo, stream)
         self.part_entries += 1
         self.total_entries += 1
-        self.part_uncompressed_bytes += len(file_bytes)
+        self.part_uncompressed_bytes += size
 
         # Check rotation thresholds:
         should_rotate = False

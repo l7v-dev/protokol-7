@@ -34,6 +34,8 @@ from typing import Dict, Any, List, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, capture_bytes, record_output
 from cleaner import build_entry
 from downloader import (
     iter_catalog_from_rdf_dump,
@@ -198,7 +200,10 @@ class GutenbergOrchestrator:
         if enable_drive:
             try:
                 self.drive = GutenbergDriveSync()
+            except EvidenceWriteError:
+                raise
             except Exception as e:
+                report_producer_error(e)
                 print(f"[WARN] Drive init failed: {e} -- local-only mode.", file=sys.stderr)
                 self.enable_drive = False
 
@@ -303,6 +308,8 @@ class GutenbergOrchestrator:
                         total_failed += 1
                         continue
 
+                    raw_evidence = capture_bytes(raw_bytes, "gutenberg", text_url)
+
                     # Extract illustrations/images from EPUB/Zip/Cover
                     images = fetch_book_images(book_id, formats)
                     image_shard = ""
@@ -330,6 +337,7 @@ class GutenbergOrchestrator:
 
                     # Write to shard
                     shard_name = sharder._part_filename()
+                    record_output(entry, raw_evidence, source_record_id=book_id)
                     sharder.append(entry)
                     books_in_shard += 1
                     total_processed += 1
@@ -388,6 +396,7 @@ class GutenbergOrchestrator:
 # CLI entry point
 # ------------------------------------------------------------------
 
+@producer_run("gutenberg")
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Gutenberg Full-Corpus Harvest Pipeline -- protokol-7"

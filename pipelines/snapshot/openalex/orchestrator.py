@@ -21,6 +21,8 @@ from typing import Any, Dict, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, producer_run, EvidenceWriteError, capture_path
 from cleaner import process_partition_file
 from downloader import (
     cleanup_partition,
@@ -76,6 +78,7 @@ def run_pipeline(
         try:
             drive_sync = OpenAlexDriveSync()
         except Exception as err:
+            report_producer_error(err)
             print(f"[ERROR] Failed to initialize Google Drive: {err}", file=sys.stderr)
             print("[INFO] Run with --dry-run to test locally without Google Drive.", file=sys.stderr)
             sys.exit(1)
@@ -161,12 +164,14 @@ def run_pipeline(
         try:
             # Download partition
             download_partition(p, target_raw)
+            raw_evidence = capture_path(target_raw, "openalex-snapshot", p["s3_url"])
 
             # Clean and feed to sharder
             t0 = time.time()
             clean_count = process_partition_file(
                 target_raw,
                 sharder,
+                raw_evidence=raw_evidence,
                 batch_size=batch_size,
                 require_abstract=require_abstract,
                 min_abstract_words=min_abstract_words,
@@ -182,7 +187,10 @@ def run_pipeline(
             # Mark complete
             ledger.mark_partition_completed(s3_url, clean_count)
 
+        except EvidenceWriteError:
+            raise
         except Exception as err:
+            report_producer_error(err)
             print(f"[ERROR] Failed partition #{part_idx} ({s3_url}): {err}", file=sys.stderr)
             ledger.mark_partition_failed(s3_url, str(err))
 
@@ -202,6 +210,7 @@ def run_pipeline(
     print_status(ledger)
 
 
+@producer_run("openalex-snapshot")
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="OpenAlex S3 Snapshot Pipeline -- protokol-7"

@@ -17,6 +17,8 @@ import time
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, record_output
 from cleaner import DergiParkCleaner
 from downloader import DergiParkDownloader
 from drive_sync import DergiParkDriveSync
@@ -65,6 +67,7 @@ def print_status_report(ledger: DergiParkLedger) -> None:
     print("=" * 80, flush=True)
 
 
+@producer_run("dergipark")
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(line_buffering=True)
@@ -192,7 +195,10 @@ def main():
     if not args.no_drive:
         try:
             drive_sync = DergiParkDriveSync(dry_run=args.dry_run)
+        except EvidenceWriteError:
+            raise
         except Exception as e:
+            report_producer_error(e)
             print(f"[DRIVE-WARN] Google Drive authentication unavailable: {e}", flush=True)
             print(f"[DRIVE-WARN] Falling back to local storage buffer mode in {args.output_dir}.", flush=True)
             print("[DRIVE-WARN] Run 'npm run auth:gdrive' to refresh Google Drive token and flush shards.", flush=True)
@@ -276,7 +282,10 @@ def main():
                         verified_md5=verified_md5,
                     )
                     ledger.sync_to_central_catalog("dergipark")
+            except EvidenceWriteError:
+                raise
             except Exception as e:
+                report_producer_error(e)
                 print(f"[DRIVE-WARN] Shard upload deferred: {e}. Preserved locally at {shard_info['file_path']}", flush=True)
 
     start_part = ledger.get_next_part_index()
@@ -362,6 +371,7 @@ def main():
 
                 if is_new:
                     existing_ids.add(cleaned["id"])
+                    record_output(cleaned, getattr(downloader, "raw_evidence", None))
                     sharder.add_record(cleaned)
                     part_new += 1
                     total_new += 1

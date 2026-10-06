@@ -17,6 +17,9 @@ from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import capture_fetch
+
 from pipelines.shared.cleaner_base import clean_text
 
 EUTILS_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -55,6 +58,7 @@ class PubmedDownloader:
             time.sleep(self.min_interval - elapsed)
         self._last_request_time = time.time()
 
+    @capture_fetch("pubmed")
     def _fetch_url(self, url: str) -> bytes:
         headers = {"User-Agent": DEFAULT_USER_AGENT}
         if self.email:

@@ -294,6 +294,21 @@ class TestBigDataPipeline(unittest.TestCase):
         self.assertEqual(audit["verification_passed"], 0)
         self.assertEqual(audit["raw_purged"], 0)
 
+    def test_evidence_fault_preserves_raw_and_finishes_failed_run(self):
+        from unittest.mock import patch
+        from pipelines.shared.producer_provenance import EvidenceWriteError
+        raw_input = os.path.join(self.test_dir, "raw.jsonl")
+        with open(raw_input, "w") as raw:
+            raw.write('{"id":"one","text":"actual source"}\n')
+        orchestrator = BigDataPipelineOrchestrator(catalog_db=self.catalog_db, staging_dir=os.path.join(self.test_dir,"staging"))
+        with patch("scripts.corpus_pipeline.orchestrator.capture_path", side_effect=EvidenceWriteError("catalog unavailable")):
+            with self.assertRaises(EvidenceWriteError):
+                orchestrator.process_raw_file("evidence-fault","Fixture","web","permissive_commercial",raw_input,storage_kwargs={"volume_root":os.path.join(self.test_dir,"vault")})
+        self.assertTrue(os.path.isfile(raw_input))
+        import sqlite3
+        with sqlite3.connect(self.catalog_db) as db:
+            self.assertEqual(db.execute("SELECT status FROM corpus_pipeline_runs").fetchone()[0],"FAILED")
+
     def test_end_to_end_orchestrator(self):
         """Tests complete end-to-end flow through BigDataPipelineOrchestrator."""
         raw_input = os.path.join(self.test_dir, "raw_batch.jsonl")

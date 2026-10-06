@@ -42,6 +42,26 @@ class TestBinanceVisionPipeline(unittest.TestCase):
             zf.writestr(csv_name, csv_content)
         return buf.getvalue()
 
+    def test_batch_processes_every_file_and_reports_checksum_failure(self):
+        from unittest.mock import Mock, patch
+        orchestrator = BinanceVisionOrchestrator.__new__(BinanceVisionOrchestrator)
+        orchestrator.market, orchestrator.data_type = 'spot', 'klines'
+        orchestrator.symbols = []
+        orchestrator.dry_run = False
+        orchestrator.upload_drive = False
+        orchestrator.ledger = Mock()
+        orchestrator.ledger.get_pending_files.side_effect = [[{'file_key':key,'symbol':'BTCUSDT','interval':'1d'} for key in ('good.zip','bad.zip')], []]
+        orchestrator.downloader = Mock(base_url='https://data.binance.vision')
+        orchestrator.downloader.download_and_verify.side_effect = [(b'actual zip','a'*64,True),(b'bad zip','b'*64,False)]
+        orchestrator.cleaner = Mock()
+        orchestrator.cleaner.clean_zip_to_table.return_value = pa.table({'empty':[]})
+        with patch('pipelines.api_stream.binance_vision.orchestrator.capture_bytes') as capture, patch('pipelines.api_stream.binance_vision.orchestrator.report_producer_error') as outcome:
+            orchestrator.run()
+        self.assertEqual(orchestrator.downloader.download_and_verify.call_count,2)
+        capture.assert_called_once()
+        outcome.assert_called_once()
+        orchestrator.ledger.mark_file_failed.assert_called_once_with('bad.zip','SHA-256 checksum verification failed')
+
     def test_cleaner_klines(self):
         csv_data = (
             "1690848000000,29230.10,29400.00,29100.50,29350.20,1542.30,1690934399999,45123000.5,12450,750.2,21980000.1,0\n"

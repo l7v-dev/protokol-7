@@ -11,6 +11,7 @@ import type { PublishDatasetOptions } from "../dataset/types";
 import { globalPipedreamConnect } from "../integrations/pipedream-connect";
 import { HttpMcpTransport, ProtokolMcpServer } from "../mcp";
 import { globalOcrRegistry } from "../ocr";
+import { getDaemonRunHealth } from "../storage/daemon-run-monitor";
 import type { ColdVaultExportOptions } from "../vault/types";
 import { OPENAPI_SPECIFICATION, renderDocsHtml } from "./openapi-spec";
 import {
@@ -130,13 +131,19 @@ export function createServer(): http.Server {
       }
 
       // 1. Health check
-      if (method === "GET" && pathname === "/health") {
+      if (method === "GET" && (pathname === "/health" || pathname === "/api/v1/health")) {
+        const daemonHealth = getDaemonRunHealth();
         sendJson(res, 200, {
-          status: "healthy",
+          status:
+            daemonHealth.monitoring === "unavailable" || daemonHealth.stale_runs.length
+              ? "degraded"
+              : "healthy",
           service: "protokol-7",
           version: "1.0.0",
           timestamp: new Date().toISOString(),
           activeBrowserContexts: BrowserPool.getActiveContexts(),
+          daemonMonitoring: daemonHealth.monitoring,
+          stale_runs: daemonHealth.stale_runs,
         });
         return;
       }

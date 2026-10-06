@@ -15,6 +15,8 @@ import pyarrow as pa
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, capture_bytes
 from pipelines.api_stream.binance_vision.cleaner import BinanceVisionCleaner
 from pipelines.api_stream.binance_vision.downloader import BinanceVisionDownloader
 from pipelines.api_stream.binance_vision.drive_sync import BinanceVisionDriveSync
@@ -135,72 +137,81 @@ class BinanceVisionOrchestrator:
                 symbol = file_meta["symbol"]
                 interval = file_meta["interval"]
 
-            try:
-                print(f"[>] Downloading & verifying: {file_key} ...")
-                zip_bytes, sha256_hash, is_valid = self.downloader.download_and_verify(file_key, verify_checksum=True)
+                try:
+                    print(f"[>] Downloading & verifying: {file_key} ...")
+                    zip_bytes, sha256_hash, is_valid = self.downloader.download_and_verify(file_key, verify_checksum=True)
 
-                if not is_valid:
-                    print(f"[!] Checksum mismatch for {file_key}! Skipping.")
-                    self.ledger.mark_file_failed(file_key, "SHA-256 checksum verification failed")
-                    continue
+                    if not is_valid:
+                        report_producer_error(ValueError("SHA-256 checksum verification failed"))
+                        print(f"[!] Checksum mismatch for {file_key}! Skipping.")
+                        self.ledger.mark_file_failed(file_key, "SHA-256 checksum verification failed")
+                        continue
 
-                # In-memory CSV extraction and PyArrow table conversion (zero disk residue)
-                table = self.cleaner.clean_zip_to_table(
-                    zip_bytes=zip_bytes,
-                    data_type=self.data_type,
-                    symbol=symbol,
-                    market=self.market,
-                    interval=interval,
-                    source_file=file_key,
-                )
+                    capture_bytes(zip_bytes, "binance_vision", self.downloader.base_url + "/" + file_key)
 
-                if table.num_rows == 0:
-                    print(f"[-] Empty data in {file_key}, marking completed.")
-                    self.ledger.mark_file_sharded(file_key, shard_name="", row_count=0, sha256=sha256_hash)
-                    continue
-
-                seq += 1
-                shard_res = self.sharder.write_shard(
-                    table=table,
-                    market=self.market,
-                    data_type=self.data_type,
-                    symbol=symbol,
-                    interval=interval,
-                    shard_seq=seq,
-                )
-
-                shard_name = shard_res["shard_name"]
-                shard_path = shard_res["path"]
-                rows = shard_res["row_count"]
-                total_rows += rows
-
-                self.ledger.record_shard(
-                    shard_name=shard_name,
-                    path=shard_path,
-                    row_count=rows,
-                    size_bytes=shard_res["size_bytes"],
-                    md5_checksum=shard_res["md5"],
-                )
-                self.ledger.mark_file_sharded(file_key, shard_name=shard_name, row_count=rows, sha256=sha256_hash)
-                print(f"[+] Sharded {rows} rows into {shard_name} (Zstd level 6).")
-
-                # Sync to Google Drive if configured
-                if self.upload_drive and self.drive_sync:
-                    drive_subfolder = f"Binance/{self.market}/{self.data_type}"
-                    upload_res = self.drive_sync.sync_shard(
-                        local_path=shard_path,
-                        purge_on_success=self.purge_local,
-                        subfolder_name=drive_subfolder,
+                    # In-memory CSV extraction and PyArrow table conversion (zero disk residue)
+                    table = self.cleaner.clean_zip_to_table(
+                        zip_bytes=zip_bytes,
+                        data_type=self.data_type,
+                        symbol=symbol,
+                        market=self.market,
+                        interval=interval,
+                        source_file=file_key,
                     )
-                    drive_id = upload_res.get("file_id", "synced")
-                    self.ledger.record_shard_upload(shard_name, drive_file_id=drive_id)
-                    print(f"[^] Shard {shard_name} uploaded to Drive (ID: {drive_id}). Local evicted: {self.purge_local}.")
 
-                processed_count += 1
+                    if table.num_rows == 0:
+                        print(f"[-] Empty data in {file_key}, marking completed.")
+                        self.ledger.mark_file_sharded(file_key, shard_name="", row_count=0, sha256=sha256_hash)
+                        continue
 
-            except Exception as exc:
-                print(f"[!] Error processing {file_key}: {exc}")
-                self.ledger.mark_file_failed(file_key, str(exc))
+                    seq += 1
+                    shard_res = self.sharder.write_shard(
+                        table=table,
+                        market=self.market,
+                        data_type=self.data_type,
+                        symbol=symbol,
+                        interval=interval,
+                        shard_seq=seq,
+                    )
+
+                    shard_name = shard_res["shard_name"]
+                    shard_path = shard_res["path"]
+                    rows = shard_res["row_count"]
+                    total_rows += rows
+
+                    self.ledger.record_shard(
+                        shard_name=shard_name,
+                        path=shard_path,
+                        row_count=rows,
+                        size_bytes=shard_res["size_bytes"],
+                        md5_checksum=shard_res["md5"],
+                    )
+                    self.ledger.mark_file_sharded(file_key, shard_name=shard_name, row_count=rows, sha256=sha256_hash)
+                    print(f"[+] Sharded {rows} rows into {shard_name} (Zstd level 6).")
+
+                    # Sync to Google Drive if configured
+                    if self.upload_drive and self.drive_sync:
+                        drive_subfolder = f"Binance/{self.market}/{self.data_type}"
+                        upload_res = self.drive_sync.sync_shard(
+                            local_path=shard_path,
+                            purge_on_success=self.purge_local,
+                            subfolder_name=drive_subfolder,
+                        )
+                        drive_id = upload_res.get("file_id", "synced")
+                        self.ledger.record_shard_upload(shard_name, drive_file_id=drive_id)
+                        print(f"[^] Shard {shard_name} uploaded to Drive (ID: {drive_id}). Local evicted: {self.purge_local}.")
+
+                    processed_count += 1
+
+                except EvidenceWriteError:
+
+                    raise
+
+                except Exception as exc:
+
+                    report_producer_error(exc)
+                    print(f"[!] Error processing {file_key}: {exc}")
+                    self.ledger.mark_file_failed(file_key, str(exc))
 
         stats = self.ledger.get_stats()
         print(f"[*] Ingestion run finished. Processed: {processed_count}, Total Rows: {total_rows}")
@@ -222,6 +233,7 @@ def print_status() -> None:
     print("=" * 60)
 
 
+@producer_run("binance_vision")
 def main() -> None:
     parser = argparse.ArgumentParser(description="Binance Vision Public Data Ingestion Orchestrator")
     parser.add_argument("--market", default="spot", choices=["spot", "futures_um", "futures_cm"], help="Market type")

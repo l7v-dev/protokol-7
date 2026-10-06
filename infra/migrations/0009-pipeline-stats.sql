@@ -1,0 +1,1 @@
+ALTER TABLE pipeline_runs ADD COLUMN stats_json JSON DEFAULT NULL;

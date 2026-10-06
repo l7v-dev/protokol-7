@@ -12,6 +12,7 @@ and streams completed shards to Google Drive with zero local disk residue.
 """
 
 import argparse
+import contextvars
 import concurrent.futures
 import datetime
 import os
@@ -23,10 +24,18 @@ from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, producer_run, EvidenceWriteError, record_output
+
+from pipelines.shared.daemon_run import monitor_daemon, current_checkpoint
+from pipelines.shared.shard_namespace import next_part_index
+
 from drive_sync import DergiParkDriveSync
 from fulltext_packer import DergiParkFulltextSharder
 from ledger import DergiParkLedger
 from pdf_extractor import DergiParkPdfExtractor, ThreadSafeRateLimiter
+from pipelines.shared.pipeline_runtime import current_stopper
+from pipelines.shared.content_dedup import LRUSimhashCache, content_fingerprint, SIMHASH_VERSION
 from pdf_tar_packer import DergiParkPdfTarSharder
 
 
@@ -61,6 +70,7 @@ def print_status_report(ledger: DergiParkLedger) -> None:
     print("=" * 55, flush=True)
 
 
+@producer_run("dergipark-fulltext")
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(line_buffering=True)
@@ -176,13 +186,29 @@ def main():
         action="store_true",
         help="Flush un-uploaded local fulltext shards and PDF archives to Google Drive and exit",
     )
-    args = parser.parse_args()
+    parser.add_argument("--use-impersonation", action="store_true",
+                        help="Enable bounded HTTPS impersonation fallback for 403/429 or challenge responses")
+    parser.add_argument("--flag-near-duplicates", action="store_true",
+                        help="Flag similar text against the last 1000 run-local fingerprints; retain all artifacts")
+    parser.add_argument("--async-upload", action="store_true", help="Queue closed shard/archive uploads and drain before completion")
+    from pipelines.shared.cli_validation import validate_cli
+    args = validate_cli(parser, parser.parse_args())
+    return run(args)
+
+
+@monitor_daemon('dergipark-fulltext', enabled=lambda args: not (args.status or args.sync_shards))
+def run(args):
 
     ledger = DergiParkLedger(db_path=args.db_path)
 
     if args.status:
         print_status_report(ledger)
         return
+
+    checkpoint = current_checkpoint(f"dergipark-fulltext:{os.path.abspath(args.db_path)}") if not args.sync_shards else None
+    if checkpoint:
+        replay_count = ledger.recover_unsealed_pdf_outputs()
+        print(f"[INFO] Requeued {replay_count} articles with unsealed outputs.", flush=True)
 
     drive_sync = None
     pdf_drive_folder_id = None
@@ -192,6 +218,7 @@ def main():
             dergipark_root_fid = drive_sync.get_dergipark_folder_id()
             pdf_drive_folder_id = drive_sync.get_or_create_subfolder("pdfs", parent_id=dergipark_root_fid)
         except Exception as e:
+            report_producer_error(e)
             print(f"[DRIVE-WARN] Google Drive authentication unavailable: {e}", flush=True)
             print(f"[DRIVE-WARN] Falling back to local storage buffer mode.", flush=True)
             print("[DRIVE-WARN] Run 'npm run auth:gdrive' to refresh Google Drive token and flush shards.", flush=True)
@@ -239,6 +266,15 @@ def main():
         print(f"[DRIVE-SYNC] Flushed {uploaded_count} total shards to Google Drive.", flush=True)
         return
 
+    def queue_upload(shard_info, folder_id, catalog):
+        def uploaded(result):
+            ledger.mark_shard_uploaded(shard_info["shard_name"], result["file_id"], result["md5"])
+            ledger.sync_to_central_catalog(catalog)
+        def failed(error):
+            ledger.mark_shard_failed(shard_info["shard_name"])
+            print(f"[DRIVE-WARN] Queued upload deferred: {type(error).__name__}", flush=True)
+        drive_sync.upload_async(shard_info["file_path"], folder_id, on_success=uploaded, on_failure=failed)
+
     # Shard completion callback for Parquet full-text
     def on_shard_completed(shard_info: Dict[str, Any]) -> None:
         ledger.register_shard(
@@ -249,7 +285,9 @@ def main():
             sha256=shard_info["sha256"],
             md5=shard_info["md5"],
         )
-        if drive_sync:
+        if drive_sync and getattr(args, "async_upload", False):
+            queue_upload(shard_info, drive_sync.get_dergipark_folder_id(), "dergipark_fulltext")
+        elif drive_sync:
             try:
                 sync_res = drive_sync.sync_shard(
                     local_path=shard_info["file_path"],
@@ -265,6 +303,7 @@ def main():
                     )
                     ledger.sync_to_central_catalog("dergipark_fulltext")
             except Exception as e:
+                report_producer_error(e)
                 print(
                     f"[DRIVE-WARN] Parquet shard upload deferred: {e}. Preserved locally at {shard_info['file_path']}",
                     flush=True,
@@ -280,7 +319,9 @@ def main():
             sha256=shard_info["sha256"],
             md5=shard_info["md5"],
         )
-        if drive_sync and pdf_drive_folder_id:
+        if drive_sync and pdf_drive_folder_id and getattr(args, "async_upload", False):
+            queue_upload(shard_info, pdf_drive_folder_id, "dergipark_raw_pdfs")
+        elif drive_sync and pdf_drive_folder_id:
             try:
                 sync_res = drive_sync.upload_file(
                     local_path=shard_info["file_path"],
@@ -298,12 +339,13 @@ def main():
                     )
                     ledger.sync_to_central_catalog("dergipark_raw_pdfs")
             except Exception as e:
+                report_producer_error(e)
                 print(
                     f"[DRIVE-WARN] PDF archive upload deferred: {e}. Preserved locally at {shard_info['file_path']}",
                     flush=True,
                 )
 
-    start_part = ledger.get_next_fulltext_part_index()
+    start_part = next_part_index(args.output_dir, 'dergipark_fulltext', ledger.get_next_fulltext_part_index())
     sharder = DergiParkFulltextSharder(
         output_dir=args.output_dir,
         filename_prefix="dergipark_fulltext",
@@ -320,7 +362,7 @@ def main():
 
     pdf_tar_sharder = None
     if not args.no_archive_pdfs:
-        start_archive_part = ledger.get_next_pdf_archive_part_index()
+        start_archive_part = next_part_index(args.pdf_archive_dir, 'dergipark_raw_pdfs', ledger.get_next_pdf_archive_part_index())
         pdf_tar_sharder = DergiParkPdfTarSharder(
             output_dir=args.pdf_archive_dir,
             filename_prefix="dergipark_raw_pdfs",
@@ -333,7 +375,8 @@ def main():
         )
 
     rate_limiter = ThreadSafeRateLimiter(min_interval=args.rate_limit)
-    extractor = DergiParkPdfExtractor(rate_limiter=rate_limiter)
+    similarity_cache = LRUSimhashCache(capacity=1000) if getattr(args, "flag_near_duplicates", False) else None
+    extractor = DergiParkPdfExtractor(rate_limiter=rate_limiter, use_impersonation=getattr(args, "use_impersonation", False))
 
     max_target = args.max_articles if args.max_articles > 0 else None
     max_desc = f"{max_target:,}" if max_target else "UNLIMITED"
@@ -365,18 +408,23 @@ def main():
         return extractor.process_article(item)
 
     shutdown_requested = False
+    stopper = current_stopper()
 
     def handle_signal(sig, frame):
         nonlocal shutdown_requested
         sig_name = "SIGTERM" if sig == signal.SIGTERM else "SIGINT"
         print(f"\n[DERGIPARK-FULLTEXT] Received {sig_name}. Gracefully completing batch and closing shards...", flush=True)
         shutdown_requested = True
+        if stopper:
+            stopper.request_stop("operator_signal")
 
     signal.signal(signal.SIGINT, handle_signal)
     signal.signal(signal.SIGTERM, handle_signal)
 
     try:
         while True:
+            if stopper and stopper.should_stop()[0]:
+                shutdown_requested = True
             if shutdown_requested:
                 print("[DERGIPARK-FULLTEXT] Shutdown requested. Halting article loop...", flush=True)
                 break
@@ -392,13 +440,16 @@ def main():
                 break
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
-                future_to_article = {executor.submit(process_item, art): art for art in batch}
+                future_to_article = {executor.submit(contextvars.copy_context().run, process_item, art): art for art in batch}
 
                 for future in concurrent.futures.as_completed(future_to_article):
                     orig_art = future_to_article[future]
                     try:
                         res = future.result()
+                    except EvidenceWriteError:
+                        raise
                     except Exception as exc:
+                        report_producer_error(exc)
                         res = {
                             "id": orig_art.get("id"),
                             "status": "failed",
@@ -406,11 +457,18 @@ def main():
                         }
 
                     total_processed += 1
+                    if stopper:
+                        stopper.record_processed()
+                        if res.get("status") != "extracted":
+                            stopper.record_error()
                     status = res.get("status", "failed")
                     art_id = res.get("id") or orig_art.get("id")
 
                     with write_lock:
                         if status == "extracted":
+                            record_output({key:value for key,value in res.items() if key != "pdf_bytes"}, res.get("_raw_evidence"))
+                            fingerprint = content_fingerprint(res["text"])
+                            is_duplicate = similarity_cache.is_near_duplicate(res["text"]) if similarity_cache else False
                             current_shard = sharder.current_shard_name
                             sharder.append_article_fulltext(res)
 
@@ -431,6 +489,8 @@ def main():
                                 word_count=w_cnt,
                                 shard_name=current_shard,
                                 archive_name=archive_name,
+                                content_simhash=fingerprint, simhash_version=SIMHASH_VERSION,
+                                is_duplicate=is_duplicate,
                             )
                             total_extracted += 1
                             total_chars += c_cnt
@@ -477,9 +537,16 @@ def main():
         sharder.close()
         if pdf_tar_sharder:
             pdf_tar_sharder.close()
+        if drive_sync and getattr(args, "async_upload", False):
+            drive_sync.close_uploads()
         ledger.sync_to_central_catalog("dergipark_fulltext")
         if pdf_tar_sharder:
             ledger.sync_to_central_catalog("dergipark_raw_pdfs")
+        if checkpoint and sys.exc_info()[0] is None:
+            checkpoint.advance({'processed': total_processed, 'extracted': total_extracted,
+                                'pending': len(ledger.get_pending_pdf_articles(limit=1)) > 0})
+            if sys.exc_info()[0] is None and not shutdown_requested and not ledger.get_pending_pdf_articles(limit=1):
+                checkpoint.complete()
 
     total_time = time.time() - t0
     print("============================================================================", flush=True)

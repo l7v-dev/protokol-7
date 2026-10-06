@@ -15,6 +15,8 @@ import time
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, record_output
 from cleaner import BiorxivCleaner
 from downloader import BiorxivDownloader
 from drive_sync import BiorxivDriveSync
@@ -22,6 +24,7 @@ from ledger import BiorxivLedger
 from packer import BiorxivSharder
 
 
+@producer_run("biorxiv")
 def main():
     parser = argparse.ArgumentParser(description="bioRxiv & medRxiv Preprint Ingestion Pipeline")
     parser.add_argument(
@@ -103,7 +106,10 @@ def main():
     if not args.no_drive:
         try:
             drive_sync = BiorxivDriveSync(dry_run=args.dry_run)
+        except EvidenceWriteError:
+            raise
         except Exception as e:
+            report_producer_error(e)
             print(f"[DRIVE-WARN] Google Drive authentication unavailable: {e}")
             print(f"[DRIVE-WARN] Falling back to local storage buffer mode in {args.output_dir}.")
             print("[DRIVE-WARN] Run 'npm run auth:gdrive' to refresh Google Drive token and flush shards.")
@@ -154,7 +160,10 @@ def main():
                         verified_md5=verified_md5,
                     )
                     ledger.sync_to_central_catalog("biorxiv")
+            except EvidenceWriteError:
+                raise
             except Exception as e:
+                report_producer_error(e)
                 print(f"[DRIVE-WARN] Shard upload deferred: {e}. Preserved locally at {shard_info['file_path']}")
 
     sharder = BiorxivSharder(
@@ -184,6 +193,7 @@ def main():
                 continue
 
             clean_count += 1
+            record_output(cleaned, getattr(downloader, "raw_evidence", None))
             ledger.index_article(cleaned)
             sharder.add_record(cleaned)
 

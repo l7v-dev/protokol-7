@@ -39,6 +39,8 @@ from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, producer_run, EvidenceWriteError, record_output
 from cleaner import build_record
 from downloader import (
     build_filter_string, iter_works_cursor, DEFAULT_MAILTO,
@@ -157,6 +159,7 @@ class OpenAlexOrchestrator:
             try:
                 self.drive = OpenAlexDriveSync()
             except Exception as e:
+                report_producer_error(e)
                 print(f"[WARN] Drive init failed: {e} -- local-only.", file=sys.stderr)
                 self.enable_drive = False
 
@@ -229,6 +232,7 @@ class OpenAlexOrchestrator:
                     try:
                         record = build_record(raw, fulltext=fulltext, fulltext_source=ft_source)
                     except Exception as e:
+                        report_producer_error(e)
                         print(f"[WARN] build_record error: {e}", file=sys.stderr)
                         total_failed += 1
                         continue
@@ -237,6 +241,7 @@ class OpenAlexOrchestrator:
                         total_skipped += 1
                         continue
 
+                    record_output(record, raw.get("_fulltext_evidence"))
                     sharder.append(record)
                     works_in_shard  += 1
                     total_processed += 1
@@ -294,6 +299,7 @@ class OpenAlexOrchestrator:
 # CLI
 # ------------------------------------------------------------------
 
+@producer_run("openalex")
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="OpenAlex Bulk Harvest Pipeline -- protokol-7"

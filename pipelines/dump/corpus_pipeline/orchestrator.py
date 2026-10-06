@@ -11,13 +11,16 @@ import json
 import os
 import sys
 import uuid
+from pathlib import Path
 from typing import Dict, Any, Optional
 
 # Ensure repository root is on sys.path
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, capture_path, record_output
 from scripts.corpus_pipeline.cleaner import TextNormalizer, QualityFilter, estimate_token_count
 from scripts.corpus_pipeline.metadata_catalog import MetadataCatalog, get_utc_iso_now
 from scripts.corpus_pipeline.packer import StreamingParquetPacker
@@ -94,6 +97,8 @@ class BigDataPipelineOrchestrator:
         total_uncompressed_bytes = 0
 
         try:
+            raw_evidence = capture_path(raw_filepath, source_platform, Path(raw_filepath).resolve().as_uri())
+
             # 3. Stream & Process Raw File (Supporting JSONL or Plain Text lines)
             with open(raw_filepath, "r", encoding="utf-8", errors="replace") as f:
                 for line in f:
@@ -132,6 +137,7 @@ class BigDataPipelineOrchestrator:
                         continue
 
                     total_clean += 1
+                    record_output({"id": doc_id, "text": clean_text, "title": title}, raw_evidence)
                     packer.write_record(
                         doc_id=doc_id,
                         text=clean_text,
@@ -157,6 +163,7 @@ class BigDataPipelineOrchestrator:
                     run_id=run_id,
                     shard_index=shard.shard_index,
                     filename=shard.filename,
+                    storage_uri=Path(shard.filepath).resolve().as_uri(),
                     record_count=shard.record_count,
                     size_bytes=shard.size_bytes,
                     sha256_hash=shard.sha256_hash,
@@ -229,11 +236,21 @@ class BigDataPipelineOrchestrator:
                 "manifest_path": manifest_path,
             }
 
+        except EvidenceWriteError as error:
+            try:
+                self.catalog.update_run_status(run_id, "FAILED", error_message=str(error))
+            except Exception:
+                pass  # Preserve the original evidence fault if the catalog is unavailable.
+            raise
+
         except Exception as e:
+
+            report_producer_error(e)
             self.catalog.update_run_status(run_id, "FAILED", error_message=str(e))
             raise
 
 
+@producer_run("corpus_pipeline")
 def main():
     parser = argparse.ArgumentParser(description="Big Data LLM Processing & Zero-Raw Purge Pipeline")
     parser.add_argument("--dataset-id", required=True, help="Unique dataset identifier (e.g. arxiv-2026)")

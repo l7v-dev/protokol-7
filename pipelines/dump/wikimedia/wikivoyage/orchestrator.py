@@ -23,6 +23,8 @@ from typing import Dict, List, Optional, Tuple, Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, capture_path, record_output
 from cleaner import stream_wikivoyage_entries
 from downloader import (
     build_dump_urls,
@@ -194,7 +196,10 @@ class WikivoyageHarvestOrchestrator:
         if self.enable_drive:
             try:
                 self.drive_sync = WikivoyageDriveSync()
+            except EvidenceWriteError:
+                raise
             except Exception as e:
+                report_producer_error(e)
                 print(f"[WARN] Google Drive initialization failed: {e}. Switching to local-only mode.", file=sys.stderr)
                 self.enable_drive = False
 
@@ -222,6 +227,8 @@ class WikivoyageHarvestOrchestrator:
                     return False
                 raise
 
+            raw_evidence = capture_path(local_dump_path, "wikivoyage", dump_url)
+
             dump_size_mb = os.path.getsize(local_dump_path) / (1024 * 1024)
             print(f"[INFO] Downloaded dump size: {dump_size_mb:.2f} MB")
 
@@ -235,6 +242,7 @@ class WikivoyageHarvestOrchestrator:
             entry_count = 0
             start_clean = time.time()
             for entry in stream_wikivoyage_entries(local_dump_path, lang=lang):
+                record_output(entry, raw_evidence, source_record_id=f"{lang}:{entry['article_id']}")
                 sharder.append(entry)
                 entry_count += 1
                 if self.dry_run and entry_count >= 50:
@@ -285,7 +293,13 @@ class WikivoyageHarvestOrchestrator:
             print(f"[STAGE 4/4] Completed {db_name}: {entry_count:,} entries, {total_parquet_size_mb:.2f} MB Parquet.")
             return True
 
+        except EvidenceWriteError:
+
+            raise
+
         except Exception as e:
+
+            report_producer_error(e)
             msg = f"{type(e).__name__}: {e}"
             print(f"[ERROR] Failed processing {db_name}: {msg}", file=sys.stderr)
             self.ledger.update_status(db_name, "failed", error_message=msg)
@@ -293,6 +307,7 @@ class WikivoyageHarvestOrchestrator:
             return False
 
 
+@producer_run("wikivoyage")
 def main():
     parser = argparse.ArgumentParser(description="Wikivoyage Multi-Language Dump Harvest Pipeline")
     parser.add_argument("--lang", type=str, help="Process single language or database (e.g. 'tr', 'en', 'de')")

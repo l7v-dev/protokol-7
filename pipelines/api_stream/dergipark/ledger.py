@@ -111,6 +111,9 @@ class DergiParkLedger(BaseLedger):
             if "pdf_archive_name" not in existing_cols:
                 cur.execute("ALTER TABLE dergipark_articles ADD COLUMN pdf_archive_name TEXT;")
 
+            for column, kind in [("content_simhash", "TEXT"), ("simhash_version", "TEXT")]:
+                if column not in existing_cols:
+                    cur.execute(f"ALTER TABLE dergipark_articles ADD COLUMN {column} {kind};")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_dp_pdf_status ON dergipark_articles(pdf_status);")
             conn.commit()
 
@@ -366,6 +369,22 @@ class DergiParkLedger(BaseLedger):
                 cur.execute("SELECT * FROM dergipark_partitions ORDER BY from_date ASC;")
             return [dict(r) for r in cur.fetchall()]
 
+    def recover_unsealed_pdf_outputs(self) -> int:
+        """Replay only extracted rows whose named output was never registered closed."""
+        with self._get_conn() as conn:
+            changed = conn.execute("""
+                UPDATE dergipark_articles SET pdf_status='pending',
+                    pdf_shard_name=NULL, pdf_archive_name=NULL
+                WHERE pdf_status IN ('extracted','duplicate') AND (
+                    (pdf_shard_name IS NOT NULL AND NOT EXISTS (
+                        SELECT 1 FROM shards WHERE shard_name=dergipark_articles.pdf_shard_name))
+                    OR (pdf_archive_name IS NOT NULL AND NOT EXISTS (
+                        SELECT 1 FROM shards WHERE shard_name=dergipark_articles.pdf_archive_name))
+                )
+            """).rowcount
+            conn.commit()
+            return changed
+
     def get_pending_pdf_articles(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Retrieves articles that have a valid fulltext_url but pending PDF extraction."""
         with self._get_conn() as conn:
@@ -393,6 +412,9 @@ class DergiParkLedger(BaseLedger):
         word_count: int,
         shard_name: Optional[str] = None,
         archive_name: Optional[str] = None,
+        content_simhash: Optional[str] = None,
+        simhash_version: Optional[str] = None,
+        is_duplicate: bool = False,
     ) -> None:
         """Marks article PDF as successfully extracted with metadata and char counts."""
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -400,7 +422,8 @@ class DergiParkLedger(BaseLedger):
             conn.execute(
                 """
                 UPDATE dergipark_articles
-                SET pdf_status = 'extracted',
+                SET pdf_status = ?,
+                    content_simhash = ?, simhash_version = ?,
                     pdf_direct_url = ?,
                     page_count = ?,
                     char_count = ?,
@@ -410,7 +433,7 @@ class DergiParkLedger(BaseLedger):
                     pdf_archive_name = COALESCE(?, pdf_archive_name)
                 WHERE id = ?;
                 """,
-                (pdf_url, page_count, char_count, word_count, now, shard_name, archive_name, str(article_id).strip()),
+                ("duplicate" if is_duplicate else "extracted", content_simhash, simhash_version, pdf_url, page_count, char_count, word_count, now, shard_name, archive_name, str(article_id).strip()),
             )
             conn.commit()
 
@@ -475,7 +498,6 @@ class DergiParkLedger(BaseLedger):
             if row and row["max_idx"] is not None:
                 return int(row["max_idx"]) + 1
             return 0
-
 
 
 

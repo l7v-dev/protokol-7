@@ -1,4 +1,8 @@
 import hashlib
+import json
+import os
+import sqlite3
+from contextlib import closing
 from pathlib import Path
 import tempfile
 import unittest
@@ -8,12 +12,91 @@ from pipelines.snapshot.huggingface import orchestrator as hf
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_verified_files_resume_with_versioned_partial_state(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(hf, 'BASE', Path(directory)):
+            monitor = str(Path(directory) / 'monitor.sqlite')
+            db = hf.connect()
+            db.execute("INSERT INTO sources VALUES ('test/data','abc','discovered','{}')")
+            for name in ('one.txt', 'two.txt'):
+                hf.insert_file(db, {'repo':'test/data','revision':'abc'}, {'path':name,'size':3})
+            db.commit()
+            sync = MagicMock()
+            sync.get_or_create_subfolder.return_value = 'folder'
+            sync.service.files.return_value.get.return_value.execute.return_value = {'id':'folder'}
+
+            def download(row, reserve):
+                path = Path(directory) / row['path']
+                path.write_bytes(b'abc')
+                return path, 'fixture-sha', 'fixture-md5'
+
+            try:
+                with patch.dict(os.environ, {'PROTOKOL_DAEMON_RUN_DB':monitor}), patch.object(hf, 'BaseDriveSync', return_value=sync), patch.object(hf, 'download', side_effect=download) as fetch, patch.object(hf, 'ensure_remote', return_value='verified-id'), patch.object(hf, 'export_manifest'), patch.object(hf, 'archive_manifest'), patch.object(hf, 'print_status'):
+                    hf.run(db, 0, 1)
+                    with closing(sqlite3.connect(monitor)) as conn:
+                        first = conn.execute('SELECT state_type,state_payload,cursor_version FROM pipeline_states').fetchone()
+                    self.assertEqual(first[0], 'partial')
+                    self.assertEqual(json.loads(first[1])['partial']['cursor']['path'], 'one.txt')
+                    hf.run(db, 0, 0)
+                    self.assertEqual([call.args[0]['path'] for call in fetch.call_args_list], ['one.txt', 'two.txt'])
+                    with closing(sqlite3.connect(monitor)) as conn:
+                        last = conn.execute('SELECT state_type,state_payload,cursor_version FROM pipeline_states').fetchone()
+                    self.assertEqual(last[0], 'completed')
+                    self.assertTrue(json.loads(last[1])['snapshot_completed'])
+                    self.assertGreater(last[2], first[2])
+            finally:
+                db.close()
+
+    def test_remote_verification_failure_does_not_advance_checkpoint(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(hf, 'BASE', Path(directory)):
+            monitor = str(Path(directory) / 'monitor.sqlite')
+            db = hf.connect()
+            db.execute("INSERT INTO sources VALUES ('test/data','abc','discovered','{}')")
+            hf.insert_file(db, {'repo':'test/data','revision':'abc'}, {'path':'one.txt','size':3})
+            db.commit()
+            path = Path(directory) / 'one.txt'
+            path.write_bytes(b'abc')
+            sync = MagicMock()
+            sync.get_or_create_subfolder.return_value = 'folder'
+            sync.service.files.return_value.get.return_value.execute.return_value = {'id':'folder'}
+            try:
+                with patch.dict(os.environ, {'PROTOKOL_DAEMON_RUN_DB':monitor}), patch.object(hf, 'BaseDriveSync', return_value=sync), patch.object(hf, 'download', return_value=(path,'sha','md5')), patch.object(hf, 'ensure_remote', side_effect=ValueError('fixture-verification')), patch.object(hf, 'export_manifest'), patch.object(hf, 'archive_manifest'):
+                    with self.assertRaises(ValueError):
+                        hf.run(db, 0, 0)
+                with closing(sqlite3.connect(monitor)) as conn:
+                    state = conn.execute('SELECT state_payload,cursor_version FROM pipeline_states').fetchone()
+                self.assertEqual(state[1], 1)
+                self.assertEqual(json.loads(state[0])['partial'], {})
+                self.assertTrue(path.exists())
+            finally:
+                db.close()
+
     def test_language_boundaries(self):
         pattern = ['multilingual/c4-tr.*.json.gz']
         self.assertTrue(hf.selected('multilingual/c4-tr.00000.json.gz', pattern))
         self.assertFalse(hf.selected('multilingual/c4-trp.00000.json.gz', pattern))
         self.assertFalse(hf.selected('multilingual/c4-en.00000.json.gz', pattern))
         self.assertFalse(hf.selected('data/tur_Latn_removed/train/000.parquet', ['data/tur_Latn/**/*.parquet']))
+
+    def test_checkpoint_failure_does_not_undo_remote_verification(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(hf, 'BASE', Path(directory)):
+            db = hf.connect()
+            db.execute("INSERT INTO sources VALUES ('test/data','abc','discovered','{}')")
+            hf.insert_file(db, {'repo':'test/data','revision':'abc'}, {'path':'one.txt','size':3})
+            db.commit()
+            path = Path(directory) / 'one.txt'
+            path.write_bytes(b'abc')
+            sync = MagicMock()
+            sync.get_or_create_subfolder.return_value = 'folder'
+            sync.service.files.return_value.get.return_value.execute.return_value = {'id':'folder'}
+            checkpoint = MagicMock()
+            checkpoint.advance.side_effect = RuntimeError('fixture-checkpoint-write')
+            try:
+                with patch.dict(os.environ, {'PROTOKOL_DAEMON_RUN_DB':''}), patch.object(hf, 'current_checkpoint', return_value=checkpoint), patch.object(hf, 'BaseDriveSync', return_value=sync), patch.object(hf, 'download', return_value=(path,'sha','md5')), patch.object(hf, 'ensure_remote', return_value='verified-id'), patch.object(hf, 'export_manifest'), patch.object(hf, 'archive_manifest'):
+                    with self.assertRaises(RuntimeError):
+                        hf.run(db, 0, 0)
+                self.assertEqual(db.execute('SELECT status,drive_id FROM files').fetchone()[:], ('remote_verified','verified-id'))
+            finally:
+                db.close()
 
     def test_paths(self):
         for value in ('../outside', '/tmp/file', 'a/../../secret', 'a\\b'):

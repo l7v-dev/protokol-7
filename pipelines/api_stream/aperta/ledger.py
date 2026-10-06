@@ -91,7 +91,28 @@ class ApertaLedger(BaseLedger):
             cur.execute("CREATE INDEX IF NOT EXISTS idx_aperta_date ON aperta_records(publication_date);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_aperta_status ON aperta_records(status);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_aperta_files_record ON aperta_files(record_id);")
+            columns = {row[1] for row in cur.execute('PRAGMA table_info(aperta_files)')}
+            if 'archive_shard_name' not in columns:
+                cur.execute('ALTER TABLE aperta_files ADD COLUMN archive_shard_name TEXT')
             conn.commit()
+
+    def recover_unsealed_assets(self) -> int:
+        """Recover mapped writes; unmapped legacy archived rows require an audit."""
+        with self._get_conn() as conn:
+            with conn:
+                conn.execute("""UPDATE aperta_files SET status='archived'
+                    WHERE status='downloaded' AND archive_shard_name IS NOT NULL
+                    AND EXISTS (SELECT 1 FROM shards WHERE shard_name=archive_shard_name)""")
+                return conn.execute("""UPDATE aperta_files SET status='pending',archive_shard_name=NULL
+                    WHERE status IN ('downloaded','archived') AND archive_shard_name IS NOT NULL
+                    AND NOT EXISTS (SELECT 1 FROM shards WHERE shard_name=archive_shard_name)""").rowcount
+
+    def mark_archive_sealed(self, shard_name: str):
+        with self._get_conn() as conn:
+            with conn:
+                conn.execute("""UPDATE aperta_files SET status='archived'
+                    WHERE archive_shard_name=? AND status='downloaded'
+                    AND EXISTS (SELECT 1 FROM shards WHERE shard_name=?)""", (shard_name, shard_name))
 
     def upsert_record(self, record: Dict[str, Any]) -> bool:
         """Inserts or replaces an Aperta record transactionally."""
@@ -133,7 +154,9 @@ class ApertaLedger(BaseLedger):
                         total_file_size=excluded.total_file_size,
                         files_json=excluded.files_json,
                         char_count=excluded.char_count,
-                        word_count=excluded.word_count
+                        word_count=excluded.word_count,
+                        status='indexed',
+                        shard_name=NULL
                     """,
                     (
                         rec_id,

@@ -8,6 +8,7 @@ extracts full text with PyMuPDF, and formats text into LLM-ready markdown.
 """
 
 import os
+import io
 import re
 import ssl
 import sys
@@ -17,6 +18,18 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from typing import Any, Dict, Optional, Tuple
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import EvidenceWriteError, capture_bytes
+from pipelines.shared.safe_http import urlopen
+from pipelines.shared.adaptive_rate_limiter import AdaptiveRateLimiter
+from pipelines.shared.pipeline_runtime import current_stats
+from pipelines.shared.pymupdf_parser import PyMuPDFParser
+from pipelines.shared.error_classifier import is_retriable
+from pipelines.shared.retry_policy import retry_after_seconds
+from pipelines.shared.cloudflare_detector import reject_challenge, ChallengeError
 
 try:
     import certifi
@@ -36,31 +49,10 @@ PDF_TIMEOUT = 35                  # seconds
 MIN_EXTRACT_CHARS = 100           # minimum text length to qualify as successful extraction
 
 
-class ThreadSafeRateLimiter:
-    """
-    Coordinates polite request pacing across concurrent worker threads.
-    """
-
-    def __init__(self, min_interval: float = 0.35):
+class ThreadSafeRateLimiter(AdaptiveRateLimiter):
+    def __init__(self, min_interval=.35):
+        super().__init__(base_delay=min_interval, max_delay=max(60, min_interval))
         self.min_interval = min_interval
-        self._lock = threading.Lock()
-        self._last_time = 0.0
-
-    def wait(self) -> None:
-        with self._lock:
-            now = time.time()
-            elapsed = now - self._last_time
-            if elapsed < self.min_interval:
-                time.sleep(self.min_interval - elapsed)
-            self._last_time = time.time()
-
-    def cooldown(self, seconds: float = 8.0) -> None:
-        """
-        Forces all worker threads to wait for specified cooldown duration.
-        """
-        with self._lock:
-            now = time.time()
-            self._last_time = max(self._last_time, now + seconds)
 
 
 class DergiParkPdfExtractor:
@@ -75,7 +67,13 @@ class DergiParkPdfExtractor:
         max_bytes: int = MAX_PDF_BYTES,
         min_interval: float = 0.35,
         rate_limiter: Optional[Any] = None,
+        use_impersonation: bool = False,
     ):
+        self.stats = current_stats()
+        self.curl_backend = None
+        if use_impersonation:
+            from pipelines.shared.curl_downloader import CurlDownloader
+            self.curl_backend = CurlDownloader(maximum_bytes=max_bytes)
         self.user_agent = user_agent
         self.timeout = timeout
         self.max_bytes = max_bytes
@@ -83,9 +81,40 @@ class DergiParkPdfExtractor:
         self.rate_limiter = rate_limiter
         self._last_request_time = 0.0
 
-    def _wait_for_rate_limit(self) -> None:
+    def _feedback(self, url, status):
+        if isinstance(self.rate_limiter, AdaptiveRateLimiter):
+            self.rate_limiter.update_delay(url, status)
+        if self.stats:
+            self.stats.inc(f"http_{status}")
+
+    def _open_http(self, request):
+        if self.curl_backend is None:
+            return urlopen(request, timeout=self.timeout, context=_SSL_CONTEXT)
+        try:
+            with urlopen(request, timeout=self.timeout, context=_SSL_CONTEXT) as response:
+                payload = response.read(self.max_bytes + 1)
+                if len(payload) > self.max_bytes:
+                    raise ValueError("HTTP response exceeds byte limit")
+                reject_challenge(payload)
+                buffered = io.BytesIO(payload)
+                buffered.headers = response.headers
+                return buffered
+        except urllib.error.HTTPError as error:
+            error.close()
+            if error.code not in {403, 429}:
+                raise
+            self._feedback(request.full_url, error.code)
+        except ChallengeError:
+            pass
+        self._wait_for_rate_limit(request.full_url)
+        return self.curl_backend.get(request.full_url, dict(request.header_items()), self.timeout)
+
+    def _wait_for_rate_limit(self, url="") -> None:
         if self.rate_limiter is not None:
-            self.rate_limiter.wait()
+            if isinstance(self.rate_limiter, AdaptiveRateLimiter):
+                self.rate_limiter.wait(url)
+            else:
+                self.rate_limiter.wait()
             return
         elapsed = time.time() - self._last_request_time
         if elapsed < self.min_interval:
@@ -115,10 +144,13 @@ class DergiParkPdfExtractor:
         )
 
         for attempt in range(1, 4):
-            self._wait_for_rate_limit()
+            self._wait_for_rate_limit(req.full_url)
             try:
-                with urllib.request.urlopen(req, timeout=self.timeout, context=_SSL_CONTEXT) as resp:
-                    html = resp.read().decode("utf-8", errors="ignore")
+                with self._open_http(req) as resp:
+                    self._feedback(req.full_url, getattr(resp, "status", 200))
+                    payload = resp.read()
+                    reject_challenge(payload)
+                    html = payload.decode("utf-8", errors="ignore")
 
                     # Match canonical DergiPark download button pattern
                     match = re.search(r'href=[\'"]([^\'"]*download/article-file[^\'"]*)[\'"]', html)
@@ -128,18 +160,21 @@ class DergiParkPdfExtractor:
                     return None, "could_not_resolve_pdf_link"
 
             except urllib.error.HTTPError as he:
-                if he.code in (429, 503):
+                self._feedback(req.full_url, he.code)
+                he.close()
+                if is_retriable(he):
                     if self.rate_limiter and hasattr(self.rate_limiter, "cooldown"):
                         self.rate_limiter.cooldown(8.0)
                     if attempt < 3:
-                        time.sleep(3.0 * attempt)
+                        specified = retry_after_seconds(he.headers.get("Retry-After")) if he.headers else None
+                        time.sleep(specified if specified is not None else 3.0 * attempt)
                         continue
                 return None, f"http_{he.code}"
             except Exception as e:
-                if attempt < 3:
+                if attempt < 3 and is_retriable(e):
                     time.sleep(1.5 * attempt)
                     continue
-                return None, str(e)
+                return None, f"resolve_error_{type(e).__name__}"
 
         return None, "resolve_timeout"
 
@@ -169,9 +204,10 @@ class DergiParkPdfExtractor:
 
         backoff = 2.0
         for attempt in range(1, 4):
-            self._wait_for_rate_limit()
+            self._wait_for_rate_limit(req.full_url)
             try:
-                with urllib.request.urlopen(req, timeout=self.timeout, context=_SSL_CONTEXT) as resp:
+                with self._open_http(req) as resp:
+                    self._feedback(req.full_url, getattr(resp, "status", 200))
                     cl = resp.headers.get("Content-Length")
                     if cl and int(cl) > self.max_bytes:
                         return None, "too_large"
@@ -194,16 +230,19 @@ class DergiParkPdfExtractor:
                     return pdf_bytes, None
 
             except urllib.error.HTTPError as he:
-                if he.code in (429, 503):
+                self._feedback(req.full_url, he.code)
+                he.close()
+                if is_retriable(he):
                     if self.rate_limiter and hasattr(self.rate_limiter, "cooldown"):
                         self.rate_limiter.cooldown(8.0)
                     if attempt < 3:
-                        time.sleep(backoff)
+                        specified = retry_after_seconds(he.headers.get("Retry-After")) if he.headers else None
+                        time.sleep(specified if specified is not None else backoff)
                         backoff *= 2.0
                         continue
                 return None, f"http_{he.code}"
             except Exception as e:
-                if attempt < 3:
+                if attempt < 3 and is_retriable(e):
                     time.sleep(backoff)
                     backoff *= 1.5
                     continue
@@ -229,22 +268,10 @@ class DergiParkPdfExtractor:
             }
 
         try:
-            doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
-            page_count = doc.page_count
-            pages_text = []
-
-            for page_num in range(page_count):
-                page = doc[page_num]
-                text = page.get_text("text")
-                if text:
-                    # Clean layout artifacts and excess spacing
-                    cleaned = re.sub(r"[ \t]+", " ", text)
-                    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
-                    cleaned_str = cleaned.strip()
-                    if cleaned_str:
-                        pages_text.append(f"<!-- Page {page_num + 1} -->\n{cleaned_str}")
-
-            full_text = "\n\n".join(pages_text).strip()
+            with PyMuPDFParser() as parser:
+                parsed = parser.parse_bytes(pdf_bytes)
+            page_count = parsed.page_count
+            full_text = parsed.raw_text
             char_count = len(full_text)
             word_count = len(full_text.split())
 
@@ -309,7 +336,12 @@ class DergiParkPdfExtractor:
                 "error": err or "empty_bytes",
             }
 
+        try:
+            raw_evidence = capture_bytes(pdf_bytes, "dergipark", pdf_url)
+        except Exception as failure:
+            raise EvidenceWriteError("Raw evidence persistence failed") from failure
         res = self.extract_text(pdf_bytes)
+        res["_raw_evidence"] = raw_evidence
         res["id"] = article.get("id")
         res["pdf_url"] = pdf_url
         res["pdf_bytes"] = pdf_bytes

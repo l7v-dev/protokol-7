@@ -251,8 +251,10 @@ class TestBiorxivDriveSync(unittest.TestCase):
         self.assertEqual(res["status"], "dry_run")
         self.assertTrue(res["file_id"].startswith("dry_run_"))
         self.assertEqual(len(res["md5"]), 32)
-        # Purge on success purges the file even in dry run
-        self.assertFalse(os.path.exists(self.test_file))
+        # Dry-run must preserve the source bytes even when purge is requested.
+        self.assertTrue(os.path.exists(self.test_file))
+        with open(self.test_file, "rb") as original:
+            self.assertEqual(original.read(), b"SAMPLE PARQUET CONTENT")
 
 
 if __name__ == "__main__":

@@ -52,6 +52,12 @@ PAGE_SIZE    = 200     # max allowed
 REQUEST_DELAY = 0.12  # ~8 req/s, safely under 10 req/s polite limit
 
 
+from contextvars import ContextVar
+import contextvars
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import EvidenceWriteError, capture_bytes
+_FULLTEXT_EVIDENCE = ContextVar("openalex_fulltext_evidence", default=None)
+
 def _get(url: str, retries: int = 6) -> Dict[str, Any]:
     req = urllib.request.Request(
         url,
@@ -63,7 +69,11 @@ def _get(url: str, retries: int = 6) -> Dict[str, Any]:
     for attempt in range(1, retries + 1):
         try:
             with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=60) as resp:
-                return json.loads(resp.read().decode("utf-8"))
+                payload = resp.read()
+                data = json.loads(payload.decode("utf-8"))
+                evidence = capture_bytes(payload, "openalex", url)
+                for record in data.get("results", []): record["_raw_evidence"] = evidence
+                return data
         except urllib.error.HTTPError as e:
             if e.code == 429:
                 wait = 2 ** attempt * 5
@@ -195,15 +205,19 @@ def _fetch_html_text(url: str) -> Optional[str]:
                 return None
             if "html" not in ct and "xml" not in ct and "text" not in ct:
                 return None
-            raw = resp.read(MAX_FULLTEXT_BYTES)
+            raw = resp.read(MAX_FULLTEXT_BYTES + 1)
+            if len(raw) > MAX_FULLTEXT_BYTES: return None
     except Exception:
         return None
 
+    _FULLTEXT_EVIDENCE.set(capture_bytes(raw, "openalex", url))
     try:
         soup = BeautifulSoup(raw, "lxml")
     except Exception:
         try:
             soup = BeautifulSoup(raw, "html.parser")
+        except EvidenceWriteError:
+            raise
         except Exception:
             return None
 
@@ -242,10 +256,12 @@ def _fetch_pdf_text(url: str) -> Optional[str]:
             # Only process PDF content
             if "pdf" not in ct and not url.lower().endswith(".pdf"):
                 return None
-            data = resp.read(MAX_FULLTEXT_BYTES)
+            data = resp.read(MAX_FULLTEXT_BYTES + 1)
+            if len(data) > MAX_FULLTEXT_BYTES: return None
     except Exception:
         return None
 
+    _FULLTEXT_EVIDENCE.set(capture_bytes(data, "openalex", url))
     try:
         pymupdf.TOOLS.mupdf_display_errors(False)
         doc  = pymupdf.open(stream=data, filetype="pdf")
@@ -289,6 +305,7 @@ def fetch_fulltext(raw: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
             continue
         text = _fetch_html_text(url)
         if text:
+            raw["_fulltext_evidence"] = _FULLTEXT_EVIDENCE.get()
             return text, source
 
     pdf_urls = [
@@ -303,6 +320,7 @@ def fetch_fulltext(raw: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
             continue
         text = _fetch_pdf_text(url)
         if text:
+            raw["_fulltext_evidence"] = _FULLTEXT_EVIDENCE.get()
             return text, source
 
     return None, None
@@ -327,16 +345,17 @@ def fetch_fulltext_batch(
 
     with ThreadPoolExecutor(max_workers=workers) as pool:
         future_to_idx = {
-            pool.submit(fetch_fulltext, raw): idx
+            pool.submit(contextvars.copy_context().run, fetch_fulltext, raw): idx
             for idx, raw in enumerate(works)
         }
         for future in as_completed(future_to_idx):
             idx = future_to_idx[future]
             try:
                 results[idx] = future.result()
+            except EvidenceWriteError:
+                raise
             except Exception:
                 results[idx] = (None, None)
 
     return results
-
 

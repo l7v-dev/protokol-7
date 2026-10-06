@@ -8,7 +8,9 @@
 
 import * as path from "node:path";
 import { LocalObjectStore } from "../src/storage/adapters/local-object-store.js";
+import { reapStaleDaemonRuns } from "../src/storage/daemon-run-monitor.js";
 import { SqliteLedgerRepository } from "../src/storage/ledger/sqlite-ledger-repository.js";
+import { reconcileWorkerProvenance } from "../src/storage/producer-provenance.js";
 import { badge, banner, divider, panel } from "../src/utils/terminal-theme.js";
 import {
   createDergiParkHarvestJobHandler,
@@ -79,6 +81,9 @@ async function main(): Promise<void> {
   const pool = new WorkerPool(ledger, {
     concurrency: options.concurrency,
     objectStore,
+    reapDaemonRuns: process.env.PROTOKOL_DAEMON_RUN_DB
+      ? () => reapStaleDaemonRuns(process.env.PROTOKOL_DAEMON_RUN_DB)
+      : undefined,
     workerConfig: {
       allowedOperations: options.operations,
       pollIntervalMs: options.pollIntervalMs,
@@ -96,16 +101,31 @@ async function main(): Promise<void> {
   console.log(badge("INFO", "Listening for control plane tasks. Press Ctrl+C to terminate."));
 
   pool.start();
+  // Pool polling timers are unrefed; the standalone daemon must survive an idle queue.
+  const reconcile = () => {
+    try {
+      reconcileWorkerProvenance(options.dbPath);
+    } catch (error) {
+      console.error(
+        "[PROVENANCE] Outcome reconciliation pending:",
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  };
+  reconcile();
+  const keepAlive = setInterval(reconcile, 10_000);
 
   let isShuttingDown = false;
   const shutdown = async (signal: string) => {
     if (isShuttingDown) return;
     isShuttingDown = true;
+    clearInterval(keepAlive);
     console.log();
     console.log(badge("WARN", `Received ${signal}. Draining active tasks and shutting down...`));
 
     try {
       await pool.drain();
+      reconcile();
       ledger.close();
       const stats = pool.getStats();
       console.log(

@@ -49,7 +49,8 @@ class DergiParkPdfTarSharder:
         self.max_bytes = int(max_gb * 1024 * 1024 * 1024)
         self.min_free_disk_bytes = int(min_free_disk_gb * 1024 * 1024 * 1024)
         self.max_part_entries = max_part_entries
-        self.part_idx = start_part_idx
+        from pipelines.shared.shard_namespace import next_part_index
+        self.part_idx = next_part_index(output_dir, filename_prefix, start_part_idx)
         self.on_shard_completed = on_shard_completed
 
         self.part_entries = 0
@@ -69,7 +70,7 @@ class DergiParkPdfTarSharder:
         self._current_path = os.path.join(self.output_dir, filename)
         self.part_entries = 0
         self.part_uncompressed_bytes = 0
-        self._tar = tarfile.open(self._current_path, mode="w:gz")
+        self._tar = tarfile.open(self._current_path, mode="x:gz")
         target_gb_val = self.target_bytes / (1024**3)
         print(f"[TAR-SHARDER] Opened new PDF archive shard: {filename} (target: {target_gb_val:.1f} GB)", flush=True)
 

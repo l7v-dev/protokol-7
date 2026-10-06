@@ -240,6 +240,8 @@ class GutenbergImageTarSharder:
         for img in images:
             img_name = img["name"]
             img_bytes = img["bytes"]
+            from pipelines.shared.producer_provenance import capture_bytes
+            capture_bytes(img_bytes, "gutenberg", f"https://www.gutenberg.org/ebooks/{book_id}#image:{img_name}")
             arcname = f"{book_id}/{img_name}"
 
             tarinfo = self.tarfile_mod.TarInfo(name=arcname)

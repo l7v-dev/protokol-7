@@ -186,12 +186,18 @@ def build_clean_record(
     }
 
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import record_output
+
 def process_partition_file(
     parquet_path: str,
     sharder: Any,
     batch_size: int = 5_000,
     require_abstract: bool = True,
     min_abstract_words: int = 15,
+    raw_evidence=None,
 ) -> int:
     """
     Streams and processes a downloaded S3 OpenAlex partition file,
@@ -212,6 +218,7 @@ def process_partition_file(
                 min_abstract_words=min_abstract_words,
             )
             if record is not None:
+                record_output(record, raw_evidence)
                 cleaned_batch.append(record)
 
         if cleaned_batch:

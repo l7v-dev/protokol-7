@@ -1,0 +1,14 @@
+[Unit]
+Description=Protokol-7 task WorkerPool with shared daemon monitoring
+[Service]
+Type=simple
+WorkingDirectory=%h/l7v-dev/play/protokol-7
+EnvironmentFile=%h/l7v-dev/play/protokol-7/data/maintenance/pipeline-runtime.env
+ExecStart=/etc/profiles/per-user/l7v/bin/node %h/l7v-dev/play/protokol-7/node_modules/tsx/dist/cli.mjs %h/l7v-dev/play/protokol-7/scripts/run-worker.ts --concurrency 1 --operations download,extract,dergipark_harvest
+Restart=no
+KillMode=mixed
+TimeoutStopSec=180
+MemoryMax=1G
+MemorySwapMax=0
+[Install]
+WantedBy=default.target

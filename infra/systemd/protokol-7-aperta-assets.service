@@ -1,0 +1,14 @@
+[Unit]
+Description=Protokol-7 aperta-assets producer
+[Service]
+Type=simple
+WorkingDirectory=%h/l7v-dev/play/protokol-7
+EnvironmentFile=%h/l7v-dev/play/protokol-7/data/maintenance/pipeline-runtime.env
+ExecStart=%h/l7v-dev/play/protokol-7/.venv/bin/python -u %h/l7v-dev/play/protokol-7/pipelines/api_stream/aperta/pdf_downloader.py --max-files 0 --continuous --target-gb 10 --max-gb 51 --rate-limit 0.8 --min-free-disk-gb 25
+Restart=no
+KillMode=mixed
+TimeoutStopSec=infinity
+MemoryMax=2G
+MemorySwapMax=0
+[Install]
+WantedBy=default.target

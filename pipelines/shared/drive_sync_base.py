@@ -10,6 +10,8 @@ import hashlib
 import os
 import sys
 import time
+from threading import Lock, current_thread
+from pipelines.shared.upload_queue import UploadQueue
 from typing import Any, Dict, List, Optional
 
 try:
@@ -70,6 +72,9 @@ class BaseDriveSync:
         self.dry_run = dry_run
         self.token_path = token_path or find_token_path()
         self.service = None
+        self._async_lock = Lock()
+        self._upload_queue = None
+        self._upload_client = None
         self._folder_cache: Dict[str, str] = {}
 
         if not self.dry_run:
@@ -154,12 +159,6 @@ class BaseDriveSync:
 
         if self.dry_run:
             print(f"[DRIVE-DRY] Would upload {filename} ({byte_size / (1024**2):.2f} MB)")
-            if purge_on_success:
-                try:
-                    os.remove(local_path)
-                    print(f"[DRIVE-DRY] Purged local file: {local_path}")
-                except OSError:
-                    pass
             return {
                 "file_id": f"dry_run_{filename}",
                 "filename": filename,
@@ -203,6 +202,8 @@ class BaseDriveSync:
         remote_id = response.get("id")
         remote_md5 = (response.get("md5Checksum") or "").lower()
 
+        if not remote_id or (verify_md5 and not remote_md5):
+            raise ValueError("Drive upload lacks verification metadata")
         if verify_md5 and local_md5 and remote_md5:
             if local_md5 != remote_md5:
                 raise ValueError(
@@ -229,3 +230,50 @@ class BaseDriveSync:
             "md5": remote_md5 or (local_md5 or ""),
             "status": "uploaded",
         }
+
+
+    def upload_async(self, local_path, target_folder_id=None, *, on_success=None, on_failure=None, purge_on_success=True):
+        """Worker transport is separate; callback commits before local eviction."""
+        from pipelines.shared.pipeline_runtime import current_stats
+        if self._upload_queue is not None and current_thread() is self._upload_queue._thread:
+            raise RuntimeError("Recursive upload admission is not supported")
+        stats = current_stats()
+        def upload():
+            try:
+                if self._upload_client is None:
+                    self._upload_client = BaseDriveSync(self.root_folder_id, self.token_path, self.dry_run)
+                result = self._upload_client.upload_file(local_path, target_folder_id=target_folder_id,
+                                                        purge_on_success=False, verify_md5=True)
+                if result.get('status') == 'dry_run':
+                    return result
+                if on_success:
+                    on_success(result)
+                if purge_on_success:
+                    os.remove(local_path)
+                if stats:
+                    stats.inc('uploads_succeeded')
+                    stats.inc('uploaded_bytes', result.get('byte_size', 0))
+                return result
+            except Exception as error:
+                if stats:
+                    stats.inc('uploads_failed')
+                if on_failure:
+                    try:
+                        on_failure(error)
+                    except Exception as callback_error:
+                        error.add_note(f"Upload failure receipt failed: {type(callback_error).__name__}")
+                raise
+        with self._async_lock:
+            if self._upload_queue is None:
+                self._upload_queue = UploadQueue(capacity=4)
+            future = self._upload_queue.submit(upload)
+        if stats:
+            stats.inc('uploads_queued')
+        return future
+
+    def close_uploads(self):
+        if self._upload_queue is not None:
+            self._upload_queue.close()
+            if self._upload_client is not None and self._upload_client.service is not None:
+                self._upload_client.service.close()
+            self._upload_client = None

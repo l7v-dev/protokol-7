@@ -36,6 +36,8 @@ from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, record_output
 from cleaner import build_record
 from downloader import iter_papers_bulk
 from drive_sync import S2DriveSync
@@ -152,7 +154,10 @@ class S2Orchestrator:
         if enable_drive:
             try:
                 self.drive = S2DriveSync()
+            except EvidenceWriteError:
+                raise
             except Exception as e:
+                report_producer_error(e)
                 print(f"[WARN] Drive init failed: {e} -- local-only.", file=sys.stderr)
                 self.enable_drive = False
 
@@ -211,7 +216,10 @@ class S2Orchestrator:
                 for raw in page_papers:
                     try:
                         record = build_record(raw)
+                    except EvidenceWriteError:
+                        raise
                     except Exception as e:
+                        report_producer_error(e)
                         print(f"[WARN] build_record error: {e}", file=sys.stderr)
                         total_failed += 1
                         continue
@@ -223,7 +231,10 @@ class S2Orchestrator:
                     if self.fetch_pdf:
                         try:
                             record = enrich_record_with_pdf(record)
+                        except EvidenceWriteError:
+                            raise
                         except Exception as pdf_err:
+                            report_producer_error(pdf_err)
                             print(
                                 f"[WARN] PDF enrichment error for {record.get('paper_id')}: {pdf_err}",
                                 file=sys.stderr,
@@ -236,6 +247,9 @@ class S2Orchestrator:
                         record["pdf_ocr_needed"] = 0
                         record["pdf_char_count"] = 0
 
+                    record_output({key: value for key, value in record.items() if key != "pdf_text"}, raw.get("_raw_evidence"))
+                    if record.get("pdf_text"):
+                        record_output({"paper_id": record["paper_id"], "text": record["pdf_text"]}, record.get("_pdf_raw_evidence"))
                     sharder.append(record)
                     papers_in_shard += 1
                     total_processed += 1
@@ -284,6 +298,7 @@ class S2Orchestrator:
 # CLI
 # ------------------------------------------------------------------
 
+@producer_run("semantic_scholar")
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Semantic Scholar Bulk Harvest Pipeline -- protokol-7"

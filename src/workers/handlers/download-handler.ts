@@ -8,11 +8,14 @@
 
 import { createHash } from "node:crypto";
 import { safeRedirectFetch } from "../../network/safe-redirect-fetcher.js";
+import { recordWorkerProvenance } from "../../storage/producer-provenance.js";
 import { TerminalJobError } from "../task-worker.js";
 import type { JobHandler, TaskExecutionContext, TaskExecutionResult } from "../types.js";
 
 export interface DownloadJobInput {
   url: string;
+  sourceId?: string;
+  sourceRecordId?: string;
   container?: string;
   objectKey?: string;
   providerId?: string;
@@ -63,6 +66,18 @@ export function createDownloadJobHandler(): JobHandler {
       await ctx.objectStore.putStream(objectKey, streamFromBuffer(buffer));
     }
 
+    if (ctx.objectStore)
+      recordWorkerProvenance({
+        sha256,
+        size: sizeBytes,
+        storageUri: `object-store://${providerId}/${container}/${objectKey}`,
+        sourceUri: input.url,
+        sourceId: input.sourceId || "task-worker",
+        sourceRecordId: input.sourceRecordId || ctx.job.documentId || ctx.job.id,
+        runId: ctx.job.id,
+        acquiredAt: new Date().toISOString(),
+      });
+
     const artifacts = [
       {
         sha256,
@@ -93,6 +108,11 @@ export function createDownloadJobHandler(): JobHandler {
           sha256,
           mimeType,
           providerId,
+          sourceUri: input.url,
+          sourceId: input.sourceId || "task-worker",
+          sourceRecordId: input.sourceRecordId || ctx.job.documentId || ctx.job.id,
+          provenanceRunId: ctx.job.id,
+          acquiredAt: new Date().toISOString(),
         },
       });
     }

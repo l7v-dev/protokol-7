@@ -15,6 +15,8 @@ import time
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, record_output
 from cleaner import PubmedCleaner
 from downloader import PubmedDownloader
 from drive_sync import PubmedDriveSync
@@ -22,6 +24,7 @@ from ledger import PubmedLedger
 from packer import PubmedSharder
 
 
+@producer_run("pubmed")
 def main():
     parser = argparse.ArgumentParser(description="PubMed & PMC Biomedical Ingestion Pipeline")
     parser.add_argument(
@@ -68,7 +71,10 @@ def main():
     if not args.no_drive:
         try:
             drive_sync = PubmedDriveSync(dry_run=args.dry_run)
+        except EvidenceWriteError:
+            raise
         except Exception as e:
+            report_producer_error(e)
             print(f"[DRIVE-WARN] Google Drive authentication unavailable: {e}")
             print(f"[DRIVE-WARN] Falling back to local storage buffer mode in {args.output_dir}.")
             print("[DRIVE-WARN] Run 'npm run auth:gdrive' to refresh Google Drive token and flush shards.")
@@ -119,7 +125,10 @@ def main():
                         verified_md5=verified_md5,
                     )
                     ledger.sync_to_central_catalog("pubmed")
+            except EvidenceWriteError:
+                raise
             except Exception as e:
+                report_producer_error(e)
                 print(f"[DRIVE-WARN] Shard upload deferred: {e}. Preserved locally at {shard_info['file_path']}")
 
     sharder = PubmedSharder(
@@ -151,6 +160,7 @@ def main():
             cleaned = cleaner.clean_record(raw)
             if cleaned:
                 current_shard_name = sharder._format_filename()
+                record_output(cleaned, getattr(downloader, "raw_evidence", None))
                 ledger.index_article(cleaned, shard_name=current_shard_name)
                 sharder.add_record(cleaned)
                 cleaned_count += 1

@@ -43,6 +43,8 @@ from typing import Dict, Any, List, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, capture_path, record_output
 from cleaner import stream_threads
 from downloader import build_dump_url, download_7z, extract_xml_files, remove_safely
 from drive_sync import StackExchangeDriveSync
@@ -188,7 +190,10 @@ class SEOrchestrator:
         if enable_drive:
             try:
                 self.drive = StackExchangeDriveSync()
+            except EvidenceWriteError:
+                raise
             except Exception as e:
+                report_producer_error(e)
                 print(f"[WARN] Drive init failed: {e} -- local-only.", file=sys.stderr)
                 self.enable_drive = False
 
@@ -216,13 +221,18 @@ class SEOrchestrator:
 
             try:
                 archive_path, dump_size_mb = download_7z(url, archive_path)
+            except EvidenceWriteError:
+                raise
             except Exception as e:
+                report_producer_error(e)
                 import urllib.error
                 if isinstance(e, urllib.error.HTTPError) and e.code == 404:
                     print(f"[WARN] Dump not found (404) for {slug}: {url}")
                     self.ledger.mark(slug, "skipped", error_message="404 not found")
                     return False
                 raise
+
+            raw_evidence = capture_path(archive_path, "stackexchange", url)
 
             # 2. Extract Posts.xml + Comments.xml
             extracted = extract_xml_files(archive_path, site_tmp)
@@ -248,6 +258,7 @@ class SEOrchestrator:
             t0 = time.time()
 
             for thread in stream_threads(posts_path, comments_path, site=slug):
+                record_output(thread, raw_evidence, source_record_id=f"{slug}:{thread['thread_id']}")
                 sharder.append(thread)
                 thread_count += 1
                 if thread_count % 50_000 == 0:
@@ -295,7 +306,13 @@ class SEOrchestrator:
             )
             return True
 
+        except EvidenceWriteError:
+
+            raise
+
         except Exception as e:
+
+            report_producer_error(e)
             msg = f"{type(e).__name__}: {e}"
             print(f"[ERROR] {slug}: {msg}", file=sys.stderr)
             self.ledger.mark(slug, "failed", error_message=msg)
@@ -325,6 +342,7 @@ class SEOrchestrator:
 # CLI
 # ------------------------------------------------------------------
 
+@producer_run("stackexchange")
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="StackExchange Full-Corpus Harvest Pipeline -- protokol-7"

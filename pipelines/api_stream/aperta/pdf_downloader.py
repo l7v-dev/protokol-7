@@ -12,6 +12,8 @@ import argparse
 import datetime
 import os
 import ssl
+import shutil
+import tempfile
 import sys
 import threading
 import time
@@ -21,9 +23,16 @@ from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
+from pipelines.shared.producer_provenance import report_producer_error, enabled, producer_run, stage_archive_raw, flush_archive_raw
+from pipelines.shared.safe_http import urlopen
+from pipelines.shared.retry_policy import RetryPolicy
+from pipelines.shared.daemon_run import monitor_daemon
+from pipelines.shared.pipeline_runtime import current_stopper
+from pipelines.shared.cloudflare_detector import reject_challenge
+
 from drive_sync import ApertaDriveSync
 from ledger import ApertaLedger
-from pdf_tar_packer import ApertaPdfTarSharder
+from pdf_tar_packer import ApertaPdfTarSharder, archive_member_name
 
 DEFAULT_USER_AGENT = "protokol-7/1.0.0 (Tubitak Ulakbim Aperta Asset Ingestion Engine; mailto:l7v-dev@protokol.local)"
 
@@ -62,6 +71,7 @@ class ApertaPdfDownloader:
         self.dry_run = dry_run
 
         self.ledger = ApertaLedger(db_path=self.db_path)
+        self.ledger.recover_unsealed_assets()
         self.drive_sync = ApertaDriveSync() if self.sync_drive and not self.dry_run else None
 
         self._lock = threading.Lock()
@@ -82,6 +92,7 @@ class ApertaPdfDownloader:
             target_gb=target_gb,
             max_gb=max_gb,
             min_free_disk_gb=min_free_disk_gb,
+            start_part_idx=self.ledger.get_next_part_index(),
             on_shard_completed=self._on_shard_completed,
         )
 
@@ -108,6 +119,7 @@ class ApertaPdfDownloader:
                 sha256=shard_info["sha256"],
                 md5=shard_info["md5"],
             )
+            self.ledger.mark_archive_sealed(shard_name)
 
             if self.drive_sync:
                 try:
@@ -125,128 +137,188 @@ class ApertaPdfDownloader:
                         )
                         log(f"TAR.GZ archive uploaded & verified: {shard_name} (Drive ID: {upload_res['file_id']})")
                 except Exception as ex:
+                    report_producer_error(ex)
                     log(f"Drive upload failed for {shard_name}: {ex}", level="WARN")
+
+        flush_archive_raw(self.ledger, self.output_dir)
 
     def download_file_bytes(self, url: str) -> Optional[bytes]:
         headers = {
             "User-Agent": DEFAULT_USER_AGENT,
             "Accept": "*/*",
         }
-        backoff = 2.0
-
-        for attempt in range(1, self.max_retries + 1):
+        def fetch():
             self._wait_for_rate_limit()
             req = urllib.request.Request(url, headers=headers)
             try:
-                with urllib.request.urlopen(req, timeout=self.timeout, context=self._ssl_context) as resp:
-                    return resp.read()
-            except urllib.error.HTTPError as he:
-                if he.code == 429:
-                    retry_after = he.headers.get("Retry-After")
-                    sleep_time = float(retry_after) if retry_after else (backoff * 2)
-                    time.sleep(sleep_time)
-                    backoff *= 2.0
-                    continue
-                if he.code in (500, 502, 503, 504) and attempt < self.max_retries:
-                    time.sleep(backoff)
-                    backoff *= 1.5
-                    continue
-                if he.code == 404:
-                    return None
-                log(f"HTTP error downloading {url}: {he.code}", level="WARN")
-                return None
-            except Exception as ex:
-                if attempt < self.max_retries:
-                    time.sleep(backoff)
-                    backoff *= 1.5
-                else:
-                    log(f"Failed downloading {url}: {ex}", level="WARN")
-                    return None
-        return None
+                with urlopen(req, timeout=self.timeout, context=self._ssl_context) as resp:
+                    payload = resp.read(16 * 1024 * 1024 + 1)
+                    if len(payload) > 16 * 1024 * 1024:
+                        raise ValueError("Use disk streaming for assets larger than 16 MiB")
+                    reject_challenge(payload)
+                    return payload
+            except urllib.error.HTTPError as error:
+                error.close()
+                raise
 
+        try:
+            return RetryPolicy(interval=2.0, max_attempts=self.max_retries).execute(fetch, sleep=time.sleep)
+        except Exception as error:
+            report_producer_error(error)
+            log(f"Asset download failed: {type(error).__name__}", level="WARN")
+            return None
+
+    def download_file_to(self, url: str, destination: str) -> bool:
+        """Download with bounded memory; retry attempts truncate only the owned file."""
+        def fetch():
+            self._wait_for_rate_limit()
+            req = urllib.request.Request(url, headers={"User-Agent": DEFAULT_USER_AGENT, "Accept": "*/*"})
+            try:
+                with urlopen(req, timeout=self.timeout, context=self._ssl_context) as response:
+                    declared = response.headers.get("Content-Length")
+                    expected = int(declared) if declared is not None else None
+                    if expected is not None and (expected < 0 or expected > self.sharder.max_bytes):
+                        raise ValueError("Asset exceeds archive size limit")
+                    total = 0
+                    prefix = bytearray()
+                    with open(destination, "wb") as output:
+                        while chunk := response.read(1024 * 1024):
+                            total += len(chunk)
+                            if total > self.sharder.max_bytes:
+                                raise ValueError("Asset exceeds archive size limit")
+                            if shutil.disk_usage(self.output_dir).free < self.sharder.min_free_disk_bytes + len(chunk):
+                                raise OSError("Insufficient asset staging disk reserve")
+                            if len(prefix) < 65536:
+                                prefix.extend(chunk[:65536 - len(prefix)])
+                                reject_challenge(bytes(prefix))
+                            output.write(chunk)
+                    if expected is not None and total != expected:
+                        raise ValueError("Incomplete asset response")
+                    return total > 0
+            except urllib.error.HTTPError as error:
+                error.close()
+                raise
+        try:
+            return RetryPolicy(interval=2.0, max_attempts=self.max_retries).execute(fetch, sleep=time.sleep)
+        except (OSError, MemoryError) as error:
+            # Local resource failures must not turn healthy source rows into failed rows.
+            from pipelines.shared.error_classifier import is_retriable
+            if isinstance(error, MemoryError) or not is_retriable(error) and not isinstance(error, (urllib.error.URLError, ssl.SSLError)):
+                raise
+            report_producer_error(error)
+            log(f"Asset download failed: {type(error).__name__}", level="WARN")
+            return False
+        except Exception as error:
+            report_producer_error(error)
+            log(f"Asset download failed: {type(error).__name__}", level="WARN")
+            return False
+
+    @monitor_daemon("aperta-assets", interrupt_on_parent_loss=False)
     def process_pending_files(self, batch_size: int = 50, max_files: int = 0, continuous: bool = False, idle_sleep: float = 15.0) -> int:
         """
         Polls pending files from SQLite, downloads each, archives into TAR.GZ,
         and marks status='archived'. If continuous is True, sleeps and polls repeatedly.
         """
+        flush_archive_raw(self.ledger, self.output_dir)
         total_processed = 0
+        stopper = current_stopper()
 
-        while True:
-            with self.ledger._get_conn() as conn:
-                cur = conn.cursor()
-                limit_chunk = batch_size if continuous else (max_files if max_files > 0 else 50000)
-                cur.execute(
-                    """
-                    SELECT file_id, record_id, key, size, download_url
-                    FROM aperta_files
-                    WHERE status = 'pending'
-                    ORDER BY created_at ASC
-                    LIMIT ?
-                    """,
-                    (limit_chunk,),
-                )
-                pending_files = [dict(r) for r in cur.fetchall()]
-
-            if not pending_files:
-                if continuous:
-                    time.sleep(idle_sleep)
-                    continue
-                else:
-                    log(f"No pending files found to process.")
+        try:
+            while True:
+                if stopper and stopper.should_stop()[0]:
                     break
-
-            log(f"Found {len(pending_files)} pending files to download in current batch.")
-
-            for file_meta in pending_files:
-                f_id = file_meta["file_id"]
-                rec_id = file_meta["record_id"]
-                key = file_meta["key"]
-                url = file_meta["download_url"]
-
-                if not url:
-                    url = f"https://aperta.ulakbim.gov.tr/api/records/{rec_id}/files/{key}/content"
-
-                log(f"Downloading [{rec_id}] {key} ({url})...")
-                file_bytes = self.download_file_bytes(url)
-
                 with self.ledger._get_conn() as conn:
                     cur = conn.cursor()
-                    if file_bytes:
-                        # Save local copy if requested
-                        if self.local_copy_dir:
-                            out_local = os.path.join(self.local_copy_dir, f"{rec_id}_{key}")
-                            with open(out_local, "wb") as f_out:
-                                f_out.write(file_bytes)
+                    limit_chunk = batch_size if continuous else (max_files if max_files > 0 else 50000)
+                    cur.execute(
+                        """
+                        SELECT file_id, record_id, key, size, download_url
+                        FROM aperta_files
+                        WHERE status = 'pending'
+                        ORDER BY created_at ASC
+                        LIMIT ?
+                        """,
+                        (limit_chunk,),
+                    )
+                    pending_files = [dict(r) for r in cur.fetchall()]
 
-                        # Append to TAR.GZ shard
-                        shard_name = self.sharder.append_file(f"{rec_id}_{key}", file_bytes)
-
-                        cur.execute(
-                            "UPDATE aperta_files SET status = 'archived' WHERE file_id = ?",
-                            (f_id,),
-                        )
-                        log(f"Archived {key} ({len(file_bytes)} bytes) into {shard_name}")
+                if not pending_files:
+                    if continuous:
+                        time.sleep(idle_sleep)
+                        continue
                     else:
-                        cur.execute(
-                            "UPDATE aperta_files SET status = 'failed' WHERE file_id = ?",
-                            (f_id,),
-                        )
-                        log(f"Failed to fetch {key}, marked failed", level="WARN")
-                    conn.commit()
+                        log(f"No pending files found to process.")
+                        break
 
-                total_processed += 1
+                log(f"Found {len(pending_files)} pending files to download in current batch.")
+
+                for file_meta in pending_files:
+                    if stopper and stopper.should_stop()[0]:
+                        break
+                    f_id = file_meta["file_id"]
+                    rec_id = file_meta["record_id"]
+                    key = file_meta["key"]
+                    url = file_meta["download_url"]
+
+                    if not url:
+                        url = f"https://aperta.ulakbim.gov.tr/api/records/{rec_id}/files/{key}/content"
+
+                    log(f"Downloading [{rec_id}] {key} ({url})...")
+                    with tempfile.TemporaryDirectory(prefix="aperta-download-", dir=self.output_dir) as staging:
+                        path = os.path.join(staging, "payload")
+                        downloaded = self.download_file_to(url, path)
+                        if downloaded:
+                            size = os.path.getsize(path)
+                            self.sharder.prepare_file(size)
+                            if self.local_copy_dir:
+                                local_name = os.path.basename(f"{rec_id}_{key}")
+                                shutil.copyfile(path, os.path.join(self.local_copy_dir, local_name))
+                            receiving_shard = self.sharder.current_shard_name
+                            member = archive_member_name(f"{rec_id}_{key}")
+                            stage_archive_raw(self.ledger, receiving_shard, path, "aperta", url, member, file_id=f_id)
+                            if not enabled():
+                                with self.ledger._get_conn() as conn, conn:
+                                    conn.execute("UPDATE aperta_files SET status='downloaded',archive_shard_name=? WHERE file_id=?", (receiving_shard,f_id))
+                            try:
+                                shard_name = self.sharder.append_path(f"{rec_id}_{key}", path)
+                            except BaseException:
+                                with self.ledger._get_conn() as conn:
+                                    with conn:
+                                        sealed = conn.execute("SELECT 1 FROM shards WHERE shard_name=?", (receiving_shard,)).fetchone()
+                                        if not sealed:
+                                            if enabled():
+                                                conn.execute("DELETE FROM raw_archive_outbox WHERE shard_name=? AND member=?", (receiving_shard, member))
+                                            conn.execute("UPDATE aperta_files SET status='pending',archive_shard_name=NULL WHERE file_id=?", (f_id,))
+                                raise
+                            flush_archive_raw(self.ledger, self.output_dir)
+                            log(f"Appended {key} ({size} bytes) into {shard_name}; awaiting archive seal")
+                        else:
+                            with self.ledger._get_conn() as conn:
+                                with conn:
+                                    conn.execute("UPDATE aperta_files SET status='failed' WHERE file_id=?", (f_id,))
+                            log(f"Failed to fetch {key}, marked failed", level="WARN")
+
+                    total_processed += 1
+                    if stopper:
+                        stopper.record_processed()
+                        if not downloaded:
+                            stopper.record_error()
+                    if 0 < max_files <= total_processed:
+                        break
+
                 if 0 < max_files <= total_processed:
                     break
 
-            if 0 < max_files <= total_processed:
-                break
+        except KeyboardInterrupt:
+            log("Asset processing interrupted; closing active archive", level="WARN")
+        finally:
+            self.sharder.close()
 
-        # Flush active shard
-        self.sharder.close()
         log(f"Finished processing. Total processed: {total_processed}")
         return total_processed
 
 
+@producer_run("aperta-assets")
 def main():
     parser = argparse.ArgumentParser(description="Aperta Raw PDF and Multi-Format Asset Archiver")
     parser.add_argument("--db-path", default="data/catalogs/aperta_catalog.sqlite", help="SQLite database path")
@@ -261,7 +333,8 @@ def main():
     parser.add_argument("--no-sync-drive", dest="sync_drive", action="store_false", help="Disable Drive upload")
     parser.add_argument("--dry-run", action="store_true", help="Simulate run without writing files")
 
-    args = parser.parse_args()
+    from pipelines.shared.cli_validation import validate_cli
+    args = validate_cli(parser, parser.parse_args())
 
     downloader = ApertaPdfDownloader(
         db_path=args.db_path,

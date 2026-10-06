@@ -300,7 +300,9 @@ def test_drive_sync_dry_run(tmp_dir):
     sync = DergiParkDriveSync(dry_run=True)
     res = sync.sync_shard(fake_shard, purge_on_success=True)
     assert res["status"] in ("dry_run", "simulated", "uploaded")
-    assert not os.path.exists(fake_shard)
+    assert os.path.exists(fake_shard)
+    with open(fake_shard, "rb") as preserved:
+        assert preserved.read() == b"PARQUET_TEST_PAYLOAD"
 
 
 def test_partitioner_date_windows():
@@ -450,7 +452,7 @@ def test_pdf_extractor_resolve_url(monkeypatch):
             pass
 
     import urllib.request
-    monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout, context: FakeResponse(sample_html))
+    monkeypatch.setattr(sys.modules[DergiParkPdfExtractor.__module__], "urlopen", lambda req, timeout, context: FakeResponse(sample_html))
 
     resolved = extractor.resolve_pdf_url("https://dergipark.org.tr/tr/pub/journal/article/100")
     assert resolved == "https://dergipark.org.tr/tr/download/article-file/998877"
@@ -624,6 +626,22 @@ def test_ledger_pdf_status_and_stats(tmp_dir):
     assert ledger.get_next_fulltext_part_index() == 0
 
 
+def test_recovery_requeues_only_unsealed_output_references(tmp_dir):
+    ledger = DergiParkLedger(db_path=os.path.join(tmp_dir, 'recovery.sqlite'))
+    for name, shard, archive in [('sealed','closed.parquet','closed.tar.gz'),
+                                  ('open-text','open.parquet','closed.tar.gz'),
+                                  ('open-raw','closed.parquet','open.tar.gz'),
+                                  ('legacy',None,None)]:
+        ledger.index_article({'id':name, 'title':name, 'fulltext_url':'https://example.com/article'})
+        ledger.mark_pdf_extracted(name, 'https://example.com/file.pdf', 1, 10, 2, shard, archive)
+    for index, name in enumerate(['closed.parquet','closed.tar.gz']):
+        ledger.register_shard(name, index, 1, 100, 'fixture-sha', 'fixture-md5')
+    assert ledger.recover_unsealed_pdf_outputs() == 2
+    assert {row['id'] for row in ledger.get_pending_pdf_articles(10)} == {'open-text', 'open-raw'}
+    assert ledger.get_pdf_stats()['extracted'] == 2
+    assert ledger.recover_unsealed_pdf_outputs() == 0
+
+
 def test_pdf_tar_packer(tmp_dir):
     shards_completed = []
 
@@ -740,3 +758,16 @@ def test_pdf_tar_packer_disk_headroom_guard(tmp_dir, monkeypatch):
 
 
 
+
+def test_duplicate_receipt_preserves_source_and_artifact_references(tmp_dir):
+    ledger = DergiParkLedger(db_path=os.path.join(tmp_dir, 'catalog.sqlite'))
+    with ledger._get_conn() as conn:
+        conn.execute("INSERT INTO dergipark_articles(id,title,fulltext_url) VALUES ('dp:duplicate','title','https://example.org/pdf')")
+        conn.commit()
+    ledger.mark_pdf_extracted('dp:duplicate', 'https://example.org/pdf', 1, 100, 20,
+                              shard_name='text.parquet', archive_name='raw.tar.gz',
+                              content_simhash='0123456789abcdef', simhash_version='test-v1', is_duplicate=True)
+    with ledger._get_conn() as conn:
+        row = conn.execute("SELECT pdf_status,pdf_shard_name,pdf_archive_name,content_simhash,title FROM dergipark_articles WHERE id='dp:duplicate'").fetchone()
+    assert tuple(row) == ('duplicate', 'text.parquet', 'raw.tar.gz', '0123456789abcdef', 'title')
+    assert ledger.recover_unsealed_pdf_outputs() == 1

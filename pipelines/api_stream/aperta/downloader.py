@@ -19,6 +19,16 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, Generator, List, Optional, Tuple
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import capture_fetch
+from pipelines.shared.retry_policy import RetryPolicy
+from pipelines.shared.safe_http import urlopen
+from pipelines.shared.cloudflare_detector import reject_challenge
+
+
+
 APERTA_BASE_URL = "https://aperta.ulakbim.gov.tr"
 APERTA_OAI_URL = "https://aperta.ulakbim.gov.tr/oai2d"
 APERTA_REST_URL = "https://aperta.ulakbim.gov.tr/api/records"
@@ -67,40 +77,28 @@ class ApertaDownloader:
             time.sleep(self.min_interval - elapsed)
         self._last_request_time = time.time()
 
+    @capture_fetch("aperta")
     def _fetch_url(self, url: str, accept_header: str = "*/*") -> bytes:
         headers = {
             "User-Agent": DEFAULT_USER_AGENT,
             "Accept": accept_header,
         }
-        backoff = 1.5
-
-        for attempt in range(1, self.max_retries + 1):
+        def fetch() -> bytes:
             self._wait_for_rate_limit()
             req = urllib.request.Request(url, headers=headers)
             try:
-                with urllib.request.urlopen(req, timeout=self.timeout, context=self._ssl_context) as resp:
-                    return resp.read()
-            except urllib.error.HTTPError as he:
-                if he.code in (403, 429):
-                    retry_after = he.headers.get("Retry-After")
-                    sleep_time = float(retry_after) if retry_after else (max(backoff * 3.0, 15.0))
-                    time.sleep(sleep_time)
-                    backoff *= 2.0
-                    continue
-                if he.code in (500, 502, 503, 504) and attempt < self.max_retries:
-                    time.sleep(backoff)
-                    backoff *= 1.5
-                    continue
-                if he.code == 404:
+                with urlopen(req, timeout=self.timeout, context=self._ssl_context) as resp:
+                    payload = resp.read()
+                    reject_challenge(payload)
+                    return payload
+            except urllib.error.HTTPError as error:
+                if error.code == 404:
+                    error.close()
                     return b""
+                error.close()
                 raise
-            except Exception:
-                if attempt < self.max_retries:
-                    time.sleep(backoff)
-                    backoff *= 1.5
-                else:
-                    raise
-        return b""
+
+        return RetryPolicy(max_attempts=self.max_retries).execute(fetch, sleep=time.sleep)
 
     # --------------------------------------------------------------------------
     # OAI-PMH 2.0 Harvest Protocol

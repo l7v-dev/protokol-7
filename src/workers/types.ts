@@ -27,6 +27,7 @@ export interface WorkerPoolConfig {
   concurrency: number;
   reapIntervalMs: number;
   workerConfig?: Partial<WorkerConfig>;
+  reapDaemonRuns?: () => number | Promise<number>;
 }
 
 export interface WorkerStats {

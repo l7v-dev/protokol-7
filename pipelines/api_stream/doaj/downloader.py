@@ -18,7 +18,15 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, Generator, List, Optional
 
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import capture_fetch
+
+from pipelines.shared.retry_policy import RetryPolicy
+from pipelines.shared.safe_http import urlopen
+from pipelines.shared.cloudflare_detector import reject_challenge
 
 DOAJ_BASE_URL = "https://doaj.org/api/v2"
 DOAJ_OAI_URL = "https://doaj.org/oai.article"
@@ -58,39 +66,29 @@ class DoajDownloader:
             time.sleep(self.min_interval - elapsed)
         self._last_request_time = time.time()
 
+    @capture_fetch("doaj")
     def _fetch_raw(self, url: str) -> bytes:
         headers = {
             "User-Agent": DEFAULT_USER_AGENT,
             "Accept": "*/*",
         }
-        backoff = 1.0
-
-        for attempt in range(1, self.max_retries + 1):
+        def fetch() -> bytes:
             self._wait_for_rate_limit()
             req = urllib.request.Request(url, headers=headers)
             try:
-                with urllib.request.urlopen(req, timeout=self.timeout, context=self._ssl_context) as resp:
-                    return resp.read()
-            except urllib.error.HTTPError as he:
-                if he.code == 429:
-                    time.sleep(backoff * 2)
-                    backoff *= 2.0
-                    continue
-                if he.code in (500, 502, 503, 504) and attempt < self.max_retries:
-                    time.sleep(backoff)
-                    backoff *= 1.5
-                    continue
-                if he.code == 404:
+                with urlopen(req, timeout=self.timeout, context=self._ssl_context) as resp:
+                    payload = resp.read()
+                    reject_challenge(payload)
+                    return payload
+            except urllib.error.HTTPError as error:
+                if error.code == 404:
+                    error.close()
                     return b""
-                raise
-            except Exception:
-                if attempt < self.max_retries:
-                    time.sleep(backoff)
-                    backoff *= 1.5
-                    continue
+                error.close()
                 raise
 
-        return b""
+        return RetryPolicy(max_attempts=self.max_retries).execute(fetch, sleep=time.sleep)
+
 
     def _fetch_json(self, url: str) -> Dict[str, Any]:
         raw = self._fetch_raw(url)
@@ -189,8 +187,11 @@ class DoajDownloader:
         """
         yielded = 0
         token: Optional[str] = resumption_token
+        self.oai_snapshot_complete = False
+        self.oai_page_token = token
 
         while True:
+            self.oai_page_token = token
             if token:
                 url = f"{self.oai_url}?verb=ListRecords&resumptionToken={urllib.parse.quote(token)}"
             else:
@@ -332,4 +333,5 @@ class DoajDownloader:
             if resumption_elem is not None and resumption_elem.text:
                 token = resumption_elem.text.strip()
             else:
+                self.oai_snapshot_complete = True
                 break

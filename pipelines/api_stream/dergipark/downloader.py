@@ -16,6 +16,16 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, Generator, List, Optional
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import capture_fetch
+from pipelines.shared.retry_policy import RetryPolicy
+from pipelines.shared.safe_http import urlopen
+from pipelines.shared.cloudflare_detector import reject_challenge
+
+
+
 DERGIPARK_OAI_URL = "https://dergipark.org.tr/api/public/oai/"
 DEFAULT_USER_AGENT = "protokol-7/1.0.0 (Tubitak Ulakbim DergiPark Research Ingestion Engine; mailto:l7v-dev@protokol.local)"
 
@@ -50,39 +60,29 @@ class DergiParkDownloader:
             time.sleep(self.min_interval - elapsed)
         self._last_request_time = time.time()
 
+    @capture_fetch("dergipark")
     def _fetch_raw(self, url: str) -> bytes:
         headers = {
             "User-Agent": DEFAULT_USER_AGENT,
             "Accept": "application/xml, text/xml, */*",
         }
-        backoff = 1.0
-
-        for attempt in range(1, self.max_retries + 1):
+        def fetch() -> bytes:
             self._wait_for_rate_limit()
             req = urllib.request.Request(url, headers=headers)
             try:
-                with urllib.request.urlopen(req, timeout=self.timeout, context=self._ssl_context) as resp:
-                    return resp.read()
-            except urllib.error.HTTPError as he:
-                if he.code == 429:
-                    time.sleep(backoff * 2)
-                    backoff *= 2.0
-                    continue
-                if he.code in (500, 502, 503, 504) and attempt < self.max_retries:
-                    time.sleep(backoff)
-                    backoff *= 1.5
-                    continue
-                if he.code == 404:
+                with urlopen(req, timeout=self.timeout, context=self._ssl_context) as resp:
+                    payload = resp.read()
+                    reject_challenge(payload)
+                    return payload
+            except urllib.error.HTTPError as error:
+                if error.code == 404:
+                    error.close()
                     return b""
-                raise
-            except Exception:
-                if attempt < self.max_retries:
-                    time.sleep(backoff)
-                    backoff *= 1.5
-                    continue
+                error.close()
                 raise
 
-        return b""
+        return RetryPolicy(max_attempts=self.max_retries).execute(fetch, sleep=time.sleep)
+
 
     def list_sets(self) -> List[Dict[str, str]]:
         """Harvests available journal/collection sets from DergiPark."""

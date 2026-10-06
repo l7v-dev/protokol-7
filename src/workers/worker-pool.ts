@@ -23,6 +23,7 @@ export class WorkerPool {
   private isRunning = false;
   private reaperTimer: NodeJS.Timeout | null = null;
   private reapedLeasesCount = 0;
+  private readonly reapDaemonRuns?: () => number | Promise<number>;
 
   constructor(
     ledger: LedgerRepository,
@@ -33,6 +34,7 @@ export class WorkerPool {
     this.concurrency = Math.max(1, config?.concurrency ?? 1);
     this.reapIntervalMs = config?.reapIntervalMs ?? 30000;
     this.objectStore = config?.objectStore;
+    this.reapDaemonRuns = config?.reapDaemonRuns;
 
     for (let i = 0; i < this.concurrency; i++) {
       const workerConfig: Partial<WorkerConfig> = {
@@ -69,6 +71,13 @@ export class WorkerPool {
         this.reapedLeasesCount += result.expiredJobs + result.expiredOutbox;
       } catch {
         // Suppress reaper error to avoid crashing pool loop
+      }
+      if (this.reapDaemonRuns) {
+        try {
+          await this.reapDaemonRuns();
+        } catch {
+          console.error("[ERROR] Daemon heartbeat reaper failed; check monitoring catalog.");
+        }
       }
     }, this.reapIntervalMs);
     this.reaperTimer.unref();

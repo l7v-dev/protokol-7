@@ -22,6 +22,8 @@ from typing import Dict, List, Optional, Tuple, Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, capture_path, record_output
 from cleaner import stream_wikispecies_entries
 from downloader import (
     build_dump_urls,
@@ -162,7 +164,10 @@ class WikispeciesHarvestOrchestrator:
         if self.enable_drive:
             try:
                 self.drive_sync = WikispeciesDriveSync()
+            except EvidenceWriteError:
+                raise
             except Exception as e:
+                report_producer_error(e)
                 print(f"[WARN] Google Drive initialization failed: {e}. Switching to local-only mode.", file=sys.stderr)
                 self.enable_drive = False
 
@@ -189,6 +194,8 @@ class WikispeciesHarvestOrchestrator:
                     return False
                 raise
 
+            raw_evidence = capture_path(local_dump_path, "wikispecies", dump_url)
+
             dump_size_mb = os.path.getsize(local_dump_path) / (1024 * 1024)
             print(f"[INFO] Downloaded dump size: {dump_size_mb:.2f} MB")
 
@@ -202,6 +209,7 @@ class WikispeciesHarvestOrchestrator:
             entry_count = 0
             start_clean = time.time()
             for entry in stream_wikispecies_entries(local_dump_path):
+                record_output(entry, raw_evidence)
                 sharder.append(entry)
                 entry_count += 1
                 if self.dry_run and entry_count >= 50:
@@ -252,7 +260,13 @@ class WikispeciesHarvestOrchestrator:
             print(f"[STAGE 4/4] Completed {db_name}: {entry_count:,} entries, {total_parquet_size_mb:.2f} MB Parquet.")
             return True
 
+        except EvidenceWriteError:
+
+            raise
+
         except Exception as e:
+
+            report_producer_error(e)
             msg = f"{type(e).__name__}: {e}"
             print(f"[ERROR] Failed processing {db_name}: {msg}", file=sys.stderr)
             self.ledger.update_status(db_name, "failed", error_message=msg)
@@ -260,6 +274,7 @@ class WikispeciesHarvestOrchestrator:
             return False
 
 
+@producer_run("wikispecies")
 def main():
     parser = argparse.ArgumentParser(description="Wikispecies Global Taxonomy Dump Harvest Pipeline")
     parser.add_argument("--no-drive", action="store_true", help="Disable Google Drive upload (retain local files)")

@@ -151,6 +151,11 @@ class BaseLedger:
             )
             conn.commit()
 
+    def mark_shard_failed(self, shard_name):
+        with self._get_conn() as conn:
+            conn.execute("UPDATE shards SET status='failed' WHERE shard_name=? AND status!='uploaded'", (shard_name,))
+            conn.commit()
+
     def register_item(self, item_id: str, metadata: Optional[Dict[str, Any]] = None) -> None:
         """Registers a discrete processing item / partition."""
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()

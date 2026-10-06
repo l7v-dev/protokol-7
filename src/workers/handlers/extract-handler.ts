@@ -8,10 +8,16 @@
 
 import { createHash } from "node:crypto";
 import type { StorageRef } from "../../../contracts/index.js";
+import { recordWorkerProvenance } from "../../storage/producer-provenance.js";
 import { QuarantineError, TerminalJobError } from "../task-worker.js";
 import type { JobHandler, TaskExecutionContext, TaskExecutionResult } from "../types.js";
 
 export interface ExtractJobInput {
+  sourceUri?: string;
+  sourceId?: string;
+  sourceRecordId?: string;
+  provenanceRunId?: string;
+  acquiredAt?: string;
   container: string;
   objectKey: string;
   sha256?: string;
@@ -105,6 +111,19 @@ export function createExtractJobHandler(): JobHandler {
       yield b;
     }
     await ctx.objectStore.putStream(extractedKey, streamFromBuffer(extractedBuffer));
+
+    if (input.sourceUri)
+      recordWorkerProvenance({
+        sha256: createHash("sha256").update(rawBuffer).digest("hex"),
+        size: rawBuffer.length,
+        storageUri: `object-store://${providerId}/${input.container}/${input.objectKey}`,
+        sourceUri: input.sourceUri,
+        sourceId: input.sourceId || "task-worker",
+        sourceRecordId: input.sourceRecordId || ctx.job.documentId || ctx.job.id,
+        runId: ctx.job.id,
+        acquiredAt: input.acquiredAt || new Date().toISOString(),
+        text: input.mimeType?.startsWith("text/") ? extractedText : undefined,
+      });
 
     const artifacts = [
       {

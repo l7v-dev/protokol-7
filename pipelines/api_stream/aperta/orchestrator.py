@@ -17,6 +17,12 @@ from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from pipelines.shared.producer_provenance import report_producer_error, EvidenceWriteError, producer_run, record_output
+from pipelines.shared.daemon_run import monitor_daemon, current_checkpoint
+from pipelines.shared.pipeline_runtime import current_stopper
+from pipelines.shared.shard_namespace import next_part_index
+
 from cleaner import ApertaCleaner
 from downloader import ApertaDownloader
 from drive_sync import ApertaDriveSync
@@ -29,6 +35,7 @@ def log(msg: str, level: str = "INFO") -> None:
     print(f"[{now_str}] [{level}] [APERTA] {msg}", flush=True)
 
 
+@producer_run("aperta")
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(line_buffering=True)
@@ -131,9 +138,17 @@ def main():
         help="Package any unsharded records currently in SQLite into Parquet shards and exit",
     )
 
-    args = parser.parse_args()
+    parser.add_argument("--async-upload", action="store_true", help="Queue closed shard uploads and drain before completion")
+    from pipelines.shared.cli_validation import validate_cli
+    args = validate_cli(parser, parser.parse_args())
+    return run(args)
+
+
+@monitor_daemon('aperta', enabled=lambda args: not (args.status or args.flush_unsharded))
+def run(args):
 
     ledger = ApertaLedger(db_path=args.db_path)
+    checkpoint = current_checkpoint(f"aperta:{os.path.abspath(args.db_path)}:{args.metadata_prefix}:oai") if args.method == 'oai' and not args.dry_run and not (args.status or args.flush_unsharded) else None
 
     if args.status:
         stats = ledger.get_stats()
@@ -179,7 +194,15 @@ def main():
                 ledger.mark_sharded(active_batch_ids, shard_name)
                 active_batch_ids.clear()
 
-            if drive_sync:
+            if drive_sync and getattr(args, "async_upload", False):
+                def uploaded(result):
+                    ledger.mark_shard_uploaded(shard_name, result["file_id"], result["md5"])
+                def failed(error):
+                    ledger.mark_shard_failed(shard_name)
+                    log(f"Queued upload deferred: {type(error).__name__}", level="WARN")
+                drive_sync.upload_async(shard_path, drive_sync.get_aperta_folder_id(),
+                                        on_success=uploaded, on_failure=failed)
+            elif drive_sync:
                 try:
                     log(f"Syncing shard to Google Drive (Aperta/): {shard_name}...")
                     upload_res = drive_sync.sync_shard(shard_path, purge_on_success=True)
@@ -190,7 +213,10 @@ def main():
                             verified_md5=upload_res.get("md5"),
                         )
                         log(f"Shard uploaded & verified: {shard_name} (Drive ID: {upload_res['file_id']})")
+                except EvidenceWriteError:
+                    raise
                 except Exception as ex:
+                    report_producer_error(ex)
                     log(f"Drive upload failed for {shard_name}: {ex}", level="WARN")
 
     sharder = ApertaParquetSharder(
@@ -198,6 +224,7 @@ def main():
         max_part_bytes=args.shard_size_mb * 1024 * 1024,
         max_part_entries=args.max_shard_records,
         batch_size=args.batch_size,
+        start_part_idx=next_part_index(args.output_dir, 'aperta', ledger.get_next_part_index()),
         on_shard_completed=on_shard_sealed,
     )
 
@@ -213,7 +240,18 @@ def main():
         return
 
     # Determine starting token for OAI
+    if checkpoint:
+        while True:
+            recovered = ledger.get_unsharded_records(limit=min(max(args.max_shard_records or 50000, 1), 50000))
+            if not recovered:
+                break
+            for record in recovered:
+                active_batch_ids.append(str(record['id']))
+                sharder.append_record(record)
+            sharder.close_shard()
     token = args.resumption_token
+    if checkpoint and token is None:
+        token = (checkpoint.state['state_payload'].get('cursor') or {}).get('oai_token')
     if not token and args.auto_resume:
         token_info = ledger.get_resumption_token()
         if token_info and token_info.get("token"):
@@ -225,16 +263,23 @@ def main():
     records_processed = 0
     records_indexed = 0
     start_time = time.time()
+    snapshot_finished = False
+    stopper = current_stopper()
     try:
         if args.method == "oai":
             current_token = token
             while True:
+                if stopper and stopper.should_stop()[0]:
+                    break
                 try:
                     records, next_token, cursor, total = downloader.fetch_oai_page(
                         resumption_token=current_token,
                         metadata_prefix=args.metadata_prefix,
                     )
+                except EvidenceWriteError:
+                    raise
                 except Exception as ex:
+                    report_producer_error(ex)
                     if "422" in str(ex) and current_token:
                         log(f"Resumption token expired or invalid (HTTP 422). Resetting checkpoint to restart clean.", level="WARN")
                         ledger.save_resumption_token(None, cursor=0, total=0)
@@ -254,16 +299,24 @@ def main():
                     records_processed += 1
                     if cleaned:
                         batch_cleaned.append(cleaned)
+                    elif stopper:
+                        stopper.record_error()
 
                 if batch_cleaned and not args.dry_run:
                     ledger.upsert_records(batch_cleaned)
                     records_indexed += len(batch_cleaned)
                     for r in batch_cleaned:
                         active_batch_ids.append(str(r["id"]))
+                        record_output(r, getattr(downloader, "raw_evidence", None))
                         sharder.append_record(r)
 
+                if stopper:
+                    stopper.record_processed(len(records))
                 if not args.dry_run:
                     ledger.save_resumption_token(next_token, cursor=cursor, total=total)
+                    if checkpoint:
+                        checkpoint.advance({'oai_token': next_token, 'records': cursor,
+                                            'total': total})
 
                 elapsed = time.time() - start_time
                 rate = records_processed / elapsed if elapsed > 0 else 0
@@ -275,6 +328,7 @@ def main():
 
                 if not next_token:
                     log("Reached end of OAI-PMH repository (no further resumptionToken).")
+                    snapshot_finished = True
                     break
 
                 current_token = next_token
@@ -283,6 +337,8 @@ def main():
             page = 1
             page_size = min(100, args.batch_size)
             while True:
+                if stopper and stopper.should_stop()[0]:
+                    break
                 res = downloader.search_rest(query=args.query, page=page, size=page_size)
                 hits_obj = res.get("hits", {})
                 hits = hits_obj.get("hits", [])
@@ -298,14 +354,19 @@ def main():
                     records_processed += 1
                     if cleaned:
                         batch_cleaned.append(cleaned)
+                    elif stopper:
+                        stopper.record_error()
 
                 if batch_cleaned and not args.dry_run:
                     ledger.upsert_records(batch_cleaned)
                     records_indexed += len(batch_cleaned)
                     for r in batch_cleaned:
                         active_batch_ids.append(str(r["id"]))
+                        record_output(r, getattr(downloader, "raw_evidence", None))
                         sharder.append_record(r)
 
+                if stopper:
+                    stopper.record_processed(len(hits))
                 elapsed = time.time() - start_time
                 rate = records_processed / elapsed if elapsed > 0 else 0
                 log(f"REST page {page}: processed {records_processed:,} records (total hits: {total:,}, rate: {rate:.1f} rec/s)")
@@ -324,6 +385,10 @@ def main():
             final_shards = sharder.close()
             if final_shards:
                 log(f"Closed final {len(final_shards)} Parquet shards.")
+            if drive_sync and getattr(args, "async_upload", False):
+                drive_sync.close_uploads()
+            if checkpoint and snapshot_finished:
+                checkpoint.complete()
         elapsed = time.time() - start_time
         log(f"Aperta pipeline finished. Total records: {records_processed:,}, Indexed: {records_indexed:,}, Elapsed: {elapsed:.1f}s")
 
